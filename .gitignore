@@ -1,0 +1,7 @@
+/.idea
+/.vscode
+/vendor
+*.iml
+.DS_Store
+room
+room.exe
