@@ -44,11 +44,11 @@ func main() {
 
 	// API定義 (/api)
 	api := e.Group("/api", traQUserMiddleware)
-	api.GET("hello", GetHello) // テスト用
+	api.GET("/hello", GetHello) // テスト用
 
 	// 管理者専用API定義 (/api/admin)
 	adminApi := api.Group("/admin", adminUserMiddleware)
-	adminApi.GET("hello", GetHello) // テスト用
+	adminApi.GET("/hello", GetHello) // テスト用
 
 	// サーバースタート
 	go func() {
