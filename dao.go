@@ -10,3 +10,18 @@ func getUser(id string) (*User, error) {
 	}
 	return &user, nil
 }
+
+// changeUserToAdmin ユーザーの管理者権限の有無を変更します
+func changeUserToAdmin(id string, isAdmin bool) error {
+	// ユーザー取得
+	user, err := getUser(id)
+	if err != nil {
+		return err
+	}
+
+	// 変更
+	if err := db.Model(user).Update("admin", isAdmin).Error; err != nil {
+		return err
+	}
+	return nil
+}
