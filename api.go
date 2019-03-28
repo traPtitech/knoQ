@@ -23,10 +23,6 @@ func SaveRoom(c echo.Context) error {
 	if err := db.Create(&r).Error; err != nil {
 		return err
 	}
-
-	if err := db.Last(&r).Error; err != nil {
-		return err
-	}
 	return c.JSON(http.StatusOK, r)
 }
 
@@ -43,12 +39,12 @@ func DeleteRoom(c echo.Context) error {
 	r.ID, _ = strconv.Atoi(c.Param("roomid"))
 
 	if err := db.First(&r, r.ID).Error; err != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return c.NoContent(http.StatusNotFound)
 	}
 
 	err := db.Delete(&r)
 	if err.Error != nil {
-		return c.NoContent(http.StatusBadRequest)
+		return c.NoContent(http.StatusNotFound)
 	}
 
 	return c.NoContent(http.StatusOK)
