@@ -28,9 +28,27 @@ func SaveRoom(c echo.Context) error {
 
 func GetRooms(c echo.Context) error {
 	r := []Room{}
-	if err := db.Find(&r).Error; err != nil {
-		return err
+	begin := c.QueryParam("date_begin")
+	end := c.QueryParam("date_end")
+
+	if begin == "" && end == "" {
+		if err := db.Find(&r).Error; err != nil {
+			return err
+		}
+	}else if end == ""{
+		if err := db.Where("date >= ?", begin).Find(&r).Error; err != nil {
+			return err
+		} 
+	}else if begin == ""{
+		if err := db.Where("date <= ?", end).Find(&r).Error; err != nil {
+			return err
+		} 	
+	}else {
+		if err := db.Where("date BETWEEN ? AND ?", begin, end).Find(&r).Error; err != nil {
+			return err
+		}
 	}
+
 	return c.JSON(http.StatusOK, r)
 }
 

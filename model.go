@@ -20,7 +20,7 @@ type User struct {
 type Room struct {
 	ID            int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
 	Place         string    `json:"place"`
-	Date          string    `json:"date"`
+	Date          string    `json:"date" gorm:"TIMESTAMP"`
 	DateTimeStart string    `json:"dateTimeStart"`
 	DateTimeEnd   string    `json:"dateTimeEnd"`
 	CreatedAt     time.Time `json:"created_at"`
