@@ -46,12 +46,12 @@ func main() {
 	api := e.Group("/api", traQUserMiddleware)
 	api.GET("/hello", GetHello) // テスト用
 	api.GET("/rooms", GetRooms)
-	api.DELETE("/rooms/:roomid", DeleteRoom)
 
 	// 管理者専用API定義 (/api/admin)
 	adminApi := api.Group("/admin", adminUserMiddleware)
 	adminApi.GET("/hello", GetHello) // テスト用
 	adminApi.POST("/rooms", SaveRoom)
+	adminApi.DELETE("/rooms/:roomid", DeleteRoom)
 
 	// サーバースタート
 	go func() {
