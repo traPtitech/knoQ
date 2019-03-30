@@ -25,3 +25,13 @@ func changeUserToAdmin(id string, isAdmin bool) error {
 	}
 	return nil
 }
+
+// checkMembers
+func checkMembers (group *Group) error{
+	for _, u := range group.Members{
+		if err := db.Where("traq_id = ?", u.TRAQID).First(&u).Error; err != nil{
+			return err
+		}
+	}
+	return nil
+}

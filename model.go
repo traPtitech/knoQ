@@ -6,12 +6,13 @@ import "time"
 var tables = []interface{}{
 	User{},
 	Room{},
+	Group{},
 }
 
 // User traQユーザー情報構造体
 type User struct {
 	// TRAQID traQID
-	TRAQID string `gorm:"type:varchar(32);primary_key"`
+	TRAQID string `json:"traq_id" gorm:"type:varchar(32);primary_key"`
 	// Admin 管理者かどうか
 	Admin bool
 }
@@ -25,4 +26,12 @@ type Room struct {
 	DateTimeEnd   string    `json:"dateTimeEnd"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+// Group グループ情報
+type Group struct {
+	ID        int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
+	Members   []User    `json:"members" gorm:"many2many:groups_users"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
