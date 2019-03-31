@@ -16,6 +16,7 @@ func GetHello(c echo.Context) error {
 
 // RoomsAPI
 
+// PostRoom traPで確保した部屋情報を作成
 func PostRoom(c echo.Context) error {
 	r := new(Room)
 	if err := c.Bind(r); err != nil {
@@ -28,6 +29,7 @@ func PostRoom(c echo.Context) error {
 	return c.JSON(http.StatusOK, r)
 }
 
+// GetRooms traPで確保した部屋情報を取得
 func GetRooms(c echo.Context) error {
 	r := []Room{}
 	begin := c.QueryParam("date_begin")
@@ -54,6 +56,7 @@ func GetRooms(c echo.Context) error {
 	return c.JSON(http.StatusOK, r)
 }
 
+// DeleteRoom traPで確保した部屋情報を削除
 func DeleteRoom(c echo.Context) error {
 	r := new(Room)
 	r.ID, _ = strconv.Atoi(c.Param("roomid"))
@@ -72,6 +75,7 @@ func DeleteRoom(c echo.Context) error {
 
 // groupsAPI
 
+// PostGroup グループを作成
 func PostGroup(c echo.Context) error {
 	g := new(Group)
 
@@ -91,6 +95,7 @@ func PostGroup(c echo.Context) error {
 	return c.JSON(http.StatusOK, g)
 }
 
+// GetGroups グループを取得
 func GetGroups(c echo.Context) error {
 	groups := []Group{}
 	traqID := c.QueryParam("userid")
@@ -115,6 +120,7 @@ func GetGroups(c echo.Context) error {
 	return c.JSON(http.StatusOK, resGroups)
 }
 
+// DeleteGroup グループを削除
 func DeleteGroup(c echo.Context) error {
 	g := new(Group)
 	g.ID, _ = strconv.Atoi(c.Param("groupid"))
@@ -134,6 +140,7 @@ func DeleteGroup(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// UpdateGroup グループメンバーを更新
 func UpdateGroup(c echo.Context) error {
 	g := new(Group)
 
@@ -165,6 +172,7 @@ func UpdateGroup(c echo.Context) error {
 
 // resrvations API
 
+// PostReservation 部屋の使用宣言を作成
 func PostReservation(c echo.Context) error {
 	rv := new(Reservation)
 
@@ -195,6 +203,7 @@ func PostReservation(c echo.Context) error {
 	return c.JSON(http.StatusCreated, rv)
 }
 
+// GetReservations 部屋の使用宣言情報を取得
 func GetReservations(c echo.Context) error {
 	reservations := []Reservation{}
 	cmd := db
@@ -225,6 +234,7 @@ func GetReservations(c echo.Context) error {
 	return c.JSON(http.StatusOK, reservations)
 }
 
+// DeleteReservation 部屋の使用宣言を削除
 func DeleteReservation(c echo.Context) error {
 	rv := new(Reservation)
 	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
@@ -236,6 +246,7 @@ func DeleteReservation(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+// UpdateReservation 部屋、開始時刻、終了時刻を更新
 func UpdateReservation(c echo.Context) error {
 	rv := new(Reservation)
 
@@ -258,7 +269,7 @@ func UpdateReservation(c echo.Context) error {
 	rv.Date = r.Date[:10]
 
 	// roomid, timestart, timeendのみを変更
-	if err := db.Model(&rv).Update(Reservation{RoomID: rv.RoomID, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+	if err := db.Model(&rv).Update(Reservation{RoomID: rv.RoomID, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil{
 		return err
 	}
 
