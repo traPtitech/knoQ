@@ -14,6 +14,8 @@ func GetHello(c echo.Context) error {
 	return c.String(http.StatusOK, fmt.Sprintf("hello %s!", id)) // レスポンスを返す
 }
 
+// RoomsAPI
+
 func SaveRoom(c echo.Context) error {
 	r := new(Room)
 	if err := c.Bind(r); err != nil {
@@ -35,15 +37,15 @@ func GetRooms(c echo.Context) error {
 		if err := db.Find(&r).Error; err != nil {
 			return err
 		}
-	}else if end == ""{
+	} else if end == "" {
 		if err := db.Where("date >= ?", begin).Find(&r).Error; err != nil {
 			return err
-		} 
-	}else if begin == ""{
+		}
+	} else if begin == "" {
 		if err := db.Where("date <= ?", end).Find(&r).Error; err != nil {
 			return err
-		} 	
-	}else {
+		}
+	} else {
 		if err := db.Where("date BETWEEN ? AND ?", begin, end).Find(&r).Error; err != nil {
 			return err
 		}
@@ -159,4 +161,110 @@ func UpdateGroup(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, g)
+}
+
+// resrvations API
+
+func SaveReservation(c echo.Context) error {
+	rv := new(Reservation)
+
+	if err := c.Bind(&rv); err != nil {
+		return err
+	}
+
+	// groupがあるか
+	if err := checkGroup(rv.GroupID); err != nil {
+		return c.String(http.StatusBadRequest, "groupが存在しません"+fmt.Sprintln(rv.GroupID))
+	}
+	// roomがあるか
+	if err := checkRoom(rv.RoomID); err != nil {
+		return c.String(http.StatusBadRequest, "roomが存在しません")
+	}
+
+	// dateを代入
+	r := new(Room)
+	if err := db.First(&r, rv.RoomID).Error; err != nil {
+		return err
+	}
+	// r.Date = 2018-08-10T00:00:00+09:00
+	rv.Date = r.Date[:10]
+
+	if err := db.Create(&rv).Error; err != nil {
+		return err
+	}
+	return c.JSON(http.StatusCreated, rv)
+}
+
+func GetReservations(c echo.Context) error {
+	reservations := []Reservation{}
+	cmd := db
+	rv := new(Reservation)
+	/*
+		traqID := c.QueryParam("userid")
+		if traqID != "" {
+			cmd = cmd.Where("traq_id = ?", traqID)
+		}
+	*/
+
+	if c.QueryParam("groupid") != "" {
+		rv.GroupID, _ = strconv.Atoi(c.QueryParam("groupid"))
+		cmd = cmd.Where("group_id = ?", rv.GroupID)
+	}
+	begin := c.QueryParam("date_begin")
+	if begin != "" {
+		cmd = cmd.Where("date >= ?", begin)
+	}
+	end := c.QueryParam("date_end")
+	if end != "" {
+		cmd = cmd.Where("date <= ?", end)
+	}
+
+	if err := cmd.Find(&reservations).Error; err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, reservations)
+}
+
+func DeleteReservation(c echo.Context) error {
+	rv := new(Reservation)
+	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
+
+	if err := db.Delete(&rv).Error; err != nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func UpdateReservation(c echo.Context) error {
+	rv := new(Reservation)
+
+	if err := c.Bind(&rv); err != nil {
+		return err
+	}
+	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
+
+	// roomがあるか
+	if err := checkRoom(rv.RoomID); err != nil {
+		return c.String(http.StatusBadRequest, "roomが存在しません")
+	}
+
+	// dateを代入
+	r := new(Room)
+	if err := db.First(&r, rv.RoomID).Error; err != nil {
+		return err
+	}
+	// r.Date = 2018-08-10T00:00:00+09:00
+	rv.Date = r.Date[:10]
+
+	// roomid, timestart, timeendのみを変更
+	if err := db.Model(&rv).Update(Reservation{RoomID: rv.RoomID, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+		return err
+	}
+
+	if err := db.First(&rv, rv.ID).Error; err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, rv)
 }

@@ -7,6 +7,7 @@ var tables = []interface{}{
 	User{},
 	Room{},
 	Group{},
+	Reservation{},
 }
 
 // User traQユーザー情報構造体
@@ -19,19 +20,31 @@ type User struct {
 
 // Room 部屋情報
 type Room struct {
-	ID            int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
-	Place         string    `json:"place"`
-	Date          string    `json:"date" gorm:"TIMESTAMP"`
-	DateTimeStart string    `json:"dateTimeStart"`
-	DateTimeEnd   string    `json:"dateTimeEnd"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	ID        int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
+	Place     string    `json:"place"`
+	Date      string    `json:"date" gorm:"type:DATE"`
+	TimeStart string    `json:"time_start"`
+	TimeEnd   string    `json:"time_end"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // Group グループ情報
 type Group struct {
 	ID        int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
 	Members   []User    `json:"members" gorm:"many2many:groups_users"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// Reservation 予約情報
+type Reservation struct {
+	ID        int       `json:"id" gorm:"AUTO_INCREMENT"`
+	GroupID   int       `json:"group_id"`
+	RoomID    int       `json:"room_id"`
+	Date      string    `json:"date" gorm:"type:DATE"`
+	TimeStart string    `json:"time_start"`
+	TimeEnd   string    `json:"time_end"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
