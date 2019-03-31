@@ -47,13 +47,15 @@ func main() {
 	api.GET("/hello", GetHello) // テスト用
 	api.GET("/rooms", GetRooms)
 	api.GET("/groups", GetGroups)
-	api.POST("/groups", SaveGroup)
+	api.POST("/groups", PostGroup)
 	api.PATCH("/groups/:groupid", UpdateGroup)
+	api.GET("/reservations", GetReservations)
+	api.POST("reservations", PostReservation)
 
 	// 管理者専用API定義 (/api/admin)
 	adminApi := api.Group("/admin", adminUserMiddleware)
 	adminApi.GET("/hello", GetHello) // テスト用
-	adminApi.POST("/rooms", SaveRoom)
+	adminApi.POST("/rooms", PostRoom)
 	adminApi.DELETE("/rooms/:roomid", DeleteRoom)
 	adminApi.DELETE("/groups/:groupid", DeleteGroup)
 

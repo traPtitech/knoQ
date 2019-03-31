@@ -16,7 +16,7 @@ func GetHello(c echo.Context) error {
 
 // RoomsAPI
 
-func SaveRoom(c echo.Context) error {
+func PostRoom(c echo.Context) error {
 	r := new(Room)
 	if err := c.Bind(r); err != nil {
 		return err
@@ -72,7 +72,7 @@ func DeleteRoom(c echo.Context) error {
 
 // groupsAPI
 
-func SaveGroup(c echo.Context) error {
+func PostGroup(c echo.Context) error {
 	g := new(Group)
 
 	if err := c.Bind(&g); err != nil {
@@ -165,7 +165,7 @@ func UpdateGroup(c echo.Context) error {
 
 // resrvations API
 
-func SaveReservation(c echo.Context) error {
+func PostReservation(c echo.Context) error {
 	rv := new(Reservation)
 
 	if err := c.Bind(&rv); err != nil {
