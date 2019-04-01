@@ -59,7 +59,7 @@ func checkRoom(roomID int) error {
 	return nil
 }
 
-func getRooms(begin, end string) ([]Room, error) {
+func findRoomsByTime(begin, end string) ([]Room, error) {
 	rooms := []Room{}
 	cmd := db
 	if begin != "" {
@@ -75,7 +75,7 @@ func getRooms(begin, end string) ([]Room, error) {
 	return rooms, nil
 }
 
-func getUserBelongGroups(traqID string) ([]Group, error) {
+func findGroupsBelong(traqID string) ([]Group, error) {
 	groups := []Group{}
 	if err := db.Find(&groups).Error; err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
 	cmd := db
 	groupIDs := []int{}
 
-	groups, err := getUserBelongGroups(traqID)
+	groups, err := findGroupsBelong(traqID)
 	if err != nil {
 		return nil, err
 	}

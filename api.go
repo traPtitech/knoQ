@@ -35,7 +35,7 @@ func GetRooms(c echo.Context) error {
 	begin := c.QueryParam("date_begin")
 	end := c.QueryParam("date_end")
 
-	r, err := getRooms(begin, end)
+	r, err := findRoomsByTime(begin, end)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func GetGroups(c echo.Context) error {
 	groups := []Group{}
 	traqID := c.QueryParam("userid")
 
-	groups, err := getUserBelongGroups(traqID)
+	groups, err := findGroupsBelong(traqID)
 	if err != nil {
 		return err
 	}
