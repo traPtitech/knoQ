@@ -51,6 +51,8 @@ func main() {
 	api.PATCH("/groups/:groupid", UpdateGroup)
 	api.GET("/reservations", GetReservations)
 	api.POST("reservations", PostReservation)
+	api.DELETE("/reservations/:reservationid", DeleteReservation)
+	api.PATCH("/reservations/:reservationid", UpdateReservation)
 
 	// 管理者専用API定義 (/api/admin)
 	adminApi := api.Group("/admin", adminUserMiddleware)
