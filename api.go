@@ -35,22 +35,9 @@ func GetRooms(c echo.Context) error {
 	begin := c.QueryParam("date_begin")
 	end := c.QueryParam("date_end")
 
-	if begin == "" && end == "" {
-		if err := db.Find(&r).Error; err != nil {
-			return err
-		}
-	} else if end == "" {
-		if err := db.Where("date >= ?", begin).Find(&r).Error; err != nil {
-			return err
-		}
-	} else if begin == "" {
-		if err := db.Where("date <= ?", end).Find(&r).Error; err != nil {
-			return err
-		}
-	} else {
-		if err := db.Where("date BETWEEN ? AND ?", begin, end).Find(&r).Error; err != nil {
-			return err
-		}
+	r, err := getRooms(begin, end)
+	if err != nil {
+		return err
 	}
 
 	return c.JSON(http.StatusOK, r)
@@ -62,11 +49,10 @@ func DeleteRoom(c echo.Context) error {
 	r.ID, _ = strconv.Atoi(c.Param("roomid"))
 
 	if err := db.First(&r, r.ID).Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
+		return c.String(http.StatusNotFound, "部屋が存在しない")
 	}
 
-	err := db.Delete(&r)
-	if err.Error != nil {
+	if err := db.Delete(&r).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
@@ -100,24 +86,12 @@ func GetGroups(c echo.Context) error {
 	groups := []Group{}
 	traqID := c.QueryParam("userid")
 
-	if err := db.Find(&groups).Error; err != nil {
+	groups, err := getUserBelongGroups(traqID)
+	if err != nil {
 		return err
 	}
 
-	resGroups := []Group{}
-	for _, g := range groups {
-		if err := db.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
-			return err
-		}
-
-		for _, user := range g.Members {
-			if user.TRAQID == traqID || traqID == "" {
-				resGroups = append(resGroups, g)
-				break
-			}
-		}
-	}
-	return c.JSON(http.StatusOK, resGroups)
+	return c.JSON(http.StatusOK, groups)
 }
 
 // DeleteGroup グループを削除
@@ -206,31 +180,16 @@ func PostReservation(c echo.Context) error {
 // GetReservations 部屋の使用宣言情報を取得
 func GetReservations(c echo.Context) error {
 	reservations := []Reservation{}
-	cmd := db
-	rv := new(Reservation)
-	/*
-		traqID := c.QueryParam("userid")
-		if traqID != "" {
-			cmd = cmd.Where("traq_id = ?", traqID)
-		}
-	*/
 
-	if c.QueryParam("groupid") != "" {
-		rv.GroupID, _ = strconv.Atoi(c.QueryParam("groupid"))
-		cmd = cmd.Where("group_id = ?", rv.GroupID)
-	}
+	traqID := c.QueryParam("userid")
+	groupID := c.QueryParam("groupid")
 	begin := c.QueryParam("date_begin")
-	if begin != "" {
-		cmd = cmd.Where("date >= ?", begin)
-	}
 	end := c.QueryParam("date_end")
-	if end != "" {
-		cmd = cmd.Where("date <= ?", end)
-	}
-
-	if err := cmd.Find(&reservations).Error; err != nil {
+	reservations, err := findRvs(traqID, groupID, begin, end)
+	if err != nil {
 		return err
 	}
+
 	return c.JSON(http.StatusOK, reservations)
 }
 
@@ -269,7 +228,7 @@ func UpdateReservation(c echo.Context) error {
 	rv.Date = r.Date[:10]
 
 	// roomid, timestart, timeendのみを変更
-	if err := db.Model(&rv).Update(Reservation{RoomID: rv.RoomID, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil{
+	if err := db.Model(&rv).Update(Reservation{RoomID: rv.RoomID, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
 		return err
 	}
 
