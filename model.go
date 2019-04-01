@@ -32,6 +32,7 @@ type Room struct {
 // Group グループ情報
 type Group struct {
 	ID        int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
+	Name      string    `json:"name" gorm:"unique"`
 	Members   []User    `json:"members" gorm:"many2many:groups_users"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

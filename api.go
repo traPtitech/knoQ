@@ -75,7 +75,7 @@ func PostGroup(c echo.Context) error {
 	}
 
 	if err := db.Create(&g).Error; err != nil {
-		return err
+		return c.String(http.StatusBadRequest, fmt.Sprint(err))
 	}
 
 	return c.JSON(http.StatusOK, g)
@@ -114,7 +114,7 @@ func DeleteGroup(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// UpdateGroup グループメンバーを更新
+// UpdateGroup グループメンバー、グループ名を更新
 func UpdateGroup(c echo.Context) error {
 	g := new(Group)
 
