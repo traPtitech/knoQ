@@ -59,6 +59,27 @@ func checkRoom(roomID int) error {
 	return nil
 }
 
+// checkBelongToGroup ユーザーが予約したグループに属しているか調べます
+func checkBelongToGroup(reservationID int, traQID string) (bool, error) {
+	rv := new(Reservation)
+	g := new(Group)
+	rv.ID = reservationID
+	if err := db.First(&rv, rv.ID).Error; err != nil {
+		return false, err
+	}
+	g.ID = rv.GroupID
+	if err := db.First(&g, g.ID).Error; err != nil {
+		return false, err
+	}
+
+	for _, m := range g.Members {
+		if traQID == m.TRAQID {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func findRoomsByTime(begin, end string) ([]Room, error) {
 	rooms := []Room{}
 	cmd := db

@@ -198,6 +198,15 @@ func DeleteReservation(c echo.Context) error {
 	rv := new(Reservation)
 	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
 
+	traQID := getRequestUser(c)
+	belong, err := checkBelongToGroup(rv.ID, traQID)
+	if err != nil {
+		return err
+	}
+	if !belong {
+		return c.String(http.StatusForbidden, "削除できるのは所属ユーザーのみです。")
+	}
+
 	if err := db.Delete(&rv).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -213,6 +222,15 @@ func UpdateReservation(c echo.Context) error {
 		return err
 	}
 	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
+
+	traQID := getRequestUser(c)
+	belong, err := checkBelongToGroup(rv.ID, traQID)
+	if err != nil {
+		return err
+	}
+	if !belong {
+		return c.String(http.StatusForbidden, "変更できるのは所属ユーザーのみです。")
+	}
 
 	// roomがあるか
 	if err := checkRoom(rv.RoomID); err != nil {
