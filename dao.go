@@ -33,27 +33,30 @@ func changeUserToAdmin(id string, isAdmin bool) error {
 
 // checkMembers グループのメンバーがdbにいるか
 func checkMembers(group *Group) error {
-	for _, u := range group.Members {
-		if err := db.Where("traq_id = ?", u.TRAQID).First(&u).Error; err != nil {
+	for i := range group.Members {
+		if err := db.Where("traq_id = ?", group.Members[i].TRAQID).First(&group.Members[i]).Error; err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func checkGroup(groupID int) error {
-	g := new(Group)
-	g.ID = groupID
-	if err := db.First(&g, g.ID).Error; err != nil {
+func checkGroup(groupID int, group *Group) error {
+	group.ID = groupID
+	if err := db.First(&group, group.ID).Related(&group.Members, "Members").Error; err != nil {
 		return err
 	}
+
+	if err := db.Where("traq_id = ?", group.CreatedByRefer).First(&group.CreatedBy).Error; err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func checkRoom(roomID int) error {
-	r := new(Room)
-	r.ID = roomID
-	if err := db.First(&r, r.ID).Error; err != nil {
+func checkRoom(roomID int, room *Room) error {
+	room.ID = roomID
+	if err := db.First(&room, room.ID).Error; err != nil {
 		return err
 	}
 	return nil
@@ -67,7 +70,7 @@ func checkBelongToGroup(reservationID int, traQID string) (bool, error) {
 	if err := db.First(&rv, rv.ID).Error; err != nil {
 		return false, err
 	}
-	g.ID = rv.GroupID
+	g.ID = rv.Group.ID
 	if err := db.First(&g, g.ID).Error; err != nil {
 		return false, err
 	}

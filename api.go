@@ -69,6 +69,11 @@ func PostGroup(c echo.Context) error {
 		return err
 	}
 
+	g.CreatedByRefer = getRequestUser(c)
+	if err := db.Where("traq_id = ?", g.CreatedByRefer).First(&g.CreatedBy).Error; err != nil {
+		return err
+	}
+
 	// メンバーがdbにいるか
 	if err := checkMembers(g); err != nil {
 		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
@@ -154,12 +159,17 @@ func PostReservation(c echo.Context) error {
 		return err
 	}
 
+	rv.CreatedByRefer = getRequestUser(c)
+	if err := db.Where("traq_id = ?", rv.CreatedByRefer).First(&rv.CreatedBy).Error; err != nil {
+		return err
+	}
+
 	// groupがあるか
-	if err := checkGroup(rv.GroupID); err != nil {
+	if err := checkGroup(rv.GroupID, &rv.Group); err != nil {
 		return c.String(http.StatusBadRequest, "groupが存在しません"+fmt.Sprintln(rv.GroupID))
 	}
 	// roomがあるか
-	if err := checkRoom(rv.RoomID); err != nil {
+	if err := checkRoom(rv.RoomID, &rv.Room); err != nil {
 		return c.String(http.StatusBadRequest, "roomが存在しません")
 	}
 
@@ -170,6 +180,7 @@ func PostReservation(c echo.Context) error {
 	}
 	// r.Date = 2018-08-10T00:00:00+09:00
 	rv.Date = r.Date[:10]
+	rv.Room.Date = rv.Room.Date[:10]
 
 	if err := db.Create(&rv).Error; err != nil {
 		return err
@@ -233,7 +244,7 @@ func UpdateReservation(c echo.Context) error {
 	}
 
 	// roomがあるか
-	if err := checkRoom(rv.RoomID); err != nil {
+	if err := checkRoom(rv.RoomID, &rv.Room); err != nil {
 		return c.String(http.StatusBadRequest, "roomが存在しません")
 	}
 
@@ -246,7 +257,7 @@ func UpdateReservation(c echo.Context) error {
 	rv.Date = r.Date[:10]
 
 	// roomid, timestart, timeendのみを変更
-	if err := db.Model(&rv).Update(Reservation{RoomID: rv.RoomID, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+	if err := db.Model(&rv).Update(Reservation{Room: rv.Room, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
 		return err
 	}
 
