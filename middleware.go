@@ -13,7 +13,9 @@ func traQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Request().Header.Get("X-Showcase-User")
 		if len(id) == 0 || id == "-" {
-			return echo.NewHTTPError(http.StatusUnauthorized) // traQにログインが必要
+			// test用
+			id = "fuji"
+			// return echo.NewHTTPError(http.StatusUnauthorized) // traQにログインが必要
 		}
 		c.Set(traQID, id)
 		return next(c)
