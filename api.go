@@ -133,19 +133,27 @@ func UpdateGroup(c echo.Context) error {
 	}
 
 	g.ID, _ = strconv.Atoi(c.Param("groupid"))
+	if err := db.First(&g, g.ID).Error; err != nil {
+		return err
+	}
+	// 作成者を取得
+	if err := db.Where("traq_id = ?", g.CreatedByRefer).First(&g.CreatedBy).Error; err != nil {
+		return err
+	}
+	if getRequestUser(c) != g.CreatedByRefer {
+		return echo.NewHTTPError(http.StatusForbidden, "作成者ではない")
+	}
 
-	// メンバーを変更
+	// メンバーを置き換え
 	if err := db.Model(&g).Association("Members").Replace(g.Members).Error; err != nil {
 		return err
 	}
 
-	if err := db.Save(&g).Error; err != nil {
+	// グループ名を変更
+	if err := db.Model(&g).Update("name", g.Name).Error; err != nil {
 		return err
 	}
 
-	if err := db.First(&g, g.ID).Error; err != nil {
-		return err
-	}
 	return c.JSON(http.StatusOK, g)
 }
 
