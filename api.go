@@ -70,12 +70,12 @@ func PostGroup(c echo.Context) error {
 	}
 
 	g.CreatedByRefer = getRequestUser(c)
-	if err := db.Where("traq_id = ?", g.CreatedByRefer).First(&g.CreatedBy).Error; err != nil {
+	if err := g.AddCreatedBy(); err != nil {
 		return err
 	}
 
 	// メンバーがdbにいるか
-	if err := checkMembers(g); err != nil {
+	if err := g.findMembers(); err != nil {
 		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
 	}
 
@@ -83,7 +83,7 @@ func PostGroup(c echo.Context) error {
 		return c.String(http.StatusBadRequest, fmt.Sprint(err))
 	}
 
-	return c.JSON(http.StatusOK, g)
+	return c.JSON(http.StatusCreated, g)
 }
 
 // GetGroups グループを取得
@@ -128,16 +128,16 @@ func UpdateGroup(c echo.Context) error {
 	}
 
 	// メンバーがdbにいるか
-	if err := checkMembers(g); err != nil {
+	if err := g.findMembers(); err != nil {
 		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
 	}
 
 	g.ID, _ = strconv.Atoi(c.Param("groupid"))
 	if err := db.First(&g, g.ID).Error; err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusNotFound, "アクセスしたgroupIDは存在しない")
 	}
 	// 作成者を取得
-	if err := db.Where("traq_id = ?", g.CreatedByRefer).First(&g.CreatedBy).Error; err != nil {
+	if err := g.AddCreatedBy(); err != nil {
 		return err
 	}
 	if getRequestUser(c) != g.CreatedByRefer {
@@ -168,16 +168,16 @@ func PostReservation(c echo.Context) error {
 	}
 
 	rv.CreatedByRefer = getRequestUser(c)
-	if err := db.Where("traq_id = ?", rv.CreatedByRefer).First(&rv.CreatedBy).Error; err != nil {
+	if err := rv.AddCreatedBy(); err != nil {
 		return err
 	}
 
-	// groupがあるか
-	if err := checkGroup(rv.GroupID, &rv.Group); err != nil {
+	// groupが存在するかチェックし依存関係を追加する
+	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
 		return c.String(http.StatusBadRequest, "groupが存在しません"+fmt.Sprintln(rv.GroupID))
 	}
-	// roomがあるか
-	if err := checkRoom(rv.RoomID, &rv.Room); err != nil {
+	// roomが存在するかチェックし依存関係を追加する
+	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
 		return c.String(http.StatusBadRequest, "roomが存在しません")
 	}
 
@@ -206,7 +206,7 @@ func GetReservations(c echo.Context) error {
 	end := c.QueryParam("date_end")
 	reservations, err := findRvs(traqID, groupID, begin, end)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusNotFound, "queryが正当でない")
 	}
 
 	return c.JSON(http.StatusOK, reservations)
@@ -220,7 +220,7 @@ func DeleteReservation(c echo.Context) error {
 	traQID := getRequestUser(c)
 	belong, err := checkBelongToGroup(rv.ID, traQID)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusNotFound, "reservationIDが正しくない")
 	}
 	if !belong {
 		return c.String(http.StatusForbidden, "削除できるのは所属ユーザーのみです。")
@@ -245,15 +245,14 @@ func UpdateReservation(c echo.Context) error {
 	traQID := getRequestUser(c)
 	belong, err := checkBelongToGroup(rv.ID, traQID)
 	if err != nil {
-		fmt.Println("I could not check", err)
-		return err
+		return echo.NewHTTPError(http.StatusNotFound, "reservationIDが正しくない")
 	}
 	if !belong {
 		return echo.NewHTTPError(http.StatusForbidden, "変更できるのは所属ユーザーのみです you are "+traQID)
 	}
 
 	// roomがあるか
-	if err := checkRoom(rv.RoomID, &rv.Room); err != nil {
+	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
 		return c.String(http.StatusBadRequest, "roomが存在しません")
 	}
 

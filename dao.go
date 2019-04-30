@@ -31,33 +31,13 @@ func changeUserToAdmin(id string, isAdmin bool) error {
 	return nil
 }
 
-// checkMembers グループのメンバーがdbにいるか
-func checkMembers(group *Group) error {
+// findMembers グループのメンバーがdbにいるか
+// traQIDをもとに探す
+func (group *Group) findMembers() error {
 	for i := range group.Members {
 		if err := db.Where("traq_id = ?", group.Members[i].TRAQID).First(&group.Members[i]).Error; err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func checkGroup(groupID int, group *Group) error {
-	group.ID = groupID
-	if err := db.First(&group, group.ID).Related(&group.Members, "Members").Error; err != nil {
-		return err
-	}
-
-	if err := db.Where("traq_id = ?", group.CreatedByRefer).First(&group.CreatedBy).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func checkRoom(roomID int, room *Room) error {
-	room.ID = roomID
-	if err := db.First(&room, room.ID).Error; err != nil {
-		return err
 	}
 	return nil
 }
@@ -184,7 +164,7 @@ func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
 	return reservations, nil
 }
 
-// AddRelation add members and created_by
+// AddRelation add members and created_by by GroupID
 func (group *Group) AddRelation(GroupID int) error {
 	if err := db.First(&group, GroupID).Related(&group.Members, "Members").Error; err != nil {
 		return err
@@ -206,6 +186,15 @@ func (group *Group) AddCreatedBy() error {
 // AddCreatedBy add CreatedBy
 func (reservation *Reservation) AddCreatedBy() error {
 	if err := db.Where("traq_id = ?", reservation.CreatedByRefer).First(&reservation.CreatedBy).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// AddRelation add room by RoomID
+func (room *Room) AddRelation(roomID int) error {
+	room.ID = roomID
+	if err := db.First(&room, room.ID).Error; err != nil {
 		return err
 	}
 	return nil
