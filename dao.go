@@ -101,16 +101,22 @@ func findRoomsByTime(begin, end string) ([]Room, error) {
 
 func findGroupsBelong(traqID string) ([]Group, error) {
 	groups := []Group{}
+	// groupsを全取得
 	if err := db.Find(&groups).Error; err != nil {
 		return nil, err
 	}
 	resGroups := []Group{}
 	for _, g := range groups {
+		// membersを紐付ける
 		if err := db.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
 			return nil, err
 		}
 		for _, user := range g.Members {
+			// requestに合ったtraQIDのみを追加する
 			if user.TRAQID == traqID || traqID == "" {
+				if err := db.Where("traq_id = ?", g.CreatedByRefer).First(&g.CreatedBy).Error; err != nil {
+					return nil, err
+				}
 				resGroups = append(resGroups, g)
 				break
 			}
