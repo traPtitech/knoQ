@@ -163,5 +163,28 @@ func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
 	if err := cmd.Find(&reservations).Error; err != nil {
 		return nil, err
 	}
+	// relationの追加
+	for i := range reservations {
+		group := &reservations[i].Group
+		room := &reservations[i].Room
+		// group
+		if err := db.First(&group, reservations[i].GroupID).Related(&group.Members, "Members").Error; err != nil {
+			return nil, err
+		}
+		if err := db.Where("traq_id = ?", group.CreatedByRefer).First(&group.CreatedBy).Error; err != nil {
+			return nil, err
+		}
+
+		// room
+		if err := db.First(&room, reservations[i].RoomID).Error; err != nil {
+			return nil, err
+		}
+
+		// createdBy
+		if err := db.Where("traq_id = ?", reservations[i].CreatedByRefer).First(&reservations[i].CreatedBy).Error; err != nil {
+			return nil, err
+		}
+	}
+
 	return reservations, nil
 }
