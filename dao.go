@@ -148,7 +148,9 @@ func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
 		group := &reservations[i].Group
 		room := &reservations[i].Room
 		// group
-		group.AddRelation(reservations[i].GroupID)
+		if err := group.AddRelation(reservations[i].GroupID); err != nil {
+			return nil, err
+		}
 
 		// room
 		if err := db.First(&room, reservations[i].RoomID).Error; err != nil {

@@ -51,6 +51,10 @@ func DeleteRoom(c echo.Context) error {
 	if err := db.First(&r, r.ID).Error; err != nil {
 		return c.String(http.StatusNotFound, "部屋が存在しない")
 	}
+	// 関連する予約を削除する
+	if err := db.Where("room_id = ?", r.ID).Delete(&Reservation{}).Error; err != nil {
+		fmt.Println(err)
+	}
 
 	if err := db.Delete(&r).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
@@ -108,8 +112,13 @@ func DeleteGroup(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 
+	// relationを削除
 	if err := db.Model(&g).Association("Members").Clear().Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
+	}
+	// 予約情報を削除
+	if err := db.Where("group_id = ?", g.ID).Delete(&Reservation{}).Error; err != nil {
+		fmt.Println(err)
 	}
 
 	if err := db.Delete(&g).Error; err != nil {
