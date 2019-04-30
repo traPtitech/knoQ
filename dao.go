@@ -70,8 +70,8 @@ func checkBelongToGroup(reservationID int, traQID string) (bool, error) {
 	if err := db.First(&rv, rv.ID).Error; err != nil {
 		return false, err
 	}
-	g.ID = rv.Group.ID
-	if err := db.First(&g, g.ID).Error; err != nil {
+	g.ID = rv.GroupID
+	if err := db.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
 		return false, err
 	}
 
@@ -168,12 +168,7 @@ func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
 		group := &reservations[i].Group
 		room := &reservations[i].Room
 		// group
-		if err := db.First(&group, reservations[i].GroupID).Related(&group.Members, "Members").Error; err != nil {
-			return nil, err
-		}
-		if err := db.Where("traq_id = ?", group.CreatedByRefer).First(&group.CreatedBy).Error; err != nil {
-			return nil, err
-		}
+		group.AddRelation(reservations[i].GroupID)
 
 		// room
 		if err := db.First(&room, reservations[i].RoomID).Error; err != nil {
@@ -187,4 +182,31 @@ func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
 	}
 
 	return reservations, nil
+}
+
+// AddRelation add members and created_by
+func (group *Group) AddRelation(GroupID int) error {
+	if err := db.First(&group, GroupID).Related(&group.Members, "Members").Error; err != nil {
+		return err
+	}
+	if err := group.AddCreatedBy(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// AddCreatedBy add CreatedBy
+func (group *Group) AddCreatedBy() error {
+	if err := db.Where("traq_id = ?", group.CreatedByRefer).First(&group.CreatedBy).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// AddCreatedBy add CreatedBy
+func (reservation *Reservation) AddCreatedBy() error {
+	if err := db.Where("traq_id = ?", reservation.CreatedByRefer).First(&reservation.CreatedBy).Error; err != nil {
+		return err
+	}
+	return nil
 }

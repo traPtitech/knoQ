@@ -245,10 +245,11 @@ func UpdateReservation(c echo.Context) error {
 	traQID := getRequestUser(c)
 	belong, err := checkBelongToGroup(rv.ID, traQID)
 	if err != nil {
+		fmt.Println("I could not check", err)
 		return err
 	}
 	if !belong {
-		return c.String(http.StatusForbidden, "変更できるのは所属ユーザーのみです。")
+		return echo.NewHTTPError(http.StatusForbidden, "変更できるのは所属ユーザーのみです you are "+traQID)
 	}
 
 	// roomがあるか
@@ -256,21 +257,26 @@ func UpdateReservation(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "roomが存在しません")
 	}
 
-	// dateを代入
-	r := new(Room)
-	if err := db.First(&r, rv.RoomID).Error; err != nil {
-		return err
-	}
 	// r.Date = 2018-08-10T00:00:00+09:00
-	rv.Date = r.Date[:10]
+	rv.Room.Date = rv.Room.Date[:10]
+	rv.Date = rv.Room.Date
 
-	// roomid, timestart, timeendのみを変更
-	if err := db.Model(&rv).Update(Reservation{Room: rv.Room, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+	// roomid, timestart, timeendのみを変更(roomidに伴ってdateの変更する)
+	if err := db.Model(&rv).Update(Reservation{RoomID: rv.RoomID, Date: rv.Date, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+		fmt.Println("DB could not be updated")
 		return err
 	}
 
 	if err := db.First(&rv, rv.ID).Error; err != nil {
 		return err
+	}
+
+	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "GroupRelationを追加できませんでした")
+	}
+
+	if err := rv.AddCreatedBy(); err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "ReservationCreatedByを追加できませんでした")
 	}
 
 	return c.JSON(http.StatusOK, rv)
