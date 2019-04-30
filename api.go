@@ -89,7 +89,7 @@ func PostGroup(c echo.Context) error {
 // GetGroups グループを取得
 func GetGroups(c echo.Context) error {
 	groups := []Group{}
-	traqID := c.QueryParam("userid")
+	traqID := c.QueryParam("traQID")
 
 	groups, err := findGroupsBelong(traqID)
 	if err != nil {
@@ -200,7 +200,7 @@ func PostReservation(c echo.Context) error {
 func GetReservations(c echo.Context) error {
 	reservations := []Reservation{}
 
-	traqID := c.QueryParam("userid")
+	traqID := c.QueryParam("traQID")
 	groupID := c.QueryParam("groupid")
 	begin := c.QueryParam("date_begin")
 	end := c.QueryParam("date_end")
