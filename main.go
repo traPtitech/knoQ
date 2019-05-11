@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 	"log"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 var (
@@ -45,6 +46,8 @@ func main() {
 	// API定義 (/api)
 	api := e.Group("/api", traQUserMiddleware)
 	api.GET("/hello", GetHello) // テスト用
+	api.GET("/users", GetUsers)
+	api.GET("/users/me", GetUserMe)
 	api.GET("/rooms", GetRooms)
 	api.GET("/groups", GetGroups)
 	api.POST("/groups", PostGroup)

@@ -14,6 +14,25 @@ func GetHello(c echo.Context) error {
 	return c.String(http.StatusOK, fmt.Sprintf("hello %s!", id)) // レスポンスを返す
 }
 
+// GetUserMe ヘッダー情報からuser情報を取得
+func GetUserMe(c echo.Context) error {
+	traQID := getRequestUser(c)
+	user, err := getUser(traQID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, user)
+}
+
+// GetUsers ユーザーすべてを取得
+func GetUsers(c echo.Context) error {
+	users := []User{}
+	if err := db.Find(&users).Error; err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, users)
+}
+
 // RoomsAPI
 
 // PostRoom traPで確保した部屋情報を作成
