@@ -21,10 +21,10 @@ type User struct {
 // Room 部屋情報
 type Room struct {
 	ID        int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
-	Place     string    `json:"place"`
-	Date      string    `json:"date" gorm:"type:DATE"`
-	TimeStart string    `json:"time_start" gorm:"type:TIME"`
-	TimeEnd   string    `json:"time_end" gorm:"type:TIME"`
+	Place     string    `json:"place" gorm:"unique_index:idx_room_unique"`
+	Date      string    `json:"date" gorm:"type:DATE; unique_index:idx_room_unique"`
+	TimeStart string    `json:"time_start" gorm:"type:TIME; unique_index:idx_room_unique"`
+	TimeEnd   string    `json:"time_end" gorm:"type:TIME; unique_index:idx_room_unique"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

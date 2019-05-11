@@ -43,6 +43,9 @@ func main() {
 	e.Use(middleware.Secure())
 	e.Use(middleware.Static("./web/dist"))
 
+	// 講義室追加
+	getEvents()
+
 	// API定義 (/api)
 	api := e.Group("/api", traQUserMiddleware)
 	api.GET("/hello", GetHello) // テスト用
