@@ -131,7 +131,7 @@ func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
 	cmd = cmd.Where("group_id in (?)", groupIDs)
 
 	if begin != "" {
-		cmd = cmd.Where("date > ?", begin)
+		cmd = cmd.Where("date >= ?", begin)
 		fmt.Println(begin)
 	}
 	if end != "" {
