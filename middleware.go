@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -15,9 +16,11 @@ func traQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if len(id) == 0 || id == "-" {
 			// test用
 			id = "fuji"
-			// return echo.NewHTTPError(http.StatusUnauthorized) // traQにログインが必要
 		}
 		c.Set(traQID, id)
+		// DBにログインしたユーザーを追加する
+		u, _ := getUser(id)
+		log.Println(u)
 		return next(c)
 	}
 }
