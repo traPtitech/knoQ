@@ -33,6 +33,7 @@ type Room struct {
 type Group struct {
 	ID             int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
 	Name           string    `json:"name" gorm:"unique"`
+	Description    string    `json:"description"`
 	Members        []User    `json:"members" gorm:"many2many:group_users"`
 	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer"`
 	CreatedByRefer string    `json:"created_by_refer"`
@@ -43,6 +44,8 @@ type Group struct {
 // Reservation 予約情報
 type Reservation struct {
 	ID             int       `json:"id" gorm:"AUTO_INCREMENT"`
+	Name           string    `json:"name"`
+	Description    string    `json:"description"`
 	GroupID        int       `json:"group_id"`
 	Group          Group     `json:"group" gorm:"foreignkey:group_id"`
 	RoomID         int       `json:"room_id"`
