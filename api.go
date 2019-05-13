@@ -50,8 +50,11 @@ func PostRoom(c echo.Context) error {
 
 // SetRooms Googleカレンダーから部屋情報を作成
 func SetRooms(c echo.Context) error {
-	getEvents()
-	return nil
+	rooms, err := getEvents()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+	return c.JSON(http.StatusCreated, rooms)
 }
 
 // GetRooms traPで確保した部屋情報を取得

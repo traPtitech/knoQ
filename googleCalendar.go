@@ -70,7 +70,7 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func getEvents() {
+func getEvents() ([]Room, error) {
 	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
@@ -96,6 +96,7 @@ func getEvents() {
 		log.Fatalf("Unable to retrieve next ten of the user's events: %v", err)
 	}
 	fmt.Println("Upcoming events:")
+	rooms := []Room{}
 	if len(events.Items) == 0 {
 		fmt.Println("No upcoming events found.")
 	} else {
@@ -104,7 +105,6 @@ func getEvents() {
 			if date == "" {
 				date = item.Start.Date
 			}
-			// fmt.Printf("Location:%v, Date:%v, Start:%v, End:%v\n", item.Location, date, item.Start.DateTime, item.End.DateTime)
 			room := Room{
 				Place:     item.Location,
 				Date:      date[:10],
@@ -112,8 +112,14 @@ func getEvents() {
 				TimeEnd:   item.End.DateTime[11:16],
 			}
 			if err := db.Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE place=place").Create(&room).Error; err != nil {
-				fmt.Println("DB error")
+				return nil, err
 			}
+			// 被りはIDが0で返ってくるらしい
+			if room.ID != 0 {
+				rooms = append(rooms, room)
+			}
+
 		}
 	}
+	return rooms, nil
 }
