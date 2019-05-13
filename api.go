@@ -48,6 +48,12 @@ func PostRoom(c echo.Context) error {
 	return c.JSON(http.StatusOK, r)
 }
 
+// SetRooms Googleカレンダーから部屋情報を作成
+func SetRooms(c echo.Context) error {
+	getEvents()
+	return nil
+}
+
 // GetRooms traPで確保した部屋情報を取得
 func GetRooms(c echo.Context) error {
 	r := []Room{}

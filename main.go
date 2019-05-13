@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"time"
@@ -43,8 +44,12 @@ func main() {
 	e.Use(middleware.Secure())
 	e.Use(middleware.Static("./web/dist"))
 
-	// 講義室追加
-	getEvents()
+	// headerの追加のため
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+		ExposeHeaders: []string{"X-Showcase-User"},
+	}))
 
 	// API定義 (/api)
 	api := e.Group("/api", traQUserMiddleware)
@@ -56,16 +61,17 @@ func main() {
 	api.POST("/groups", PostGroup)
 	api.PATCH("/groups/:groupid", UpdateGroup)
 	api.GET("/reservations", GetReservations)
-	api.POST("reservations", PostReservation)
+	api.POST("/reservations", PostReservation)
 	api.DELETE("/reservations/:reservationid", DeleteReservation)
 	api.PATCH("/reservations/:reservationid", UpdateReservation)
 
 	// 管理者専用API定義 (/api/admin)
-	adminApi := api.Group("/admin", adminUserMiddleware)
-	adminApi.GET("/hello", GetHello) // テスト用
-	adminApi.POST("/rooms", PostRoom)
-	adminApi.DELETE("/rooms/:roomid", DeleteRoom)
-	adminApi.DELETE("/groups/:groupid", DeleteGroup)
+	adminAPI := api.Group("/admin", adminUserMiddleware)
+	adminAPI.GET("/hello", GetHello) // テスト用
+	adminAPI.POST("/rooms", PostRoom)
+	adminAPI.POST("/rooms/all", SetRooms)
+	adminAPI.DELETE("/rooms/:roomid", DeleteRoom)
+	adminAPI.DELETE("/groups/:groupid", DeleteGroup)
 
 	// サーバースタート
 	go func() {
