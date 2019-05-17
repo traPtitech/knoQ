@@ -5,6 +5,7 @@
 .DS_Store
 room
 room.exe
+debug
 # Google Calendar
 credentials.json
 token.json
