@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -18,9 +17,6 @@ func traQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			id = "fuji"
 		}
 		c.Set(traQID, id)
-		// DBにログインしたユーザーを追加する
-		u, _ := getUser(id)
-		log.Println(u)
 		return next(c)
 	}
 }
