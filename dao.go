@@ -80,29 +80,38 @@ func findRoomsByTime(begin, end string) ([]Room, error) {
 }
 
 func findGroupsBelong(traqID string) ([]Group, error) {
-	groups := []Group{}
-	// groupsを全取得
-	if err := db.Find(&groups).Error; err != nil {
-		return nil, err
-	}
-	resGroups := []Group{}
-	for _, g := range groups {
-		// membersを紐付ける
-		if err := db.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
+
+	groups := make([]Group, 3)
+	if traqID != "" {
+		// traqIDが存在するグループのを取得
+		if err := db.Raw("SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id =  ?", traqID).Scan(&groups).Error; err != nil {
+			fmt.Println(err)
 			return nil, err
 		}
-		for _, user := range g.Members {
-			// requestに合ったtraQIDのみを追加する
-			if user.TRAQID == traqID || traqID == "" {
-				if err := db.Where("traq_id = ?", g.CreatedByRefer).First(&g.CreatedBy).Error; err != nil {
-					return nil, err
-				}
-				resGroups = append(resGroups, g)
-				break
+		for i := range groups {
+			g := &groups[i]
+			// membersを紐付ける
+			if err := db.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
+				return nil, err
 			}
 		}
+	} else {
+		if err := db.Preload("Members").Find(&groups).Error; err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
 	}
-	return resGroups, nil
+
+	for i := range groups {
+		g := &groups[i]
+		if err := g.AddCreatedBy(); err != nil {
+			return nil, err
+		}
+	}
+
+	return groups, nil
+
+	// SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id = "fuji"
 }
 
 func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
