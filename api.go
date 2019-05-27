@@ -121,9 +121,9 @@ func PostGroup(c echo.Context) error {
 // GetGroups グループを取得
 func GetGroups(c echo.Context) error {
 	groups := []Group{}
-	traqID := c.QueryParam("traQID")
+	values := c.QueryParams()
 
-	groups, err := findGroupsBelong(traqID)
+	groups, err := findGroups(values)
 	if err != nil {
 		return err
 	}
@@ -237,11 +237,9 @@ func PostReservation(c echo.Context) error {
 func GetReservations(c echo.Context) error {
 	reservations := []Reservation{}
 
-	traqID := c.QueryParam("traQID")
-	groupID := c.QueryParam("groupid")
-	begin := c.QueryParam("date_begin")
-	end := c.QueryParam("date_end")
-	reservations, err := findRvs(traqID, groupID, begin, end)
+	values := c.QueryParams()
+
+	reservations, err := findRvs(values)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "queryが正当でない")
 	}

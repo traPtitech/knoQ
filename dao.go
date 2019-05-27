@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"net/url"
 	"strconv"
 )
 
@@ -79,19 +79,26 @@ func findRoomsByTime(begin, end string) ([]Room, error) {
 	return rooms, nil
 }
 
-func findGroupsBelong(traqID string) ([]Group, error) {
+func findGroups(values url.Values) ([]Group, error) {
 	groups := []Group{}
 	cmd := db.Preload("Members").Preload("CreatedBy")
-	if traqID != "" {
+
+	if values.Get("id") != "" {
+		id, _ := strconv.Atoi(values.Get("id"))
+		cmd = cmd.Where("id = ?", id)
+	}
+
+	if values.Get("name") != "" {
+		cmd = cmd.Where("name LIKE ?", "%"+values.Get("name")+"%")
+	}
+
+	if values.Get("traQID") != "" {
 		// traqIDが存在するグループを取得
-		if err := db.Raw("SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id =  ?", traqID).Scan(&groups).Error; err != nil {
+		groupsID, err := getGroupIDsBytraQID(values.Get("traQID"))
+		if err != nil {
 			return nil, err
 		}
-		groupID := make([]int, len(groups))
-		for i, g := range groups {
-			groupID[i] = g.ID
-		}
-		cmd = cmd.Where(groupID)
+		cmd = cmd.Where(groupsID)
 	}
 
 	if err := cmd.Find(&groups).Error; err != nil {
@@ -103,60 +110,54 @@ func findGroupsBelong(traqID string) ([]Group, error) {
 	// SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id = "fuji"
 }
 
-func findRvs(traqID, groupID, begin, end string) ([]Reservation, error) {
-	reservations := []Reservation{}
-	cmd := db
-	groupIDs := []int{}
-
-	groups, err := findGroupsBelong(traqID)
-	if err != nil {
+func getGroupIDsBytraQID(traqID string) ([]int, error) {
+	groups := []Group{}
+	// traqIDが存在するグループを取得
+	if err := db.Raw("SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id =  ?", traqID).Scan(&groups).Error; err != nil {
 		return nil, err
 	}
+	groupsID := make([]int, len(groups))
+	for i, g := range groups {
+		groupsID[i] = g.ID
+	}
+	return groupsID, nil
+}
 
-	if groupID != "" {
-		groupid, _ := strconv.Atoi(groupID)
-		for _, g := range groups {
-			if groupid == g.ID {
-				groupIDs = append(groupIDs, g.ID)
-			}
+func findRvs(values url.Values) ([]Reservation, error) {
+	reservations := []Reservation{}
+	cmd := db.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("CreatedBy")
+
+	if values.Get("id") != "" {
+		id, _ := strconv.Atoi(values.Get("id"))
+		cmd = cmd.Where("id = ?", id)
+	}
+
+	if values.Get("name") != "" {
+		cmd = cmd.Where("name LIKE ?", "%"+values.Get("name")+"%")
+	}
+
+	if values.Get("traQID") != "" {
+		groupsID, err := getGroupIDsBytraQID(values.Get("traQID"))
+		if err != nil {
+			return nil, err
 		}
-	} else {
-		for _, g := range groups {
-			groupIDs = append(groupIDs, g.ID)
-		}
+		cmd = cmd.Where("group_id in (?)", groupsID)
 	}
 
-	cmd = cmd.Where("group_id in (?)", groupIDs)
-
-	if begin != "" {
-		cmd = cmd.Where("date >= ?", begin)
-	}
-	if end != "" {
-		cmd = cmd.Where("date <= ?", end)
+	if values.Get("groupid") != "" {
+		groupid, _ := strconv.Atoi(values.Get("groupid"))
+		cmd = cmd.Where("group_id = ?", groupid)
 	}
 
-	fmt.Println(cmd)
+	if values.Get("date_begin") != "" {
+		cmd = cmd.Where("date >= ?", values.Get("date_begin"))
+	}
+	if values.Get("date_end") != "" {
+		cmd = cmd.Where("date <= ?", values.Get("date_end"))
+	}
+
 	if err := cmd.Find(&reservations).Error; err != nil {
 		return nil, err
-	}
-	// relationの追加
-	for i := range reservations {
-		group := &reservations[i].Group
-		room := &reservations[i].Room
-		// group
-		if err := group.AddRelation(reservations[i].GroupID); err != nil {
-			return nil, err
-		}
-
-		// room
-		if err := db.First(&room, reservations[i].RoomID).Error; err != nil {
-			return nil, err
-		}
-
-		// createdBy
-		if err := db.Where("traq_id = ?", reservations[i].CreatedByRefer).First(&reservations[i].CreatedBy).Error; err != nil {
-			return nil, err
-		}
 	}
 
 	return reservations, nil
