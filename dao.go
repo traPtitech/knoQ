@@ -81,15 +81,15 @@ func findRoomsByTime(begin, end string) ([]Room, error) {
 
 func findGroupsBelong(traqID string) ([]Group, error) {
 	groups := []Group{}
-	groupID := []int{}
 	cmd := db.Preload("Members").Preload("CreatedBy")
 	if traqID != "" {
 		// traqIDが存在するグループを取得
 		if err := db.Raw("SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id =  ?", traqID).Scan(&groups).Error; err != nil {
 			return nil, err
 		}
-		for _, g := range groups {
-			groupID = append(groupID, g.ID)
+		groupID := make([]int, len(groups))
+		for i, g := range groups {
+			groupID[i] = g.ID
 		}
 		cmd = cmd.Where(groupID)
 	}
