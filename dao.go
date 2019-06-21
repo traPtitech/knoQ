@@ -149,6 +149,11 @@ func findRvs(values url.Values) ([]Reservation, error) {
 		cmd = cmd.Where("group_id = ?", groupid)
 	}
 
+	if values.Get("roomid") != "" {
+		roomid, _ := strconv.Atoi(values.Get("roomid"))
+		cmd = cmd.Where("room_id = ?", roomid)
+	}
+
 	if values.Get("date_begin") != "" {
 		cmd = cmd.Where("date >= ?", values.Get("date_begin"))
 	}
