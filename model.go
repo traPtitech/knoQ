@@ -15,7 +15,7 @@ type User struct {
 	// TRAQID traQID
 	TRAQID string `json:"traq_id" gorm:"type:varchar(32);primary_key"`
 	// Admin 管理者かどうか
-	Admin bool
+	Admin bool `gorm:"not null"`
 }
 
 // Room 部屋情報
