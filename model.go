@@ -36,7 +36,7 @@ type Group struct {
 	Description    string    `json:"description"`
 	Members        []User    `json:"members" gorm:"many2many:group_users"`
 	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
-	CreatedByRefer string    `json:"type:varchar(32); created_by_refer"`
+	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }
@@ -53,8 +53,8 @@ type Reservation struct {
 	Date           string    `json:"date" gorm:"type:DATE"`
 	TimeStart      string    `json:"time_start" gorm:"type:TIME"`
 	TimeEnd        string    `json:"time_end" gorm:"type:TIME"`
-	CreatedBy      User      `json:"created_by" gorm:"type:varchar(32); foreignkey:CreatedByRefer; not null"`
-	CreatedByRefer string    `json:"created_by_refer"`
+	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
+	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
 }
