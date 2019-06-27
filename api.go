@@ -60,10 +60,18 @@ func SetRooms(c echo.Context) error {
 // GetRooms traPで確保した部屋情報を取得
 func GetRooms(c echo.Context) error {
 	r := []Room{}
+	var err error
+	id := c.QueryParam("id")
 	begin := c.QueryParam("date_begin")
 	end := c.QueryParam("date_end")
 
-	r, err := findRoomsByTime(begin, end)
+	if id == "" {
+		r, err = findRoomsByTime(begin, end)
+	} else {
+		ID, _ := strconv.Atoi(id)
+		err = db.First(&r, ID).Error
+	}
+
 	if err != nil {
 		return err
 	}
