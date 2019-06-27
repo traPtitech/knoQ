@@ -73,7 +73,7 @@ func findRoomsByTime(begin, end string) ([]Room, error) {
 		cmd = cmd.Where("date <= ?", end)
 	}
 
-	if err := cmd.Find(&rooms).Error; err != nil {
+	if err := cmd.Order("date asc").Find(&rooms).Error; err != nil {
 		return nil, err
 	}
 	return rooms, nil
@@ -161,7 +161,7 @@ func findRvs(values url.Values) ([]Reservation, error) {
 		cmd = cmd.Where("date <= ?", values.Get("date_end"))
 	}
 
-	if err := cmd.Find(&reservations).Error; err != nil {
+	if err := cmd.Order("date asc").Find(&reservations).Error; err != nil {
 		return nil, err
 	}
 
