@@ -27,6 +27,21 @@ var (
 func main() {
 	var err error
 
+	//tmp
+	if MARIADB_HOSTNAME == "" {
+		MARIADB_HOSTNAME = "mysql"
+	}
+	if MARIADB_DATABASE == "" {
+		MARIADB_DATABASE = "room"
+	}
+	if MARIADB_USERNAME == "" {
+		MARIADB_USERNAME = "root"
+	}
+
+	if MARIADB_PASSWORD == "" {
+		MARIADB_PASSWORD = "password"
+	}
+
 	// データベース接続
 	db, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", MARIADB_USERNAME, MARIADB_PASSWORD, MARIADB_HOSTNAME, MARIADB_DATABASE))
 	if err != nil {
