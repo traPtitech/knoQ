@@ -198,6 +198,10 @@ func UpdateGroup(c echo.Context) error {
 	if err := db.Model(&g).Update("name", g.Name).Error; err != nil {
 		return err
 	}
+	// グループ詳細変更
+	if err := db.Model(&g).Update("description", g.Description).Error; err != nil {
+		return err
+	}
 
 	return c.JSON(http.StatusOK, g)
 }
