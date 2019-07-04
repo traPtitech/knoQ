@@ -171,6 +171,8 @@ func UpdateGroup(c echo.Context) error {
 	if err := c.Bind(g); err != nil {
 		return err
 	}
+	name := g.Name
+	description := g.Description
 
 	// メンバーがdbにいるか
 	if err := g.findMembers(); err != nil {
@@ -195,11 +197,12 @@ func UpdateGroup(c echo.Context) error {
 	}
 
 	// グループ名を変更
-	if err := db.Model(&g).Update("name", g.Name).Error; err != nil {
+	if err := db.Model(&g).Update("name", name).Error; err != nil {
 		return err
 	}
+	fmt.Println(g.Name)
 	// グループ詳細変更
-	if err := db.Model(&g).Update("description", g.Description).Error; err != nil {
+	if err := db.Model(&g).Update("description", description).Error; err != nil {
 		return err
 	}
 
