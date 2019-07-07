@@ -29,7 +29,7 @@ func main() {
 
 	//tmp
 	if MARIADB_HOSTNAME == "" {
-		MARIADB_HOSTNAME = "mysql"
+		MARIADB_HOSTNAME = ""
 	}
 	if MARIADB_DATABASE == "" {
 		MARIADB_DATABASE = "room"
