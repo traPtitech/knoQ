@@ -32,8 +32,8 @@ type Room struct {
 // Group グループ情報
 type Group struct {
 	ID             int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
-	Name           string    `json:"name" gorm:"type:varchar(16);unique;not null"`
-	Description    string    `json:"description"`
+	Name           string    `json:"name" gorm:"type:varchar(32);unique;not null"`
+	Description    string    `json:"description" gorm:"type:varchar(1024)"`
 	Members        []User    `json:"members" gorm:"many2many:group_users"`
 	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
 	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
@@ -44,13 +44,13 @@ type Group struct {
 // Reservation 予約情報
 type Reservation struct {
 	ID             int       `json:"id" gorm:"AUTO_INCREMENT"`
-	Name           string    `json:"name" gorm:"type:varchar(16); not null"`
-	Description    string    `json:"description"`
+	Name           string    `json:"name" gorm:"type:varchar(32); not null"`
+	Description    string    `json:"description" gorm:"type:varchar(1024)"`
 	GroupID        int       `json:"group_id" gorm:"not null"`
 	Group          Group     `json:"group" gorm:"foreignkey:group_id"`
 	RoomID         int       `json:"room_id" gorm:"not null"`
 	Room           Room      `json:"room" gorm:"foreignkey:room_id"`
-	Date           string    `json:"date" gorm:"type:DATE"`
+	Date           string    `json:"date" gorm:"type:DATE; index:date"`
 	TimeStart      string    `json:"time_start" gorm:"type:TIME"`
 	TimeEnd        string    `json:"time_end" gorm:"type:TIME"`
 	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
