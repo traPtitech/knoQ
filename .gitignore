@@ -8,3 +8,6 @@ room.exe
 debug
 
 phpmyadmin
+mariadb
+
+runner-build
