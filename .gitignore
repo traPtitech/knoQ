@@ -10,4 +10,4 @@ debug
 phpmyadmin
 mariadb
 
-runner-build
+/tmp/
