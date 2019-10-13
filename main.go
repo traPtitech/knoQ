@@ -2,55 +2,17 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"room/model"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-var (
-	MARIADB_HOSTNAME = os.Getenv("MARIADB_HOSTNAME")
-	MARIADB_DATABASE = os.Getenv("MARIADB_DATABASE")
-	MARIADB_USERNAME = os.Getenv("MARIADB_USERNAME")
-	MARIADB_PASSWORD = os.Getenv("MARIADB_PASSWORD")
-
-	db *gorm.DB
-)
-
 func main() {
-	var err error
-
-	//tmp
-	if MARIADB_HOSTNAME == "" {
-		MARIADB_HOSTNAME = ""
-	}
-	if MARIADB_DATABASE == "" {
-		MARIADB_DATABASE = "room"
-	}
-	if MARIADB_USERNAME == "" {
-		MARIADB_USERNAME = "root"
-	}
-
-	if MARIADB_PASSWORD == "" {
-		MARIADB_PASSWORD = "password"
-	}
-
-	// データベース接続
-	db, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", MARIADB_USERNAME, MARIADB_PASSWORD, MARIADB_HOSTNAME, MARIADB_DATABASE))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	if err := initDB(); err != nil {
-		log.Fatal(err)
-	}
 
 	// echo初期化
 	e := echo.New()
@@ -67,26 +29,26 @@ func main() {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", traQUserMiddleware)
-	api.GET("/hello", GetHello) // テスト用
-	api.GET("/users", GetUsers)
-	api.GET("/users/me", GetUserMe)
-	api.GET("/rooms", GetRooms)
-	api.GET("/groups", GetGroups)
-	api.POST("/groups", PostGroup)
-	api.PATCH("/groups/:groupid", UpdateGroup)
-	api.GET("/reservations", GetReservations)
-	api.POST("/reservations", PostReservation)
-	api.DELETE("/reservations/:reservationid", DeleteReservation)
-	api.PATCH("/reservations/:reservationid", UpdateReservation)
+	api := e.Group("/api", model.TraQUserMiddleware)
+	api.GET("/hello", model.HandleGetHello) // テスト用
+	api.GET("/users", model.HandleGetUsers)
+	api.GET("/users/me", model.HandleGetUserMe)
+	api.GET("/rooms", model.HandleGetRooms)
+	api.GET("/groups", model.HandleGetGroups)
+	api.POST("/groups", model.HandlePostGroup)
+	api.PATCH("/groups/:groupid", model.HandleUpdateGroup)
+	api.GET("/reservations", model.HandleGetReservations)
+	api.POST("/reservations", model.HandlePostReservation)
+	api.DELETE("/reservations/:reservationid", model.HandleDeleteReservation)
+	api.PATCH("/reservations/:reservationid", model.HandleUpdateReservation)
 
 	// 管理者専用API定義 (/api/admin)
-	adminAPI := api.Group("/admin", adminUserMiddleware)
-	adminAPI.GET("/hello", GetHello) // テスト用
-	adminAPI.POST("/rooms", PostRoom)
-	adminAPI.POST("/rooms/all", SetRooms)
-	adminAPI.DELETE("/rooms/:roomid", DeleteRoom)
-	adminAPI.DELETE("/groups/:groupid", DeleteGroup)
+	adminAPI := api.Group("/admin", model.AdminUserMiddleware)
+	adminAPI.GET("/hello", model.HandleGetHello) // テスト用
+	adminAPI.POST("/rooms", model.HandlePostRoom)
+	adminAPI.POST("/rooms/all", model.HandleSetRooms)
+	adminAPI.DELETE("/rooms/:roomid", model.HandleDeleteRoom)
+	adminAPI.DELETE("/groups/:groupid", model.HandleDeleteGroup)
 
 	// サーバースタート
 	go func() {
@@ -102,13 +64,4 @@ func main() {
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
-}
-
-// initDB データベースのスキーマを更新
-func initDB() error {
-	// テーブルが無ければ作成
-	if err := db.AutoMigrate(tables...).Error; err != nil {
-		return err
-	}
-	return nil
 }

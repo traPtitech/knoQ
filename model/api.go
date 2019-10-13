@@ -1,4 +1,4 @@
-package main
+package model
 
 import (
 	"fmt"
@@ -8,14 +8,14 @@ import (
 	"github.com/labstack/echo"
 )
 
-// GetHello テスト用API
-func GetHello(c echo.Context) error {
+// HandleGetHello テスト用API
+func HandleGetHello(c echo.Context) error {
 	id := getRequestUser(c)                                      // リクエストしてきたユーザーのtraQID取得
 	return c.String(http.StatusOK, fmt.Sprintf("hello %s!", id)) // レスポンスを返す
 }
 
-// GetUserMe ヘッダー情報からuser情報を取得
-func GetUserMe(c echo.Context) error {
+// HandleGetUserMe ヘッダー情報からuser情報を取得
+func HandleGetUserMe(c echo.Context) error {
 	traQID := getRequestUser(c)
 	user, err := getUser(traQID)
 	if err != nil {
@@ -24,8 +24,8 @@ func GetUserMe(c echo.Context) error {
 	return c.JSON(http.StatusOK, user)
 }
 
-// GetUsers ユーザーすべてを取得
-func GetUsers(c echo.Context) error {
+// HandleGetUsers ユーザーすべてを取得
+func HandleGetUsers(c echo.Context) error {
 	users := []User{}
 	if err := db.Find(&users).Error; err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
@@ -35,8 +35,8 @@ func GetUsers(c echo.Context) error {
 
 // RoomsAPI
 
-// PostRoom traPで確保した部屋情報を作成
-func PostRoom(c echo.Context) error {
+// HandlePostRoom traPで確保した部屋情報を作成
+func HandlePostRoom(c echo.Context) error {
 	r := new(Room)
 	if err := c.Bind(r); err != nil {
 		return err
@@ -48,8 +48,8 @@ func PostRoom(c echo.Context) error {
 	return c.JSON(http.StatusOK, r)
 }
 
-// SetRooms Googleカレンダーから部屋情報を作成
-func SetRooms(c echo.Context) error {
+// HandleSetRooms Googleカレンダーから部屋情報を作成
+func HandleSetRooms(c echo.Context) error {
 	rooms, err := getEvents()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
@@ -57,8 +57,8 @@ func SetRooms(c echo.Context) error {
 	return c.JSON(http.StatusCreated, rooms)
 }
 
-// GetRooms traPで確保した部屋情報を取得
-func GetRooms(c echo.Context) error {
+// HandleGetRooms traPで確保した部屋情報を取得
+func HandleGetRooms(c echo.Context) error {
 	r := []Room{}
 	var err error
 	id := c.QueryParam("id")
@@ -79,8 +79,8 @@ func GetRooms(c echo.Context) error {
 	return c.JSON(http.StatusOK, r)
 }
 
-// DeleteRoom traPで確保した部屋情報を削除
-func DeleteRoom(c echo.Context) error {
+// HandleDeleteRoom traPで確保した部屋情報を削除
+func HandleDeleteRoom(c echo.Context) error {
 	r := new(Room)
 	r.ID, _ = strconv.Atoi(c.Param("roomid"))
 
@@ -101,8 +101,8 @@ func DeleteRoom(c echo.Context) error {
 
 // groupsAPI
 
-// PostGroup グループを作成
-func PostGroup(c echo.Context) error {
+// HandlePostGroup グループを作成
+func HandlePostGroup(c echo.Context) error {
 	g := new(Group)
 
 	if err := c.Bind(&g); err != nil {
@@ -126,8 +126,8 @@ func PostGroup(c echo.Context) error {
 	return c.JSON(http.StatusCreated, g)
 }
 
-// GetGroups グループを取得
-func GetGroups(c echo.Context) error {
+// HandleGetGroups グループを取得
+func HandleGetGroups(c echo.Context) error {
 	groups := []Group{}
 	values := c.QueryParams()
 
@@ -139,8 +139,8 @@ func GetGroups(c echo.Context) error {
 	return c.JSON(http.StatusOK, groups)
 }
 
-// DeleteGroup グループを削除
-func DeleteGroup(c echo.Context) error {
+// HandleDeleteGroup グループを削除
+func HandleDeleteGroup(c echo.Context) error {
 	g := new(Group)
 	g.ID, _ = strconv.Atoi(c.Param("groupid"))
 
@@ -164,8 +164,8 @@ func DeleteGroup(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// UpdateGroup グループメンバー、グループ名を更新
-func UpdateGroup(c echo.Context) error {
+// HandleUpdateGroup グループメンバー、グループ名を更新
+func HandleUpdateGroup(c echo.Context) error {
 	g := new(Group)
 
 	if err := c.Bind(g); err != nil {
@@ -211,8 +211,8 @@ func UpdateGroup(c echo.Context) error {
 
 // resrvations API
 
-// PostReservation 部屋の使用宣言を作成
-func PostReservation(c echo.Context) error {
+// HandlePostReservation 部屋の使用宣言を作成
+func HandlePostReservation(c echo.Context) error {
 	rv := new(Reservation)
 
 	if err := c.Bind(&rv); err != nil {
@@ -248,8 +248,8 @@ func PostReservation(c echo.Context) error {
 	return c.JSON(http.StatusCreated, rv)
 }
 
-// GetReservations 部屋の使用宣言情報を取得
-func GetReservations(c echo.Context) error {
+// HandleGetReservations 部屋の使用宣言情報を取得
+func HandleGetReservations(c echo.Context) error {
 	reservations := []Reservation{}
 
 	values := c.QueryParams()
@@ -262,8 +262,8 @@ func GetReservations(c echo.Context) error {
 	return c.JSON(http.StatusOK, reservations)
 }
 
-// DeleteReservation 部屋の使用宣言を削除
-func DeleteReservation(c echo.Context) error {
+// HandleDeleteReservation 部屋の使用宣言を削除
+func HandleDeleteReservation(c echo.Context) error {
 	rv := new(Reservation)
 	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
 
@@ -283,8 +283,8 @@ func DeleteReservation(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// UpdateReservation 部屋、開始時刻、終了時刻を更新
-func UpdateReservation(c echo.Context) error {
+// HandleUpdateReservation 部屋、開始時刻、終了時刻を更新
+func HandleUpdateReservation(c echo.Context) error {
 	rv := new(Reservation)
 
 	if err := c.Bind(&rv); err != nil {
