@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,6 +14,11 @@ import (
 )
 
 func main() {
+	db, err := model.SetupDatabase()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	// echo初期化
 	e := echo.New()

@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"log"
 	"net/url"
 	"os"
 	"strconv"
@@ -21,9 +20,8 @@ var (
 )
 
 // SetupDatabase set up db and crate tables
-func SetupDatabase() {
+func SetupDatabase() (*gorm.DB, error) {
 	var err error
-
 	//tmp
 	if MARIADB_HOSTNAME == "" {
 		MARIADB_HOSTNAME = ""
@@ -42,12 +40,12 @@ func SetupDatabase() {
 	// データベース接続
 	db, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", MARIADB_USERNAME, MARIADB_PASSWORD, MARIADB_HOSTNAME, MARIADB_DATABASE))
 	if err != nil {
-		log.Fatal(err)
+		return db, err
 	}
-	defer db.Close()
 	if err := initDB(); err != nil {
-		log.Fatal(err)
+		return db, err
 	}
+	return db, nil
 }
 
 // initDB データベースのスキーマを更新
