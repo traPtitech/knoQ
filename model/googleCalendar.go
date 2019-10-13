@@ -15,6 +15,8 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
+var traQCalendarID string = os.Getenv("TRAQ_CALENDARID")
+
 // Retrieve a token, saves the token, then returns the generated client.
 func getClient(config *oauth2.Config) *http.Client {
 	// The file token.json stores the user's access and refresh tokens, and is
@@ -89,11 +91,10 @@ func getEvents() ([]Room, error) {
 	}
 
 	t := time.Now().Format(time.RFC3339)
-	traQCalendarID := "***REMOVED***"
 	events, err := srv.Events.List(traQCalendarID).ShowDeleted(false).
 		SingleEvents(true).TimeMin(t).MaxResults(100).OrderBy("startTime").Do()
 	if err != nil {
-		log.Fatalf("Unable to retrieve next ten of the user's events: %v", err)
+		log.Printf("Unable to retrieve next ten of the user's events: %v", err)
 	}
 	fmt.Println("Upcoming events:")
 	rooms := []Room{}
