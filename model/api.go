@@ -1,9 +1,11 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo"
 )
@@ -242,6 +244,11 @@ func HandlePostReservation(c echo.Context) error {
 	rv.Date = r.Date[:10]
 	rv.Room.Date = rv.Room.Date[:10]
 
+	err := rv.timeConsistency()
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
 	if err := db.Create(&rv).Error; err != nil {
 		return err
 	}
@@ -329,4 +336,43 @@ func HandleUpdateReservation(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, rv)
+}
+
+func strToTime(s string) (time.Time, error) {
+	t, err := time.Parse("15:04", s)
+	if err != nil {
+		t, err = time.Parse("15:04:05", s)
+		if err != nil {
+			return time.Time{}, err
+		}
+	}
+	return t, nil
+}
+
+func (room *Room) inTime(targetTime time.Time) bool {
+	roomStart, _ := strToTime(room.TimeStart)
+	roomEnd, _ := strToTime(room.TimeEnd)
+	if roomStart.Before(targetTime) && roomEnd.After(targetTime) {
+		return true
+	}
+	return false
+}
+
+// 時間が部屋の範囲内か、endがstartの後かどうか確認する
+func (rv *Reservation) timeConsistency() error {
+	timeStart, err := strToTime(rv.TimeStart)
+	if err != nil {
+		return err
+	}
+	timeEnd, err := strToTime(rv.TimeEnd)
+	if err != nil {
+		return err
+	}
+	if !(rv.Room.inTime(timeStart) && rv.Room.inTime(timeEnd)) {
+		return errors.New("invalid time")
+	}
+	if !timeStart.Before(timeEnd) {
+		return errors.New("invalid time")
+	}
+	return nil
 }
