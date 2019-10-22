@@ -352,7 +352,7 @@ func strToTime(s string) (time.Time, error) {
 func (room *Room) inTime(targetTime time.Time) bool {
 	roomStart, _ := strToTime(room.TimeStart)
 	roomEnd, _ := strToTime(room.TimeEnd)
-	if roomStart.Before(targetTime) && roomEnd.After(targetTime) {
+	if (roomStart.Equal(targetTime) || roomStart.Before(targetTime)) && (roomEnd.Equal(targetTime) || roomEnd.After(targetTime)) {
 		return true
 	}
 	return false
