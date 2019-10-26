@@ -5,6 +5,9 @@
 .DS_Store
 room
 room.exe
-# Google Calendar
-credentials.json
-token.json
+debug
+
+phpmyadmin
+mariadb
+
+/tmp/

@@ -1,0 +1,8 @@
+/vendor/
+.gitignore
+docker-compose.yml
+Dockerfile
+room
+showcase.yaml
+/web/
+/development/

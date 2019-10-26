@@ -1,26 +1,28 @@
-package main
+package model
 
 import (
-	"github.com/labstack/echo"
 	"net/http"
+
+	"github.com/labstack/echo"
 )
 
 const traQID = "traQID"
 
-// traQUserMiddleware traQユーザーか判定するミドルウェア
-func traQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// TraQUserMiddleware traQユーザーか判定するミドルウェア
+func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := c.Request().Header.Get("X-Showcase-User")
 		if len(id) == 0 || id == "-" {
-			return echo.NewHTTPError(http.StatusUnauthorized) // traQにログインが必要
+			// test用
+			id = "fuji"
 		}
 		c.Set(traQID, id)
 		return next(c)
 	}
 }
 
-// adminUserMiddleware 管理者ユーザーか判定するミドルウェア
-func adminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// AdminUserMiddleware 管理者ユーザーか判定するミドルウェア
+func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id := getRequestUser(c)
 		if len(id) == 0 {
