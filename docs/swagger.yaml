@@ -7,12 +7,12 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://develop.room.sysad.trap.show/
+  - url: http://develop.room.sysad.trap.show/api/
     description: Development server
 
 tags:
   - name: rooms
-    description: traP本体の部屋使用状況
+    description: traPが借りている講義室
   - name: reservations
     description: 予約
   - name: groups
@@ -41,7 +41,7 @@ paths:
                   example: S516
                 date:
                   type: string
-                  example: "2018/08/08"
+                  example: "2019-08-08"
                 time_start:
                   type: string
                   example: "17:30"
@@ -50,15 +50,12 @@ paths:
                   example: "20:00"
       responses:
         201:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/room"
-        403:
-          description: Forbidden(管理者でない)
+          $ref: "#/components/responses/room"
         400:
           description: Bad Request
+        403:
+          description: Forbidden
+ 
     get:
       tags:
         - rooms
@@ -67,35 +64,31 @@ paths:
       parameters:
         - name: id
           in: query
-          description: idで取得
+          description: roomID
           required: false
           schema:
             type: integer
             format: int64
         - name: date_begin
           in: query
-          description: 特定の日からのみにする。(inclusive)(2017-07-21とか)
+          description: 特定の日から。(2017-07-21とか)
           required: false
           schema:
             type: string
             format: date
+            example: "2017-07-21"
         - name: date_end
           in: query
-          description: 特定の日からのみにする。(inclusive)(2017-07-21とか)
+          description: 特定の日まで。(2017-07-21とか)
           required: false
           schema:
             type: string
             format: date
+            example: "2017-07-21"
       responses:
         200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/room"
-  /rooms/{roomId}:
+          $ref: "#/components/responses/roomArray"
+  /rooms/{roomID}:
     delete:
       tags:
         - rooms
@@ -105,9 +98,9 @@ paths:
         エラーを出して削除を促す
       operationId: deleterooms
       parameters:
-        - name: roomId
+        - name: roomID
           in: path
-          description: 削除する情報のID
+          description: 削除する部屋のID
           required: true
           schema:
             type: integer
@@ -116,7 +109,7 @@ paths:
         200:
           description: successful operation
         403:
-          description: Forbidden(管理者でない)
+          description: Forbidden
         400:
           description: Bad Request
   /rooms/all:
@@ -124,20 +117,15 @@ paths:
       tags:
         - rooms
       summary: traPで確保した部屋の情報追加
-      description: 管理者権限が必要
+      description: 管理者権限が必要。
         Googleカレンダーから今日から100件取得する
       operationId: addAllrooms
       responses:
         201:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/room"
+          $ref: "#/components/responses/roomArray"
         403:
-          description: Forbidden(管理者でない)
+          description: Forbidden
+  
   /reservations:
     get:
       tags:
@@ -506,7 +494,7 @@ components:
         date:
           type: string
           format: date
-          example: "2019-07-03T00:00:00+09:00"
+          example: "2019-08-08"
         time_start:
           type: string
           format: time
@@ -515,6 +503,12 @@ components:
           type: string
           format: time
           example: "20:00:00"
+        created_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+        updated_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
     reservation:
       type: object
       required:
@@ -589,6 +583,25 @@ components:
         admin:
           type: boolean
           example: false
+  responses:
+    room:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/room"
+    roomArray:
+      description: successful operation
+      content:
+        application/json:
+          schema: 
+            type: array
+            items:
+              $ref: "#/components/schemas/room"
+ 
+
+ 
+
 externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
