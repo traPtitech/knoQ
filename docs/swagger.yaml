@@ -1,9 +1,9 @@
-openapi: '3.0.2'
+openapi: "3.0.2"
 
 info:
   title: traP Room
   description: |
-    This is a sample Room server. 
+    This is a sample Room server.
   version: 1.0.0
 
 servers:
@@ -28,33 +28,33 @@ paths:
       summary: traPで確保した部屋の情報追加 (使わない)
       description: 管理者権限が必要
       operationId: addrooms
-      parameters:
-        - in: body
-          name: body
-          description: 確保した部屋の情報
-          required: true
-          schema:
-            type: object
-            properties:
-              place:
-                type: string
-                example: S516
-              date:
-                type: string
-                example: "2018/08/08"
-              time_start:
-                type: string
-                example: "17:30"
-              time_end:
-                type: string
-                example: "20:00"
+      requestBody:
+        description: 確保した部屋の情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                place:
+                  type: string
+                  example: S516
+                date:
+                  type: string
+                  example: "2018/08/08"
+                time_start:
+                  type: string
+                  example: "17:30"
+                time_end:
+                  type: string
+                  example: "20:00"
       responses:
         201:
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/room'
+                $ref: "#/components/schemas/room"
         403:
           description: Forbidden(管理者でない)
         400:
@@ -94,25 +94,24 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/room'
+                  $ref: "#/components/schemas/room"
   /rooms/{roomId}:
     delete:
       tags:
-      - rooms
+        - rooms
       summary: traPで確保した部屋の情報を削除
-      description: 
-        管理者権限が必要
+      description: 管理者権限が必要
         (関連する予約を削除する)
         エラーを出して削除を促す
       operationId: deleterooms
       parameters:
-      - name: roomId
-        in: path
-        description: 削除する情報のID
-        required: true
-        schema:
-          type: integer
-          format: int64
+        - name: roomId
+          in: path
+          description: 削除する情報のID
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         200:
           description: successful operation
@@ -123,7 +122,7 @@ paths:
   /rooms/all:
     post:
       tags:
-      - rooms
+        - rooms
       summary: traPで確保した部屋の情報追加
       description: 管理者権限が必要
         Googleカレンダーから今日から100件取得する
@@ -136,15 +135,15 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/room'
+                  $ref: "#/components/schemas/room"
         403:
           description: Forbidden(管理者でない)
   /reservations:
     get:
       tags:
-      - reservations
+        - reservations
       summary: 使用宣言の情報を取得
-      #description: 
+      #description:
       operationId: getreservations
       parameters:
         - name: id
@@ -203,48 +202,48 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/reservation'
+                  $ref: "#/components/schemas/reservation"
     post:
       tags:
-      - reservations
+        - reservations
       summary: 部屋の使用宣言を行う
-      #description: 
+      #description:
       operationId: addreservations
-      parameters:
-      - in: body
-        name: body
+      requestBody:
         description: 使用宣言の情報
         required: true
-        schema:
-          type: object
-          properties:
-            name:
-              type: string
-              example: 第n回進捗回
-            descirption:
-              type: string
-              example: 第n回の進捗会です。
-            group_id:
-              type: integer
-              format: int64
-              example: 3
-            room_id:
-                type: integer
-                format: int64
-                example: 1
-            time_start:
-              type: string
-              example: "17:00"
-            time_end:
-              type: string
-              example: "20:00"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 第n回進捗回
+                descirption:
+                  type: string
+                  example: 第n回の進捗会です。
+                group_id:
+                  type: integer
+                  format: int64
+                  example: 3
+                room_id:
+                  type: integer
+                  format: int64
+                  example: 1
+                time_start:
+                  type: string
+                  example: "17:00"
+                time_end:
+                  type: string
+                  example: "20:00"
       responses:
         201:
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/reservation'
+                $ref: "#/components/schemas/reservation"
         403:
           description: Forbidden
         400:
@@ -252,10 +251,9 @@ paths:
   /reservations/{reservationid}:
     patch:
       tags:
-      - reservations
+        - reservations
       summary: 部屋の使用宣言を更新(roomid, timestart, timeendのみを変更)
-      description: 
-        作成者のみ
+      description: 作成者のみ
       operationId: updatereservations
       parameters:
         - name: reservationid
@@ -265,34 +263,35 @@ paths:
           schema:
             type: integer
             format: int64
-        - in: body
-          name: body
-          description: 使用宣言の情報
-          required: true
-          schema:
-            type: object
-            properties:
-              name:
-                type: string
-                example: 第n回進捗回
-              descirption:
-                type: string
-                example: 第n回の進捗会です。
-              room_id:
-                type: integer
-              time_start:
-                type: string
-                example: "18:00"
-              time_end:
-                type: string
-                example: "20:00"
+      requestBody:
+        description: 使用宣言の情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 第n回進捗回
+                descirption:
+                  type: string
+                  example: 第n回の進捗会です。
+                room_id:
+                  type: integer
+                time_start:
+                  type: string
+                  example: "18:00"
+                time_end:
+                  type: string
+                  example: "20:00"
       responses:
         200:
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/reservation'
+                $ref: "#/components/schemas/reservation"
         403:
           description: Forbidden
         400:
@@ -304,13 +303,13 @@ paths:
       description: 作成者のみ
       operationId: deleteRreservations
       parameters:
-      - name: reservationid
-        in: path
-        description: 削除する情報のID
-        required: true
-        schema:
-          type: integer
-          format: int64
+        - name: reservationid
+          in: path
+          description: 削除する情報のID
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         200:
           description: successful operation
@@ -321,7 +320,7 @@ paths:
   /groups:
     get:
       tags:
-      - groups
+        - groups
       summary: グループを全て取得
       description: ログインユーザーなら所属していなくても取得可能にしておく
       operationId: getGroup
@@ -353,81 +352,84 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Group'
+                  $ref: "#/components/schemas/Group"
         400:
           description: Bad Request
     post:
       tags:
-      - groups
+        - groups
       summary: Create group
       operationId: createGroup
-      parameters:
-      - in: body
-        name: body
-        description: Created group object
+      requestBody:
+        description: CreatEd group object
         required: true
-        schema:
-          type: object
-          properties:
-            name:
-              type: string
-              example: room
-            description:
-              type: string
-              example: Sysad班room開発グループ
-            members:
-              type: array
-              items:
-                type: object
-                properties:
-                  traq_id:
-                    type: string
-                    example: fuji
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: room
+                description:
+                  type: string
+                  example: Sysad班room開発グループ
+                members:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      traq_id:
+                        type: string
+                        example: fuji
       responses:
         201:
           description: successful operation
           content:
-            application/json: 
+            application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: "#/components/schemas/Group"
         400:
           description: Bad Request
   /groups/{groupid}:
     patch:
       tags:
-      - groups
+        - groups
       summary: グループメンバー、グループ名、詳細を更新
       description: 作成者のみ変更可能
       operationId: updateGroup
       parameters:
-      - name: groupid
-        in: path
-        description: 変更する情報のID
-        required: true
-      - name: body
-        in: path
-        description: グループの情報
-        required: true
-        schema:
-          type: object
-          properties:
-            name:
-              type: string
-              example: room
-            description:
-              type: string
-              example: Sysad班room開発グループ
-            members:
-              type: array
-              items:
-                $ref: '#/components/schemas/user'
+        - name: groupid
+          in: path
+          description: 変更する情報のID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: body
+          in: path
+          description: グループの情報
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: room
+              description:
+                type: string
+                example: Sysad班room開発グループ
+              members:
+                type: array
+                items:
+                  $ref: "#/components/schemas/user"
       responses:
         200:
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: "#/components/schemas/Group"
         400:
           description: Bad Request
         403:
@@ -436,7 +438,8 @@ paths:
       tags:
         - groups
       summary: Delete group
-      description: 管理者権限が必要(削除せずとも放置すれば問題無いということにしておく)
+      description:
+        管理者権限が必要(削除せずとも放置すれば問題無いということにしておく)
         削除されたgroupの予約
       operationId: deleteGroup
       parameters:
@@ -469,8 +472,8 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/user'
+                items:
+                  $ref: "#/components/schemas/user"
   /users/me:
     get:
       tags:
@@ -483,7 +486,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user'
+                $ref: "#/components/schemas/user"
 
 components:
   schemas:
@@ -507,13 +510,11 @@ components:
         time_start:
           type: string
           format: time
-          example: "17:30:00" #2017-07-21T17:32:28Z
-          #description: (https://tools.ietf.org/html/rfc3339#section-5.6 )
+          example: "17:30:00"
         time_end:
           type: string
           format: time
-          example: "20:00:00" #2017-07-21T17:32:28Z 
-          #description: (https://tools.ietf.org/html/rfc3339#section-5.6 )
+          example: "20:00:00"
     reservation:
       type: object
       required:
@@ -534,10 +535,10 @@ components:
         descirption:
           type: string
           example: 第n回の進捗会です。
-        group: 
-          $ref: '#/components/schemas/Group'
+        group:
+          $ref: "#/components/schemas/Group"
         room:
-          $ref: '#/components/schemas/room'
+          $ref: "#/components/schemas/room"
         date:
           type: string
           format: date
@@ -555,7 +556,7 @@ components:
           example: "fuji"
     Group:
       type: object
-      required: 
+      required:
         - name
         - members
       properties:
@@ -572,7 +573,10 @@ components:
         members:
           type: array
           items:
-            $ref: '#/components/schemas/user'
+            type: string
+            example:
+              - "fuji"
+              - "wasabi"
         created_by:
           type: string
           example: "fuji"
