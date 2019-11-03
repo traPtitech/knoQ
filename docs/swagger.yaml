@@ -95,7 +95,7 @@ paths:
       summary: traPで確保した部屋の情報を削除
       description: 管理者権限が必要
         (関連する予約を削除する)
-        エラーを出して削除を促す
+        エラーを出して削除を促す予定
       operationId: deleterooms
       parameters:
         - name: roomID
@@ -131,7 +131,6 @@ paths:
       tags:
         - reservations
       summary: 使用宣言の情報を取得
-      #description:
       operationId: getreservations
       parameters:
         - name: id
@@ -143,7 +142,7 @@ paths:
             format: int64
         - name: name
           in: query
-          description: 名前で検索(いい感じに)
+          description: 名前で検索
           required: false
           schema:
             type: string
@@ -154,48 +153,41 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: groupid
+        - name: groupID
           in: query
-          description: 特定のグループのみにする。(IDにするか名前にするかは検討)
+          description: 特定のグループのみにする。
           required: false
           schema:
             type: integer
             format: int64
-        - name: roomid
+        - name: roomID
           in: query
-          description: 被り情報を取りたい(IDにするか名前にするかは検討)
+          description: 特定の部屋のみにする。
           required: false
           schema:
             type: integer
             format: int64
         - name: date_begin
           in: query
-          description: 特定の日からのみにする。(inclusive)(2017-07-21とか)
+          description: 特定の日からのみにする。(2017-07-21とか)
           required: false
           schema:
             type: string
             format: date
         - name: date_end
           in: query
-          description: 特定の日からのみにする。(inclusive)(2017-07-21とか)
+          description: 特定の日までのみにする。(2017-07-21とか)
           required: false
           schema:
             type: string
             format: date
       responses:
         200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/reservation"
+          $ref: "#/components/responses/reservation"
     post:
       tags:
         - reservations
       summary: 部屋の使用宣言を行う
-      #description:
       operationId: addreservations
       requestBody:
         description: 使用宣言の情報
@@ -221,30 +213,26 @@ paths:
                   example: 1
                 time_start:
                   type: string
-                  example: "17:00"
+                  example: "17:30:00"
                 time_end:
                   type: string
-                  example: "20:00"
+                  example: "20:00:00"
       responses:
         201:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/reservation"
+          $ref: "#/components/responses/reservation"
         403:
           description: Forbidden
         400:
           description: Bad Request
-  /reservations/{reservationid}:
+  /reservations/{reservationID}:
     patch:
       tags:
         - reservations
-      summary: 部屋の使用宣言を更新(roomid, timestart, timeendのみを変更)
+      summary: 部屋の使用宣言を更新(現状はroomid, timestart, timeendのみを変更)
       description: 作成者のみ
       operationId: updatereservations
       parameters:
-        - name: reservationid
+        - name: reservationID
           in: path
           description: 変更する情報のID
           required: true
@@ -267,6 +255,7 @@ paths:
                   example: 第n回の進捗会です。
                 room_id:
                   type: integer
+                  example: 1
                 time_start:
                   type: string
                   example: "18:00"
@@ -275,11 +264,7 @@ paths:
                   example: "20:00"
       responses:
         200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/reservation"
+          $ref: "#/components/responses/reservation"
         403:
           description: Forbidden
         400:
@@ -291,7 +276,7 @@ paths:
       description: 作成者のみ
       operationId: deleteRreservations
       parameters:
-        - name: reservationid
+        - name: reservationID
           in: path
           description: 削除する情報のID
           required: true
@@ -302,7 +287,7 @@ paths:
         200:
           description: successful operation
         403:
-          description: Forbidden(所属ユーザーで無い)
+          description: Forbidden
         404:
           description: Not Found
   /groups:
@@ -334,13 +319,7 @@ paths:
             type: string
       responses:
         200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Group"
+          $ref: "#/components/responses/groupArray"
         400:
           description: Bad Request
     post:
@@ -349,7 +328,7 @@ paths:
       summary: Create group
       operationId: createGroup
       requestBody:
-        description: CreatEd group object
+        description: Create group object
         required: true
         content:
           application/json:
@@ -372,14 +351,10 @@ paths:
                         example: fuji
       responses:
         201:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Group"
+          $ref: "#/components/responses/group"
         400:
           description: Bad Request
-  /groups/{groupid}:
+  /groups/{groupID}:
     patch:
       tags:
         - groups
@@ -387,41 +362,42 @@ paths:
       description: 作成者のみ変更可能
       operationId: updateGroup
       parameters:
-        - name: groupid
+        - name: groupID
           in: path
           description: 変更する情報のID
           required: true
           schema:
             type: integer
             format: int64
-        - name: body
-          in: path
-          description: グループの情報
-          required: true
-          schema:
-            type: object
-            properties:
-              name:
-                type: string
-                example: room
-              description:
-                type: string
-                example: Sysad班room開発グループ
-              members:
-                type: array
-                items:
-                  $ref: "#/components/schemas/user"
+      requestBody:
+        description: update group
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: room
+                description:
+                  type: string
+                  example: Sysad班room開発グループ
+                members:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/user"
       responses:
         200:
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Group"
+                $ref: "#/components/schemas/group"
         400:
           description: Bad Request
         403:
-          description: 作成者ではない
+          description: Forbidden
     delete:
       tags:
         - groups
@@ -431,7 +407,7 @@ paths:
         削除されたgroupの予約
       operationId: deleteGroup
       parameters:
-        - name: groupid
+        - name: groupID
           in: path
           description: The name that needs to be deleted
           required: true
@@ -441,10 +417,8 @@ paths:
       responses:
         200:
           description: successful operation
-        400:
-          description: Invalid groupname supplied
         403:
-          description: Forbidden(非管理者)
+          description: Forbidden
         404:
           description: Groupid not found
   /users:
@@ -452,16 +426,10 @@ paths:
       tags:
         - users
       summary: すべてのユーザーを取得
-      description: メンバー検索のとき呼ぶ
+      description: ユーザーを全取得する（traQのAPIを使うなら消す）
       responses:
         200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/user"
+          $ref: "#/components/responses/userArray"
   /users/me:
     get:
       tags:
@@ -470,11 +438,7 @@ paths:
       description: クライアントを識別するために最初に呼ばれる
       responses:
         200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/user"
+          $ref: "#/components/responses/user"
 
 components:
   schemas:
@@ -510,12 +474,27 @@ components:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
     reservation:
+      required:
+        - name
+        - room_id
+        - group_id
+        - time_start
+        - time_end
+      allOf:
+        - $ref: "#/components/schemas/ResReservation"
+      properties:
+        group_id:
+          type: integer
+          format: int64
+          example: 1
+        room_id:
+          type: integer
+          format: int64
+          example: 1
+    ResReservation:
       type: object
       required:
         - name
-        - date
-        - room_id
-        - group_id
         - time_start
         - time_end
       properties:
@@ -529,14 +508,6 @@ components:
         descirption:
           type: string
           example: 第n回の進捗会です。
-        group:
-          $ref: "#/components/schemas/Group"
-        room:
-          $ref: "#/components/schemas/room"
-        date:
-          type: string
-          format: date
-          example: "2019-07-03T00:00:00+09:00"
         time_start:
           type: string
           format: time
@@ -548,7 +519,13 @@ components:
         created_by:
           type: string
           example: "fuji"
-    Group:
+        created_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+        updated_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+    group:
       type: object
       required:
         - name
@@ -568,9 +545,7 @@ components:
           type: array
           items:
             type: string
-            example:
-              - "fuji"
-              - "wasabi"
+            example: "fuji"
         created_by:
           type: string
           example: "fuji"
@@ -582,7 +557,7 @@ components:
           example: fuji
         admin:
           type: boolean
-          example: false
+          example: true
   responses:
     room:
       description: successful operation
@@ -598,9 +573,50 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/room"
- 
-
- 
+    reservation:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            allOf:
+            - $ref: "#/components/schemas/ResReservation"
+            - type: object
+              properties:
+                group:
+                  $ref: "#/components/schemas/group"
+            - type: object
+              properties:
+                room:
+                  $ref: "#/components/schemas/room"
+    group:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/group"
+    groupArray:
+      description: successful operation
+      content:
+        application/json:
+          schema: 
+            type: array
+            items:
+              $ref: "#/components/schemas/group"
+    user:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/user"
+    userArray:
+      description: successful operation
+      content:
+        application/json:
+          schema: 
+            type: array
+            items:
+              type: string
+              example: "fuji"
 
 externalDocs:
   description: Find out more about Swagger
