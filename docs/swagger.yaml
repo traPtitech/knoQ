@@ -19,6 +19,8 @@ tags:
     description: グループの情報
   - name: users
     description: ユーザー
+  - name: tags
+    description: タグ
 
 paths:
   /rooms:
@@ -48,6 +50,10 @@ paths:
                 time_end:
                   type: string
                   example: "20:00"
+                tags:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReqTag"
       responses:
         201:
           $ref: "#/components/responses/room"
@@ -183,7 +189,7 @@ paths:
             format: date
       responses:
         200:
-          $ref: "#/components/responses/reservation"
+          $ref: "#/components/responses/reservationArray"
     post:
       tags:
         - reservations
@@ -217,6 +223,10 @@ paths:
                 time_end:
                   type: string
                   example: "20:00:00"
+                tags:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReqTag"
       responses:
         201:
           $ref: "#/components/responses/reservation"
@@ -262,6 +272,10 @@ paths:
                 time_end:
                   type: string
                   example: "20:00"
+                tags:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReqTag"
       responses:
         200:
           $ref: "#/components/responses/reservation"
@@ -349,6 +363,10 @@ paths:
                       traq_id:
                         type: string
                         example: fuji
+                tags:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReqTag"
       responses:
         201:
           $ref: "#/components/responses/group"
@@ -387,13 +405,13 @@ paths:
                   type: array
                   items:
                     $ref: "#/components/schemas/user"
+                tags:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReqTag"
       responses:
         200:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/group"
+          $ref: "#/components/responses/group"
         400:
           description: Bad Request
         403:
@@ -439,7 +457,57 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/user"
-
+  /tags:
+    get:
+      tags:
+        - tags
+      summary: タグを全て取得
+      description: queryで切り分ける
+      operationId: getTag
+      parameters:
+        - name: for_room
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: for_group
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: for_reservation
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        200:
+          $ref: "#/components/responses/tagArray"
+        400:
+          description: Bad Request
+  /tags/{type}:
+    post:
+      tags:
+        - tags
+      summary: タグを作成。
+      description: すでにある場合は、for_group=trueなどにする。
+      operationId: postTag
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - room
+              - group
+              - reservation
+      requestBody:
+        $ref: "#/components/requestBodies/tag"
+      responses:
+        201:
+          $ref: "#/components/responses/tag"
+ 
 components:
   schemas:
     room:
@@ -473,6 +541,16 @@ components:
         updated_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
+    ResponseRoom:
+      allOf:
+      - $ref: "#/components/schemas/ResReservation"
+      - type: object
+        properties:
+          tags:
+            type: array
+            items:
+              $ref: "#/components/schemas/ResponseTag"
+        
     reservation:
       required:
         - name
@@ -525,6 +603,23 @@ components:
         updated_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
+    ResponseReservation:
+      allOf:
+      - $ref: "#/components/schemas/ResReservation"
+      - type: object
+        properties:
+          group:
+            $ref: "#/components/schemas/group"
+      - type: object
+        properties:
+          room:
+            $ref: "#/components/schemas/room"
+      - type: object
+        properties:
+          tags:
+            type: array
+            items:
+              $ref: "#/components/schemas/ResponseTag"
     group:
       type: object
       required:
@@ -550,18 +645,25 @@ components:
         updated_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
-    ResGroup:
+    ResponseGroup:
       required:
         - name
         - members
       allOf:
-        - $ref: "#/components/schemas/group"
-      properties:
-        members:
-          type: array
-          items:
-            type: string
-            example: "fuji"
+      - $ref: "#/components/schemas/group"
+      - properties:
+          members:
+            type: array
+            items:
+              type: string
+              example: "fuji"
+      - type: object
+        properties:
+          tags:
+            type: array
+            items:
+              $ref: "#/components/schemas/ResponseTag"
+ 
     user:
       type: object
       properties:
@@ -571,13 +673,63 @@ components:
         admin:
           type: boolean
           example: true
+    tag:
+      allOf:
+        - $ref: "#/components/schemas/ResTag"
+      properties:
+        for_room:
+          type: boolean
+          example: false
+        for_group:
+          type: boolean
+          example: true
+        for_reservation:
+          type: boolean
+          example: true
+    ReqTag:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Vue
+
+     
+    ResTag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Vue
+        official:
+          type: boolean
+          example: true
+    ResponseTag:
+      allOf:
+        - $ref: "#/components/schemas/ResTag"
+      properties:
+        locked:
+          type: boolean
+          example: true
+ 
+  requestBodies:
+    tag:
+      description: タグ本体の作成。
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ReqTag"
+
   responses:
     room:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/room"
+            $ref: "#/components/schemas/ResponseRoom"
     roomArray:
       description: successful operation
       content:
@@ -585,28 +737,27 @@ components:
           schema: 
             type: array
             items:
-              $ref: "#/components/schemas/room"
+              $ref: "#/components/schemas/ResponseRoom"
     reservation:
       description: successful operation
       content:
         application/json:
           schema:
-            allOf:
-            - $ref: "#/components/schemas/ResReservation"
-            - type: object
-              properties:
-                group:
-                  $ref: "#/components/schemas/group"
-            - type: object
-              properties:
-                room:
-                  $ref: "#/components/schemas/room"
+            $ref: "#/components/schemas/ResponseReservation"
+    reservationArray:
+      description: successful operation
+      content:
+        application/json:
+          schema: 
+            type: array
+            items:
+              $ref: "#/components/schemas/ResponseReservation"
     group:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ResGroup"
+            $ref: "#/components/schemas/ResponseGroup"
     groupArray:
       description: successful operation
       content:
@@ -614,7 +765,7 @@ components:
           schema: 
             type: array
             items:
-              $ref: "#/components/schemas/ResGroup"
+              $ref: "#/components/schemas/ResponseGroup"
     user:
       description: successful operation
       content:
@@ -630,6 +781,21 @@ components:
             items:
               type: string
               example: "fuji"
+    tag:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/tag"
+    tagArray:
+      description: successful operation
+      content:
+        application/json:
+          schema: 
+            type: array
+            items:
+              $ref: "#/components/schemas/tag"
+
 
 externalDocs:
   description: Find out more about Swagger
