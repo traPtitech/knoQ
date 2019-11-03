@@ -541,14 +541,27 @@ components:
         description:
           type: string
           example: Sysad班room開発グループ
+        created_by:
+          type: string
+          example: "fuji"
+        created_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+        updated_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+    ResGroup:
+      required:
+        - name
+        - members
+      allOf:
+        - $ref: "#/components/schemas/group"
+      properties:
         members:
           type: array
           items:
             type: string
             example: "fuji"
-        created_by:
-          type: string
-          example: "fuji"
     user:
       type: object
       properties:
@@ -593,7 +606,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/group"
+            $ref: "#/components/schemas/ResGroup"
     groupArray:
       description: successful operation
       content:
@@ -601,7 +614,7 @@ components:
           schema: 
             type: array
             items:
-              $ref: "#/components/schemas/group"
+              $ref: "#/components/schemas/ResGroup"
     user:
       description: successful operation
       content:
