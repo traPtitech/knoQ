@@ -61,7 +61,7 @@ paths:
           description: Bad Request
         403:
           description: Forbidden
- 
+
     get:
       tags:
         - rooms
@@ -131,7 +131,7 @@ paths:
           $ref: "#/components/responses/roomArray"
         403:
           description: Forbidden
-  
+
   /reservations:
     get:
       tags:
@@ -507,7 +507,7 @@ paths:
       responses:
         201:
           $ref: "#/components/responses/tag"
- 
+
 components:
   schemas:
     room:
@@ -543,14 +543,14 @@ components:
           example: "2019-11-02T15:24:42.5438806Z"
     ResponseRoom:
       allOf:
-      - $ref: "#/components/schemas/ResReservation"
-      - type: object
-        properties:
-          tags:
-            type: array
-            items:
-              $ref: "#/components/schemas/ResponseTag"
-        
+        - $ref: "#/components/schemas/ResReservation"
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                $ref: "#/components/schemas/ResponseTag"
+
     reservation:
       required:
         - name
@@ -605,21 +605,21 @@ components:
           example: "2019-11-02T15:24:42.5438806Z"
     ResponseReservation:
       allOf:
-      - $ref: "#/components/schemas/ResReservation"
-      - type: object
-        properties:
-          group:
-            $ref: "#/components/schemas/group"
-      - type: object
-        properties:
-          room:
-            $ref: "#/components/schemas/room"
-      - type: object
-        properties:
-          tags:
-            type: array
-            items:
-              $ref: "#/components/schemas/ResponseTag"
+        - $ref: "#/components/schemas/ResReservation"
+        - type: object
+          properties:
+            group:
+              $ref: "#/components/schemas/group"
+        - type: object
+          properties:
+            room:
+              $ref: "#/components/schemas/room"
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                $ref: "#/components/schemas/ResponseTag"
     group:
       type: object
       required:
@@ -650,20 +650,20 @@ components:
         - name
         - members
       allOf:
-      - $ref: "#/components/schemas/group"
-      - properties:
-          members:
-            type: array
-            items:
-              type: string
-              example: "fuji"
-      - type: object
-        properties:
-          tags:
-            type: array
-            items:
-              $ref: "#/components/schemas/ResponseTag"
- 
+        - $ref: "#/components/schemas/group"
+        - properties:
+            members:
+              type: array
+              items:
+                type: string
+                example: "fuji"
+        - type: object
+          properties:
+            tags:
+              type: array
+              items:
+                $ref: "#/components/schemas/ResponseTag"
+
     user:
       type: object
       properties:
@@ -692,8 +692,9 @@ components:
         name:
           type: string
           example: Vue
-
-     
+        locked:
+          type: boolean
+          example: true
     ResTag:
       type: object
       properties:
@@ -714,7 +715,7 @@ components:
         locked:
           type: boolean
           example: true
- 
+
   requestBodies:
     tag:
       description: タグ本体の作成。
@@ -734,7 +735,7 @@ components:
       description: successful operation
       content:
         application/json:
-          schema: 
+          schema:
             type: array
             items:
               $ref: "#/components/schemas/ResponseRoom"
@@ -748,7 +749,7 @@ components:
       description: successful operation
       content:
         application/json:
-          schema: 
+          schema:
             type: array
             items:
               $ref: "#/components/schemas/ResponseReservation"
@@ -762,7 +763,7 @@ components:
       description: successful operation
       content:
         application/json:
-          schema: 
+          schema:
             type: array
             items:
               $ref: "#/components/schemas/ResponseGroup"
@@ -776,7 +777,7 @@ components:
       description: successful operation
       content:
         application/json:
-          schema: 
+          schema:
             type: array
             items:
               type: string
@@ -791,11 +792,10 @@ components:
       description: successful operation
       content:
         application/json:
-          schema: 
+          schema:
             type: array
             items:
               $ref: "#/components/schemas/tag"
-
 
 externalDocs:
   description: Find out more about Swagger
