@@ -655,24 +655,27 @@ components:
             members:
               type: array
               items:
-                type: string
-                example: "fuji"
+                $ref: "#/components/schemas/ResUser"
         - type: object
           properties:
             tags:
               type: array
               items:
                 $ref: "#/components/schemas/ResponseTag"
-
     user:
+      allOf:
+        - $ref: "#/components/schemas/ResUser"
+      properties:
+        admin:
+          type: boolean
+          example: true
+    ResUser:
       type: object
       properties:
         traq_id:
           type: string
           example: fuji
-        admin:
-          type: boolean
-          example: true
+
     tag:
       allOf:
         - $ref: "#/components/schemas/ResTag"
@@ -780,8 +783,7 @@ components:
           schema:
             type: array
             items:
-              type: string
-              example: "fuji"
+              $ref: "#/components/schemas/ResUser"
     tag:
       description: successful operation
       content:
