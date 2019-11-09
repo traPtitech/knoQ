@@ -196,37 +196,7 @@ paths:
       summary: 部屋の使用宣言を行う
       operationId: addreservations
       requestBody:
-        description: 使用宣言の情報
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: 第n回進捗回
-                descirption:
-                  type: string
-                  example: 第n回の進捗会です。
-                group_id:
-                  type: integer
-                  format: int64
-                  example: 3
-                room_id:
-                  type: integer
-                  format: int64
-                  example: 1
-                time_start:
-                  type: string
-                  example: "17:30:00"
-                time_end:
-                  type: string
-                  example: "20:00:00"
-                tags:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/ReqTag"
+        $ref: "#/components/requestBodies/PostReservation"
       responses:
         201:
           $ref: "#/components/responses/reservation"
@@ -250,32 +220,7 @@ paths:
             type: integer
             format: int64
       requestBody:
-        description: 使用宣言の情報
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: 第n回進捗回
-                descirption:
-                  type: string
-                  example: 第n回の進捗会です。
-                room_id:
-                  type: integer
-                  example: 1
-                time_start:
-                  type: string
-                  example: "18:00"
-                time_end:
-                  type: string
-                  example: "20:00"
-                tags:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/ReqTag"
+        $ref: "#/components/requestBodies/PatchReservation"
       responses:
         200:
           $ref: "#/components/responses/reservation"
@@ -342,31 +287,7 @@ paths:
       summary: Create group
       operationId: createGroup
       requestBody:
-        description: Create group object
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: room
-                description:
-                  type: string
-                  example: Sysad班room開発グループ
-                members:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      traq_id:
-                        type: string
-                        example: fuji
-                tags:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/ReqTag"
+        $ref: "#/components/requestBodies/group"
       responses:
         201:
           $ref: "#/components/responses/group"
@@ -388,27 +309,7 @@ paths:
             type: integer
             format: int64
       requestBody:
-        description: update group
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: room
-                description:
-                  type: string
-                  example: Sysad班room開発グループ
-                members:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/user"
-                tags:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/ReqTag"
+        $ref: "#/components/requestBodies/group"
       responses:
         200:
           $ref: "#/components/responses/group"
@@ -543,7 +444,7 @@ components:
           example: "2019-11-02T15:24:42.5438806Z"
     ResponseRoom:
       allOf:
-        - $ref: "#/components/schemas/ResReservation"
+        - $ref: "#/components/schemas/room"
         - type: object
           properties:
             tags:
@@ -551,17 +452,9 @@ components:
               items:
                 $ref: "#/components/schemas/ResponseTag"
 
-    ResReservation:
+    reservation:
       type: object
-      required:
-        - name
-        - time_start
-        - time_end
       properties:
-        id:
-          type: integer
-          format: int64
-          example: 1
         name:
           type: string
           example: 第n回進捗回
@@ -570,28 +463,35 @@ components:
           example: 第n回の進捗会です。
         time_start:
           type: string
-          format: time
-          example: "18:00:00"
+          example: "18:00"
         time_end:
           type: string
-          format: time
-          example: "19:00:00"
-        created_by:
-          type: string
-          example: "fuji"
-        created_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
-        updated_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
+          example: "20:00"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReqTag"
+    PatchReservation:
+      allOf:
+        - $ref: "#/components/schemas/reservation"
+      properties:
+        room_id:
+          type: integer
+          example: 1
+    PostReservation:
+      allOf:
+        - $ref: "#/components/schemas/PatchReservation"
+      properties:
+        group_id:
+          type: integer
+          example: 3
     ResponseReservation:
       allOf:
-        - $ref: "#/components/schemas/ResReservation"
+        - $ref: "#/components/schemas/reservation"
         - type: object
           properties:
             group:
-              $ref: "#/components/schemas/group"
+              $ref: "#/components/schemas/ResponseGroup"
         - type: object
           properties:
             room:
@@ -602,22 +502,7 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ResponseTag"
-    group:
-      type: object
-      required:
-        - name
-        - members
       properties:
-        id:
-          type: integer
-          format: int64
-          example: 3
-        name:
-          type: string
-          example: room
-        description:
-          type: string
-          example: Sysad班room開発グループ
         created_by:
           type: string
           example: "fuji"
@@ -627,23 +512,42 @@ components:
         updated_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
+    
+    RequestGroup:
+      type: object
+      properties:
+        name:
+          type: string
+          example: room
+        description:
+          type: string
+          example: Sysad班room開発グループ
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResUser"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReqTag"
     ResponseGroup:
-      required:
-        - name
-        - members
       allOf:
-        - $ref: "#/components/schemas/group"
-        - properties:
-            members:
-              type: array
-              items:
-                $ref: "#/components/schemas/ResUser"
-        - type: object
-          properties:
-            tags:
-              type: array
-              items:
-                $ref: "#/components/schemas/ResponseTag"
+        - $ref: "#/components/schemas/RequestGroup"
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 3
+        created_by:
+          type: string
+          example: "fuji"
+        created_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+        updated_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+
     user:
       allOf:
         - $ref: "#/components/schemas/ResUser"
@@ -702,6 +606,27 @@ components:
           example: true
 
   requestBodies:
+    PatchReservation:
+      description: 予約の編集
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PatchReservation"
+    PostReservation:
+      description: 予約の追加
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/PostReservation"
+    group:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestGroup"
+
     tag:
       description: タグ本体の作成。
       content:
