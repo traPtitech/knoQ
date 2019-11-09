@@ -551,24 +551,6 @@ components:
               items:
                 $ref: "#/components/schemas/ResponseTag"
 
-    reservation:
-      required:
-        - name
-        - room_id
-        - group_id
-        - time_start
-        - time_end
-      allOf:
-        - $ref: "#/components/schemas/ResReservation"
-      properties:
-        group_id:
-          type: integer
-          format: int64
-          example: 1
-        room_id:
-          type: integer
-          format: int64
-          example: 1
     ResReservation:
       type: object
       required:
