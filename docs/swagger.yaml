@@ -61,7 +61,6 @@ paths:
           description: Bad Request
         403:
           description: Forbidden
-
     get:
       tags:
         - rooms
@@ -94,7 +93,23 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/GetRoomArray"
+
   /rooms/{roomID}:
+    get:
+      tags:
+        - rooms
+      description: 一件取得する
+      operationId: getroom
+      parameters:
+        - name: roomID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          $ref: "#/components/responses/GetRoom"
     delete:
       tags:
         - rooms
@@ -205,6 +220,21 @@ paths:
         400:
           description: Bad Request
   /reservations/{reservationID}:
+    get:
+      tags:
+        - reservations
+      summary: 一件取得
+      operationId: getreservation
+      parameters:
+        - name: reservationID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          $ref: "#/components/responses/reservation"
     patch:
       tags:
         - reservations
@@ -293,7 +323,23 @@ paths:
           $ref: "#/components/responses/group"
         400:
           description: Bad Request
+          
   /groups/{groupID}:
+    get:
+      tags:
+        - groups
+      summary: 一件取得
+      operationId: getgroup
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          $ref: "#/components/responses/group"
     patch:
       tags:
         - groups
@@ -447,7 +493,7 @@ components:
           items:
             $ref: "#/components/schemas/ResponseTag"
 
-    ResponseRoom:
+    GetRoom:
       allOf:
         - $ref: "#/components/schemas/room"
         - type: object
@@ -665,6 +711,13 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/room"
+    GetRoom:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GetRoom"
+
     GetRoomArray:
       description: successful operation
       content:
@@ -672,7 +725,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/ResponseRoom"
+              $ref: "#/components/schemas/GetRoom"
 
     reservation:
       description: successful operation
