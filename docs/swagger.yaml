@@ -46,7 +46,7 @@ paths:
                   example: "2019-08-08"
                 time_start:
                   type: string
-                  example: "17:30"
+                  example: "09:00"
                 time_end:
                   type: string
                   example: "20:00"
@@ -56,7 +56,7 @@ paths:
                     $ref: "#/components/schemas/ReqTag"
       responses:
         201:
-          $ref: "#/components/responses/room"
+          $ref: "#/components/responses/PostRoom"
         400:
           description: Bad Request
         403:
@@ -93,7 +93,7 @@ paths:
             example: "2017-07-21"
       responses:
         200:
-          $ref: "#/components/responses/roomArray"
+          $ref: "#/components/responses/GetRoomArray"
   /rooms/{roomID}:
     delete:
       tags:
@@ -128,7 +128,7 @@ paths:
       operationId: addAllrooms
       responses:
         201:
-          $ref: "#/components/responses/roomArray"
+          $ref: "#/components/responses/PostRoomArray"
         403:
           description: Forbidden
 
@@ -431,7 +431,7 @@ components:
         time_start:
           type: string
           format: time
-          example: "17:30:00"
+          example: "09:00:00"
         time_end:
           type: string
           format: time
@@ -442,16 +442,29 @@ components:
         updated_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseTag"
+
     ResponseRoom:
       allOf:
         - $ref: "#/components/schemas/room"
         - type: object
           properties:
-            tags:
+            available_time:
               type: array
               items:
-                $ref: "#/components/schemas/ResponseTag"
-
+                type: object
+                properties:
+                  time_start:
+                    type: string
+                    format: time
+                    example: "09:00:00"
+                  time_end:
+                    type: string
+                    format: time
+                    example: "17:59:59"
     reservation:
       type: object
       properties:
@@ -461,6 +474,9 @@ components:
         descirption:
           type: string
           example: 第n回の進捗会です。
+        allow_together:
+          type: boolean
+          example: false
         time_start:
           type: string
           example: "18:00"
@@ -635,13 +651,21 @@ components:
             $ref: "#/components/schemas/ReqTag"
 
   responses:
-    room:
+    PostRoom:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ResponseRoom"
-    roomArray:
+            $ref: "#/components/schemas/room"
+    PostRoomArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/room"
+    GetRoomArray:
       description: successful operation
       content:
         application/json:
@@ -649,6 +673,7 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/ResponseRoom"
+
     reservation:
       description: successful operation
       content:
