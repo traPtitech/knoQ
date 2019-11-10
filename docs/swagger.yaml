@@ -53,7 +53,7 @@ paths:
                 tags:
                   type: array
                   items:
-                    $ref: "#/components/schemas/ReqTag"
+                    $ref: "#/components/schemas/ReqTagAuth"
                   example: []
       responses:
         201:
@@ -375,7 +375,7 @@ paths:
       parameters:
         - name: groupID
           in: path
-          description: The name that needs to be deleted
+          description: The id that needs to be deleted
           required: true
           schema:
             type: integer
@@ -387,6 +387,77 @@ paths:
           description: Forbidden
         404:
           description: Groupid not found
+  /groups/{groupID}/members:
+    patch:
+      tags:
+        - groups
+      summary: 自分を追加
+      description: Headerを見て、メンバーを追加する
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          $ref: "#/components/responses/group"
+  /groups/{groupID}/members/me:
+    delete:
+      tags:
+        - groups
+      summary: 自分しか削除出来ない
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          $ref: "#/components/responses/group"
+  /groups/{groupID}/tags:
+    patch:
+      tags:
+        - groups
+      summary: タグを追加
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        $ref: "#/components/requestBodies/tag"
+      responses:
+        200:
+          $ref: "#/components/responses/group"
+  /groups/{groupID}/tags/{tagID}:
+    delete:
+      tags:
+        - groups
+      summary: タグを削除
+      description: locked=falseだけ
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: tagID 
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          $ref: "#/components/responses/group"
+
   /users:
     get:
       tags:
@@ -539,7 +610,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTag"
+            $ref: "#/components/schemas/ReqTagAuth"
     PatchReservation:
       allOf:
         - $ref: "#/components/schemas/reservation"
@@ -591,6 +662,9 @@ components:
         description:
           type: string
           example: Sysad班room開発グループ
+        join_freely:
+          type: boolean
+          example: false
         members:
           type: array
           items:
@@ -598,7 +672,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTag"
+            $ref: "#/components/schemas/ReqTagAuth"
     ResponseGroup:
       allOf:
         - $ref: "#/components/schemas/RequestGroup"
@@ -646,6 +720,14 @@ components:
           example: true
     ReqTag:
       type: object
+      properties:
+        name:
+          type: string
+          example: Vue
+
+    ReqTagAuth:
+      allOf:
+        - $ref: "#/components/schemas/ReqTag"
       properties:
         name:
           type: string
