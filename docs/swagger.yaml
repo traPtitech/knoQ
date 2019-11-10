@@ -391,7 +391,7 @@ paths:
     patch:
       tags:
         - groups
-      summary: 自分を追加
+      summary: 自分を追加。join_freely=true
       description: Headerを見て、メンバーを追加する
       parameters:
         - name: groupID
@@ -407,7 +407,8 @@ paths:
     delete:
       tags:
         - groups
-      summary: 自分しか削除出来ない
+      summary: 自分しか削除出来ない。join_freely=true
+
       parameters:
         - name: groupID
           in: path
