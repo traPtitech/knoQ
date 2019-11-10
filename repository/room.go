@@ -1,6 +1,7 @@
-package model
+package repository
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,11 +10,44 @@ import (
 	"os"
 	"time"
 
-	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 )
+
+func findRoomsByTime(begin, end string) ([]Room, error) {
+	rooms := []Room{}
+	cmd := db
+	if begin != "" {
+		cmd = cmd.Where("date >= ?", begin)
+	}
+	if end != "" {
+		cmd = cmd.Where("date <= ?", end)
+	}
+
+	if err := cmd.Order("date asc").Find(&rooms).Error; err != nil {
+		return nil, err
+	}
+	return rooms, nil
+}
+
+// AddRelation add room by RoomID
+func (room *Room) AddRelation(roomID int) error {
+	room.ID = roomID
+	if err := db.First(&room, room.ID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (room *Room) inTime(targetTime time.Time) bool {
+	roomStart, _ := strToTime(room.TimeStart)
+	roomEnd, _ := strToTime(room.TimeEnd)
+	if (roomStart.Equal(targetTime) || roomStart.Before(targetTime)) && (roomEnd.Equal(targetTime) || roomEnd.After(targetTime)) {
+		return true
+	}
+	return false
+}
 
 var traQCalendarID string = os.Getenv("TRAQ_CALENDARID")
 
