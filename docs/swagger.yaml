@@ -494,13 +494,7 @@ components:
           items:
             $ref: "#/components/schemas/ResponseTag"
           example: []
-
-    GetRoom:
-      allOf:
-        - $ref: "#/components/schemas/room"
-        - type: object
-          properties:
-            available_time:
+        available_time:
               type: array
               items:
                 type: object
@@ -512,7 +506,19 @@ components:
                   time_end:
                     type: string
                     format: time
-                    example: "17:59:59"
+                    example: "20:00:00"
+
+    GetRoom:
+      allOf:
+        - $ref: "#/components/schemas/room"
+        - type: object
+          properties:
+            available_time:
+              example:
+                value: {
+                  "time_start": "09:00:00",
+                  "time_end": "17:59:59"
+                }
     reservation:
       type: object
       properties:
