@@ -296,7 +296,7 @@ paths:
         $ref: "#/components/requestBodies/tag"
       responses:
         200:
-          $ref: "#/components/responses/ResponseReservation"
+          $ref: "#/components/responses/reservation"
   /reservations/{reservationID}/tags/{tagID}:
     delete:
       tags:
@@ -318,7 +318,7 @@ paths:
             format: int64
       responses:
         200:
-          $ref: "#/components/responses/ResponseReservation"
+          $ref: "#/components/responses/reservation"
 
   /groups:
     get:
