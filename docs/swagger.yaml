@@ -54,6 +54,7 @@ paths:
                   type: array
                   items:
                     $ref: "#/components/schemas/ReqTag"
+                  example: []
       responses:
         201:
           $ref: "#/components/responses/PostRoom"
@@ -492,6 +493,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ResponseTag"
+          example: []
 
     GetRoom:
       allOf:
