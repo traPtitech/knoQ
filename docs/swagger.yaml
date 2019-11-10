@@ -280,6 +280,46 @@ paths:
           description: Forbidden
         404:
           description: Not Found
+  /reservation/{reservationID}/tags:
+    patch:
+      tags:
+        - reservations
+      summary: タグを追加
+      parameters:
+        - name: reservationID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        $ref: "#/components/requestBodies/tag"
+      responses:
+        200:
+          $ref: "#/components/responses/ResponseReservation"
+  /reservations/{reservationID}/tags/{tagID}:
+    delete:
+      tags:
+        - reservations
+      summary: タグを削除
+      description: locked=falseだけ
+      parameters:
+        - name: reservationID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: tagID 
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          $ref: "#/components/responses/ResponseReservation"
+
   /groups:
     get:
       tags:
@@ -408,7 +448,6 @@ paths:
       tags:
         - groups
       summary: 自分しか削除出来ない。join_freely=true
-
       parameters:
         - name: groupID
           in: path
