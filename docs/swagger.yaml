@@ -13,7 +13,7 @@ servers:
 tags:
   - name: rooms
     description: traPが借りている講義室
-  - name: reservations
+  - name: events
     description: 予約
   - name: groups
     description: グループの情報
@@ -148,12 +148,12 @@ paths:
         403:
           description: Forbidden
 
-  /reservations:
+  /events:
     get:
       tags:
-        - reservations
+        - events
       summary: 使用宣言の情報を取得
-      operationId: getreservations
+      operationId: getevents
       parameters:
         - name: id
           in: query
@@ -205,29 +205,29 @@ paths:
             format: date
       responses:
         200:
-          $ref: "#/components/responses/reservationArray"
+          $ref: "#/components/responses/eventArray"
     post:
       tags:
-        - reservations
+        - events
       summary: 部屋の使用宣言を行う
-      operationId: addreservations
+      operationId: addevents
       requestBody:
-        $ref: "#/components/requestBodies/PostReservation"
+        $ref: "#/components/requestBodies/PostEvent"
       responses:
         201:
-          $ref: "#/components/responses/reservation"
+          $ref: "#/components/responses/event"
         403:
           description: Forbidden
         400:
           description: Bad Request
-  /reservations/{reservationID}:
+  /events/{eventID}:
     get:
       tags:
-        - reservations
+        - events
       summary: 一件取得
-      operationId: getreservation
+      operationId: getevent
       parameters:
-        - name: reservationID
+        - name: eventID
           in: path
           required: true
           schema:
@@ -235,15 +235,15 @@ paths:
             format: int64
       responses:
         200:
-          $ref: "#/components/responses/reservation"
+          $ref: "#/components/responses/event"
     patch:
       tags:
-        - reservations
+        - events
       summary: 部屋の使用宣言を更新(現状はroomid, timestart, timeendのみを変更)
       description: 作成者のみ
-      operationId: updatereservations
+      operationId: updateevents
       parameters:
-        - name: reservationID
+        - name: eventID
           in: path
           description: 変更する情報のID
           required: true
@@ -251,22 +251,22 @@ paths:
             type: integer
             format: int64
       requestBody:
-        $ref: "#/components/requestBodies/PatchReservation"
+        $ref: "#/components/requestBodies/PatchEvent"
       responses:
         200:
-          $ref: "#/components/responses/reservation"
+          $ref: "#/components/responses/event"
         403:
           description: Forbidden
         400:
           description: Bad Request
     delete:
       tags:
-        - reservations
+        - events
       summary: 使用宣言を削除
       description: 作成者のみ
-      operationId: deleteRreservations
+      operationId: deleteRevents
       parameters:
-        - name: reservationID
+        - name: eventID
           in: path
           description: 削除する情報のID
           required: true
@@ -280,13 +280,13 @@ paths:
           description: Forbidden
         404:
           description: Not Found
-  /reservation/{reservationID}/tags:
+  /events/{eventID}/tags:
     patch:
       tags:
-        - reservations
+        - events
       summary: タグを追加
       parameters:
-        - name: reservationID
+        - name: eventID
           in: path
           required: true
           schema:
@@ -296,21 +296,21 @@ paths:
         $ref: "#/components/requestBodies/tag"
       responses:
         200:
-          $ref: "#/components/responses/reservation"
-  /reservations/{reservationID}/tags/{tagID}:
+          $ref: "#/components/responses/event"
+  /events/{eventID}/tags/{tagID}:
     delete:
       tags:
-        - reservations
+        - events
       summary: タグを削除
       description: locked=falseだけ
       parameters:
-        - name: reservationID
+        - name: eventID
           in: path
           required: true
           schema:
             type: integer
             format: int64
-        - name: tagID 
+        - name: tagID
           in: path
           required: true
           schema:
@@ -318,7 +318,7 @@ paths:
             format: int64
       responses:
         200:
-          $ref: "#/components/responses/reservation"
+          $ref: "#/components/responses/event"
 
   /groups:
     get:
@@ -364,7 +364,7 @@ paths:
           $ref: "#/components/responses/group"
         400:
           description: Bad Request
-          
+
   /groups/{groupID}:
     get:
       tags:
@@ -488,7 +488,7 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: tagID 
+        - name: tagID
           in: path
           required: true
           schema:
@@ -534,7 +534,7 @@ paths:
           required: false
           schema:
             type: boolean
-        - name: for_reservation
+        - name: for_event
           in: query
           required: false
           schema:
@@ -560,7 +560,7 @@ paths:
             enum:
               - room
               - group
-              - reservation
+              - event
       requestBody:
         $ref: "#/components/requestBodies/tag"
       responses:
@@ -606,18 +606,18 @@ components:
             $ref: "#/components/schemas/ResponseTag"
           example: []
         available_time:
-              type: array
-              items:
-                type: object
-                properties:
-                  time_start:
-                    type: string
-                    format: time
-                    example: "09:00:00"
-                  time_end:
-                    type: string
-                    format: time
-                    example: "20:00:00"
+          type: array
+          items:
+            type: object
+            properties:
+              time_start:
+                type: string
+                format: time
+                example: "09:00:00"
+              time_end:
+                type: string
+                format: time
+                example: "20:00:00"
 
     GetRoom:
       allOf:
@@ -625,11 +625,8 @@ components:
         - type: object
           properties:
             available_time:
-              example: {
-                  "time_start": "09:00:00",
-                  "time_end": "17:59:59"
-                }
-    reservation:
+              example: { "time_start": "09:00:00", "time_end": "17:59:59" }
+    event:
       type: object
       properties:
         name:
@@ -651,23 +648,23 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ReqTagAuth"
-    PatchReservation:
+    PatchEvent:
       allOf:
-        - $ref: "#/components/schemas/reservation"
+        - $ref: "#/components/schemas/event"
       properties:
         room_id:
           type: integer
           example: 1
-    PostReservation:
+    PostEvent:
       allOf:
-        - $ref: "#/components/schemas/PatchReservation"
+        - $ref: "#/components/schemas/PatchEvent"
       properties:
         group_id:
           type: integer
           example: 3
-    ResponseReservation:
+    ResponseEvent:
       allOf:
-        - $ref: "#/components/schemas/reservation"
+        - $ref: "#/components/schemas/event"
         - type: object
           properties:
             group:
@@ -692,7 +689,7 @@ components:
         updated_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
-    
+
     RequestGroup:
       type: object
       properties:
@@ -755,7 +752,7 @@ components:
         for_group:
           type: boolean
           example: true
-        for_reservation:
+        for_event:
           type: boolean
           example: true
     ReqTag:
@@ -797,20 +794,20 @@ components:
           example: true
 
   requestBodies:
-    PatchReservation:
+    PatchEvent:
       description: 予約の編集
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PatchReservation"
-    PostReservation:
+            $ref: "#/components/schemas/PatchEvent"
+    PostEvent:
       description: 予約の追加
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PostReservation"
+            $ref: "#/components/schemas/PostEvent"
     group:
       required: true
       content:
@@ -856,20 +853,20 @@ components:
             items:
               $ref: "#/components/schemas/GetRoom"
 
-    reservation:
+    event:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ResponseReservation"
-    reservationArray:
+            $ref: "#/components/schemas/ResponseEvent"
+    eventArray:
       description: successful operation
       content:
         application/json:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/ResponseReservation"
+              $ref: "#/components/schemas/ResponseEvent"
     group:
       description: successful operation
       content:
