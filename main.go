@@ -27,7 +27,10 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Secure())
-	e.Use(middleware.Static("./web/dist"))
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:  "web/dist",
+		HTML5: true,
+	}))
 
 	// headerの追加のため
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -38,23 +41,40 @@ func main() {
 
 	// API定義 (/api)
 	api := e.Group("/api", myMiddleware.TraQUserMiddleware)
-	api.GET("/users", router.HandleGetUsers)
-	api.GET("/users/me", router.HandleGetUserMe)
-	api.GET("/rooms", router.HandleGetRooms)
-	api.GET("/groups", router.HandleGetGroups)
-	api.POST("/groups", router.HandlePostGroup)
-	api.PATCH("/groups/:groupid", router.HandleUpdateGroup)
-	api.GET("/reservations", router.HandleGetReservations)
-	api.POST("/reservations", router.HandlePostReservation)
-	api.DELETE("/reservations/:reservationid", router.HandleDeleteReservation)
-	api.PATCH("/reservations/:reservationid", router.HandleUpdateReservation)
+	adminAPI := api.Group("", myMiddleware.AdminUserMiddleware)
+	{
+		apiGroups := api.Group("/groups")
+		adminAPIGroups := adminAPI.Group("/groups")
+		{
+			apiGroups.GET("", router.HandleGetGroups)
+			apiGroups.POST("", router.HandlePostGroup)
+			apiGroups.PATCH("/:groupid", router.HandleUpdateGroup)
+			adminAPIGroups.DELETE("/:groupid", router.HandleDeleteGroup)
+		}
 
-	// 管理者専用API定義 (/api/admin)
-	adminAPI := api.Group("/admin", myMiddleware.AdminUserMiddleware)
-	adminAPI.POST("/rooms", router.HandlePostRoom)
-	adminAPI.POST("/rooms/all", router.HandleSetRooms)
-	adminAPI.DELETE("/rooms/:roomid", router.HandleDeleteRoom)
-	adminAPI.DELETE("/groups/:groupid", router.HandleDeleteGroup)
+		apiEvents := api.Group("/reservations")
+		{
+			apiEvents.GET("", router.HandleGetReservations)
+			apiEvents.POST("", router.HandlePostReservation)
+			apiEvents.DELETE("/:reservationid", router.HandleDeleteReservation)
+			apiEvents.PATCH("/:reservationid", router.HandleUpdateReservation)
+		}
+
+		apiRooms := api.Group("/rooms")
+		adminAPIRooms := adminAPI.Group("/rooms")
+		{
+			apiRooms.GET("", router.HandleGetRooms)
+			adminAPIRooms.POST("", router.HandlePostRoom)
+			adminAPIRooms.POST("/all", router.HandleSetRooms)
+			adminAPIRooms.DELETE("/:roomid", router.HandleDeleteRoom)
+		}
+
+		apiUsers := api.Group("/users")
+		{
+			apiUsers.GET("", router.HandleGetUsers)
+			apiUsers.GET("/me", router.HandleGetUserMe)
+		}
+	}
 
 	// サーバースタート
 	go func() {
