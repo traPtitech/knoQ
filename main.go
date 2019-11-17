@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"room/model"
+	myMiddleware "room/middleware"
+	repo "room/repository"
+	"room/router"
 	"time"
 
 	"github.com/labstack/echo"
@@ -14,7 +16,7 @@ import (
 )
 
 func main() {
-	db, err := model.SetupDatabase()
+	db, err := repo.SetupDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,26 +37,24 @@ func main() {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", model.TraQUserMiddleware)
-	api.GET("/hello", model.HandleGetHello) // テスト用
-	api.GET("/users", model.HandleGetUsers)
-	api.GET("/users/me", model.HandleGetUserMe)
-	api.GET("/rooms", model.HandleGetRooms)
-	api.GET("/groups", model.HandleGetGroups)
-	api.POST("/groups", model.HandlePostGroup)
-	api.PATCH("/groups/:groupid", model.HandleUpdateGroup)
-	api.GET("/reservations", model.HandleGetReservations)
-	api.POST("/reservations", model.HandlePostReservation)
-	api.DELETE("/reservations/:reservationid", model.HandleDeleteReservation)
-	api.PATCH("/reservations/:reservationid", model.HandleUpdateReservation)
+	api := e.Group("/api", myMiddleware.TraQUserMiddleware)
+	api.GET("/users", router.HandleGetUsers)
+	api.GET("/users/me", router.HandleGetUserMe)
+	api.GET("/rooms", router.HandleGetRooms)
+	api.GET("/groups", router.HandleGetGroups)
+	api.POST("/groups", router.HandlePostGroup)
+	api.PATCH("/groups/:groupid", router.HandleUpdateGroup)
+	api.GET("/reservations", router.HandleGetReservations)
+	api.POST("/reservations", router.HandlePostReservation)
+	api.DELETE("/reservations/:reservationid", router.HandleDeleteReservation)
+	api.PATCH("/reservations/:reservationid", router.HandleUpdateReservation)
 
 	// 管理者専用API定義 (/api/admin)
-	adminAPI := api.Group("/admin", model.AdminUserMiddleware)
-	adminAPI.GET("/hello", model.HandleGetHello) // テスト用
-	adminAPI.POST("/rooms", model.HandlePostRoom)
-	adminAPI.POST("/rooms/all", model.HandleSetRooms)
-	adminAPI.DELETE("/rooms/:roomid", model.HandleDeleteRoom)
-	adminAPI.DELETE("/groups/:groupid", model.HandleDeleteGroup)
+	adminAPI := api.Group("/admin", myMiddleware.AdminUserMiddleware)
+	adminAPI.POST("/rooms", router.HandlePostRoom)
+	adminAPI.POST("/rooms/all", router.HandleSetRooms)
+	adminAPI.DELETE("/rooms/:roomid", router.HandleDeleteRoom)
+	adminAPI.DELETE("/groups/:groupid", router.HandleDeleteGroup)
 
 	// サーバースタート
 	go func() {

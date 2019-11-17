@@ -3,12 +3,13 @@ package repository
 import (
 	"errors"
 	"net/url"
+	"room/utils"
 	"strconv"
 )
 
-func findRvs(values url.Values) ([]Reservation, error) {
+func FindRvs(values url.Values) ([]Reservation, error) {
 	reservations := []Reservation{}
-	cmd := db.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("CreatedBy")
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("CreatedBy")
 
 	if values.Get("id") != "" {
 		id, _ := strconv.Atoi(values.Get("id"))
@@ -20,7 +21,7 @@ func findRvs(values url.Values) ([]Reservation, error) {
 	}
 
 	if values.Get("traQID") != "" {
-		groupsID, err := getGroupIDsBytraQID(values.Get("traQID"))
+		groupsID, err := GetGroupIDsBytraQID(values.Get("traQID"))
 		if err != nil {
 			return nil, err
 		}
@@ -53,23 +54,23 @@ func findRvs(values url.Values) ([]Reservation, error) {
 
 // AddCreatedBy add CreatedBy
 func (reservation *Reservation) AddCreatedBy() error {
-	if err := db.Where("traq_id = ?", reservation.CreatedByRefer).First(&reservation.CreatedBy).Error; err != nil {
+	if err := DB.Where("traq_id = ?", reservation.CreatedByRefer).First(&reservation.CreatedBy).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 // 時間が部屋の範囲内か、endがstartの後かどうか確認する
-func (rv *Reservation) timeConsistency() error {
-	timeStart, err := strToTime(rv.TimeStart)
+func (rv *Reservation) TimeConsistency() error {
+	timeStart, err := utils.StrToTime(rv.TimeStart)
 	if err != nil {
 		return err
 	}
-	timeEnd, err := strToTime(rv.TimeEnd)
+	timeEnd, err := utils.StrToTime(rv.TimeEnd)
 	if err != nil {
 		return err
 	}
-	if !(rv.Room.inTime(timeStart) && rv.Room.inTime(timeEnd)) {
+	if !(rv.Room.InTime(timeStart) && rv.Room.InTime(timeEnd)) {
 		return errors.New("invalid time")
 	}
 	if !timeStart.Before(timeEnd) {

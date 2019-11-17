@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"room/utils"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -15,9 +16,9 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-func findRoomsByTime(begin, end string) ([]Room, error) {
+func FindRoomsByTime(begin, end string) ([]Room, error) {
 	rooms := []Room{}
-	cmd := db
+	cmd := DB
 	if begin != "" {
 		cmd = cmd.Where("date >= ?", begin)
 	}
@@ -34,15 +35,15 @@ func findRoomsByTime(begin, end string) ([]Room, error) {
 // AddRelation add room by RoomID
 func (room *Room) AddRelation(roomID int) error {
 	room.ID = roomID
-	if err := db.First(&room, room.ID).Error; err != nil {
+	if err := DB.First(&room, room.ID).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (room *Room) inTime(targetTime time.Time) bool {
-	roomStart, _ := strToTime(room.TimeStart)
-	roomEnd, _ := strToTime(room.TimeEnd)
+func (room *Room) InTime(targetTime time.Time) bool {
+	roomStart, _ := utils.StrToTime(room.TimeStart)
+	roomEnd, _ := utils.StrToTime(room.TimeEnd)
 	if (roomStart.Equal(targetTime) || roomStart.Before(targetTime)) && (roomEnd.Equal(targetTime) || roomEnd.After(targetTime)) {
 		return true
 	}
@@ -106,7 +107,7 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func getEvents() ([]Room, error) {
+func GetEvents() ([]Room, error) {
 	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
@@ -146,7 +147,7 @@ func getEvents() ([]Room, error) {
 				TimeStart: item.Start.DateTime[11:16],
 				TimeEnd:   item.End.DateTime[11:16],
 			}
-			if err := db.Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE place=place").Create(&room).Error; err != nil {
+			if err := DB.Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE place=place").Create(&room).Error; err != nil {
 				return nil, err
 			}
 			// 被りはIDが0で返ってくるらしい

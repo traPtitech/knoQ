@@ -3,6 +3,7 @@ package router
 import (
 	"fmt"
 	"net/http"
+	repo "room/repository"
 	"strconv"
 
 	"github.com/labstack/echo"
@@ -10,7 +11,7 @@ import (
 
 // HandlePostRoom traPで確保した部屋情報を作成
 func HandlePostRoom(c echo.Context) error {
-	r := new(Room)
+	r := new(repo.Room)
 	if err := c.Bind(r); err != nil {
 		return err
 	}
@@ -23,7 +24,7 @@ func HandlePostRoom(c echo.Context) error {
 
 // HandleSetRooms Googleカレンダーから部屋情報を作成
 func HandleSetRooms(c echo.Context) error {
-	rooms, err := getEvents()
+	rooms, err := repo.GetEvents()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
@@ -32,14 +33,14 @@ func HandleSetRooms(c echo.Context) error {
 
 // HandleGetRooms traPで確保した部屋情報を取得
 func HandleGetRooms(c echo.Context) error {
-	r := []Room{}
+	r := []repo.Room{}
 	var err error
 	id := c.QueryParam("id")
 	begin := c.QueryParam("date_begin")
 	end := c.QueryParam("date_end")
 
 	if id == "" {
-		r, err = findRoomsByTime(begin, end)
+		r, err = repo.FindRoomsByTime(begin, end)
 	} else {
 		ID, _ := strconv.Atoi(id)
 		err = db.First(&r, ID).Error
@@ -54,14 +55,14 @@ func HandleGetRooms(c echo.Context) error {
 
 // HandleDeleteRoom traPで確保した部屋情報を削除
 func HandleDeleteRoom(c echo.Context) error {
-	r := new(Room)
+	r := new(repo.Room)
 	r.ID, _ = strconv.Atoi(c.Param("roomid"))
 
 	if err := db.First(&r, r.ID).Error; err != nil {
 		return c.String(http.StatusNotFound, "部屋が存在しない")
 	}
 	// 関連する予約を削除する
-	if err := db.Where("room_id = ?", r.ID).Delete(&Reservation{}).Error; err != nil {
+	if err := db.Where("room_id = ?", r.ID).Delete(&repo.Reservation{}).Error; err != nil {
 		fmt.Println(err)
 	}
 

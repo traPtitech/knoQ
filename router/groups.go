@@ -3,26 +3,30 @@ package router
 import (
 	"fmt"
 	"net/http"
+	"room/middleware"
+	repo "room/repository"
 	"strconv"
 
 	"github.com/labstack/echo"
 )
 
+var db = repo.DB
+
 // HandlePostGroup グループを作成
 func HandlePostGroup(c echo.Context) error {
-	g := new(Group)
+	g := new(repo.Group)
 
 	if err := c.Bind(&g); err != nil {
 		return err
 	}
 
-	g.CreatedByRefer = getRequestUser(c)
+	g.CreatedByRefer = middleware.GetRequestUser(c)
 	if err := g.AddCreatedBy(); err != nil {
 		return err
 	}
 
 	// メンバーがdbにいるか
-	if err := g.findMembers(); err != nil {
+	if err := g.FindMembers(); err != nil {
 		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
 	}
 
@@ -35,10 +39,10 @@ func HandlePostGroup(c echo.Context) error {
 
 // HandleGetGroups グループを取得
 func HandleGetGroups(c echo.Context) error {
-	groups := []Group{}
+	groups := []repo.Group{}
 	values := c.QueryParams()
 
-	groups, err := findGroups(values)
+	groups, err := repo.FindGroups(values)
 	if err != nil {
 		return err
 	}
@@ -48,7 +52,7 @@ func HandleGetGroups(c echo.Context) error {
 
 // HandleDeleteGroup グループを削除
 func HandleDeleteGroup(c echo.Context) error {
-	g := new(Group)
+	g := new(repo.Group)
 	g.ID, _ = strconv.Atoi(c.Param("groupid"))
 
 	if err := db.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
@@ -60,7 +64,7 @@ func HandleDeleteGroup(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	// 予約情報を削除
-	if err := db.Where("group_id = ?", g.ID).Delete(&Reservation{}).Error; err != nil {
+	if err := db.Where("group_id = ?", g.ID).Delete(&repo.Reservation{}).Error; err != nil {
 		fmt.Println(err)
 	}
 
@@ -73,7 +77,7 @@ func HandleDeleteGroup(c echo.Context) error {
 
 // HandleUpdateGroup グループメンバー、グループ名を更新
 func HandleUpdateGroup(c echo.Context) error {
-	g := new(Group)
+	g := new(repo.Group)
 
 	if err := c.Bind(g); err != nil {
 		return err
@@ -82,7 +86,7 @@ func HandleUpdateGroup(c echo.Context) error {
 	description := g.Description
 
 	// メンバーがdbにいるか
-	if err := g.findMembers(); err != nil {
+	if err := g.FindMembers(); err != nil {
 		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
 	}
 
@@ -94,7 +98,7 @@ func HandleUpdateGroup(c echo.Context) error {
 	if err := g.AddCreatedBy(); err != nil {
 		return err
 	}
-	if getRequestUser(c) != g.CreatedByRefer {
+	if middleware.GetRequestUser(c) != g.CreatedByRefer {
 		return echo.NewHTTPError(http.StatusForbidden, "作成者ではない")
 	}
 

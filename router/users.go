@@ -2,14 +2,16 @@ package router
 
 import (
 	"net/http"
+	"room/middleware"
+	repo "room/repository"
 
 	"github.com/labstack/echo"
 )
 
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 func HandleGetUserMe(c echo.Context) error {
-	traQID := getRequestUser(c)
-	user, err := getUser(traQID)
+	traQID := middleware.GetRequestUser(c)
+	user, err := repo.GetUser(traQID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
@@ -18,7 +20,7 @@ func HandleGetUserMe(c echo.Context) error {
 
 // HandleGetUsers ユーザーすべてを取得
 func HandleGetUsers(c echo.Context) error {
-	users := []User{}
+	users := []repo.User{}
 	if err := db.Find(&users).Error; err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}

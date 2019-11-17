@@ -1,6 +1,14 @@
-package model
+package repository
 
-import "time"
+import (
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/jinzhu/gorm"
+	// mysql
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+)
 
 // 新たにモデル(テーブル)を定義した場合はここに追加する事
 var tables = []interface{}{
@@ -9,6 +17,15 @@ var tables = []interface{}{
 	Group{},
 	Reservation{},
 }
+
+var (
+	MARIADB_HOSTNAME = os.Getenv("MARIADB_HOSTNAME")
+	MARIADB_DATABASE = os.Getenv("MARIADB_DATABASE")
+	MARIADB_USERNAME = os.Getenv("MARIADB_USERNAME")
+	MARIADB_PASSWORD = os.Getenv("MARIADB_PASSWORD")
+
+	DB *gorm.DB
+)
 
 // User traQユーザー情報構造体
 type User struct {
@@ -57,4 +74,42 @@ type Reservation struct {
 	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+// SetupDatabase set up DB and crate tables
+func SetupDatabase() (*gorm.DB, error) {
+	var err error
+	//tmp
+	if MARIADB_HOSTNAME == "" {
+		MARIADB_HOSTNAME = ""
+	}
+	if MARIADB_DATABASE == "" {
+		MARIADB_DATABASE = "room"
+	}
+	if MARIADB_USERNAME == "" {
+		MARIADB_USERNAME = "root"
+	}
+
+	if MARIADB_PASSWORD == "" {
+		MARIADB_PASSWORD = "password"
+	}
+
+	// データベース接続
+	DB, err = gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local", MARIADB_USERNAME, MARIADB_PASSWORD, MARIADB_HOSTNAME, MARIADB_DATABASE))
+	if err != nil {
+		return DB, err
+	}
+	if err := initDB(); err != nil {
+		return DB, err
+	}
+	return DB, nil
+}
+
+// initDB データベースのスキーマを更新
+func initDB() error {
+	// テーブルが無ければ作成
+	if err := DB.AutoMigrate(tables...).Error; err != nil {
+		return err
+	}
+	return nil
 }

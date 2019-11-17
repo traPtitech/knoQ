@@ -3,6 +3,8 @@ package router
 import (
 	"fmt"
 	"net/http"
+	"room/middleware"
+	repo "room/repository"
 	"strconv"
 
 	"github.com/labstack/echo"
@@ -10,13 +12,13 @@ import (
 
 // HandlePostReservation 部屋の使用宣言を作成
 func HandlePostReservation(c echo.Context) error {
-	rv := new(Reservation)
+	rv := new(repo.Reservation)
 
 	if err := c.Bind(&rv); err != nil {
 		return err
 	}
 
-	rv.CreatedByRefer = getRequestUser(c)
+	rv.CreatedByRefer = middleware.GetRequestUser(c)
 	if err := rv.AddCreatedBy(); err != nil {
 		return err
 	}
@@ -31,7 +33,7 @@ func HandlePostReservation(c echo.Context) error {
 	}
 
 	// dateを代入
-	r := new(Room)
+	r := new(repo.Room)
 	if err := db.First(&r, rv.RoomID).Error; err != nil {
 		return err
 	}
@@ -39,7 +41,7 @@ func HandlePostReservation(c echo.Context) error {
 	rv.Date = r.Date[:10]
 	rv.Room.Date = rv.Room.Date[:10]
 
-	err := rv.timeConsistency()
+	err := rv.TimeConsistency()
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -52,11 +54,11 @@ func HandlePostReservation(c echo.Context) error {
 
 // HandleGetReservations 部屋の使用宣言情報を取得
 func HandleGetReservations(c echo.Context) error {
-	reservations := []Reservation{}
+	reservations := []repo.Reservation{}
 
 	values := c.QueryParams()
 
-	reservations, err := findRvs(values)
+	reservations, err := repo.FindRvs(values)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "queryが正当でない")
 	}
@@ -66,11 +68,11 @@ func HandleGetReservations(c echo.Context) error {
 
 // HandleDeleteReservation 部屋の使用宣言を削除
 func HandleDeleteReservation(c echo.Context) error {
-	rv := new(Reservation)
+	rv := new(repo.Reservation)
 	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
 
-	traQID := getRequestUser(c)
-	belong, err := checkBelongToGroup(rv.ID, traQID)
+	traQID := middleware.GetRequestUser(c)
+	belong, err := repo.CheckBelongToGroup(rv.ID, traQID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "reservationIDが正しくない")
 	}
@@ -87,15 +89,15 @@ func HandleDeleteReservation(c echo.Context) error {
 
 // HandleUpdateReservation 部屋、開始時刻、終了時刻を更新
 func HandleUpdateReservation(c echo.Context) error {
-	rv := new(Reservation)
+	rv := new(repo.Reservation)
 
 	if err := c.Bind(&rv); err != nil {
 		return err
 	}
 	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
 
-	traQID := getRequestUser(c)
-	belong, err := checkBelongToGroup(rv.ID, traQID)
+	traQID := middleware.GetRequestUser(c)
+	belong, err := repo.CheckBelongToGroup(rv.ID, traQID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "reservationIDが正しくない")
 	}
@@ -113,7 +115,7 @@ func HandleUpdateReservation(c echo.Context) error {
 	rv.Date = rv.Room.Date
 
 	// roomid, timestart, timeendのみを変更(roomidに伴ってdateの変更する)
-	if err := db.Model(&rv).Update(Reservation{RoomID: rv.RoomID, Date: rv.Date, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+	if err := db.Model(&rv).Update(repo.Reservation{RoomID: rv.RoomID, Date: rv.Date, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
 		fmt.Println("DB could not be updated")
 		return err
 	}

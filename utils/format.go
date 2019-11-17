@@ -2,7 +2,7 @@ package utils
 
 import "time"
 
-func strToTime(s string) (time.Time, error) {
+func StrToTime(s string) (time.Time, error) {
 	t, err := time.Parse("15:04", s)
 	if err != nil {
 		t, err = time.Parse("15:04:05", s)
