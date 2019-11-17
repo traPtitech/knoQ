@@ -1,8 +1,13 @@
 /vendor/
+.git
 .gitignore
-docker-compose.yml
-Dockerfile
-room
+.gitmodules
+.dockerignore
+.DS_Store
 showcase.yaml
-/web/
+README.md
+init.sh
+room
 /development/
+!/development/fresh.conf
+/web/node_modules
