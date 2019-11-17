@@ -34,7 +34,7 @@ func HandlePostReservation(c echo.Context) error {
 
 	// dateを代入
 	r := new(repo.Room)
-	if err := db.First(&r, rv.RoomID).Error; err != nil {
+	if err := repo.DB.First(&r, rv.RoomID).Error; err != nil {
 		return err
 	}
 	// r.Date = 2018-08-10T00:00:00+09:00
@@ -46,7 +46,7 @@ func HandlePostReservation(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := db.Create(&rv).Error; err != nil {
+	if err := repo.DB.Create(&rv).Error; err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, rv)
@@ -80,7 +80,7 @@ func HandleDeleteReservation(c echo.Context) error {
 		return c.String(http.StatusForbidden, "削除できるのは所属ユーザーのみです。")
 	}
 
-	if err := db.Delete(&rv).Error; err != nil {
+	if err := repo.DB.Delete(&rv).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
@@ -115,12 +115,12 @@ func HandleUpdateReservation(c echo.Context) error {
 	rv.Date = rv.Room.Date
 
 	// roomid, timestart, timeendのみを変更(roomidに伴ってdateの変更する)
-	if err := db.Model(&rv).Update(repo.Reservation{RoomID: rv.RoomID, Date: rv.Date, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+	if err := repo.DB.Model(&rv).Update(repo.Reservation{RoomID: rv.RoomID, Date: rv.Date, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
 		fmt.Println("DB could not be updated")
 		return err
 	}
 
-	if err := db.First(&rv, rv.ID).Error; err != nil {
+	if err := repo.DB.First(&rv, rv.ID).Error; err != nil {
 		return err
 	}
 

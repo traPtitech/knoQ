@@ -16,7 +16,7 @@ func HandlePostRoom(c echo.Context) error {
 		return err
 	}
 
-	if err := db.Create(&r).Error; err != nil {
+	if err := repo.DB.Create(&r).Error; err != nil {
 		return err
 	}
 	return c.JSON(http.StatusOK, r)
@@ -43,7 +43,7 @@ func HandleGetRooms(c echo.Context) error {
 		r, err = repo.FindRoomsByTime(begin, end)
 	} else {
 		ID, _ := strconv.Atoi(id)
-		err = db.First(&r, ID).Error
+		err = repo.DB.First(&r, ID).Error
 	}
 
 	if err != nil {
@@ -58,15 +58,15 @@ func HandleDeleteRoom(c echo.Context) error {
 	r := new(repo.Room)
 	r.ID, _ = strconv.Atoi(c.Param("roomid"))
 
-	if err := db.First(&r, r.ID).Error; err != nil {
+	if err := repo.DB.First(&r, r.ID).Error; err != nil {
 		return c.String(http.StatusNotFound, "部屋が存在しない")
 	}
 	// 関連する予約を削除する
-	if err := db.Where("room_id = ?", r.ID).Delete(&repo.Reservation{}).Error; err != nil {
+	if err := repo.DB.Where("room_id = ?", r.ID).Delete(&repo.Reservation{}).Error; err != nil {
 		fmt.Println(err)
 	}
 
-	if err := db.Delete(&r).Error; err != nil {
+	if err := repo.DB.Delete(&r).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 

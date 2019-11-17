@@ -10,8 +10,6 @@ import (
 	"github.com/labstack/echo"
 )
 
-var db = repo.DB
-
 // HandlePostGroup グループを作成
 func HandlePostGroup(c echo.Context) error {
 	g := new(repo.Group)
@@ -30,7 +28,7 @@ func HandlePostGroup(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
 	}
 
-	if err := db.Create(&g).Error; err != nil {
+	if err := repo.DB.Create(&g).Error; err != nil {
 		return c.String(http.StatusBadRequest, fmt.Sprint(err))
 	}
 
@@ -55,20 +53,21 @@ func HandleDeleteGroup(c echo.Context) error {
 	g := new(repo.Group)
 	g.ID, _ = strconv.Atoi(c.Param("groupid"))
 
-	if err := db.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
+	fmt.Println(g.ID)
+	if err := repo.DB.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
 	// relationを削除
-	if err := db.Model(&g).Association("Members").Clear().Error; err != nil {
+	if err := repo.DB.Model(&g).Association("Members").Clear().Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 	// 予約情報を削除
-	if err := db.Where("group_id = ?", g.ID).Delete(&repo.Reservation{}).Error; err != nil {
+	if err := repo.DB.Where("group_id = ?", g.ID).Delete(&repo.Reservation{}).Error; err != nil {
 		fmt.Println(err)
 	}
 
-	if err := db.Delete(&g).Error; err != nil {
+	if err := repo.DB.Delete(&g).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
@@ -91,7 +90,7 @@ func HandleUpdateGroup(c echo.Context) error {
 	}
 
 	g.ID, _ = strconv.Atoi(c.Param("groupid"))
-	if err := db.First(&g, g.ID).Error; err != nil {
+	if err := repo.DB.First(&g, g.ID).Error; err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "アクセスしたgroupIDは存在しない")
 	}
 	// 作成者を取得
@@ -103,17 +102,17 @@ func HandleUpdateGroup(c echo.Context) error {
 	}
 
 	// メンバーを置き換え
-	if err := db.Model(&g).Association("Members").Replace(g.Members).Error; err != nil {
+	if err := repo.DB.Model(&g).Association("Members").Replace(g.Members).Error; err != nil {
 		return err
 	}
 
 	// グループ名を変更
-	if err := db.Model(&g).Update("name", name).Error; err != nil {
+	if err := repo.DB.Model(&g).Update("name", name).Error; err != nil {
 		return err
 	}
 	fmt.Println(g.Name)
 	// グループ詳細変更
-	if err := db.Model(&g).Update("description", description).Error; err != nil {
+	if err := repo.DB.Model(&g).Update("description", description).Error; err != nil {
 		return err
 	}
 

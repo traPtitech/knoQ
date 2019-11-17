@@ -21,7 +21,7 @@ func HandleGetUserMe(c echo.Context) error {
 // HandleGetUsers ユーザーすべてを取得
 func HandleGetUsers(c echo.Context) error {
 	users := []repo.User{}
-	if err := db.Find(&users).Error; err != nil {
+	if err := repo.DB.Find(&users).Error; err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, users)
