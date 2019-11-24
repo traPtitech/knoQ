@@ -1,19 +1,54 @@
-package model
+package repository
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"room/utils"
 	"time"
 
-	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 )
+
+func FindRoomsByTime(begin, end string) ([]Room, error) {
+	rooms := []Room{}
+	cmd := DB
+	if begin != "" {
+		cmd = cmd.Where("date >= ?", begin)
+	}
+	if end != "" {
+		cmd = cmd.Where("date <= ?", end)
+	}
+
+	if err := cmd.Order("date asc").Find(&rooms).Error; err != nil {
+		return nil, err
+	}
+	return rooms, nil
+}
+
+// AddRelation add room by RoomID
+func (room *Room) AddRelation(roomID int) error {
+	room.ID = roomID
+	if err := DB.First(&room, room.ID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (room *Room) InTime(targetTime time.Time) bool {
+	roomStart, _ := utils.StrToTime(room.TimeStart)
+	roomEnd, _ := utils.StrToTime(room.TimeEnd)
+	if (roomStart.Equal(targetTime) || roomStart.Before(targetTime)) && (roomEnd.Equal(targetTime) || roomEnd.After(targetTime)) {
+		return true
+	}
+	return false
+}
 
 var traQCalendarID string = os.Getenv("TRAQ_CALENDARID")
 
@@ -72,7 +107,7 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func getEvents() ([]Room, error) {
+func GetEvents() ([]Room, error) {
 	b, err := ioutil.ReadFile("credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
@@ -112,7 +147,7 @@ func getEvents() ([]Room, error) {
 				TimeStart: item.Start.DateTime[11:16],
 				TimeEnd:   item.End.DateTime[11:16],
 			}
-			if err := db.Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE place=place").Create(&room).Error; err != nil {
+			if err := DB.Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE place=place").Create(&room).Error; err != nil {
 				return nil, err
 			}
 			// 被りはIDが0で返ってくるらしい

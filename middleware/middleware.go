@@ -1,7 +1,8 @@
-package model
+package middleware
 
 import (
 	"net/http"
+	repo "room/repository"
 
 	"github.com/labstack/echo"
 )
@@ -24,13 +25,13 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // AdminUserMiddleware 管理者ユーザーか判定するミドルウェア
 func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id := getRequestUser(c)
+		id := GetRequestUser(c)
 		if len(id) == 0 {
 			return echo.NewHTTPError(http.StatusForbidden) // traQにログインが必要
 		}
 
 		// ユーザー情報を取得
-		user, err := getUser(id)
+		user, err := repo.GetUser(id)
 		if err != nil {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError) // データベースエラー
@@ -45,7 +46,7 @@ func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// getRequestUser リクエストユーザーのtraQIDを返します
-func getRequestUser(c echo.Context) string {
+// GetRequestUser リクエストユーザーのtraQIDを返します
+func GetRequestUser(c echo.Context) string {
 	return c.Get(traQID).(string)
 }

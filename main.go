@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"room/model"
+	myMiddleware "room/middleware"
+	repo "room/repository"
+	"room/router"
 	"time"
 
 	"github.com/labstack/echo"
@@ -14,7 +16,7 @@ import (
 )
 
 func main() {
-	db, err := model.SetupDatabase()
+	db, err := repo.SetupDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,7 +27,10 @@ func main() {
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 	e.Use(middleware.Secure())
-	e.Use(middleware.Static("./web/dist"))
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:  "web/dist",
+		HTML5: true,
+	}))
 
 	// headerの追加のため
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -35,26 +40,41 @@ func main() {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", model.TraQUserMiddleware)
-	api.GET("/hello", model.HandleGetHello) // テスト用
-	api.GET("/users", model.HandleGetUsers)
-	api.GET("/users/me", model.HandleGetUserMe)
-	api.GET("/rooms", model.HandleGetRooms)
-	api.GET("/groups", model.HandleGetGroups)
-	api.POST("/groups", model.HandlePostGroup)
-	api.PATCH("/groups/:groupid", model.HandleUpdateGroup)
-	api.GET("/reservations", model.HandleGetReservations)
-	api.POST("/reservations", model.HandlePostReservation)
-	api.DELETE("/reservations/:reservationid", model.HandleDeleteReservation)
-	api.PATCH("/reservations/:reservationid", model.HandleUpdateReservation)
+	api := e.Group("/api", myMiddleware.TraQUserMiddleware)
+	adminAPI := api.Group("", myMiddleware.AdminUserMiddleware)
+	{
+		apiGroups := api.Group("/groups")
+		adminAPIGroups := adminAPI.Group("/groups")
+		{
+			apiGroups.GET("", router.HandleGetGroups)
+			apiGroups.POST("", router.HandlePostGroup)
+			apiGroups.PATCH("/:groupid", router.HandleUpdateGroup)
+			adminAPIGroups.DELETE("/:groupid", router.HandleDeleteGroup)
+		}
 
-	// 管理者専用API定義 (/api/admin)
-	adminAPI := api.Group("/admin", model.AdminUserMiddleware)
-	adminAPI.GET("/hello", model.HandleGetHello) // テスト用
-	adminAPI.POST("/rooms", model.HandlePostRoom)
-	adminAPI.POST("/rooms/all", model.HandleSetRooms)
-	adminAPI.DELETE("/rooms/:roomid", model.HandleDeleteRoom)
-	adminAPI.DELETE("/groups/:groupid", model.HandleDeleteGroup)
+		apiEvents := api.Group("/reservations")
+		{
+			apiEvents.GET("", router.HandleGetReservations)
+			apiEvents.POST("", router.HandlePostReservation)
+			apiEvents.DELETE("/:reservationid", router.HandleDeleteReservation)
+			apiEvents.PATCH("/:reservationid", router.HandleUpdateReservation)
+		}
+
+		apiRooms := api.Group("/rooms")
+		adminAPIRooms := adminAPI.Group("/rooms")
+		{
+			apiRooms.GET("", router.HandleGetRooms)
+			adminAPIRooms.POST("", router.HandlePostRoom)
+			adminAPIRooms.POST("/all", router.HandleSetRooms)
+			adminAPIRooms.DELETE("/:roomid", router.HandleDeleteRoom)
+		}
+
+		apiUsers := api.Group("/users")
+		{
+			apiUsers.GET("", router.HandleGetUsers)
+			apiUsers.GET("/me", router.HandleGetUserMe)
+		}
+	}
 
 	// サーバースタート
 	go func() {
