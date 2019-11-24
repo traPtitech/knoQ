@@ -8,7 +8,12 @@ import (
 	"github.com/labstack/echo"
 )
 
-const traQID = "traQID"
+const requestUserStr = "Request-User"
+
+// CreatedByGetter get created user
+type CreatedByGetter interface {
+	GetCreatedBy() (string, error)
+}
 
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -23,7 +28,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			c.Logger().Error(err)
 			return echo.NewHTTPError(http.StatusInternalServerError) // データベースエラー
 		}
-		c.Set("Request-User", user)
+		c.Set(requestUserStr, user)
 		return next(c)
 	}
 }
@@ -40,11 +45,6 @@ func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return next(c)
 	}
-}
-
-// CreatedByGetter get created user
-type CreatedByGetter interface {
-	GetCreatedBy() (string, error)
 }
 
 // GroupCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
@@ -103,7 +103,7 @@ func VerifyCreatedUser(cbg CreatedByGetter, requestUser string) (bool, error) {
 	return true, nil
 }
 
-// GetRequestUser リクエストユーザーのtraQIDを返します
+// GetRequestUser リクエストユーザーを返します
 func GetRequestUser(c echo.Context) repo.User {
-	return c.Get("Request-User").(repo.User)
+	return c.Get(requestUserStr).(repo.User)
 }
