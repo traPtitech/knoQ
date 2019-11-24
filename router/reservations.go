@@ -18,7 +18,7 @@ func HandlePostReservation(c echo.Context) error {
 		return err
 	}
 
-	rv.CreatedByRefer = middleware.GetRequestUser(c)
+	rv.CreatedByRefer = middleware.GetRequestUser(c).TRAQID
 	if err := rv.AddCreatedBy(); err != nil {
 		return err
 	}
@@ -71,15 +71,6 @@ func HandleDeleteReservation(c echo.Context) error {
 	rv := new(repo.Reservation)
 	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
 
-	traQID := middleware.GetRequestUser(c)
-	belong, err := repo.CheckBelongToGroup(rv.ID, traQID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "reservationIDが正しくない")
-	}
-	if !belong {
-		return c.String(http.StatusForbidden, "削除できるのは所属ユーザーのみです。")
-	}
-
 	if err := repo.DB.Delete(&rv).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -95,15 +86,6 @@ func HandleUpdateReservation(c echo.Context) error {
 		return err
 	}
 	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
-
-	traQID := middleware.GetRequestUser(c)
-	belong, err := repo.CheckBelongToGroup(rv.ID, traQID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "reservationIDが正しくない")
-	}
-	if !belong {
-		return echo.NewHTTPError(http.StatusForbidden, "変更できるのは所属ユーザーのみです you are "+traQID)
-	}
 
 	// roomがあるか
 	if err := rv.Room.AddRelation(rv.RoomID); err != nil {

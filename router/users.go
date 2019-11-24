@@ -10,12 +10,8 @@ import (
 
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 func HandleGetUserMe(c echo.Context) error {
-	traQID := middleware.GetRequestUser(c)
-	user, err := repo.GetUser(traQID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusOK, user)
+	requestUser := middleware.GetRequestUser(c)
+	return c.JSON(http.StatusOK, requestUser)
 }
 
 // HandleGetUsers ユーザーすべてを取得

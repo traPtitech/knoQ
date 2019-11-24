@@ -42,13 +42,15 @@ func main() {
 	// API定義 (/api)
 	api := e.Group("/api", myMiddleware.TraQUserMiddleware)
 	adminAPI := api.Group("", myMiddleware.AdminUserMiddleware)
+	groupCreatedAPI := api.Group("/groups", myMiddleware.GroupCreatedUserMiddleware)
+	eventCreatedAPI := api.Group("/reservations", myMiddleware.EventCreatedUserMiddleware)
 	{
 		apiGroups := api.Group("/groups")
 		adminAPIGroups := adminAPI.Group("/groups")
 		{
 			apiGroups.GET("", router.HandleGetGroups)
 			apiGroups.POST("", router.HandlePostGroup)
-			apiGroups.PATCH("/:groupid", router.HandleUpdateGroup)
+			groupCreatedAPI.PATCH("/:groupid", router.HandleUpdateGroup)
 			adminAPIGroups.DELETE("/:groupid", router.HandleDeleteGroup)
 		}
 
@@ -56,8 +58,8 @@ func main() {
 		{
 			apiEvents.GET("", router.HandleGetReservations)
 			apiEvents.POST("", router.HandlePostReservation)
-			apiEvents.DELETE("/:reservationid", router.HandleDeleteReservation)
-			apiEvents.PATCH("/:reservationid", router.HandleUpdateReservation)
+			eventCreatedAPI.PATCH("/:reservationid", router.HandleUpdateReservation)
+			eventCreatedAPI.DELETE("/:reservationid", router.HandleDeleteReservation)
 		}
 
 		apiRooms := api.Group("/rooms")
