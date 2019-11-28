@@ -11,6 +11,8 @@ import (
 	"room/router"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -25,12 +27,13 @@ func main() {
 	// echo初期化
 	e := echo.New()
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
 	e.Use(middleware.Secure())
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Root:  "web/dist",
 		HTML5: true,
 	}))
+	logger, _ := zap.NewDevelopment()
+	e.Use(myMiddleware.AccessLoggingMiddleware(logger))
 
 	// headerの追加のため
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
