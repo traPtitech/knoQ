@@ -18,7 +18,7 @@ func HandlePostGroup(c echo.Context) error {
 		return err
 	}
 
-	g.CreatedByRefer = middleware.GetRequestUser(c)
+	g.CreatedByRefer = middleware.GetRequestUser(c).TRAQID
 	if err := g.AddCreatedBy(); err != nil {
 		return err
 	}
@@ -92,13 +92,6 @@ func HandleUpdateGroup(c echo.Context) error {
 	g.ID, _ = strconv.Atoi(c.Param("groupid"))
 	if err := repo.DB.First(&g, g.ID).Error; err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "アクセスしたgroupIDは存在しない")
-	}
-	// 作成者を取得
-	if err := g.AddCreatedBy(); err != nil {
-		return err
-	}
-	if middleware.GetRequestUser(c) != g.CreatedByRefer {
-		return echo.NewHTTPError(http.StatusForbidden, "作成者ではない")
 	}
 
 	// メンバーを置き換え

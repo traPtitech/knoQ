@@ -78,3 +78,11 @@ func (rv *Reservation) TimeConsistency() error {
 	}
 	return nil
 }
+
+// GetCreatedBy get who created it
+func (rv *Reservation) GetCreatedBy() (string, error) {
+	if err := DB.First(&rv).Error; err != nil {
+		return "", err
+	}
+	return rv.CreatedByRefer, nil
+}

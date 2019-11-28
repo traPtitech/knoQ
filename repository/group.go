@@ -99,3 +99,11 @@ func (group *Group) AddCreatedBy() error {
 	}
 	return nil
 }
+
+// GetCreatedBy get who created it
+func (group *Group) GetCreatedBy() (string, error) {
+	if err := DB.First(&group).Error; err != nil {
+		return "", err
+	}
+	return group.CreatedByRefer, nil
+}
