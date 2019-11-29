@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	repo "room/repository"
 	"strconv"
@@ -9,10 +10,18 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 const requestUserStr string = "Request-User"
+
+type ErrorResponse struct {
+	ErrorBody `json:"Errors"`
+}
+type ErrorBody struct {
+	Message    string
+	Definition string
+}
 
 // CreatedByGetter get created user
 type CreatedByGetter interface {
@@ -136,7 +145,9 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 		if !IsVerigy {
-			return echo.NewHTTPError(http.StatusForbidden, "You are not user by whom this group is created.", "Only the created-user can edit.")
+			he := &echo.HTTPError{Code: 403, Message: ErrorResponse{ErrorBody: ErrorBody{Message: "You are not user by whom this group is created.", Definition: "Only the created-user can edit."}}}
+			he.Internal = errors.New("Internal Error")
+			return he
 		}
 
 		err = next(c)

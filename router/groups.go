@@ -7,7 +7,7 @@ import (
 	repo "room/repository"
 	"strconv"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // HandlePostGroup グループを作成

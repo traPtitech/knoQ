@@ -6,7 +6,7 @@ import (
 	repo "room/repository"
 	"strconv"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // HandlePostRoom traPで確保した部屋情報を作成

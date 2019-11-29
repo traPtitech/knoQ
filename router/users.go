@@ -5,7 +5,7 @@ import (
 	"room/middleware"
 	repo "room/repository"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // HandleGetUserMe ヘッダー情報からuser情報を取得
