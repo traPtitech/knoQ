@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 	repo "room/repository"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -28,6 +29,27 @@ type CreatedByGetter interface {
 	GetCreatedBy() (string, error)
 }
 
+// Error interfaceに含めたい
+type ErrorRuntime struct {
+	ProgramCounter uintptr
+	SourceFile     string
+	Line           int
+	ok             bool
+}
+
+func (ER ErrorRuntime) Error() string {
+	return fmt.Sprintf("SourceFile: %s, line: %d", ER.SourceFile, ER.Line)
+}
+
+func NewErrorRuntime(pc uintptr, file string, line int, ok bool) ErrorRuntime {
+	return ErrorRuntime{
+		ProgramCounter: pc,
+		SourceFile:     file,
+		Line:           line,
+		ok:             ok,
+	}
+}
+
 type HTTPPayload struct {
 	RequestMethod string `json:"requestMethod"`
 	RequestURL    string `json:"requestUrl"`
@@ -40,6 +62,7 @@ type HTTPPayload struct {
 	Referer       string `json:"referer"`
 	Latency       string `json:"latency"`
 	Protocol      string `json:"protocol"`
+	Runtime       string `json:"runtime"`
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaller interface.
@@ -55,6 +78,7 @@ func (p HTTPPayload) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("referer", p.Referer)
 	enc.AddString("latency", p.Latency)
 	enc.AddString("protocol", p.Protocol)
+	enc.AddString("runtime", p.Runtime)
 	return nil
 }
 
@@ -80,6 +104,7 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 				RequestSize:   req.Header.Get(echo.HeaderContentLength),
 				ResponseSize:  strconv.FormatInt(res.Size, 10),
 				Latency:       strconv.FormatFloat(stop.Sub(start).Seconds(), 'f', 9, 64) + "s",
+				Runtime:       c.Get("Error-Runtime").(error).Error(),
 			}
 			httpCode := res.Status
 			switch {
@@ -146,7 +171,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		if !IsVerigy {
 			he := &echo.HTTPError{Code: 403, Message: ErrorResponse{ErrorBody: ErrorBody{Message: "You are not user by whom this group is created.", Definition: "Only the created-user can edit."}}}
-			he.Internal = errors.New("Internal Error")
+			he.Internal = NewErrorRuntime(runtime.Caller(0))
 			return he
 		}
 
