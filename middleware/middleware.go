@@ -62,7 +62,7 @@ type HTTPPayload struct {
 	Referer       string `json:"referer"`
 	Latency       string `json:"latency"`
 	Protocol      string `json:"protocol"`
-	Runtime       string `json:"runtime"`
+	Runtime       string `json:"runtime,omitempty"`
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaller interface.
@@ -104,13 +104,14 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 				RequestSize:   req.Header.Get(echo.HeaderContentLength),
 				ResponseSize:  strconv.FormatInt(res.Size, 10),
 				Latency:       strconv.FormatFloat(stop.Sub(start).Seconds(), 'f', 9, 64) + "s",
-				Runtime:       c.Get("Error-Runtime").(error).Error(),
 			}
 			httpCode := res.Status
 			switch {
 			case httpCode >= 500:
+				tmp.Runtime = c.Get("Error-Runtime").(error).Error()
 				logger.Info("server error", zap.Object("field", tmp))
 			case httpCode >= 400:
+				tmp.Runtime = c.Get("Error-Runtime").(error).Error()
 				logger.Info("client error", zap.Object("field", tmp))
 			case httpCode >= 300:
 				logger.Info("redirect", zap.Object("field", tmp))
