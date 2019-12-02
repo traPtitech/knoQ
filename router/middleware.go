@@ -20,8 +20,8 @@ type ErrorResponse struct {
 	ErrorBody `json:"Errors"`
 }
 type ErrorBody struct {
-	Message    string
-	Definition string
+	Message    string `json:"message,omitempty"`
+	Definition string `json:"definition,omitempty"`
 }
 
 // CreatedByGetter get created user
@@ -48,6 +48,33 @@ func NewErrorRuntime(pc uintptr, file string, line int, ok bool) ErrorRuntime {
 		Line:           line,
 		ok:             ok,
 	}
+}
+
+type Option func(*ErrorResponse)
+
+func Message(msg string) Option {
+	return func(er *ErrorResponse) {
+		er.Message = msg
+	}
+}
+
+func Definition(spec string) Option {
+	return func(er *ErrorResponse) {
+		er.Definition = spec
+	}
+}
+
+func NewHTTPErrorResponse(code int, options ...Option) *echo.HTTPError {
+	he := &echo.HTTPError{
+		Code: code,
+	}
+	er := new(ErrorResponse)
+
+	for _, option := range options {
+		option(er)
+	}
+	he.Message = er
+	return he
 }
 
 type HTTPPayload struct {
@@ -108,7 +135,7 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 			httpCode := res.Status
 			switch {
 			case httpCode >= 500:
-				tmp.Runtime = c.Get("Error-Runtime").(error).Error()
+				// tmp.Runtime = c.Get("Error-Runtime").(error).Error()
 				logger.Info("server error", zap.Object("field", tmp))
 			case httpCode >= 400:
 				tmp.Runtime = c.Get("Error-Runtime").(error).Error()
@@ -164,16 +191,20 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		var err error
 		g.ID, err = strconv.Atoi(c.Param("groupid"))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest)
+			he := NewHTTPErrorResponse(http.StatusBadRequest, Message(err.Error()))
+			return he.SetInternal(NewErrorRuntime(runtime.Caller(0)))
 		}
 		IsVerigy, err := VerifyCreatedUser(g, requestUser.TRAQID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 		if !IsVerigy {
-			he := &echo.HTTPError{Code: 403, Message: ErrorResponse{ErrorBody: ErrorBody{Message: "You are not user by whom this group is created.", Definition: "Only the created-user can edit."}}}
-			he.Internal = NewErrorRuntime(runtime.Caller(0))
-			return he
+			he := NewHTTPErrorResponse(
+				http.StatusForbidden,
+				Message("You are not user by whom this group is created."),
+				Definition("Only the created-user can edit."))
+			return he.SetInternal(NewErrorRuntime(runtime.Caller(0)))
+
 		}
 
 		err = next(c)
