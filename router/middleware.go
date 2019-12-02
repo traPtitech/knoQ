@@ -46,7 +46,7 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 			httpCode := res.Status
 			switch {
 			case httpCode >= 500:
-				// tmp.Runtime = c.Get("Error-Runtime").(error).Error()
+				tmp.Runtime = c.Get("Error-Runtime").(error).Error()
 				logger.Info("server error", zap.Object("field", tmp))
 			case httpCode >= 400:
 				tmp.Runtime = c.Get("Error-Runtime").(error).Error()
@@ -106,7 +106,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		IsVerigy, err := VerifyCreatedUser(g, requestUser.TRAQID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError)
+			return internalServerError()
 		}
 		if !IsVerigy {
 			return badRequest(

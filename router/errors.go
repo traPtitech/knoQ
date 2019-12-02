@@ -64,10 +64,16 @@ func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 	return he
 }
 
-func badRequest (options ...option) *echo.HTTPError{
-	return newHTTPErrorResponse(http.StatusBadRequest, options...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+func badRequest (responses ...option) *echo.HTTPError{
+	return newHTTPErrorResponse(http.StatusBadRequest, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
 }
 
-func notFound (options ...option) *echo.HTTPError{
-	return newHTTPErrorResponse(http.StatusNotFound, options...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+func notFound (responses ...option) *echo.HTTPError{
+	return newHTTPErrorResponse(http.StatusNotFound, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+}
+
+func internalServerError () *echo.HTTPError{
+	code := http.StatusInternalServerError
+	return newHTTPErrorResponse(code, message(http.StatusText(code))).SetInternal(newErrorRuntime(runtime.Caller(1)))
+
 }
