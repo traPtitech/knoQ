@@ -17,11 +17,11 @@ import (
 const requestUserStr string = "Request-User"
 
 type ErrorResponse struct {
-	ErrorBody `json:"Errors"`
+	ErrorBody `json:"errors"`
 }
 type ErrorBody struct {
-	Message    string `json:"message,omitempty"`
-	Definition string `json:"definition,omitempty"`
+	Message       string `json:"message,omitempty"`
+	Specification string `json:"specification,omitempty"`
 }
 
 // CreatedByGetter get created user
@@ -41,7 +41,7 @@ func (ER ErrorRuntime) Error() string {
 	return fmt.Sprintf("SourceFile: %s, line: %d", ER.SourceFile, ER.Line)
 }
 
-func NewErrorRuntime(pc uintptr, file string, line int, ok bool) ErrorRuntime {
+func newErrorRuntime(pc uintptr, file string, line int, ok bool) ErrorRuntime {
 	return ErrorRuntime{
 		ProgramCounter: pc,
 		SourceFile:     file,
@@ -50,28 +50,28 @@ func NewErrorRuntime(pc uintptr, file string, line int, ok bool) ErrorRuntime {
 	}
 }
 
-type Option func(*ErrorResponse)
+type option func(*ErrorResponse)
 
-func Message(msg string) Option {
+func message(msg string) option {
 	return func(er *ErrorResponse) {
 		er.Message = msg
 	}
 }
 
-func Definition(spec string) Option {
+func specification(spec string) option {
 	return func(er *ErrorResponse) {
-		er.Definition = spec
+		er.Specification = spec
 	}
 }
 
-func NewHTTPErrorResponse(code int, options ...Option) *echo.HTTPError {
+func NewHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 	he := &echo.HTTPError{
 		Code: code,
 	}
 	er := new(ErrorResponse)
 
-	for _, option := range options {
-		option(er)
+	for _, o := range options {
+		o(er)
 	}
 	he.Message = er
 	return he
@@ -191,8 +191,8 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		var err error
 		g.ID, err = strconv.Atoi(c.Param("groupid"))
 		if err != nil {
-			he := NewHTTPErrorResponse(http.StatusBadRequest, Message(err.Error()))
-			return he.SetInternal(NewErrorRuntime(runtime.Caller(0)))
+			he := NewHTTPErrorResponse(http.StatusBadRequest, message(err.Error()))
+			return he.SetInternal(newErrorRuntime(runtime.Caller(0)))
 		}
 		IsVerigy, err := VerifyCreatedUser(g, requestUser.TRAQID)
 		if err != nil {
@@ -201,9 +201,9 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if !IsVerigy {
 			he := NewHTTPErrorResponse(
 				http.StatusForbidden,
-				Message("You are not user by whom this group is created."),
-				Definition("Only the created-user can edit."))
-			return he.SetInternal(NewErrorRuntime(runtime.Caller(0)))
+				message("You are not user by whom this group is created."),
+				specification("Only the created-user can edit."))
+			return he.SetInternal(newErrorRuntime(runtime.Caller(0)))
 
 		}
 
