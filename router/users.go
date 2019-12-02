@@ -2,7 +2,6 @@ package router
 
 import (
 	"net/http"
-	"room/middleware"
 	repo "room/repository"
 
 	"github.com/labstack/echo/v4"
@@ -10,7 +9,7 @@ import (
 
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 func HandleGetUserMe(c echo.Context) error {
-	requestUser := middleware.GetRequestUser(c)
+	requestUser := GetRequestUser(c)
 	return c.JSON(http.StatusOK, requestUser)
 }
 

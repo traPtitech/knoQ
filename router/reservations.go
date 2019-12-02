@@ -3,7 +3,6 @@ package router
 import (
 	"fmt"
 	"net/http"
-	"room/middleware"
 	repo "room/repository"
 	"strconv"
 
@@ -18,7 +17,7 @@ func HandlePostReservation(c echo.Context) error {
 		return err
 	}
 
-	rv.CreatedByRefer = middleware.GetRequestUser(c).TRAQID
+	rv.CreatedByRefer = GetRequestUser(c).TRAQID
 	if err := rv.AddCreatedBy(); err != nil {
 		return err
 	}

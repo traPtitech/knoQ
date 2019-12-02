@@ -3,7 +3,6 @@ package router
 import (
 	"fmt"
 	"net/http"
-	"room/middleware"
 	repo "room/repository"
 	"strconv"
 
@@ -18,7 +17,7 @@ func HandlePostGroup(c echo.Context) error {
 		return err
 	}
 
-	g.CreatedByRefer = middleware.GetRequestUser(c).TRAQID
+	g.CreatedByRefer = GetRequestUser(c).TRAQID
 	if err := g.AddCreatedBy(); err != nil {
 		return err
 	}

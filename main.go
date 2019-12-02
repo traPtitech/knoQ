@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	myMiddleware "room/middleware"
 	repo "room/repository"
 	"room/router"
 	"time"
@@ -72,7 +71,7 @@ func main() {
 		HTML5: true,
 	}))
 	logger, _ := zap.NewDevelopment()
-	e.Use(myMiddleware.AccessLoggingMiddleware(logger))
+	e.Use(router.AccessLoggingMiddleware(logger))
 
 	// headerの追加のため
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -82,10 +81,10 @@ func main() {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", myMiddleware.TraQUserMiddleware)
-	adminAPI := api.Group("", myMiddleware.AdminUserMiddleware)
-	groupCreatedAPI := api.Group("/groups", myMiddleware.GroupCreatedUserMiddleware)
-	eventCreatedAPI := api.Group("/reservations", myMiddleware.EventCreatedUserMiddleware)
+	api := e.Group("/api", router.TraQUserMiddleware)
+	adminAPI := api.Group("", router.AdminUserMiddleware)
+	groupCreatedAPI := api.Group("/groups", router.GroupCreatedUserMiddleware)
+	eventCreatedAPI := api.Group("/reservations", router.EventCreatedUserMiddleware)
 	{
 		apiGroups := api.Group("/groups")
 		adminAPIGroups := adminAPI.Group("/groups")
