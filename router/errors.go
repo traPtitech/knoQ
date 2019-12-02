@@ -1,9 +1,10 @@
 package router
 
-import(
+import (
 	"fmt"
 	"net/http"
 	"runtime"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,7 +23,6 @@ type ErrorRuntime struct {
 	Line           int
 	ok             bool
 }
-
 
 func (ER ErrorRuntime) Error() string {
 	return fmt.Sprintf("SourceFile: %s, line: %d", ER.SourceFile, ER.Line)
@@ -64,15 +64,15 @@ func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 	return he
 }
 
-func badRequest (responses ...option) *echo.HTTPError{
+func badRequest(responses ...option) *echo.HTTPError {
 	return newHTTPErrorResponse(http.StatusBadRequest, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
 }
 
-func notFound (responses ...option) *echo.HTTPError{
+func notFound(responses ...option) *echo.HTTPError {
 	return newHTTPErrorResponse(http.StatusNotFound, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
 }
 
-func internalServerError () *echo.HTTPError{
+func internalServerError() *echo.HTTPError {
 	code := http.StatusInternalServerError
 	return newHTTPErrorResponse(code, message(http.StatusText(code))).SetInternal(newErrorRuntime(runtime.Caller(1)))
 

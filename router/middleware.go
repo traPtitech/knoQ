@@ -2,8 +2,8 @@ package router
 
 import (
 	"net/http"
-	repo "room/repository"
 	log "room/logging"
+	repo "room/repository"
 	"strconv"
 	"time"
 
@@ -18,7 +18,6 @@ const requestUserStr string = "Request-User"
 type CreatedByGetter interface {
 	GetCreatedBy() (string, error)
 }
-
 
 func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -110,8 +109,8 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		if !IsVerigy {
 			return badRequest(
-					message("You are not user by whom this group is created."),
-					specification("Only the created-user can edit."))
+				message("You are not user by whom this group is created."),
+				specification("Only the created-user can edit."))
 		}
 
 		err = next(c)
