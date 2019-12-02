@@ -1,113 +1,24 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	repo "room/repository"
-	"runtime"
+	log "room/logging"
 	"strconv"
 	"time"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/labstack/echo/v4"
 )
 
 const requestUserStr string = "Request-User"
 
-type ErrorResponse struct {
-	ErrorBody `json:"errors"`
-}
-type ErrorBody struct {
-	Message       string `json:"message,omitempty"`
-	Specification string `json:"specification,omitempty"`
-}
-
 // CreatedByGetter get created user
 type CreatedByGetter interface {
 	GetCreatedBy() (string, error)
 }
 
-// Error interfaceに含めたい
-type ErrorRuntime struct {
-	ProgramCounter uintptr
-	SourceFile     string
-	Line           int
-	ok             bool
-}
-
-func (ER ErrorRuntime) Error() string {
-	return fmt.Sprintf("SourceFile: %s, line: %d", ER.SourceFile, ER.Line)
-}
-
-func newErrorRuntime(pc uintptr, file string, line int, ok bool) ErrorRuntime {
-	return ErrorRuntime{
-		ProgramCounter: pc,
-		SourceFile:     file,
-		Line:           line,
-		ok:             ok,
-	}
-}
-
-type option func(*ErrorResponse)
-
-func message(msg string) option {
-	return func(er *ErrorResponse) {
-		er.Message = msg
-	}
-}
-
-func specification(spec string) option {
-	return func(er *ErrorResponse) {
-		er.Specification = spec
-	}
-}
-
-func NewHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
-	he := &echo.HTTPError{
-		Code: code,
-	}
-	er := new(ErrorResponse)
-
-	for _, o := range options {
-		o(er)
-	}
-	he.Message = er
-	return he
-}
-
-type HTTPPayload struct {
-	RequestMethod string `json:"requestMethod"`
-	RequestURL    string `json:"requestUrl"`
-	RequestSize   string `json:"requestSize"`
-	Status        int    `json:"status"`
-	ResponseSize  string `json:"responseSize"`
-	UserAgent     string `json:"userAgent"`
-	RemoteIP      string `json:"remoteIp"`
-	ServerIP      string `json:"serverIp"`
-	Referer       string `json:"referer"`
-	Latency       string `json:"latency"`
-	Protocol      string `json:"protocol"`
-	Runtime       string `json:"runtime,omitempty"`
-}
-
-// MarshalLogObject implements zapcore.ObjectMarshaller interface.
-func (p HTTPPayload) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	enc.AddString("requestMethod", p.RequestMethod)
-	enc.AddString("requestUrl", p.RequestURL)
-	enc.AddString("requestSize", p.RequestSize)
-	enc.AddInt("status", p.Status)
-	enc.AddString("responseSize", p.ResponseSize)
-	enc.AddString("userAgent", p.UserAgent)
-	enc.AddString("remoteIp", p.RemoteIP)
-	enc.AddString("serverIp", p.ServerIP)
-	enc.AddString("referer", p.Referer)
-	enc.AddString("latency", p.Latency)
-	enc.AddString("protocol", p.Protocol)
-	enc.AddString("runtime", p.Runtime)
-	return nil
-}
 
 func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -120,7 +31,7 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 
 			req := c.Request()
 			res := c.Response()
-			tmp := &HTTPPayload{
+			tmp := &log.HTTPPayload{
 				RequestMethod: req.Method,
 				Status:        res.Status,
 				UserAgent:     req.UserAgent(),
@@ -191,20 +102,16 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		var err error
 		g.ID, err = strconv.Atoi(c.Param("groupid"))
 		if err != nil {
-			he := NewHTTPErrorResponse(http.StatusBadRequest, message(err.Error()))
-			return he.SetInternal(newErrorRuntime(runtime.Caller(0)))
+			return notFound(message(err.Error()))
 		}
 		IsVerigy, err := VerifyCreatedUser(g, requestUser.TRAQID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 		if !IsVerigy {
-			he := NewHTTPErrorResponse(
-				http.StatusForbidden,
-				message("You are not user by whom this group is created."),
-				specification("Only the created-user can edit."))
-			return he.SetInternal(newErrorRuntime(runtime.Caller(0)))
-
+			return badRequest(
+					message("You are not user by whom this group is created."),
+					specification("Only the created-user can edit."))
 		}
 
 		err = next(c)
