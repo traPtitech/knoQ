@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	myMiddleware "room/middleware"
 	repo "room/repository"
 	"room/router"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"go.uber.org/zap"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -24,13 +25,15 @@ func main() {
 
 	// echo初期化
 	e := echo.New()
+	e.HTTPErrorHandler = router.HTTPErrorHandler
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
 	e.Use(middleware.Secure())
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Root:  "web/dist",
 		HTML5: true,
 	}))
+	logger, _ := zap.NewDevelopment()
+	e.Use(router.AccessLoggingMiddleware(logger))
 
 	// headerの追加のため
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -40,10 +43,10 @@ func main() {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", myMiddleware.TraQUserMiddleware)
-	adminAPI := api.Group("", myMiddleware.AdminUserMiddleware)
-	groupCreatedAPI := api.Group("/groups", myMiddleware.GroupCreatedUserMiddleware)
-	eventCreatedAPI := api.Group("/reservations", myMiddleware.EventCreatedUserMiddleware)
+	api := e.Group("/api", router.TraQUserMiddleware)
+	adminAPI := api.Group("", router.AdminUserMiddleware)
+	groupCreatedAPI := api.Group("/groups", router.GroupCreatedUserMiddleware)
+	eventCreatedAPI := api.Group("/reservations", router.EventCreatedUserMiddleware)
 	{
 		apiGroups := api.Group("/groups")
 		adminAPIGroups := adminAPI.Group("/groups")

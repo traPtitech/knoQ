@@ -3,11 +3,10 @@ package router
 import (
 	"fmt"
 	"net/http"
-	"room/middleware"
 	repo "room/repository"
 	"strconv"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // HandlePostReservation 部屋の使用宣言を作成
@@ -18,7 +17,7 @@ func HandlePostReservation(c echo.Context) error {
 		return err
 	}
 
-	rv.CreatedByRefer = middleware.GetRequestUser(c).TRAQID
+	rv.CreatedByRefer = getRequestUser(c).TRAQID
 	if err := rv.AddCreatedBy(); err != nil {
 		return err
 	}
