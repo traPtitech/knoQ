@@ -17,7 +17,7 @@ func HandlePostReservation(c echo.Context) error {
 		return err
 	}
 
-	rv.CreatedByRefer = GetRequestUser(c).TRAQID
+	rv.CreatedByRefer = getRequestUser(c).TRAQID
 	if err := rv.AddCreatedBy(); err != nil {
 		return err
 	}

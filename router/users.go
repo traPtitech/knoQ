@@ -9,7 +9,7 @@ import (
 
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 func HandleGetUserMe(c echo.Context) error {
-	requestUser := GetRequestUser(c)
+	requestUser := getRequestUser(c)
 	return c.JSON(http.StatusOK, requestUser)
 }
 

@@ -16,7 +16,7 @@ type HTTPPayload struct {
 	Referer       string `json:"referer"`
 	Latency       string `json:"latency"`
 	Protocol      string `json:"protocol"`
-	Runtime       string `json:"runtime,omitempty"`
+	ErrorLocation string `json:"errorLocation"`
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaller interface.
@@ -32,6 +32,6 @@ func (p HTTPPayload) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("referer", p.Referer)
 	enc.AddString("latency", p.Latency)
 	enc.AddString("protocol", p.Protocol)
-	enc.AddString("runtime", p.Runtime)
+	enc.AddString("errorLocation", p.ErrorLocation)
 	return nil
 }

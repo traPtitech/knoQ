@@ -25,7 +25,7 @@ type ErrorRuntime struct {
 }
 
 func (ER ErrorRuntime) Error() string {
-	return fmt.Sprintf("SourceFile: %s, line: %d", ER.SourceFile, ER.Line)
+	return fmt.Sprintf("%s:%d", ER.SourceFile, ER.Line)
 }
 
 func newErrorRuntime(pc uintptr, file string, line int, ok bool) ErrorRuntime {
@@ -76,4 +76,34 @@ func internalServerError() *echo.HTTPError {
 	code := http.StatusInternalServerError
 	return newHTTPErrorResponse(code, message(http.StatusText(code))).SetInternal(newErrorRuntime(runtime.Caller(1)))
 
+}
+
+func HTTPErrorHandler(err error, c echo.Context) {
+	he, ok := err.(*echo.HTTPError)
+	if ok {
+		if he.Internal != nil {
+			c.Set("Error-Runtime", he.Internal)
+			if herr, ok := he.Internal.(*echo.HTTPError); ok {
+				he = herr
+			}
+		}
+	} else {
+		he = internalServerError()
+	}
+
+	// Issue #1426
+	code := he.Code
+	message := he.Message
+
+	// Send response
+	if !c.Response().Committed {
+		if c.Request().Method == http.MethodHead { // Issue #608
+			err = c.NoContent(he.Code)
+		} else {
+			err = c.JSON(code, message)
+		}
+		if err != nil {
+			c.Logger().Error(err)
+		}
+	}
 }

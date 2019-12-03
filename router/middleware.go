@@ -45,10 +45,20 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 			httpCode := res.Status
 			switch {
 			case httpCode >= 500:
-				tmp.Runtime = c.Get("Error-Runtime").(error).Error()
+				errorRuntime, ok := c.Get("Error-Runtime").(error)
+				if ok {
+					tmp.ErrorLocation = errorRuntime.Error()
+				} else {
+					tmp.ErrorLocation = "no data"
+				}
 				logger.Info("server error", zap.Object("field", tmp))
 			case httpCode >= 400:
-				tmp.Runtime = c.Get("Error-Runtime").(error).Error()
+				errorRuntime, ok := c.Get("Error-Runtime").(error)
+				if ok {
+					tmp.ErrorLocation = errorRuntime.Error()
+				} else {
+					tmp.ErrorLocation = "no data"
+				}
 				logger.Info("client error", zap.Object("field", tmp))
 			case httpCode >= 300:
 				logger.Info("redirect", zap.Object("field", tmp))
@@ -82,7 +92,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // AdminUserMiddleware 管理者ユーザーか判定するミドルウェア
 func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUser := GetRequestUser(c)
+		requestUser := getRequestUser(c)
 
 		// 判定
 		if !requestUser.Admin {
@@ -96,14 +106,14 @@ func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // GroupCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
 func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUser := GetRequestUser(c)
+		requestUser := getRequestUser(c)
 		g := new(repo.Group)
 		var err error
 		g.ID, err = strconv.Atoi(c.Param("groupid"))
 		if err != nil {
 			return notFound(message(err.Error()))
 		}
-		IsVerigy, err := VerifyCreatedUser(g, requestUser.TRAQID)
+		IsVerigy, err := verifyCreatedUser(g, requestUser.TRAQID)
 		if err != nil {
 			return internalServerError()
 		}
@@ -121,14 +131,14 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // EventCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
 func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUser := GetRequestUser(c)
+		requestUser := getRequestUser(c)
 		e := new(repo.Reservation)
 		var err error
 		e.ID, err = strconv.Atoi(c.Param("reservationid"))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest)
 		}
-		IsVerigy, err := VerifyCreatedUser(e, requestUser.TRAQID)
+		IsVerigy, err := verifyCreatedUser(e, requestUser.TRAQID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
@@ -140,8 +150,8 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// VerifyCreatedUser verify that request-user and created-user are the same
-func VerifyCreatedUser(cbg CreatedByGetter, requestUser string) (bool, error) {
+// verifyCreatedUser verify that request-user and created-user are the same
+func verifyCreatedUser(cbg CreatedByGetter, requestUser string) (bool, error) {
 	createdByUser, err := cbg.GetCreatedBy()
 	if err != nil {
 		return false, err
@@ -152,7 +162,7 @@ func VerifyCreatedUser(cbg CreatedByGetter, requestUser string) (bool, error) {
 	return true, nil
 }
 
-// GetRequestUser リクエストユーザーを返します
-func GetRequestUser(c echo.Context) repo.User {
+// getRequestUser リクエストユーザーを返します
+func getRequestUser(c echo.Context) repo.User {
 	return c.Get(requestUserStr).(repo.User)
 }

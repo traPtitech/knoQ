@@ -17,7 +17,7 @@ func HandlePostGroup(c echo.Context) error {
 		return err
 	}
 
-	g.CreatedByRefer = GetRequestUser(c).TRAQID
+	g.CreatedByRefer = getRequestUser(c).TRAQID
 	if err := g.AddCreatedBy(); err != nil {
 		return err
 	}

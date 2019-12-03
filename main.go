@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -26,44 +25,7 @@ func main() {
 
 	// echo初期化
 	e := echo.New()
-	e.HTTPErrorHandler = func(err error, c echo.Context) {
-		he, ok := err.(*echo.HTTPError)
-		if ok {
-			if he.Internal != nil {
-				if herr, ok := he.Internal.(*echo.HTTPError); ok {
-					fmt.Println(herr)
-					he = herr
-				}
-			}
-		} else {
-			he = &echo.HTTPError{
-				Code:    http.StatusInternalServerError,
-				Message: http.StatusText(http.StatusInternalServerError),
-			}
-		}
-		c.Set("Error-Runtime", he.Internal)
-
-		// Issue #1426
-		code := he.Code
-		message := he.Message
-		if e.Debug {
-			message = err.Error()
-		} else if m, ok := message.(string); ok {
-			message = echo.Map{"message": m}
-		}
-
-		// Send response
-		if !c.Response().Committed {
-			if c.Request().Method == http.MethodHead { // Issue #608
-				err = c.NoContent(he.Code)
-			} else {
-				err = c.JSON(code, message)
-			}
-			if err != nil {
-				e.Logger.Error(err)
-			}
-		}
-	}
+	e.HTTPErrorHandler = router.HTTPErrorHandler
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
