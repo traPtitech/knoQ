@@ -15,7 +15,7 @@ var tables = []interface{}{
 	User{},
 	Room{},
 	Group{},
-	Reservation{},
+	Event{},
 }
 
 var (
@@ -58,8 +58,8 @@ type Group struct {
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
-// Reservation 予約情報
-type Reservation struct {
+// Event 予約情報
+type Event struct {
 	ID             int       `json:"id" gorm:"AUTO_INCREMENT"`
 	Name           string    `json:"name" gorm:"type:varchar(32); not null"`
 	Description    string    `json:"description" gorm:"type:varchar(1024)"`
