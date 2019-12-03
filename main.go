@@ -59,10 +59,10 @@ func main() {
 
 		apiEvents := api.Group("/events")
 		{
-			apiEvents.GET("", router.HandleGetReservations)
-			apiEvents.POST("", router.HandlePostReservation)
-			eventCreatedAPI.PATCH("/:eventid", router.HandleUpdateReservation)
-			eventCreatedAPI.DELETE("/:eventid", router.HandleDeleteReservation)
+			apiEvents.GET("", router.HandleGetEvents)
+			apiEvents.POST("", router.HandlePostEvent)
+			eventCreatedAPI.PATCH("/:eventid", router.HandleUpdateEvent)
+			eventCreatedAPI.DELETE("/:eventid", router.HandleDeleteEvent)
 		}
 
 		apiRooms := api.Group("/rooms")

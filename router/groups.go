@@ -62,7 +62,7 @@ func HandleDeleteGroup(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	// 予約情報を削除
-	if err := repo.DB.Where("group_id = ?", g.ID).Delete(&repo.Reservation{}).Error; err != nil {
+	if err := repo.DB.Where("group_id = ?", g.ID).Delete(&repo.Event{}).Error; err != nil {
 		fmt.Println(err)
 	}
 

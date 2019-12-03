@@ -9,9 +9,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// HandlePostReservation 部屋の使用宣言を作成
-func HandlePostReservation(c echo.Context) error {
-	rv := new(repo.Reservation)
+// HandlePostEvent 部屋の使用宣言を作成
+func HandlePostEvent(c echo.Context) error {
+	rv := new(repo.Event)
 
 	if err := c.Bind(&rv); err != nil {
 		return err
@@ -51,24 +51,24 @@ func HandlePostReservation(c echo.Context) error {
 	return c.JSON(http.StatusCreated, rv)
 }
 
-// HandleGetReservations 部屋の使用宣言情報を取得
-func HandleGetReservations(c echo.Context) error {
-	reservations := []repo.Reservation{}
+// HandleGetEvents 部屋の使用宣言情報を取得
+func HandleGetEvents(c echo.Context) error {
+	events := []repo.Event{}
 
 	values := c.QueryParams()
 
-	reservations, err := repo.FindRvs(values)
+	events, err := repo.FindRvs(values)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusNotFound, "queryが正当でない")
 	}
 
-	return c.JSON(http.StatusOK, reservations)
+	return c.JSON(http.StatusOK, events)
 }
 
-// HandleDeleteReservation 部屋の使用宣言を削除
-func HandleDeleteReservation(c echo.Context) error {
-	rv := new(repo.Reservation)
-	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
+// HandleDeleteEvent 部屋の使用宣言を削除
+func HandleDeleteEvent(c echo.Context) error {
+	rv := new(repo.Event)
+	rv.ID, _ = strconv.Atoi(c.Param("eventid"))
 
 	if err := repo.DB.Delete(&rv).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
@@ -77,14 +77,14 @@ func HandleDeleteReservation(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// HandleUpdateReservation 部屋、開始時刻、終了時刻を更新
-func HandleUpdateReservation(c echo.Context) error {
-	rv := new(repo.Reservation)
+// HandleUpdateEvent 部屋、開始時刻、終了時刻を更新
+func HandleUpdateEvent(c echo.Context) error {
+	rv := new(repo.Event)
 
 	if err := c.Bind(&rv); err != nil {
 		return err
 	}
-	rv.ID, _ = strconv.Atoi(c.Param("reservationid"))
+	rv.ID, _ = strconv.Atoi(c.Param("eventid"))
 
 	// roomがあるか
 	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
@@ -96,7 +96,7 @@ func HandleUpdateReservation(c echo.Context) error {
 	rv.Date = rv.Room.Date
 
 	// roomid, timestart, timeendのみを変更(roomidに伴ってdateの変更する)
-	if err := repo.DB.Model(&rv).Update(repo.Reservation{RoomID: rv.RoomID, Date: rv.Date, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+	if err := repo.DB.Model(&rv).Update(repo.Event{RoomID: rv.RoomID, Date: rv.Date, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
 		fmt.Println("DB could not be updated")
 		return err
 	}
@@ -110,7 +110,7 @@ func HandleUpdateReservation(c echo.Context) error {
 	}
 
 	if err := rv.AddCreatedBy(); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "ReservationCreatedByを追加できませんでした")
+		return echo.NewHTTPError(http.StatusInternalServerError, "EventCreatedByを追加できませんでした")
 	}
 
 	return c.JSON(http.StatusOK, rv)

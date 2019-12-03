@@ -134,7 +134,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUser := getRequestUser(c)
-		e := new(repo.Reservation)
+		e := new(repo.Event)
 		var err error
 		e.ID, err = strconv.Atoi(c.Param("reservationid"))
 		if err != nil {

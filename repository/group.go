@@ -18,7 +18,7 @@ func (group *Group) FindMembers() error {
 
 // checkBelongToGroup ユーザーが予約したグループに属しているか調べます
 func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
-	rv := new(Reservation)
+	rv := new(Event)
 	g := new(Group)
 	rv.ID = reservationID
 	if err := DB.First(&rv, rv.ID).Error; err != nil {

@@ -62,7 +62,7 @@ func HandleDeleteRoom(c echo.Context) error {
 		return c.String(http.StatusNotFound, "部屋が存在しない")
 	}
 	// 関連する予約を削除する
-	if err := repo.DB.Where("room_id = ?", r.ID).Delete(&repo.Reservation{}).Error; err != nil {
+	if err := repo.DB.Where("room_id = ?", r.ID).Delete(&repo.Event{}).Error; err != nil {
 		fmt.Println(err)
 	}
 

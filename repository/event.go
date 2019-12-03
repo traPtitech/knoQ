@@ -7,8 +7,8 @@ import (
 	"strconv"
 )
 
-func FindRvs(values url.Values) ([]Reservation, error) {
-	reservations := []Reservation{}
+func FindRvs(values url.Values) ([]Event, error) {
+	events := []Event{}
 	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("CreatedBy")
 
 	if values.Get("id") != "" {
@@ -45,23 +45,23 @@ func FindRvs(values url.Values) ([]Reservation, error) {
 		cmd = cmd.Where("date <= ?", values.Get("date_end"))
 	}
 
-	if err := cmd.Order("date asc").Find(&reservations).Error; err != nil {
+	if err := cmd.Order("date asc").Find(&events).Error; err != nil {
 		return nil, err
 	}
 
-	return reservations, nil
+	return events, nil
 }
 
 // AddCreatedBy add CreatedBy
-func (reservation *Reservation) AddCreatedBy() error {
-	if err := DB.Where("traq_id = ?", reservation.CreatedByRefer).First(&reservation.CreatedBy).Error; err != nil {
+func (event *Event) AddCreatedBy() error {
+	if err := DB.Where("traq_id = ?", event.CreatedByRefer).First(&event.CreatedBy).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 // 時間が部屋の範囲内か、endがstartの後かどうか確認する
-func (rv *Reservation) TimeConsistency() error {
+func (rv *Event) TimeConsistency() error {
 	timeStart, err := utils.StrToTime(rv.TimeStart)
 	if err != nil {
 		return err
@@ -80,7 +80,7 @@ func (rv *Reservation) TimeConsistency() error {
 }
 
 // GetCreatedBy get who created it
-func (rv *Reservation) GetCreatedBy() (string, error) {
+func (rv *Event) GetCreatedBy() (string, error) {
 	if err := DB.First(&rv).Error; err != nil {
 		return "", err
 	}
