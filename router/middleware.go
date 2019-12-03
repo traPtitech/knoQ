@@ -1,7 +1,6 @@
 package router
 
 import (
-	"net/http"
 	log "room/logging"
 	repo "room/repository"
 	"strconv"
@@ -80,8 +79,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		user, err := repo.GetUser(id)
 		if err != nil {
-			c.Logger().Error(err)
-			return echo.NewHTTPError(http.StatusInternalServerError) // データベースエラー
+			return internalServerError()
 		}
 		c.Set(requestUserStr, user)
 		err = next(c)
@@ -96,7 +94,10 @@ func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// 判定
 		if !requestUser.Admin {
-			return echo.NewHTTPError(http.StatusForbidden) // 管理者ユーザーでは無いのでエラー
+			return forbidden(
+				message("You are not admin user."),
+				specification("Only admin user can request."),
+			)
 		}
 
 		return next(c)
@@ -120,7 +121,8 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if !IsVerigy {
 			return badRequest(
 				message("You are not user by whom this group is created."),
-				specification("Only the created-user can edit."))
+				specification("Only the author can request."),
+			)
 		}
 
 		err = next(c)
@@ -136,14 +138,17 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		var err error
 		e.ID, err = strconv.Atoi(c.Param("reservationid"))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest)
+			return notFound(message(err.Error()))
 		}
 		IsVerigy, err := verifyCreatedUser(e, requestUser.TRAQID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError)
+			return internalServerError()
 		}
 		if !IsVerigy {
-			return echo.NewHTTPError(http.StatusForbidden)
+			return badRequest(
+				message("You are not user by whom this even is created."),
+				specification("Only the author can request."),
+			)
 		}
 
 		return next(c)

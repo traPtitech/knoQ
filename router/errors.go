@@ -68,6 +68,10 @@ func badRequest(responses ...option) *echo.HTTPError {
 	return newHTTPErrorResponse(http.StatusBadRequest, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
 }
 
+func forbidden(responses ...option) *echo.HTTPError {
+	return newHTTPErrorResponse(http.StatusForbidden, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+}
+
 func notFound(responses ...option) *echo.HTTPError {
 	return newHTTPErrorResponse(http.StatusNotFound, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
 }
