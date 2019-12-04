@@ -7,6 +7,15 @@ import (
 	"strconv"
 )
 
+func FirstEvent(event *Event) error {
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
+	if err := cmd.First(&event).Error; err != nil {
+		// log
+		return err
+	}
+	return nil
+}
+
 func FindRvs(values url.Values) ([]Event, error) {
 	events := []Event{}
 	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")

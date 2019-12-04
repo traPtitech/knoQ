@@ -46,6 +46,19 @@ func HandlePostEvent(c echo.Context) error {
 	return c.JSON(http.StatusCreated, rv)
 }
 
+// HandleGetEvent get one event
+func HandleGetEvent(c echo.Context) (err error) {
+	event := repo.Event{}
+	event.ID, err = strconv.Atoi(c.Param("eventid"))
+	if err != nil {
+		return badRequest(message(err.Error()))
+	}
+	if err := repo.FirstEvent(&event); err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, event)
+}
+
 // HandleGetEvents 部屋の使用宣言情報を取得
 func HandleGetEvents(c echo.Context) error {
 	events := []repo.Event{}
