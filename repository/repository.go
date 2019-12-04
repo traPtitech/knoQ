@@ -39,13 +39,13 @@ type User struct {
 
 // Tag Room Group Event have tags
 type Tag struct {
-	ID       int
-	Name     string
-	Official bool
-	Locked   bool `gorm:"-"`
-	ForRoom  bool
-	ForGroup bool
-	ForEvent bool
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Official bool   `json:"official"`
+	Locked   bool   `json:"locked" gorm:"-"`
+	ForRoom  bool   `json:"for_room"`
+	ForGroup bool   `json:"for_group"`
+	ForEvent bool   `json:"for_event"`
 }
 
 // EventTag is many to many table
@@ -80,18 +80,18 @@ type Group struct {
 
 // Event 予約情報
 type Event struct {
-	ID            int    `json:"id" gorm:"AUTO_INCREMENT"`
-	Name          string `json:"name" gorm:"type:varchar(32); not null"`
-	Description   string `json:"description" gorm:"type:varchar(1024)"`
-	GroupID       int    `json:"group_id" gorm:"not null"`
-	Group         Group  `json:"group" gorm:"foreignkey:group_id"`
-	RoomID        int    `json:"room_id" gorm:"not null"`
-	Room          Room   `json:"room" gorm:"foreignkey:room_id"`
-	TimeStart     string `json:"time_start" gorm:"type:TIME"`
-	TimeEnd       string `json:"time_end" gorm:"type:TIME"`
-	CreatedBy     string `json:"created_by_refer" gorm:"type:varchar(32);"`
-	AllowTogether bool
-	Tag           []Tag     `gorm:"many2many:event_tags"`
+	ID            int       `json:"id" gorm:"AUTO_INCREMENT"`
+	Name          string    `json:"name" gorm:"type:varchar(32); not null"`
+	Description   string    `json:"description" gorm:"type:varchar(1024)"`
+	GroupID       int       `json:"group_id,omitempty" gorm:"not null"`
+	Group         Group     `json:"group" gorm:"foreignkey:group_id"`
+	RoomID        int       `json:"room_id,omitempty" gorm:"not null"`
+	Room          Room      `json:"room" gorm:"foreignkey:room_id"`
+	TimeStart     string    `json:"time_start" gorm:"type:TIME"`
+	TimeEnd       string    `json:"time_end" gorm:"type:TIME"`
+	CreatedBy     string    `json:"created_by" gorm:"type:varchar(32);"`
+	AllowTogether bool      `json:"allow_together"`
+	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 }

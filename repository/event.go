@@ -9,7 +9,7 @@ import (
 
 func FindRvs(values url.Values) ([]Event, error) {
 	events := []Event{}
-	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tag")
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
 
 	if values.Get("id") != "" {
 		id, _ := strconv.Atoi(values.Get("id"))
@@ -52,6 +52,12 @@ func FindRvs(values url.Values) ([]Event, error) {
 	}
 
 	return events, nil
+}
+
+func (e *Event) AfterFind() (err error) {
+	e.GroupID = 0
+	e.RoomID = 0
+	return
 }
 
 // 時間が部屋の範囲内か、endがstartの後かどうか確認する
