@@ -6,6 +6,8 @@ import (
 	repo "room/repository"
 	"strconv"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -53,10 +55,10 @@ func HandleGetEvent(c echo.Context) (err error) {
 	if err != nil {
 		return notFound(message(err.Error()))
 	}
-	if repo.DB.First(&event).RecordNotFound() {
-		return notFound()
-	}
 	if err := repo.FirstEvent(&event); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return notFound()
+		}
 		return internalServerError()
 	}
 	return c.JSON(http.StatusOK, event)
