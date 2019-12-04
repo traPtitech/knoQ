@@ -17,10 +17,7 @@ func HandlePostEvent(c echo.Context) error {
 		return err
 	}
 
-	rv.CreatedByRefer = getRequestUser(c).TRAQID
-	if err := rv.AddCreatedBy(); err != nil {
-		return err
-	}
+	rv.CreatedBy = getRequestUser(c).TRAQID
 
 	// groupが存在するかチェックし依存関係を追加する
 	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
@@ -36,8 +33,6 @@ func HandlePostEvent(c echo.Context) error {
 	if err := repo.DB.First(&r, rv.RoomID).Error; err != nil {
 		return err
 	}
-	// r.Date = 2018-08-10T00:00:00+09:00
-	rv.Date = r.Date[:10]
 	rv.Room.Date = rv.Room.Date[:10]
 
 	err := rv.TimeConsistency()
@@ -93,10 +88,9 @@ func HandleUpdateEvent(c echo.Context) error {
 
 	// r.Date = 2018-08-10T00:00:00+09:00
 	rv.Room.Date = rv.Room.Date[:10]
-	rv.Date = rv.Room.Date
 
 	// roomid, timestart, timeendのみを変更(roomidに伴ってdateの変更する)
-	if err := repo.DB.Model(&rv).Update(repo.Event{RoomID: rv.RoomID, Date: rv.Date, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
+	if err := repo.DB.Model(&rv).Update(repo.Event{RoomID: rv.RoomID, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
 		fmt.Println("DB could not be updated")
 		return err
 	}
@@ -107,10 +101,6 @@ func HandleUpdateEvent(c echo.Context) error {
 
 	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "GroupRelationを追加できませんでした")
-	}
-
-	if err := rv.AddCreatedBy(); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "EventCreatedByを追加できませんでした")
 	}
 
 	return c.JSON(http.StatusOK, rv)

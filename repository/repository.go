@@ -16,6 +16,8 @@ var tables = []interface{}{
 	Room{},
 	Group{},
 	Event{},
+	Tag{},
+	EventTag{},
 }
 
 var (
@@ -33,6 +35,24 @@ type User struct {
 	TRAQID string `json:"traq_id" gorm:"type:varchar(32);primary_key"`
 	// Admin 管理者かどうか
 	Admin bool `gorm:"not null"`
+}
+
+// Tag Room Group Event have tags
+type Tag struct {
+	ID       int
+	Name     string
+	Official bool
+	Locked   bool `gorm:"-"`
+	ForRoom  bool
+	ForGroup bool
+	ForEvent bool
+}
+
+// EventTag is many to many table
+type EventTag struct {
+	TagID   int
+	EventID int
+	Locked  bool
 }
 
 // Room 部屋情報
@@ -60,20 +80,20 @@ type Group struct {
 
 // Event 予約情報
 type Event struct {
-	ID             int       `json:"id" gorm:"AUTO_INCREMENT"`
-	Name           string    `json:"name" gorm:"type:varchar(32); not null"`
-	Description    string    `json:"description" gorm:"type:varchar(1024)"`
-	GroupID        int       `json:"group_id" gorm:"not null"`
-	Group          Group     `json:"group" gorm:"foreignkey:group_id"`
-	RoomID         int       `json:"room_id" gorm:"not null"`
-	Room           Room      `json:"room" gorm:"foreignkey:room_id"`
-	Date           string    `json:"date" gorm:"type:DATE; index:date"`
-	TimeStart      string    `json:"time_start" gorm:"type:TIME"`
-	TimeEnd        string    `json:"time_end" gorm:"type:TIME"`
-	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
-	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID            int    `json:"id" gorm:"AUTO_INCREMENT"`
+	Name          string `json:"name" gorm:"type:varchar(32); not null"`
+	Description   string `json:"description" gorm:"type:varchar(1024)"`
+	GroupID       int    `json:"group_id" gorm:"not null"`
+	Group         Group  `json:"group" gorm:"foreignkey:group_id"`
+	RoomID        int    `json:"room_id" gorm:"not null"`
+	Room          Room   `json:"room" gorm:"foreignkey:room_id"`
+	TimeStart     string `json:"time_start" gorm:"type:TIME"`
+	TimeEnd       string `json:"time_end" gorm:"type:TIME"`
+	CreatedBy     string `json:"created_by_refer" gorm:"type:varchar(32);"`
+	AllowTogether bool
+	Tag           []Tag     `gorm:"many2many:event_tags"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 // SetupDatabase set up DB and crate tables

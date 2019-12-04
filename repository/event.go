@@ -9,7 +9,7 @@ import (
 
 func FindRvs(values url.Values) ([]Event, error) {
 	events := []Event{}
-	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("CreatedBy")
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tag")
 
 	if values.Get("id") != "" {
 		id, _ := strconv.Atoi(values.Get("id"))
@@ -38,26 +38,20 @@ func FindRvs(values url.Values) ([]Event, error) {
 		cmd = cmd.Where("room_id = ?", roomid)
 	}
 
-	if values.Get("date_begin") != "" {
-		cmd = cmd.Where("date >= ?", values.Get("date_begin"))
-	}
-	if values.Get("date_end") != "" {
-		cmd = cmd.Where("date <= ?", values.Get("date_end"))
-	}
+	/*
+		if values.Get("date_begin") != "" {
+			cmd = cmd.Where("date >= ?", values.Get("date_begin"))
+		}
+		if values.Get("date_end") != "" {
+			cmd = cmd.Where("date <= ?", values.Get("date_end"))
+		}
+	*/
 
-	if err := cmd.Order("date asc").Find(&events).Error; err != nil {
+	if err := cmd.Find(&events).Error; err != nil {
 		return nil, err
 	}
 
 	return events, nil
-}
-
-// AddCreatedBy add CreatedBy
-func (event *Event) AddCreatedBy() error {
-	if err := DB.Where("traq_id = ?", event.CreatedByRefer).First(&event.CreatedBy).Error; err != nil {
-		return err
-	}
-	return nil
 }
 
 // 時間が部屋の範囲内か、endがstartの後かどうか確認する
@@ -84,5 +78,5 @@ func (rv *Event) GetCreatedBy() (string, error) {
 	if err := DB.First(&rv).Error; err != nil {
 		return "", err
 	}
-	return rv.CreatedByRefer, nil
+	return rv.CreatedBy, nil
 }
