@@ -51,7 +51,10 @@ func HandleGetEvent(c echo.Context) (err error) {
 	event := repo.Event{}
 	event.ID, err = strconv.Atoi(c.Param("eventid"))
 	if err != nil {
-		return badRequest(message(err.Error()))
+		return notFound(message(err.Error()))
+	}
+	if repo.DB.First(&event).RecordNotFound() {
+		return notFound()
 	}
 	if err := repo.FirstEvent(&event); err != nil {
 		return internalServerError()

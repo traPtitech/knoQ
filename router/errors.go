@@ -60,6 +60,9 @@ func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 	for _, o := range options {
 		o(er)
 	}
+	if er.Message == "" {
+		er.Message = http.StatusText(code)
+	}
 	he.Message = er
 	return he
 }
