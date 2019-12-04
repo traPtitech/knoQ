@@ -38,16 +38,15 @@ func FindRvs(values url.Values) ([]Event, error) {
 		cmd = cmd.Where("room_id = ?", roomid)
 	}
 
-	/*
-		if values.Get("date_begin") != "" {
-			cmd = cmd.Where("date >= ?", values.Get("date_begin"))
-		}
-		if values.Get("date_end") != "" {
-			cmd = cmd.Where("date <= ?", values.Get("date_end"))
-		}
-	*/
+	if values.Get("date_begin") != "" {
+		cmd = cmd.Where("rooms.date >= ?", values.Get("date_begin"))
+	}
+	if values.Get("date_end") != "" {
+		cmd = cmd.Where("rooms.date <= ?", values.Get("date_end"))
+	}
 
-	if err := cmd.Find(&events).Error; err != nil {
+	// room の日付を見たい
+	if err := cmd.Select("events.*").Joins("JOIN rooms on rooms.id = room_id").Find(&events).Error; err != nil {
 		return nil, err
 	}
 
