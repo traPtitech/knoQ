@@ -23,7 +23,7 @@ func HandlePostEvent(c echo.Context) error {
 
 	// groupが存在するかチェックし依存関係を追加する
 	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
-		return c.String(http.StatusBadRequest, "groupが存在しません"+fmt.Sprintln(rv.GroupID))
+		return badRequest(message("groupID: " + fmt.Sprintf("%v", rv.GroupID) + "does not exist."))
 	}
 	// roomが存在するかチェックし依存関係を追加する
 	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
@@ -45,6 +45,7 @@ func HandlePostEvent(c echo.Context) error {
 	if err := repo.DB.Create(&rv).Error; err != nil {
 		return err
 	}
+
 	return c.JSON(http.StatusCreated, rv)
 }
 
