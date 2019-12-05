@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"go.uber.org/zap"
+
 	// mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -26,7 +28,8 @@ var (
 	MARIADB_USERNAME = os.Getenv("MARIADB_USERNAME")
 	MARIADB_PASSWORD = os.Getenv("MARIADB_PASSWORD")
 
-	DB *gorm.DB
+	DB        *gorm.DB
+	logger, _ = zap.NewDevelopment()
 )
 
 // User traQユーザー情報構造体
@@ -132,4 +135,11 @@ func initDB() error {
 		return err
 	}
 	return nil
+}
+
+func dbErrorLog(err error) {
+	if gorm.IsRecordNotFoundError(err) {
+		return
+	}
+	logger.Warn("DB error " + err.Error())
 }

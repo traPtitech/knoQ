@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"room/utils"
 	"strconv"
@@ -11,8 +10,7 @@ import (
 func FirstEvent(event *Event) error {
 	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
 	if err := cmd.First(&event).Error; err != nil {
-		// log
-		fmt.Println(err)
+		dbErrorLog(err)
 		return err
 	}
 	return nil
