@@ -42,8 +42,21 @@ func HandlePostEvent(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := repo.DB.Create(&rv).Error; err != nil {
+	for i, v := range rv.Tags {
+		tag := &rv.Tags[i]
+		if err := repo.DB.Where(repo.Tag{Name: v.Name}).FirstOrCreate(tag).Error; err != nil {
+			return err
+		}
+	}
+
+	if err := repo.DB.Set("gorm:association_save_reference", false).Set("gorm:association_autoupdate", false).Set("gorm:association_autocreate", false).Create(&rv).Error; err != nil {
 		return err
+	}
+
+	for _, v := range rv.Tags {
+		if err := repo.DB.Create(&repo.EventTag{EventID: rv.ID, TagID: v.ID, Locked: v.Locked}).Error; err != nil {
+			return err
+		}
 	}
 
 	return c.JSON(http.StatusCreated, rv)

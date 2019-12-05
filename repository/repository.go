@@ -45,7 +45,7 @@ type Tag struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`
 	Official bool   `json:"official"`
-	Locked   bool   `json:"locked"`
+	Locked   bool   `json:"locked" gorm:"-"`
 	ForRoom  bool   `json:"for_room"`
 	ForGroup bool   `json:"for_group"`
 	ForEvent bool   `json:"for_event"`
@@ -94,7 +94,7 @@ type Event struct {
 	TimeEnd       string    `json:"time_end" gorm:"type:TIME"`
 	CreatedBy     string    `json:"created_by" gorm:"type:varchar(32);"`
 	AllowTogether bool      `json:"allow_together"`
-	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags;"`
+	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; association_autoupdate:false; association_autocreate:false"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 }
