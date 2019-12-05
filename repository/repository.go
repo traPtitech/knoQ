@@ -74,7 +74,7 @@ type Group struct {
 	ID             int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
 	Name           string    `json:"name" gorm:"type:varchar(32);unique;not null"`
 	Description    string    `json:"description" gorm:"type:varchar(1024)"`
-	Members        []User    `json:"members" gorm:"many2many:group_users; association_autoupdate:false; association_autocreate:false"`
+	Members        []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
 	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
 	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
 	CreatedAt      time.Time `json:"created_at"`
@@ -87,14 +87,14 @@ type Event struct {
 	Name          string    `json:"name" gorm:"type:varchar(32); not null"`
 	Description   string    `json:"description" gorm:"type:varchar(1024)"`
 	GroupID       int       `json:"group_id,omitempty" gorm:"not null"`
-	Group         Group     `json:"group" gorm:"foreignkey:group_id; association_autoupdate:false; association_autocreate:false"`
+	Group         Group     `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
 	RoomID        int       `json:"room_id,omitempty" gorm:"not null"`
-	Room          Room      `json:"room" gorm:"foreignkey:room_id; association_autoupdate:false; association_autocreate:false"`
+	Room          Room      `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
 	TimeStart     string    `json:"time_start" gorm:"type:TIME"`
 	TimeEnd       string    `json:"time_end" gorm:"type:TIME"`
 	CreatedBy     string    `json:"created_by" gorm:"type:varchar(32);"`
 	AllowTogether bool      `json:"allow_together"`
-	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; association_autoupdate:false; association_autocreate:false"`
+	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; save_associations:false"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 }

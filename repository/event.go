@@ -7,6 +7,33 @@ import (
 	"strconv"
 )
 
+func (e *Event) Create() error {
+	tx := DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	err := tx.Set("gorm:association_save_reference", false).Create(&e).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	for _, v := range e.Tags {
+		if err := tx.Create(&EventTag{EventID: e.ID, TagID: v.ID, Locked: v.Locked}).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit().Error
+}
+
 func FirstEvent(event *Event) error {
 	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
 	if err := cmd.First(&event).Error; err != nil {

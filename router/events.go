@@ -23,40 +23,29 @@ func HandlePostEvent(c echo.Context) error {
 
 	// groupが存在するかチェックし依存関係を追加する
 	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
-		return badRequest(message("groupID: " + fmt.Sprintf("%v", rv.GroupID) + "does not exist."))
+		return badRequest(message("groupID: " + fmt.Sprintf("%v", rv.GroupID) + " does not exist."))
 	}
 	// roomが存在するかチェックし依存関係を追加する
 	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
-		return c.String(http.StatusBadRequest, "roomが存在しません")
+		return badRequest(message("RoomID: " + fmt.Sprintf("%v", rv.RoomID) + " does not exist."))
 	}
 
-	// dateを代入
-	r := new(repo.Room)
-	if err := repo.DB.First(&r, rv.RoomID).Error; err != nil {
-		return err
-	}
+	// format
 	rv.Room.Date = rv.Room.Date[:10]
 
 	err := rv.TimeConsistency()
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		return badRequest(message(err.Error()))
 	}
 
-	for i, v := range rv.Tags {
-		tag := &rv.Tags[i]
-		if err := repo.DB.Where(repo.Tag{Name: v.Name}).FirstOrCreate(tag).Error; err != nil {
-			return err
-		}
+	err = repo.MatchEventTag(rv.Tags)
+	if err != nil {
+		internalServerError()
 	}
 
-	if err := repo.DB.Set("gorm:association_save_reference", false).Set("gorm:association_autoupdate", false).Set("gorm:association_autocreate", false).Create(&rv).Error; err != nil {
-		return err
-	}
-
-	for _, v := range rv.Tags {
-		if err := repo.DB.Create(&repo.EventTag{EventID: rv.ID, TagID: v.ID, Locked: v.Locked}).Error; err != nil {
-			return err
-		}
+	err = rv.Create()
+	if err != nil {
+		internalServerError()
 	}
 
 	return c.JSON(http.StatusCreated, rv)
