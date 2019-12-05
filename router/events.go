@@ -16,18 +16,18 @@ func HandlePostEvent(c echo.Context) error {
 	rv := new(repo.Event)
 
 	if err := c.Bind(&rv); err != nil {
-		return err
+		return badRequest()
 	}
 
 	rv.CreatedBy = getRequestUser(c).TRAQID
 
 	// groupが存在するかチェックし依存関係を追加する
 	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
-		return badRequest(message("groupID: " + fmt.Sprintf("%v", rv.GroupID) + " does not exist."))
+		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", rv.GroupID)))
 	}
 	// roomが存在するかチェックし依存関係を追加する
 	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
-		return badRequest(message("RoomID: " + fmt.Sprintf("%v", rv.RoomID) + " does not exist."))
+		return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", rv.RoomID)))
 	}
 
 	// format
@@ -55,8 +55,8 @@ func HandlePostEvent(c echo.Context) error {
 func HandleGetEvent(c echo.Context) (err error) {
 	event := repo.Event{}
 	event.ID, err = strconv.Atoi(c.Param("eventid"))
-	if err != nil {
-		return notFound(message(err.Error()))
+	if err != nil || event.ID == 0 {
+		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
 	}
 	if err := repo.FirstEvent(&event); err != nil {
 		if gorm.IsRecordNotFoundError(err) {

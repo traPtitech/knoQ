@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	log "room/logging"
 	repo "room/repository"
 	"strconv"
@@ -111,8 +112,8 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		g := new(repo.Group)
 		var err error
 		g.ID, err = strconv.Atoi(c.Param("groupid"))
-		if err != nil {
-			return notFound(message(err.Error()))
+		if err != nil || g.ID == 0 {
+			return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
 		}
 		IsVerigy, err := verifyCreatedUser(g, requestUser.TRAQID)
 		if err != nil {
@@ -136,9 +137,9 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		requestUser := getRequestUser(c)
 		e := new(repo.Event)
 		var err error
-		e.ID, err = strconv.Atoi(c.Param("reservationid"))
-		if err != nil {
-			return notFound(message(err.Error()))
+		e.ID, err = strconv.Atoi(c.Param("eventid"))
+		if err != nil || e.ID == 0 {
+			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
 		}
 		IsVerigy, err := verifyCreatedUser(e, requestUser.TRAQID)
 		if err != nil {
