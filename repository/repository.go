@@ -32,6 +32,16 @@ var (
 	logger, _ = zap.NewDevelopment()
 )
 
+// CRUD is create, read, update, delete
+// all need ID
+type CRUD interface {
+	Create() error
+	Read() error
+	// Update update omitempty
+	Update() error
+	Delete() error
+}
+
 // User traQユーザー情報構造体
 type User struct {
 	// TRAQID traQID
