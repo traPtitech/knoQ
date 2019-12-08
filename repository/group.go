@@ -20,7 +20,8 @@ func (group *Group) FindMembers() error {
 func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
 	rv := new(Event)
 	g := new(Group)
-	rv.ID = reservationID
+	// tmp
+	rv.ID = uint64(reservationID)
 	if err := DB.First(&rv, rv.ID).Error; err != nil {
 		return false, err
 	}

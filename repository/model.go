@@ -1,6 +1,16 @@
 package repository
 
-import "time"
+import (
+	"time"
+)
+
+// Model is defalut
+type Model struct {
+	ID        uint64 `gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
+}
 
 // User traQユーザー情報構造体
 type User struct {
@@ -12,7 +22,7 @@ type User struct {
 
 // Tag Room Group Event have tags
 type Tag struct {
-	ID       int    `json:"id"`
+	ID       uint64 `json:"id"`
 	Name     string `json:"name"`
 	Official bool   `json:"official"`
 	Locked   bool   `json:"locked" gorm:"-"`
@@ -23,8 +33,8 @@ type Tag struct {
 
 // EventTag is many to many table
 type EventTag struct {
-	TagID   int
-	EventID int
+	TagID   uint64
+	EventID uint64
 	Locked  bool
 }
 
@@ -53,18 +63,16 @@ type Group struct {
 
 // Event 予約情報
 type Event struct {
-	ID            int       `json:"id" gorm:"AUTO_INCREMENT"`
-	Name          string    `json:"name" gorm:"type:varchar(32); not null"`
-	Description   string    `json:"description" gorm:"type:varchar(1024)"`
-	GroupID       int       `json:"group_id,omitempty" gorm:"not null"`
-	Group         Group     `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
-	RoomID        int       `json:"room_id,omitempty" gorm:"not null"`
-	Room          Room      `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
-	TimeStart     string    `json:"time_start" gorm:"type:TIME"`
-	TimeEnd       string    `json:"time_end" gorm:"type:TIME"`
-	CreatedBy     string    `json:"created_by" gorm:"type:varchar(32);"`
-	AllowTogether bool      `json:"allow_together"`
-	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; save_associations:false"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	Model
+	Name          string `json:"name" gorm:"type:varchar(32); not null"`
+	Description   string `json:"description" gorm:"type:varchar(1024)"`
+	GroupID       int    `json:"group_id,omitempty" gorm:"not null"`
+	Group         Group  `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
+	RoomID        int    `json:"room_id,omitempty" gorm:"not null"`
+	Room          Room   `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
+	TimeStart     string `json:"time_start" gorm:"type:TIME"`
+	TimeEnd       string `json:"time_end" gorm:"type:TIME"`
+	CreatedBy     string `json:"created_by" gorm:"type:varchar(32);"`
+	AllowTogether bool   `json:"allow_together"`
+	Tags          []Tag  `json:"tags" gorm:"many2many:event_tags; save_associations:false"`
 }

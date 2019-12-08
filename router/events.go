@@ -54,7 +54,7 @@ func HandlePostEvent(c echo.Context) error {
 // HandleGetEvent get one event
 func HandleGetEvent(c echo.Context) (err error) {
 	event := repo.Event{}
-	event.ID, err = strconv.Atoi(c.Param("eventid"))
+	event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
 	if err != nil || event.ID == 0 {
 		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
 	}
@@ -83,10 +83,13 @@ func HandleGetEvents(c echo.Context) error {
 
 // HandleDeleteEvent 部屋の使用宣言を削除
 func HandleDeleteEvent(c echo.Context) error {
-	rv := new(repo.Event)
-	rv.ID, _ = strconv.Atoi(c.Param("eventid"))
-
-	if err := repo.DB.Delete(&rv).Error; err != nil {
+	e := new(repo.Event)
+	var err error
+	e.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
+	if err != nil || e.ID == 0 {
+		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+	}
+	if err = repo.DB.Delete(&e).Error; err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
@@ -100,7 +103,7 @@ func HandleUpdateEvent(c echo.Context) error {
 	if err := c.Bind(&rv); err != nil {
 		return err
 	}
-	rv.ID, _ = strconv.Atoi(c.Param("eventid"))
+	rv.ID, _ = strconv.ParseUint(c.Param("eventid"), 10, 64)
 
 	// roomがあるか
 	if err := rv.Room.AddRelation(rv.RoomID); err != nil {

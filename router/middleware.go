@@ -139,7 +139,7 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		requestUser := getRequestUser(c)
 		e := new(repo.Event)
 		var err error
-		e.ID, err = strconv.Atoi(c.Param("eventid"))
+		e.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
 		if err != nil || e.ID == 0 {
 			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
 		}
