@@ -58,7 +58,7 @@ func HandleGetEvent(c echo.Context) (err error) {
 	if err != nil || event.ID == 0 {
 		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
 	}
-	if err := repo.FirstEvent(&event); err != nil {
+	if err := event.Read(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return notFound()
 		}
@@ -89,10 +89,12 @@ func HandleDeleteEvent(c echo.Context) error {
 	if err != nil || e.ID == 0 {
 		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
 	}
-	if err = repo.DB.Delete(&e).Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
+	if err = e.Delete(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", e.ID)))
+		}
+		return internalServerError()
 	}
-
 	return c.NoContent(http.StatusOK)
 }
 
