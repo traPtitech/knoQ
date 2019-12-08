@@ -75,9 +75,9 @@ func HandleGetEvents(c echo.Context) error {
 
 	values := c.QueryParams()
 
-	events, err := repo.FindRvs(values)
+	events, err := repo.FindEvents(values)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "queryが正当でない")
+		internalServerError()
 	}
 
 	return c.JSON(http.StatusOK, events)
@@ -156,7 +156,6 @@ func HandleAddEventTag(c echo.Context) error {
 	if err := repo.MatchEventTag(tag); err != nil {
 		internalServerError()
 	}
-	fmt.Println(tag)
 	var err error
 	event.ID, err = getRequestEventID(c)
 	if err != nil {
@@ -174,18 +173,27 @@ func HandleAddEventTag(c echo.Context) error {
 }
 
 func HandleDeleteEventTag(c echo.Context) error {
+	eventTag := new(repo.EventTag)
 	event := new(repo.Event)
 	var err error
 	event.ID, err = getRequestEventID(c)
 	if err != nil {
 		internalServerError()
 	}
-	tagID, err := strconv.ParseUint(c.Param("tagid"), 10, 64)
-	if err != nil || tagID == 0 {
+	eventTag.TagID, err = strconv.ParseUint(c.Param("tagid"), 10, 64)
+	if err != nil || eventTag.TagID == 0 {
 		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
 	}
 
-	if err := repo.DB.Debug().Where("locked = ?", false).Delete(&repo.EventTag{EventID: event.ID, TagID: tagID}).Error; err != nil {
+	if err := repo.DB.Where("tag_id = ?", eventTag.TagID).Where("event_id = ?", event.ID).Find(&eventTag).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return notFound(message(fmt.Sprintf("This event does not have TagID: %v.", eventTag.TagID)))
+		}
+		if eventTag.Locked {
+			return forbidden(message("This tag is locked."))
+		}
+	}
+	if err := repo.DB.Debug().Where("locked = ?", false).Delete(&repo.EventTag{EventID: event.ID, TagID: eventTag.TagID}).Error; err != nil {
 		internalServerError()
 	}
 	if err := event.Read(); err != nil {

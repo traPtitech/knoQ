@@ -59,7 +59,7 @@ func (e *Event) Read() error {
 	return nil
 }
 
-func FindRvs(values url.Values) ([]Event, error) {
+func FindEvents(values url.Values) ([]Event, error) {
 	events := []Event{}
 	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
 
@@ -99,6 +99,7 @@ func FindRvs(values url.Values) ([]Event, error) {
 
 	// room の日付を見たい
 	if err := cmd.Select("events.*").Joins("JOIN rooms on rooms.id = room_id").Find(&events).Error; err != nil {
+		dbErrorLog(err)
 		return nil, err
 	}
 
