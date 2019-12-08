@@ -78,6 +78,7 @@ func main() {
 		{
 			apiRooms.GET("", router.HandleGetRooms)
 			apiRooms.POST("", router.HandlePostRoom, adminMiddle)
+			apiRooms.GET("/:roomid", router.HandleGetRoom)
 			apiRooms.POST("/all", router.HandleSetRooms, adminMiddle)
 			apiRooms.DELETE("/:roomid", router.HandleDeleteRoom, adminMiddle)
 		}

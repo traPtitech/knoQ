@@ -6,6 +6,8 @@ import (
 	repo "room/repository"
 	"strconv"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,6 +31,19 @@ func HandleSetRooms(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err)
 	}
 	return c.JSON(http.StatusCreated, rooms)
+}
+
+func HandleGetRoom(c echo.Context) error {
+	r := new(repo.Room)
+	r.ID, _ = strconv.ParseUint(c.Param("roomid"), 10, 64)
+
+	if err := r.Read(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			notFound()
+		}
+		internalServerError()
+	}
+	return c.JSON(http.StatusOK, r)
 }
 
 // HandleGetRooms traPで確保した部屋情報を取得
@@ -56,7 +71,7 @@ func HandleGetRooms(c echo.Context) error {
 // HandleDeleteRoom traPで確保した部屋情報を削除
 func HandleDeleteRoom(c echo.Context) error {
 	r := new(repo.Room)
-	r.ID, _ = strconv.Atoi(c.Param("roomid"))
+	r.ID, _ = strconv.ParseUint(c.Param("roomid"), 10, 64)
 
 	if err := repo.DB.First(&r, r.ID).Error; err != nil {
 		return c.String(http.StatusNotFound, "部屋が存在しない")

@@ -32,10 +32,42 @@ func FindRoomsByTime(begin, end string) ([]Room, error) {
 	return rooms, nil
 }
 
-// AddRelation add room by RoomID
-func (room *Room) AddRelation(roomID int) error {
-	room.ID = roomID
-	if err := DB.First(&room, room.ID).Error; err != nil {
+func (r *Room) Read() error {
+	rows, err := DB.Debug().Table("rooms").Where("e.allow_together = ?", false).Where("rooms.id = ?", r.ID).Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	defer rows.Close()
+	if err != nil {
+		dbErrorLog(err)
+	}
+	i := 1
+	for rows.Next() {
+		seTime := StartEndTime{}
+		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &seTime.TimeStart, &seTime.TimeEnd)
+		if r.AvailableTime == nil {
+			time1 := StartEndTime{
+				TimeStart: r.TimeStart,
+				TimeEnd:   seTime.TimeStart,
+			}
+			time2 := StartEndTime{
+				TimeStart: seTime.TimeEnd,
+				TimeEnd:   r.TimeEnd,
+			}
+			r.AvailableTime = append(r.AvailableTime, time1, time2)
+		} else {
+			time1 := StartEndTime{
+				TimeStart: r.AvailableTime[i].TimeStart,
+				TimeEnd:   seTime.TimeStart,
+			}
+			time2 := StartEndTime{
+				TimeStart: seTime.TimeEnd,
+				TimeEnd:   r.TimeEnd,
+			}
+			r.AvailableTime[i] = time1
+			r.AvailableTime = append(r.AvailableTime, time2)
+			i++
+		}
+	}
+	if err != nil {
+		dbErrorLog(err)
 		return err
 	}
 	return nil

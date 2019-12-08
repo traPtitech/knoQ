@@ -18,6 +18,8 @@ func HandlePostEvent(c echo.Context) error {
 	if err := c.Bind(rv); err != nil {
 		return badRequest()
 	}
+	rv.Group.ID = rv.GroupID
+	rv.Room.ID = rv.RoomID
 
 	rv.CreatedBy = getRequestUser(c).TRAQID
 
@@ -26,8 +28,11 @@ func HandlePostEvent(c echo.Context) error {
 		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", rv.GroupID)))
 	}
 	// roomが存在するかチェックし依存関係を追加する
-	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
-		return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", rv.RoomID)))
+	if err := rv.Room.Read(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", rv.RoomID)))
+		}
+		return internalServerError()
 	}
 
 	// format
@@ -119,8 +124,11 @@ func HandleUpdateEvent(c echo.Context) error {
 		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", event.GroupID)))
 	}
 	// roomが存在するかチェックし依存関係を追加する
-	if err := event.Room.AddRelation(event.RoomID); err != nil {
-		return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", event.RoomID)))
+	if err := event.Room.Read(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", event.RoomID)))
+		}
+		return internalServerError()
 	}
 
 	// r.Date = 2018-08-10T00:00:00+09:00
