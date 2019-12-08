@@ -38,7 +38,7 @@ func HandlePostEvent(c echo.Context) error {
 		return badRequest(message(err.Error()))
 	}
 
-	err = repo.MatchEventTag(rv.Tags)
+	err = repo.MatchEventTags(rv.Tags)
 	if err != nil {
 		internalServerError()
 	}
@@ -150,4 +150,51 @@ func HandleUpdateEvent(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, event)
+}
+
+func HandleAddEventTag(c echo.Context) error {
+	tag := new(repo.Tag)
+	event := new(repo.Event)
+	if err := c.Bind(tag); err != nil {
+		badRequest()
+	}
+	if err := repo.MatchEventTag(tag); err != nil {
+		internalServerError()
+	}
+	var err error
+	event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
+	if err != nil || event.ID == 0 {
+		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+	}
+
+	if err := repo.DB.Create(&repo.EventTag{EventID: event.ID, TagID: tag.ID}).Error; err != nil {
+		internalServerError()
+	}
+
+	if err := event.Read(); err != nil {
+		internalServerError()
+	}
+	return c.JSON(http.StatusOK, event)
+}
+
+func HandleDeleteEventTag(c echo.Context) error {
+	event := new(repo.Event)
+
+	eventID, err := strconv.ParseUint(c.Param("eventid"), 10, 64)
+	if err != nil || eventID == 0 {
+		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+	}
+	tagID, err := strconv.ParseUint(c.Param("tagid"), 10, 64)
+	if err != nil || tagID == 0 {
+		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
+	}
+
+	if err := repo.DB.Delete(&repo.EventTag{EventID: event.ID, TagID: tagID}).Error; err != nil {
+		internalServerError()
+	}
+	if err := event.Read(); err != nil {
+		internalServerError()
+	}
+	return c.JSON(http.StatusOK, event)
+
 }

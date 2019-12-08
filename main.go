@@ -64,6 +64,9 @@ func main() {
 			apiEvents.GET("/:eventid", router.HandleGetEvent)
 			eventCreatedAPI.PUT("/:eventid", router.HandleUpdateEvent)
 			eventCreatedAPI.DELETE("/:eventid", router.HandleDeleteEvent)
+			apiEvents.PATCH("/:eventid/tags", router.HandleAddEventTag)
+			apiEvents.DELETE("/:eventid/tags/:tagid", router.HandleDeleteEventTag)
+
 		}
 
 		apiRooms := api.Group("/rooms")
