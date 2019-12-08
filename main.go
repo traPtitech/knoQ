@@ -62,7 +62,7 @@ func main() {
 			apiEvents.GET("", router.HandleGetEvents)
 			apiEvents.POST("", router.HandlePostEvent)
 			apiEvents.GET("/:eventid", router.HandleGetEvent)
-			eventCreatedAPI.PATCH("/:eventid", router.HandleUpdateEvent)
+			eventCreatedAPI.PUT("/:eventid", router.HandleUpdateEvent)
 			eventCreatedAPI.DELETE("/:eventid", router.HandleDeleteEvent)
 		}
 

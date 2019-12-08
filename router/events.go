@@ -15,7 +15,7 @@ import (
 func HandlePostEvent(c echo.Context) error {
 	rv := new(repo.Event)
 
-	if err := c.Bind(&rv); err != nil {
+	if err := c.Bind(rv); err != nil {
 		return badRequest()
 	}
 
@@ -100,34 +100,54 @@ func HandleDeleteEvent(c echo.Context) error {
 
 // HandleUpdateEvent 部屋、開始時刻、終了時刻を更新
 func HandleUpdateEvent(c echo.Context) error {
-	rv := new(repo.Event)
-
-	if err := c.Bind(&rv); err != nil {
-		return err
+	event := new(repo.Event)
+	nowEvent := new(repo.Event)
+	if err := nowEvent.Read(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			notFound()
+		}
+		return internalServerError()
 	}
-	rv.ID, _ = strconv.ParseUint(c.Param("eventid"), 10, 64)
 
-	// roomがあるか
-	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
-		return c.String(http.StatusBadRequest, "roomが存在しません")
+	if err := c.Bind(event); err != nil {
+		return badRequest(message(err.Error()))
+	}
+
+	var err error
+	event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
+	if err != nil || event.ID == 0 {
+		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+	}
+
+	// groupが存在するかチェックし依存関係を追加する
+	if err := event.Group.AddRelation(event.GroupID); err != nil {
+		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", event.GroupID)))
+	}
+	// roomが存在するかチェックし依存関係を追加する
+	if err := event.Room.AddRelation(event.RoomID); err != nil {
+		return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", event.RoomID)))
 	}
 
 	// r.Date = 2018-08-10T00:00:00+09:00
-	rv.Room.Date = rv.Room.Date[:10]
-
-	// roomid, timestart, timeendのみを変更(roomidに伴ってdateの変更する)
-	if err := repo.DB.Model(&rv).Update(repo.Event{RoomID: rv.RoomID, TimeStart: rv.TimeStart, TimeEnd: rv.TimeEnd}).Error; err != nil {
-		fmt.Println("DB could not be updated")
-		return err
+	event.Room.Date = event.Room.Date[:10]
+	err = event.TimeConsistency()
+	if err != nil {
+		return badRequest(message(err.Error()))
 	}
 
-	if err := repo.DB.First(&rv, rv.ID).Error; err != nil {
-		return err
+	event.CreatedBy = nowEvent.CreatedBy
+	event.CreatedAt = nowEvent.CreatedAt
+
+	if err := repo.DB.Debug().Save(&event).Error; err != nil {
+		return internalServerError()
 	}
 
-	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "GroupRelationを追加できませんでした")
+	if err := event.Read(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return notFound()
+		}
+		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, rv)
+	return c.JSON(http.StatusOK, event)
 }
