@@ -3,9 +3,10 @@ package repository
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/jinzhu/gorm"
+	"go.uber.org/zap"
+
 	// mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -15,7 +16,9 @@ var tables = []interface{}{
 	User{},
 	Room{},
 	Group{},
-	Reservation{},
+	Event{},
+	Tag{},
+	EventTag{},
 }
 
 var (
@@ -24,56 +27,18 @@ var (
 	MARIADB_USERNAME = os.Getenv("MARIADB_USERNAME")
 	MARIADB_PASSWORD = os.Getenv("MARIADB_PASSWORD")
 
-	DB *gorm.DB
+	DB        *gorm.DB
+	logger, _ = zap.NewDevelopment()
 )
 
-// User traQユーザー情報構造体
-type User struct {
-	// TRAQID traQID
-	TRAQID string `json:"traq_id" gorm:"type:varchar(32);primary_key"`
-	// Admin 管理者かどうか
-	Admin bool `gorm:"not null"`
-}
-
-// Room 部屋情報
-type Room struct {
-	ID        int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
-	Place     string    `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
-	Date      string    `json:"date" gorm:"type:DATE; unique_index:idx_room_unique"`
-	TimeStart string    `json:"time_start" gorm:"type:TIME; unique_index:idx_room_unique"`
-	TimeEnd   string    `json:"time_end" gorm:"type:TIME; unique_index:idx_room_unique"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-}
-
-// Group グループ情報
-type Group struct {
-	ID             int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
-	Name           string    `json:"name" gorm:"type:varchar(32);unique;not null"`
-	Description    string    `json:"description" gorm:"type:varchar(1024)"`
-	Members        []User    `json:"members" gorm:"many2many:group_users"`
-	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
-	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
-}
-
-// Reservation 予約情報
-type Reservation struct {
-	ID             int       `json:"id" gorm:"AUTO_INCREMENT"`
-	Name           string    `json:"name" gorm:"type:varchar(32); not null"`
-	Description    string    `json:"description" gorm:"type:varchar(1024)"`
-	GroupID        int       `json:"group_id" gorm:"not null"`
-	Group          Group     `json:"group" gorm:"foreignkey:group_id"`
-	RoomID         int       `json:"room_id" gorm:"not null"`
-	Room           Room      `json:"room" gorm:"foreignkey:room_id"`
-	Date           string    `json:"date" gorm:"type:DATE; index:date"`
-	TimeStart      string    `json:"time_start" gorm:"type:TIME"`
-	TimeEnd        string    `json:"time_end" gorm:"type:TIME"`
-	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
-	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+// CRUD is create, read, update, delete
+// all need ID
+type CRUD interface {
+	Create() error
+	Read() error
+	// Update update omitempty
+	Update() error
+	Delete() error
 }
 
 // SetupDatabase set up DB and crate tables
@@ -112,4 +77,11 @@ func initDB() error {
 		return err
 	}
 	return nil
+}
+
+func dbErrorLog(err error) {
+	if gorm.IsRecordNotFoundError(err) {
+		return
+	}
+	logger.Warn("DB error " + err.Error())
 }

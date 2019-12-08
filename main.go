@@ -6,13 +6,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	myMiddleware "room/middleware"
 	repo "room/repository"
 	"room/router"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"go.uber.org/zap"
+
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -22,15 +23,18 @@ func main() {
 	}
 	defer db.Close()
 
+	echo.NotFoundHandler = router.NotFoundHandler
 	// echo初期化
 	e := echo.New()
+	e.HTTPErrorHandler = router.HTTPErrorHandler
 	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
 	e.Use(middleware.Secure())
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Root:  "web/dist",
 		HTML5: true,
 	}))
+	logger, _ := zap.NewDevelopment()
+	e.Use(router.AccessLoggingMiddleware(logger))
 
 	// headerの追加のため
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -40,35 +44,42 @@ func main() {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", myMiddleware.TraQUserMiddleware)
-	adminAPI := api.Group("", myMiddleware.AdminUserMiddleware)
-	groupCreatedAPI := api.Group("/groups", myMiddleware.GroupCreatedUserMiddleware)
-	eventCreatedAPI := api.Group("/reservations", myMiddleware.EventCreatedUserMiddleware)
+	api := e.Group("/api", router.TraQUserMiddleware)
+	groupCreatedAPI := api.Group("/groups", router.GroupCreatedUserMiddleware)
 	{
+		adminMiddle := router.AdminUserMiddleware
+
 		apiGroups := api.Group("/groups")
-		adminAPIGroups := adminAPI.Group("/groups")
 		{
 			apiGroups.GET("", router.HandleGetGroups)
 			apiGroups.POST("", router.HandlePostGroup)
 			groupCreatedAPI.PATCH("/:groupid", router.HandleUpdateGroup)
-			adminAPIGroups.DELETE("/:groupid", router.HandleDeleteGroup)
+			apiGroups.DELETE("/:groupid", router.HandleDeleteGroup, adminMiddle)
 		}
 
-		apiEvents := api.Group("/reservations")
+		apiEvents := api.Group("/events")
 		{
-			apiEvents.GET("", router.HandleGetReservations)
-			apiEvents.POST("", router.HandlePostReservation)
-			eventCreatedAPI.PATCH("/:reservationid", router.HandleUpdateReservation)
-			eventCreatedAPI.DELETE("/:reservationid", router.HandleDeleteReservation)
-		}
+			apiEvents.GET("", router.HandleGetEvents)
+			apiEvents.POST("", router.HandlePostEvent)
 
+			apiEvent := apiEvents.Group("/:eventid", router.EventIDMiddleware)
+			{
+				apiEvent.GET("", router.HandleGetEvent)
+				apiEvent.PATCH("/tags", router.HandleAddEventTag)
+				apiEvent.DELETE("/tags/:tagid", router.HandleDeleteEventTag)
+				{
+					apiEvent.PUT("", router.HandleUpdateEvent, router.EventCreatedUserMiddleware)
+					apiEvent.DELETE("", router.HandleDeleteEvent, router.EventCreatedUserMiddleware)
+				}
+			}
+
+		}
 		apiRooms := api.Group("/rooms")
-		adminAPIRooms := adminAPI.Group("/rooms")
 		{
 			apiRooms.GET("", router.HandleGetRooms)
-			adminAPIRooms.POST("", router.HandlePostRoom)
-			adminAPIRooms.POST("/all", router.HandleSetRooms)
-			adminAPIRooms.DELETE("/:roomid", router.HandleDeleteRoom)
+			apiRooms.POST("", router.HandlePostRoom, adminMiddle)
+			apiRooms.POST("/all", router.HandleSetRooms, adminMiddle)
+			apiRooms.DELETE("/:roomid", router.HandleDeleteRoom, adminMiddle)
 		}
 
 		apiUsers := api.Group("/users")

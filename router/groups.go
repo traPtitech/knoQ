@@ -3,11 +3,10 @@ package router
 import (
 	"fmt"
 	"net/http"
-	"room/middleware"
 	repo "room/repository"
 	"strconv"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 // HandlePostGroup グループを作成
@@ -18,7 +17,7 @@ func HandlePostGroup(c echo.Context) error {
 		return err
 	}
 
-	g.CreatedByRefer = middleware.GetRequestUser(c).TRAQID
+	g.CreatedByRefer = getRequestUser(c).TRAQID
 	if err := g.AddCreatedBy(); err != nil {
 		return err
 	}
@@ -63,7 +62,7 @@ func HandleDeleteGroup(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	// 予約情報を削除
-	if err := repo.DB.Where("group_id = ?", g.ID).Delete(&repo.Reservation{}).Error; err != nil {
+	if err := repo.DB.Where("group_id = ?", g.ID).Delete(&repo.Event{}).Error; err != nil {
 		fmt.Println(err)
 	}
 

@@ -711,13 +711,28 @@ components:
           items:
             $ref: "#/components/schemas/ReqTagAuth"
     ResponseGroup:
-      allOf:
-        - $ref: "#/components/schemas/RequestGroup"
       properties:
         id:
           type: integer
           format: int64
           example: 3
+        name:
+          type: string
+          example: room
+        description:
+          type: string
+          example: Sysad班room開発グループ
+        join_freely:
+          type: boolean
+          example: false
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResUser"
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResponseTag"
         created_by:
           type: string
           example: "fuji"
@@ -787,7 +802,7 @@ components:
           example: true
     ResponseTag:
       allOf:
-        - $ref: "#/components/schemas/ResTag"
+        - $ref: "#/components/schemas/tag"
       properties:
         locked:
           type: boolean
