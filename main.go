@@ -23,6 +23,7 @@ func main() {
 	}
 	defer db.Close()
 
+	echo.NotFoundHandler = router.NotFoundHandler
 	// echo初期化
 	e := echo.New()
 	e.HTTPErrorHandler = router.HTTPErrorHandler
@@ -45,7 +46,6 @@ func main() {
 	// API定義 (/api)
 	api := e.Group("/api", router.TraQUserMiddleware)
 	groupCreatedAPI := api.Group("/groups", router.GroupCreatedUserMiddleware)
-	eventCreatedAPI := api.Group("/events", router.EventCreatedUserMiddleware)
 	{
 		adminMiddle := router.AdminUserMiddleware
 
@@ -61,14 +61,19 @@ func main() {
 		{
 			apiEvents.GET("", router.HandleGetEvents)
 			apiEvents.POST("", router.HandlePostEvent)
-			apiEvents.GET("/:eventid", router.HandleGetEvent)
-			eventCreatedAPI.PUT("/:eventid", router.HandleUpdateEvent)
-			eventCreatedAPI.DELETE("/:eventid", router.HandleDeleteEvent)
-			apiEvents.PATCH("/:eventid/tags", router.HandleAddEventTag)
-			apiEvents.DELETE("/:eventid/tags/:tagid", router.HandleDeleteEventTag)
+
+			apiEvent := apiEvents.Group("/:eventid", router.EventIDMiddleware)
+			{
+				apiEvent.GET("", router.HandleGetEvent)
+				apiEvent.PATCH("/tags", router.HandleAddEventTag)
+				apiEvent.DELETE("/tags/:tagid", router.HandleDeleteEventTag)
+				{
+					apiEvent.PUT("", router.HandleUpdateEvent, router.EventCreatedUserMiddleware)
+					apiEvent.DELETE("", router.HandleDeleteEvent, router.EventCreatedUserMiddleware)
+				}
+			}
 
 		}
-
 		apiRooms := api.Group("/rooms")
 		{
 			apiRooms.GET("", router.HandleGetRooms)

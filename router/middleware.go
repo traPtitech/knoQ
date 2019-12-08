@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"fmt"
 	log "room/logging"
 	repo "room/repository"
@@ -137,13 +138,14 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUser := getRequestUser(c)
-		e := new(repo.Event)
+		event := new(repo.Event)
 		var err error
-		e.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
-		if err != nil || e.ID == 0 {
-			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+		event.ID, err = getRequestEventID(c)
+		if err != nil {
+			return internalServerError()
 		}
-		IsVerigy, err := verifyCreatedUser(e, requestUser.TRAQID)
+
+		IsVerigy, err := verifyCreatedUser(event, requestUser.TRAQID)
 		if err != nil {
 			if gorm.IsRecordNotFoundError(err) {
 				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
@@ -156,6 +158,26 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				specification("Only the author can request."),
 			)
 		}
+
+		return next(c)
+	}
+}
+
+func EventIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		event := new(repo.Event)
+		var err error
+		event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
+		if err != nil || event.ID == 0 {
+			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+		}
+		if err := repo.DB.Select("id").First(&event).Error; err != nil {
+			if gorm.IsRecordNotFoundError(err) {
+				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+			}
+			return internalServerError()
+		}
+		c.Set("EventID", event.ID)
 
 		return next(c)
 	}
@@ -176,4 +198,13 @@ func verifyCreatedUser(cbg CreatedByGetter, requestUser string) (bool, error) {
 // getRequestUser リクエストユーザーを返します
 func getRequestUser(c echo.Context) repo.User {
 	return c.Get(requestUserStr).(repo.User)
+}
+
+// getRequestEventID :eventidを返します
+func getRequestEventID(c echo.Context) (uint64, error) {
+	eventID, ok := c.Get("EventID").(uint64)
+	if !ok {
+		return 0, errors.New("EventID is not set")
+	}
+	return eventID, nil
 }

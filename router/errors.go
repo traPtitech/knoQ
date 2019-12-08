@@ -114,3 +114,7 @@ func HTTPErrorHandler(err error, c echo.Context) {
 		}
 	}
 }
+
+func NotFoundHandler(c echo.Context) error {
+	return notFound()
+}

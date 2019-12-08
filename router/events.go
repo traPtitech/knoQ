@@ -52,12 +52,14 @@ func HandlePostEvent(c echo.Context) error {
 }
 
 // HandleGetEvent get one event
-func HandleGetEvent(c echo.Context) (err error) {
-	event := repo.Event{}
-	event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
-	if err != nil || event.ID == 0 {
-		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+func HandleGetEvent(c echo.Context) error {
+	event := new(repo.Event)
+	var err error
+	event.ID, err = getRequestEventID(c)
+	if err != nil {
+		return internalServerError()
 	}
+
 	if err := event.Read(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return notFound()
