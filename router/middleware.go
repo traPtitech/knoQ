@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jinzhu/gorm"
+
 	"go.uber.org/zap"
 
 	"github.com/labstack/echo/v4"
@@ -143,6 +145,9 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		IsVerigy, err := verifyCreatedUser(e, requestUser.TRAQID)
 		if err != nil {
+			if gorm.IsRecordNotFoundError(err) {
+				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+			}
 			return internalServerError()
 		}
 		if !IsVerigy {

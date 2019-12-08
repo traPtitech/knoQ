@@ -117,6 +117,7 @@ func (rv *Event) TimeConsistency() error {
 // GetCreatedBy get who created it
 func (rv *Event) GetCreatedBy() (string, error) {
 	if err := DB.First(&rv).Error; err != nil {
+		dbErrorLog(err)
 		return "", err
 	}
 	return rv.CreatedBy, nil
