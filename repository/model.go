@@ -33,8 +33,8 @@ type Tag struct {
 
 // EventTag is many to many table
 type EventTag struct {
-	TagID   uint64
-	EventID uint64
+	TagID   uint64 `gorm:"primary_key"`
+	EventID uint64 `gorm:"primary_key"`
 	Locked  bool
 }
 

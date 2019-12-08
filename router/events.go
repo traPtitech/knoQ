@@ -85,16 +85,11 @@ func HandleGetEvents(c echo.Context) error {
 
 // HandleDeleteEvent 部屋の使用宣言を削除
 func HandleDeleteEvent(c echo.Context) error {
-	e := new(repo.Event)
+	event := new(repo.Event)
 	var err error
-	e.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
-	if err != nil || e.ID == 0 {
-		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-	}
-	if err = e.Delete(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", e.ID)))
-		}
+	event.ID, err = getRequestEventID(c)
+
+	if err = event.Delete(); err != nil {
 		return internalServerError()
 	}
 	return c.NoContent(http.StatusOK)
@@ -104,21 +99,19 @@ func HandleDeleteEvent(c echo.Context) error {
 func HandleUpdateEvent(c echo.Context) error {
 	event := new(repo.Event)
 	nowEvent := new(repo.Event)
-	if err := nowEvent.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			notFound()
-		}
-		return internalServerError()
-	}
 
 	if err := c.Bind(event); err != nil {
 		return badRequest(message(err.Error()))
 	}
 
 	var err error
-	event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
-	if err != nil || event.ID == 0 {
-		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+	event.ID, err = getRequestEventID(c)
+	if err != nil {
+		internalServerError()
+	}
+	nowEvent.ID = event.ID
+	if err := nowEvent.Read(); err != nil {
+		return internalServerError()
 	}
 
 	// groupが存在するかチェックし依存関係を追加する
@@ -163,10 +156,11 @@ func HandleAddEventTag(c echo.Context) error {
 	if err := repo.MatchEventTag(tag); err != nil {
 		internalServerError()
 	}
+	fmt.Println(tag)
 	var err error
-	event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
-	if err != nil || event.ID == 0 {
-		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+	event.ID, err = getRequestEventID(c)
+	if err != nil {
+		internalServerError()
 	}
 
 	if err := repo.DB.Create(&repo.EventTag{EventID: event.ID, TagID: tag.ID}).Error; err != nil {
@@ -181,17 +175,17 @@ func HandleAddEventTag(c echo.Context) error {
 
 func HandleDeleteEventTag(c echo.Context) error {
 	event := new(repo.Event)
-
-	eventID, err := strconv.ParseUint(c.Param("eventid"), 10, 64)
-	if err != nil || eventID == 0 {
-		return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+	var err error
+	event.ID, err = getRequestEventID(c)
+	if err != nil {
+		internalServerError()
 	}
 	tagID, err := strconv.ParseUint(c.Param("tagid"), 10, 64)
 	if err != nil || tagID == 0 {
 		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
 	}
 
-	if err := repo.DB.Delete(&repo.EventTag{EventID: event.ID, TagID: tagID}).Error; err != nil {
+	if err := repo.DB.Debug().Where("locked = ?", false).Delete(&repo.EventTag{EventID: event.ID, TagID: tagID}).Error; err != nil {
 		internalServerError()
 	}
 	if err := event.Read(); err != nil {

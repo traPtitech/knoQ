@@ -16,20 +16,20 @@ func MatchEventTags(tags []Tag) error {
 }
 
 func MatchEventTag(tag *Tag) error {
-	if err := DB.Where(Tag{Name: tag.Name}).First(&tag).Error; err != nil {
+	if err := DB.Where(Tag{Name: tag.Name}).First(tag).Error; err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
 			dbErrorLog(err)
 			return err
 		}
-		err := DB.Create(&Tag{Name: tag.Name, ForEvent: true}).Error
+		*tag = Tag{Name: tag.Name, ForEvent: true}
+		err := DB.Create(&tag).Error
 		if err != nil {
 			dbErrorLog(err)
 			return err
 		}
-
 	}
 	if !tag.ForEvent {
-		err := DB.Model(&tag).Update("for_event", true).Error
+		err := DB.Debug().Model(&tag).Update("for_event", true).Error
 		if err != nil {
 			dbErrorLog(err)
 			return err
