@@ -74,11 +74,14 @@ func (r *Room) Read() error {
 	return nil
 }
 
-func (room *Room) InTime(targetTime time.Time) bool {
-	roomStart, _ := utils.StrToTime(room.TimeStart)
-	roomEnd, _ := utils.StrToTime(room.TimeEnd)
-	if (roomStart.Equal(targetTime) || roomStart.Before(targetTime)) && (roomEnd.Equal(targetTime) || roomEnd.After(targetTime)) {
-		return true
+func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
+	for _, v := range room.AvailableTime {
+		roomStart, _ := utils.StrToTime(v.TimeStart)
+		roomEnd, _ := utils.StrToTime(v.TimeEnd)
+		if (roomStart.Equal(targetStartTime) || roomStart.Before(targetStartTime)) && (roomEnd.Equal(targetEndTime) || roomEnd.After(targetEndTime)) {
+			fmt.Println(v)
+			return true
+		}
 	}
 	return false
 }
