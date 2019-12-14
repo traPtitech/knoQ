@@ -26,45 +26,46 @@ func FindRoomsByTime(begin, end string) ([]Room, error) {
 		cmd = cmd.Where("date <= ?", end)
 	}
 
-	if err := cmd.Order("date asc").Find(&rooms).Error; err != nil {
-		return nil, err
+	rows, err := cmd.Order("date asc").Debug().Table("rooms").Order("rooms.id asc").Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	defer rows.Close()
+	if err != nil {
+		dbErrorLog(err)
+	}
+	for rows.Next() {
+		seTime := StartEndTime{}
+		var allowWith bool
+		r := Room{}
+		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {
+			if seTime.TimeStart == "" && seTime.TimeEnd == "" {
+				r.AvailableTime = append(r.AvailableTime, StartEndTime{
+					TimeStart: r.TimeStart,
+					TimeEnd:   r.TimeEnd,
+				})
+			}
+			rooms = append(rooms, r)
+		}
+		if seTime.TimeStart != "" && seTime.TimeEnd != "" {
+			r = rooms[len(rooms)-1]
+			fmt.Println(r.ID, seTime, allowWith, r.AvailableTime)
+			r.calcAvailableTime(seTime, allowWith)
+			rooms[len(rooms)-1] = r
+		}
 	}
 	return rooms, nil
 }
 
 func (r *Room) Read() error {
-	rows, err := DB.Debug().Table("rooms").Where("e.allow_together = ?", false).Where("rooms.id = ?", r.ID).Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	rows, err := DB.Table("rooms").Where("rooms.id = ?", r.ID).Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
 	defer rows.Close()
 	if err != nil {
 		dbErrorLog(err)
 	}
-	i := 1
 	for rows.Next() {
 		seTime := StartEndTime{}
-		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &seTime.TimeStart, &seTime.TimeEnd)
-		if r.AvailableTime == nil {
-			time1 := StartEndTime{
-				TimeStart: r.TimeStart,
-				TimeEnd:   seTime.TimeStart,
-			}
-			time2 := StartEndTime{
-				TimeStart: seTime.TimeEnd,
-				TimeEnd:   r.TimeEnd,
-			}
-			r.AvailableTime = append(r.AvailableTime, time1, time2)
-		} else {
-			time1 := StartEndTime{
-				TimeStart: r.AvailableTime[i].TimeStart,
-				TimeEnd:   seTime.TimeStart,
-			}
-			time2 := StartEndTime{
-				TimeStart: seTime.TimeEnd,
-				TimeEnd:   r.TimeEnd,
-			}
-			r.AvailableTime[i] = time1
-			r.AvailableTime = append(r.AvailableTime, time2)
-			i++
-		}
+		var allowWith bool
+		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		r.calcAvailableTime(seTime, allowWith)
 	}
 	if err != nil {
 		dbErrorLog(err)
@@ -80,6 +81,35 @@ func (room *Room) InTime(targetTime time.Time) bool {
 		return true
 	}
 	return false
+}
+
+func (r *Room) calcAvailableTime(seTime StartEndTime, allowWith bool) {
+	if r.AvailableTime == nil {
+		r.AvailableTime = append(r.AvailableTime, StartEndTime{
+			TimeStart: r.TimeStart,
+			TimeEnd:   r.TimeEnd,
+		})
+	}
+	if !allowWith {
+		avleTimes := make([]StartEndTime, 2)
+		i := len(r.AvailableTime) - 1
+		avleTimes[0] = StartEndTime{
+			TimeStart: r.AvailableTime[i].TimeStart,
+			TimeEnd:   seTime.TimeStart,
+		}
+		avleTimes[1] = StartEndTime{
+			TimeStart: seTime.TimeEnd,
+			TimeEnd:   r.TimeEnd,
+		}
+		// delete last
+		r.AvailableTime = r.AvailableTime[:len(r.AvailableTime)-1]
+		for _, v := range avleTimes {
+			if v.TimeStart != v.TimeEnd {
+				r.AvailableTime = append(r.AvailableTime, v)
+			}
+		}
+
+	}
 }
 
 var traQCalendarID string = os.Getenv("TRAQ_CALENDARID")
