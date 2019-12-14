@@ -33,15 +33,16 @@ func HandleSetRooms(c echo.Context) error {
 	return c.JSON(http.StatusCreated, rooms)
 }
 
+// HandleGetRoom get one room
 func HandleGetRoom(c echo.Context) error {
 	r := new(repo.Room)
 	r.ID, _ = strconv.ParseUint(c.Param("roomid"), 10, 64)
 
 	if err := r.Read(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			notFound()
+			return notFound()
 		}
-		internalServerError()
+		return internalServerError()
 	}
 	return c.JSON(http.StatusOK, r)
 }
@@ -55,7 +56,7 @@ func HandleGetRooms(c echo.Context) error {
 	end := c.QueryParam("date_end")
 
 	if id == "" {
-		r, err = repo.FindRoomsByTime(begin, end)
+		r, err = repo.FindRooms(begin, end)
 	} else {
 		ID, _ := strconv.Atoi(id)
 		err = repo.DB.First(&r, ID).Error

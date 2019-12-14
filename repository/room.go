@@ -16,7 +16,7 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-func FindRoomsByTime(begin, end string) ([]Room, error) {
+func FindRooms(begin, end string) ([]Room, error) {
 	rooms := []Room{}
 	cmd := DB
 	if begin != "" {
@@ -56,7 +56,11 @@ func FindRoomsByTime(begin, end string) ([]Room, error) {
 }
 
 func (r *Room) Read() error {
-	rows, err := DB.Table("rooms").Where("rooms.id = ?", r.ID).Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	if err := DB.Debug().First(&r).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	rows, err := DB.Table("rooms").Where("rooms.id = ?", r.ID).Order("e.time_start asc").Select("e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
 	defer rows.Close()
 	if err != nil {
 		dbErrorLog(err)
@@ -64,9 +68,10 @@ func (r *Room) Read() error {
 	for rows.Next() {
 		seTime := StartEndTime{}
 		var allowWith bool
-		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd, &allowWith)
 		r.calcAvailableTime(seTime, allowWith)
 	}
+	err = rows.Err()
 	if err != nil {
 		dbErrorLog(err)
 		return err
