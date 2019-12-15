@@ -68,7 +68,10 @@ func HandleDeleteGroup(c echo.Context) error {
 	}
 
 	if err := repo.DB.Delete(&g).Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest()
+		}
+		return internalServerError()
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -76,33 +79,22 @@ func HandleDeleteGroup(c echo.Context) error {
 
 // HandleUpdateGroup グループメンバー、グループ名を更新
 func HandleUpdateGroup(c echo.Context) error {
-	g := new(repo.Group)
+	group := new(repo.Group)
 	var err error
-
-	if err := c.Bind(g); err != nil {
-		return err
+	if err := c.Bind(group); err != nil {
+		return badRequest(message(err.Error()))
 	}
-	name := g.Name
-	description := g.Description
-
-	g.ID, err = getRequestGroupID(c)
+	group.ID, err = getRequestGroupID(c)
 	if err != nil {
 		return internalServerError()
 	}
-
-	// メンバーを置き換え
-	if err := repo.DB.Model(&g).Association("Members").Replace(g.Members).Error; err != nil {
-		return err
+	err = group.Update()
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest()
+		}
+		return internalServerError()
 	}
 
-	// グループ名を変更
-	if err := repo.DB.Model(&g).Update("name", name).Error; err != nil {
-		return err
-	}
-	// グループ詳細変更
-	if err := repo.DB.Model(&g).Update("description", description).Error; err != nil {
-		return err
-	}
-
-	return c.JSON(http.StatusOK, g)
+	return c.JSON(http.StatusOK, group)
 }

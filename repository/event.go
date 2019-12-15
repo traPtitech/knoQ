@@ -51,7 +51,7 @@ func (e *Event) Delete() error {
 }
 
 func (e *Event) Read() error {
-	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Room").Preload("Tags")
 	if err := cmd.First(&e).Error; err != nil {
 		dbErrorLog(err)
 		return err
@@ -61,7 +61,7 @@ func (e *Event) Read() error {
 
 func FindEvents(values url.Values) ([]Event, error) {
 	events := []Event{}
-	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Room").Preload("Tags")
 
 	if values.Get("id") != "" {
 		id, _ := strconv.Atoi(values.Get("id"))

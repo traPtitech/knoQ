@@ -112,7 +112,7 @@ func HandleUpdateEvent(c echo.Context) error {
 	var err error
 	event.ID, err = getRequestEventID(c)
 	if err != nil {
-		internalServerError()
+		return internalServerError()
 	}
 	nowEvent.ID = event.ID
 	if err := nowEvent.Read(); err != nil {
@@ -120,7 +120,7 @@ func HandleUpdateEvent(c echo.Context) error {
 	}
 
 	// groupが存在するかチェックし依存関係を追加する
-	if err := event.Group.AddRelation(event.GroupID); err != nil {
+	if err := event.Group.Read(); err != nil {
 		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", event.GroupID)))
 	}
 	// roomが存在するかチェックし依存関係を追加する

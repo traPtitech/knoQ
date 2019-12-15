@@ -55,7 +55,7 @@ func main() {
 			apiGroup := apiGroups.Group("/:groupid", router.GroupIDMiddleware)
 			{
 				apiGroup.GET("", router.HandleGetGroup)
-				apiGroup.PATCH("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
+				apiGroup.PUT("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
 				apiGroup.DELETE("", router.HandleDeleteGroup, adminMiddle)
 			}
 		}

@@ -113,6 +113,44 @@ func (g *Group) Create() error {
 	return tx.Commit().Error
 }
 
+func (g *Group) Update() error {
+	nowGroup := new(Group)
+	nowGroup.ID = g.ID
+	if err := nowGroup.Read(); err != nil {
+		return err
+	}
+	g.CreatedAt = nowGroup.CreatedAt
+	g.CreatedBy = nowGroup.CreatedBy
+
+	if err := g.verifyMembers(); err != nil {
+		return err
+	}
+
+	tx := DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+
+	if err := tx.Debug().Save(&g).Error; err != nil {
+		tx.Rollback()
+		dbErrorLog(err)
+		return err
+	}
+	if err := tx.Debug().Model(&g).Association("Members").Replace(g.Members).Error; err != nil {
+		tx.Rollback()
+		dbErrorLog(err)
+		return err
+	}
+
+	return nil
+}
+
 func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {
 	groups := []Group{}
 	// traqIDが存在するグループを取得
