@@ -149,7 +149,7 @@ func (g *Group) Update() error {
 		return err
 	}
 
-	return nil
+	return tx.Commit().Error
 }
 
 func (g *Group) Delete() error {

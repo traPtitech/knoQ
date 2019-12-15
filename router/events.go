@@ -13,47 +13,23 @@ import (
 
 // HandlePostEvent 部屋の使用宣言を作成
 func HandlePostEvent(c echo.Context) error {
-	rv := new(repo.Event)
+	event := new(repo.Event)
 
-	if err := c.Bind(rv); err != nil {
+	if err := c.Bind(event); err != nil {
 		return badRequest()
 	}
-	rv.Group.ID = rv.GroupID
-	rv.Room.ID = rv.RoomID
+	event.Group.ID = event.GroupID
+	event.Room.ID = event.RoomID
 
-	rv.CreatedBy = getRequestUser(c).TRAQID
+	event.CreatedBy = getRequestUser(c).TRAQID
 
-	// groupが存在するかチェックし依存関係を追加する
-	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
-		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", rv.GroupID)))
-	}
-	// roomが存在するかチェックし依存関係を追加する
-	if err := rv.Room.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", rv.RoomID)))
-		}
+	err := event.Create()
+	if err != nil {
+		fmt.Println(err)
 		return internalServerError()
 	}
 
-	// format
-	rv.Room.Date = rv.Room.Date[:10]
-
-	err := rv.TimeConsistency()
-	if err != nil {
-		return badRequest(message(err.Error()))
-	}
-
-	err = repo.MatchEventTags(rv.Tags)
-	if err != nil {
-		internalServerError()
-	}
-
-	err = rv.Create()
-	if err != nil {
-		internalServerError()
-	}
-
-	return c.JSON(http.StatusCreated, rv)
+	return c.JSON(http.StatusCreated, event)
 }
 
 // HandleGetEvent get one event
@@ -103,7 +79,6 @@ func HandleDeleteEvent(c echo.Context) error {
 // HandleUpdateEvent 部屋、開始時刻、終了時刻を更新
 func HandleUpdateEvent(c echo.Context) error {
 	event := new(repo.Event)
-	nowEvent := new(repo.Event)
 
 	if err := c.Bind(event); err != nil {
 		return badRequest(message(err.Error()))
@@ -114,34 +89,12 @@ func HandleUpdateEvent(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	nowEvent.ID = event.ID
-	if err := nowEvent.Read(); err != nil {
-		return internalServerError()
-	}
 
-	// groupが存在するかチェックし依存関係を追加する
-	if err := event.Group.Read(); err != nil {
-		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", event.GroupID)))
-	}
-	// roomが存在するかチェックし依存関係を追加する
-	if err := event.Room.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", event.RoomID)))
-		}
-		return internalServerError()
-	}
-
-	// r.Date = 2018-08-10T00:00:00+09:00
-	event.Room.Date = event.Room.Date[:10]
-	err = event.TimeConsistency()
+	err = event.Update()
 	if err != nil {
-		return badRequest(message(err.Error()))
-	}
-
-	event.CreatedBy = nowEvent.CreatedBy
-	event.CreatedAt = nowEvent.CreatedAt
-
-	if err := repo.DB.Debug().Save(&event).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest()
+		}
 		return internalServerError()
 	}
 

@@ -8,18 +8,40 @@ import (
 )
 
 func (e *Event) Create() error {
+	// groupが存在するかチェックし依存関係を追加する
+	if err := e.Group.Read(); err != nil {
+		return err
+	}
+	// roomが存在するかチェックし依存関係を追加する
+	if err := e.Room.Read(); err != nil {
+		return err
+	}
+
+	// format
+	e.Room.Date = e.Room.Date[:10]
+
+	err := e.TimeConsistency()
+	if err != nil {
+		return err
+	}
+
+	err = MatchEventTags(e.Tags)
+	if err != nil {
+		return err
+	}
+
 	tx := DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
-
 	if err := tx.Error; err != nil {
 		dbErrorLog(err)
 		return err
 	}
-	err := tx.Set("gorm:association_save_reference", false).Create(&e).Error
+
+	err = tx.Set("gorm:association_save_reference", false).Create(&e).Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -32,6 +54,38 @@ func (e *Event) Create() error {
 		}
 	}
 	return tx.Commit().Error
+}
+
+func (e *Event) Update() error {
+	nowEvent := new(Event)
+	nowEvent.ID = e.ID
+	if err := nowEvent.Read(); err != nil {
+		return err
+	}
+
+	// groupが存在するかチェックし依存関係を追加する
+	if err := e.Group.Read(); err != nil {
+		return err
+	}
+	// roomが存在するかチェックし依存関係を追加する
+	if err := e.Room.Read(); err != nil {
+		return err
+	}
+
+	// r.Date = 2018-08-10T00:00:00+09:00
+	e.Room.Date = e.Room.Date[:10]
+	err := e.TimeConsistency()
+	if err != nil {
+		return err
+	}
+
+	e.CreatedBy = nowEvent.CreatedBy
+	e.CreatedAt = nowEvent.CreatedAt
+
+	if err := DB.Debug().Save(&e).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (e *Event) Delete() error {
