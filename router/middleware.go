@@ -114,9 +114,9 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		requestUser := getRequestUser(c)
 		g := new(repo.Group)
 		var err error
-		g.ID, err = strconv.Atoi(c.Param("groupid"))
+		g.ID, err = getRequestGroupID(c)
 		if err != nil || g.ID == 0 {
-			return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
+			internalServerError()
 		}
 		IsVerigy, err := verifyCreatedUser(g, requestUser.TRAQID)
 		if err != nil {
@@ -129,8 +129,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			)
 		}
 
-		err = next(c)
-		return err
+		return next(c)
 	}
 }
 
@@ -183,6 +182,27 @@ func EventIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		group := new(repo.Group)
+		var err error
+		group.ID, err = strconv.ParseUint(c.Param("groupid"), 10, 64)
+		if err != nil || group.ID == 0 {
+			return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
+		}
+		if err := repo.DB.Select("id").First(&group).Error; err != nil {
+			if gorm.IsRecordNotFoundError(err) {
+				return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
+			}
+			return internalServerError()
+		}
+		c.Set("GroupID", group.ID)
+
+		return next(c)
+
+	}
+}
+
 // verifyCreatedUser verify that request-user and created-user are the same
 func verifyCreatedUser(cbg CreatedByGetter, requestUser string) (bool, error) {
 	createdByUser, err := cbg.GetCreatedBy()
@@ -207,4 +227,13 @@ func getRequestEventID(c echo.Context) (uint64, error) {
 		return 0, errors.New("EventID is not set")
 	}
 	return eventID, nil
+}
+
+// getRequestGroupID :groupidを返します
+func getRequestGroupID(c echo.Context) (uint64, error) {
+	groupID, ok := c.Get("GroupID").(uint64)
+	if !ok {
+		return 0, errors.New("GroupID is not set")
+	}
+	return groupID, nil
 }

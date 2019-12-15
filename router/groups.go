@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	repo "room/repository"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
@@ -17,10 +16,7 @@ func HandlePostGroup(c echo.Context) error {
 		return err
 	}
 
-	g.CreatedByRefer = getRequestUser(c).TRAQID
-	if err := g.AddCreatedBy(); err != nil {
-		return err
-	}
+	g.CreatedBy = getRequestUser(c).TRAQID
 
 	// メンバーがdbにいるか
 	if err := g.FindMembers(); err != nil {
@@ -50,20 +46,10 @@ func HandleGetGroups(c echo.Context) error {
 // HandleDeleteGroup グループを削除
 func HandleDeleteGroup(c echo.Context) error {
 	g := new(repo.Group)
-	g.ID, _ = strconv.Atoi(c.Param("groupid"))
-
-	fmt.Println(g.ID)
-	if err := repo.DB.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
-	}
-
-	// relationを削除
-	if err := repo.DB.Model(&g).Association("Members").Clear().Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
-	}
-	// 予約情報を削除
-	if err := repo.DB.Where("group_id = ?", g.ID).Delete(&repo.Event{}).Error; err != nil {
-		fmt.Println(err)
+	var err error
+	g.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
 	}
 
 	if err := repo.DB.Delete(&g).Error; err != nil {
@@ -76,6 +62,7 @@ func HandleDeleteGroup(c echo.Context) error {
 // HandleUpdateGroup グループメンバー、グループ名を更新
 func HandleUpdateGroup(c echo.Context) error {
 	g := new(repo.Group)
+	var err error
 
 	if err := c.Bind(g); err != nil {
 		return err
@@ -88,9 +75,9 @@ func HandleUpdateGroup(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
 	}
 
-	g.ID, _ = strconv.Atoi(c.Param("groupid"))
-	if err := repo.DB.First(&g, g.ID).Error; err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "アクセスしたgroupIDは存在しない")
+	g.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
 	}
 
 	// メンバーを置き換え
@@ -102,7 +89,6 @@ func HandleUpdateGroup(c echo.Context) error {
 	if err := repo.DB.Model(&g).Update("name", name).Error; err != nil {
 		return err
 	}
-	fmt.Println(g.Name)
 	// グループ詳細変更
 	if err := repo.DB.Model(&g).Update("description", description).Error; err != nil {
 		return err

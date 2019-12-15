@@ -69,13 +69,13 @@ func FindGroups(values url.Values) ([]Group, error) {
 	// SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id = "fuji"
 }
 
-func GetGroupIDsBytraQID(traqID string) ([]int, error) {
+func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {
 	groups := []Group{}
 	// traqIDが存在するグループを取得
 	if err := DB.Raw("SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id =  ?", traqID).Scan(&groups).Error; err != nil {
 		return nil, err
 	}
-	groupsID := make([]int, len(groups))
+	groupsID := make([]uint64, len(groups))
 	for i, g := range groups {
 		groupsID[i] = g.ID
 	}
@@ -83,19 +83,8 @@ func GetGroupIDsBytraQID(traqID string) ([]int, error) {
 }
 
 // AddRelation add members and created_by by GroupID
-func (group *Group) AddRelation(GroupID int) error {
+func (group *Group) AddRelation(GroupID uint64) error {
 	if err := DB.First(&group, GroupID).Related(&group.Members, "Members").Error; err != nil {
-		return err
-	}
-	if err := group.AddCreatedBy(); err != nil {
-		return err
-	}
-	return nil
-}
-
-// AddCreatedBy add CreatedBy
-func (group *Group) AddCreatedBy() error {
-	if err := DB.Where("traq_id = ?", group.CreatedByRefer).First(&group.CreatedBy).Error; err != nil {
 		return err
 	}
 	return nil
@@ -106,5 +95,5 @@ func (group *Group) GetCreatedBy() (string, error) {
 	if err := DB.First(&group).Error; err != nil {
 		return "", err
 	}
-	return group.CreatedByRefer, nil
+	return group.CreatedBy, nil
 }

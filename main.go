@@ -45,7 +45,6 @@ func main() {
 
 	// API定義 (/api)
 	api := e.Group("/api", router.TraQUserMiddleware)
-	groupCreatedAPI := api.Group("/groups", router.GroupCreatedUserMiddleware)
 	{
 		adminMiddle := router.AdminUserMiddleware
 
@@ -53,8 +52,9 @@ func main() {
 		{
 			apiGroups.GET("", router.HandleGetGroups)
 			apiGroups.POST("", router.HandlePostGroup)
-			groupCreatedAPI.PATCH("/:groupid", router.HandleUpdateGroup)
-			apiGroups.DELETE("/:groupid", router.HandleDeleteGroup, adminMiddle)
+			apiGroup := apiGroups.Group("/:groupid", router.GroupIDMiddleware)
+			apiGroup.PATCH("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
+			apiGroup.DELETE("", router.HandleDeleteGroup, adminMiddle)
 		}
 
 		apiEvents := api.Group("/events")

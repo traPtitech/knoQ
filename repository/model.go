@@ -56,14 +56,11 @@ type Room struct {
 
 // Group グループ情報
 type Group struct {
-	ID             int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
-	Name           string    `json:"name" gorm:"type:varchar(32);unique;not null"`
-	Description    string    `json:"description" gorm:"type:varchar(1024)"`
-	Members        []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
-	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
-	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	Model
+	Name        string `json:"name" gorm:"type:varchar(32);unique;not null"`
+	Description string `json:"description" gorm:"type:varchar(1024)"`
+	Members     []User `json:"members" gorm:"many2many:group_users; save_associations:false"`
+	CreatedBy   string `json:"created_by" gorm:"type:varchar(32);"`
 }
 
 // Event 予約情報
@@ -71,7 +68,7 @@ type Event struct {
 	Model
 	Name          string `json:"name" gorm:"type:varchar(32); not null"`
 	Description   string `json:"description" gorm:"type:varchar(1024)"`
-	GroupID       int    `json:"group_id,omitempty" gorm:"not null"`
+	GroupID       uint64 `json:"group_id,omitempty" gorm:"not null"`
 	Group         Group  `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
 	RoomID        uint64 `json:"room_id,omitempty" gorm:"not null"`
 	Room          Room   `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
