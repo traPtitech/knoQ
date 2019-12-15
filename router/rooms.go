@@ -15,11 +15,11 @@ import (
 func HandlePostRoom(c echo.Context) error {
 	r := new(repo.Room)
 	if err := c.Bind(r); err != nil {
-		return err
+		return badRequest()
 	}
 
 	if err := repo.DB.Create(&r).Error; err != nil {
-		return err
+		return internalServerError()
 	}
 	return c.JSON(http.StatusOK, r)
 }
@@ -28,7 +28,7 @@ func HandlePostRoom(c echo.Context) error {
 func HandleSetRooms(c echo.Context) error {
 	rooms, err := repo.GetEvents()
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return internalServerError()
 	}
 	return c.JSON(http.StatusCreated, rooms)
 }
@@ -66,15 +66,11 @@ func HandleDeleteRoom(c echo.Context) error {
 	r.ID, _ = strconv.ParseUint(c.Param("roomid"), 10, 64)
 
 	if err := repo.DB.First(&r, r.ID).Error; err != nil {
-		return c.String(http.StatusNotFound, "部屋が存在しない")
-	}
-	// 関連する予約を削除する
-	if err := repo.DB.Where("room_id = ?", r.ID).Delete(&repo.Event{}).Error; err != nil {
-		fmt.Println(err)
+		return notFound(message(fmt.Sprintf("RoomID: %v does not exist.", r.ID)))
 	}
 
 	if err := repo.DB.Delete(&r).Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
+		return internalServerError()
 	}
 
 	return c.NoContent(http.StatusOK)
