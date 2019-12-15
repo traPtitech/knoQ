@@ -56,6 +56,15 @@ func (e *Event) Create() error {
 	return tx.Commit().Error
 }
 
+func (e *Event) Read() error {
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Room").Preload("Tags")
+	if err := cmd.First(&e).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
 func (e *Event) Update() error {
 	nowEvent := new(Event)
 	nowEvent.ID = e.ID
@@ -98,15 +107,6 @@ func (e *Event) Delete() error {
 		return err
 	}
 	if err := DB.Debug().Delete(&e).Error; err != nil {
-		dbErrorLog(err)
-		return err
-	}
-	return nil
-}
-
-func (e *Event) Read() error {
-	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Room").Preload("Tags")
-	if err := cmd.First(&e).Error; err != nil {
 		dbErrorLog(err)
 		return err
 	}

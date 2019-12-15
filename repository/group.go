@@ -6,6 +6,102 @@ import (
 	"strconv"
 )
 
+func (g *Group) Create() error {
+	tx := DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	err := tx.Set("gorm:association_save_reference", false).Create(&g).Error
+	if err != nil {
+		tx.Rollback()
+		dbErrorLog(err)
+		return err
+	}
+	err = g.verifyMembers()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Debug().Model(&g).Association("Members").Append(g.Members).Error; err != nil {
+		tx.Rollback()
+		dbErrorLog(err)
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
+func (g *Group) Read() error {
+	cmd := DB.Preload("Members")
+	if err := cmd.First(&g).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
+func (g *Group) Update() error {
+	nowGroup := new(Group)
+	nowGroup.ID = g.ID
+	if err := nowGroup.Read(); err != nil {
+		return err
+	}
+	g.CreatedAt = nowGroup.CreatedAt
+	g.CreatedBy = nowGroup.CreatedBy
+
+	if err := g.verifyMembers(); err != nil {
+		return err
+	}
+
+	tx := DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+
+	if err := tx.Debug().Save(&g).Error; err != nil {
+		tx.Rollback()
+		dbErrorLog(err)
+		return err
+	}
+	if err := tx.Debug().Model(&g).Association("Members").Replace(g.Members).Error; err != nil {
+		tx.Rollback()
+		dbErrorLog(err)
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
+func (g *Group) Delete() error {
+	if g.ID == 0 {
+		err := errors.New("ID=0. You want to Delete All ?")
+		dbErrorLog(err)
+		return err
+	}
+	if err := g.Read(); err != nil {
+		return err
+	}
+	if err := DB.Debug().Delete(&g).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
 // VerifyUsers グループのメンバーがDBにいるか
 // traQIDをもとに探す
 // いないものは警告なしに消す
@@ -70,102 +166,6 @@ func FindGroups(values url.Values) ([]Group, error) {
 	}
 
 	return groups, nil
-}
-
-func (g *Group) Read() error {
-	cmd := DB.Preload("Members")
-	if err := cmd.First(&g).Error; err != nil {
-		dbErrorLog(err)
-		return err
-	}
-	return nil
-}
-
-func (g *Group) Create() error {
-	tx := DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	if err := tx.Error; err != nil {
-		dbErrorLog(err)
-		return err
-	}
-	err := tx.Set("gorm:association_save_reference", false).Create(&g).Error
-	if err != nil {
-		tx.Rollback()
-		dbErrorLog(err)
-		return err
-	}
-	err = g.verifyMembers()
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	if err := tx.Debug().Model(&g).Association("Members").Append(g.Members).Error; err != nil {
-		tx.Rollback()
-		dbErrorLog(err)
-		return err
-	}
-
-	return tx.Commit().Error
-}
-
-func (g *Group) Update() error {
-	nowGroup := new(Group)
-	nowGroup.ID = g.ID
-	if err := nowGroup.Read(); err != nil {
-		return err
-	}
-	g.CreatedAt = nowGroup.CreatedAt
-	g.CreatedBy = nowGroup.CreatedBy
-
-	if err := g.verifyMembers(); err != nil {
-		return err
-	}
-
-	tx := DB.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-	if err := tx.Error; err != nil {
-		dbErrorLog(err)
-		return err
-	}
-
-	if err := tx.Debug().Save(&g).Error; err != nil {
-		tx.Rollback()
-		dbErrorLog(err)
-		return err
-	}
-	if err := tx.Debug().Model(&g).Association("Members").Replace(g.Members).Error; err != nil {
-		tx.Rollback()
-		dbErrorLog(err)
-		return err
-	}
-
-	return tx.Commit().Error
-}
-
-func (g *Group) Delete() error {
-	if g.ID == 0 {
-		err := errors.New("ID=0. You want to Delete All ?")
-		dbErrorLog(err)
-		return err
-	}
-	if err := g.Read(); err != nil {
-		return err
-	}
-	if err := DB.Debug().Delete(&g).Error; err != nil {
-		dbErrorLog(err)
-		return err
-	}
-	return nil
 }
 
 func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {
