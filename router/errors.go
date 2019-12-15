@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"runtime"
 
+	"github.com/jinzhu/gorm"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -83,6 +85,16 @@ func internalServerError() *echo.HTTPError {
 	code := http.StatusInternalServerError
 	return newHTTPErrorResponse(code, message(http.StatusText(code))).SetInternal(newErrorRuntime(runtime.Caller(1)))
 
+}
+
+func judgeErrorResponse(err error) *echo.HTTPError {
+	if gorm.IsRecordNotFoundError(err) {
+		return badRequest(message(err.Error()))
+	}
+	if err.Error() == "invalid time" {
+		return badRequest(message(err.Error()))
+	}
+	return internalServerError()
 }
 
 func HTTPErrorHandler(err error, c echo.Context) {

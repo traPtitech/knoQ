@@ -25,8 +25,7 @@ func HandlePostEvent(c echo.Context) error {
 
 	err := event.Create()
 	if err != nil {
-		fmt.Println(err)
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 
 	return c.JSON(http.StatusCreated, event)
