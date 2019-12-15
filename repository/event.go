@@ -222,3 +222,34 @@ func (rv *Event) GetCreatedBy() (string, error) {
 	}
 	return rv.CreatedBy, nil
 }
+
+// AddTag add tag
+func (e *Event) AddTag(ID uint64, tagName string) error {
+	tag := new(Tag)
+	tag.Name = tagName
+
+	if err := MatchTag(tag, "event"); err != nil {
+		return err
+	}
+	if err := DB.Create(&EventTag{EventID: ID, TagID: tag.ID}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *Event) DeleteTag(tagID uint64) error {
+	eventTag := new(EventTag)
+	eventTag.TagID = tagID
+	eventTag.EventID = e.ID
+	if err := DB.Debug().First(&eventTag).Error; err != nil {
+		return err
+	}
+	if eventTag.Locked {
+		// return forbidden(message("This tag is locked."), specification("This api can delete non-locked tags"))
+		return errors.New("this tag is locked")
+	}
+	if err := DB.Debug().Where("locked = ?", false).Delete(&EventTag{EventID: e.ID, TagID: eventTag.TagID}).Error; err != nil {
+		return err
+	}
+	return nil
+}

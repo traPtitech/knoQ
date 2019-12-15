@@ -119,17 +119,7 @@ func HandleAddEventTag(c echo.Context) error {
 		return internalServerError()
 	}
 
-	if err := repo.MatchTag(tag, "event"); err != nil {
-		return internalServerError()
-	}
-	if err := repo.DB.Create(&repo.EventTag{EventID: event.ID, TagID: tag.ID}).Error; err != nil {
-		return internalServerError()
-	}
-
-	if err := event.Read(); err != nil {
-		return internalServerError()
-	}
-	return c.JSON(http.StatusOK, event)
+	return handleAddTagRelation(c, event, event.ID, tag.Name)
 }
 
 func HandleDeleteEventTag(c echo.Context) error {
@@ -144,24 +134,6 @@ func HandleDeleteEventTag(c echo.Context) error {
 	if err != nil || eventTag.TagID == 0 {
 		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
 	}
-	eventTag.EventID = event.ID
 
-	if err := repo.DB.Debug().First(&eventTag).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound(message(fmt.Sprintf("This event does not have TagID: %v.", eventTag.TagID)))
-		}
-		return internalServerError()
-	}
-	if eventTag.Locked {
-		return forbidden(message("This tag is locked."), specification("This api can delete non-locked tags"))
-	}
-
-	if err := repo.DB.Debug().Where("locked = ?", false).Delete(&repo.EventTag{EventID: event.ID, TagID: eventTag.TagID}).Error; err != nil {
-		return internalServerError()
-	}
-	if err := event.Read(); err != nil {
-		return internalServerError()
-	}
-	return c.JSON(http.StatusOK, event)
-
+	return handleDeleteTagRelation(c, event, eventTag.TagID)
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"runtime"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo/v4"
@@ -94,6 +95,18 @@ func judgeErrorResponse(err error) *echo.HTTPError {
 	if err.Error() == "invalid time" {
 		return badRequest(message(err.Error()))
 	}
+	if err.Error() == "this tag is locked" {
+		return forbidden(message("This tag is locked."), specification("This api can delete non-locked tags"))
+	}
+
+	me, ok := err.(*mysql.MySQLError)
+	if !ok {
+		return internalServerError()
+	}
+	if me.Number == 1062 {
+		return badRequest(message("It already exists"))
+	}
+
 	return internalServerError()
 }
 
