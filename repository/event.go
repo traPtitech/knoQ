@@ -8,6 +8,7 @@ import (
 )
 
 func (e *Event) Create() error {
+	e.ID = 0
 	// groupが存在するかチェックし依存関係を追加する
 	if err := e.Group.Read(); err != nil {
 		return err
@@ -17,15 +18,7 @@ func (e *Event) Create() error {
 		return err
 	}
 
-	// format
-	e.Room.Date = e.Room.Date[:10]
-
 	err := e.TimeConsistency()
-	if err != nil {
-		return err
-	}
-
-	err = MatchTags(e.Tags, "event")
 	if err != nil {
 		return err
 	}
@@ -47,6 +40,12 @@ func (e *Event) Create() error {
 		return err
 	}
 
+	// get tagID
+	err = MatchTags(e.Tags, "event")
+	if err != nil {
+		return err
+	}
+	// add relation
 	for _, v := range e.Tags {
 		if err := tx.Create(&EventTag{EventID: e.ID, TagID: v.ID, Locked: v.Locked}).Error; err != nil {
 			tx.Rollback()
@@ -81,20 +80,49 @@ func (e *Event) Update() error {
 		return err
 	}
 
-	// r.Date = 2018-08-10T00:00:00+09:00
-	e.Room.Date = e.Room.Date[:10]
 	err := e.TimeConsistency()
 	if err != nil {
 		return err
 	}
 
-	e.CreatedBy = nowEvent.CreatedBy
 	e.CreatedAt = nowEvent.CreatedAt
+	e.CreatedBy = nowEvent.CreatedBy
 
-	if err := DB.Debug().Save(&e).Error; err != nil {
+	tx := DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		dbErrorLog(err)
 		return err
 	}
-	return nil
+
+	if err := tx.Debug().Save(&e).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// delete now tags
+	if err := tx.Model(&nowEvent).Association("Tags").Clear().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// get tagID
+	err = MatchTags(e.Tags, "event")
+	if err != nil {
+		return err
+	}
+	// add relation
+	for _, v := range e.Tags {
+		if err := tx.Create(&EventTag{EventID: e.ID, TagID: v.ID, Locked: v.Locked}).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit().Error
 }
 
 func (e *Event) Delete() error {

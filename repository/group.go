@@ -7,6 +7,7 @@ import (
 )
 
 func (g *Group) Create() error {
+	g.ID = 0
 	tx := DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {

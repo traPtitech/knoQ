@@ -42,6 +42,8 @@ func FindRooms(values url.Values) ([]Room, error) {
 		var allowWith bool
 		r := Room{}
 		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		// format
+		r.Date = r.Date[:10]
 		if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {
 			if seTime.TimeStart == "" && seTime.TimeEnd == "" {
 				r.AvailableTime = append(r.AvailableTime, StartEndTime{
@@ -82,6 +84,12 @@ func (r *Room) Read() error {
 		dbErrorLog(err)
 		return err
 	}
+	return nil
+}
+
+func (r *Room) AfterFind() error {
+	// format
+	r.Date = r.Date[:10]
 	return nil
 }
 
