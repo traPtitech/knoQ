@@ -40,7 +40,7 @@ func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
 
 func FindGroups(values url.Values) ([]Group, error) {
 	groups := []Group{}
-	cmd := DB.Preload("Members").Preload("CreatedBy")
+	cmd := DB.Preload("Members")
 
 	if values.Get("id") != "" {
 		id, _ := strconv.Atoi(values.Get("id"))
@@ -65,8 +65,15 @@ func FindGroups(values url.Values) ([]Group, error) {
 	}
 
 	return groups, nil
+}
 
-	// SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id = "fuji"
+func (g *Group) Read() error {
+	cmd := DB.Preload("Members")
+	if err := cmd.First(&g).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
 }
 
 func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {

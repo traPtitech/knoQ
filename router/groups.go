@@ -5,6 +5,7 @@ import (
 	"net/http"
 	repo "room/repository"
 
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 )
 
@@ -28,6 +29,23 @@ func HandlePostGroup(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, g)
+}
+
+// HandleGetGroup グループを一件取得
+func HandleGetGroup(c echo.Context) error {
+	group := new(repo.Group)
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
+	}
+	if err := group.Read(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return notFound()
+		}
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, group)
 }
 
 // HandleGetGroups グループを取得

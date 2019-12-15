@@ -53,8 +53,11 @@ func main() {
 			apiGroups.GET("", router.HandleGetGroups)
 			apiGroups.POST("", router.HandlePostGroup)
 			apiGroup := apiGroups.Group("/:groupid", router.GroupIDMiddleware)
-			apiGroup.PATCH("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
-			apiGroup.DELETE("", router.HandleDeleteGroup, adminMiddle)
+			{
+				apiGroup.GET("", router.HandleGetGroup)
+				apiGroup.PATCH("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
+				apiGroup.DELETE("", router.HandleDeleteGroup, adminMiddle)
+			}
 		}
 
 		apiEvents := api.Group("/events")
@@ -65,12 +68,11 @@ func main() {
 			apiEvent := apiEvents.Group("/:eventid", router.EventIDMiddleware)
 			{
 				apiEvent.GET("", router.HandleGetEvent)
+				apiEvent.PUT("", router.HandleUpdateEvent, router.EventCreatedUserMiddleware)
+				apiEvent.DELETE("", router.HandleDeleteEvent, router.EventCreatedUserMiddleware)
+
 				apiEvent.PATCH("/tags", router.HandleAddEventTag)
 				apiEvent.DELETE("/tags/:tagid", router.HandleDeleteEventTag)
-				{
-					apiEvent.PUT("", router.HandleUpdateEvent, router.EventCreatedUserMiddleware)
-					apiEvent.DELETE("", router.HandleDeleteEvent, router.EventCreatedUserMiddleware)
-				}
 			}
 
 		}
