@@ -1,7 +1,6 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	repo "room/repository"
 
@@ -14,18 +13,16 @@ func HandlePostGroup(c echo.Context) error {
 	g := new(repo.Group)
 
 	if err := c.Bind(&g); err != nil {
-		return err
+		return badRequest(message(err.Error()))
 	}
 
 	g.CreatedBy = getRequestUser(c).TRAQID
 
-	// メンバーがdbにいるか
-	if err := g.FindMembers(); err != nil {
-		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
-	}
-
-	if err := repo.DB.Create(&g).Error; err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprint(err))
+	if err := g.Create(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest()
+		}
+		return internalServerError()
 	}
 
 	return c.JSON(http.StatusCreated, g)
@@ -87,11 +84,6 @@ func HandleUpdateGroup(c echo.Context) error {
 	}
 	name := g.Name
 	description := g.Description
-
-	// メンバーがdbにいるか
-	if err := g.FindMembers(); err != nil {
-		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
-	}
 
 	g.ID, err = getRequestGroupID(c)
 	if err != nil {

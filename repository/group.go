@@ -5,18 +5,22 @@ import (
 	"strconv"
 )
 
-// findMembers グループのメンバーがDBにいるか
+// VerifyUsers グループのメンバーがDBにいるか
 // traQIDをもとに探す
-func (group *Group) FindMembers() error {
-	for i := range group.Members {
-		if err := DB.Where("traq_id = ?", group.Members[i].TRAQID).First(&group.Members[i]).Error; err != nil {
-			return err
-		}
+// いないものは警告なしに消す
+func (g *Group) verifyMembers() error {
+	memberSlice := make([]string, 0, len(g.Members))
+	for _, v := range g.Members {
+		memberSlice = append(memberSlice, v.TRAQID)
+	}
+	if err := DB.Where(memberSlice).Find(&g.Members).Error; err != nil {
+		dbErrorLog(err)
+		return err
 	}
 	return nil
 }
 
-// checkBelongToGroup ユーザーが予約したグループに属しているか調べます
+// CheckBelongToGroup ユーザーが予約したグループに属しているか調べます
 func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
 	rv := new(Event)
 	g := new(Group)
@@ -74,6 +78,39 @@ func (g *Group) Read() error {
 		return err
 	}
 	return nil
+}
+
+func (g *Group) Create() error {
+	tx := DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	if err := tx.Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	err := tx.Set("gorm:association_save_reference", false).Create(&g).Error
+	if err != nil {
+		tx.Rollback()
+		dbErrorLog(err)
+		return err
+	}
+	err = g.verifyMembers()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Debug().Model(&g).Association("Members").Append(g.Members).Error; err != nil {
+		tx.Rollback()
+		dbErrorLog(err)
+		return err
+	}
+
+	return tx.Commit().Error
 }
 
 func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {

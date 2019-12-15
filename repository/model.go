@@ -57,7 +57,7 @@ type Room struct {
 // Group グループ情報
 type Group struct {
 	Model
-	Name        string `json:"name" gorm:"type:varchar(32);unique;not null"`
+	Name        string `json:"name" gorm:"type:varchar(32);not null"`
 	Description string `json:"description" gorm:"type:varchar(1024)"`
 	Members     []User `json:"members" gorm:"many2many:group_users; save_associations:false"`
 	CreatedBy   string `json:"created_by" gorm:"type:varchar(32);"`
