@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"room/utils"
+	"strconv"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -16,14 +18,18 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-func FindRooms(begin, end string) ([]Room, error) {
+func FindRooms(values url.Values) ([]Room, error) {
 	rooms := []Room{}
 	cmd := DB
-	if begin != "" {
-		cmd = cmd.Where("date >= ?", begin)
+	if values.Get("id") != "" {
+		id, _ := strconv.Atoi(values.Get("id"))
+		cmd = cmd.Where("id = ?", id)
 	}
-	if end != "" {
-		cmd = cmd.Where("date <= ?", end)
+	if values.Get("date_begin") != "" {
+		cmd = cmd.Where("rooms.date >= ?", values.Get("date_begin"))
+	}
+	if values.Get("date_end") != "" {
+		cmd = cmd.Where("rooms.date <= ?", values.Get("date_end"))
 	}
 
 	rows, err := cmd.Order("date asc").Debug().Table("rooms").Order("rooms.id asc").Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()

@@ -49,24 +49,15 @@ func HandleGetRoom(c echo.Context) error {
 
 // HandleGetRooms traPで確保した部屋情報を取得
 func HandleGetRooms(c echo.Context) error {
-	r := []repo.Room{}
-	var err error
-	id := c.QueryParam("id")
-	begin := c.QueryParam("date_begin")
-	end := c.QueryParam("date_end")
+	rooms := []repo.Room{}
 
-	if id == "" {
-		r, err = repo.FindRooms(begin, end)
-	} else {
-		ID, _ := strconv.Atoi(id)
-		err = repo.DB.First(&r, ID).Error
-	}
-
+	values := c.QueryParams()
+	rooms, err := repo.FindRooms(values)
 	if err != nil {
-		return err
+		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, r)
+	return c.JSON(http.StatusOK, rooms)
 }
 
 // HandleDeleteRoom traPで確保した部屋情報を削除

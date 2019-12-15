@@ -82,7 +82,7 @@ func HandleGetEvents(c echo.Context) error {
 
 	events, err := repo.FindEvents(values)
 	if err != nil {
-		internalServerError()
+		return internalServerError()
 	}
 
 	return c.JSON(http.StatusOK, events)
