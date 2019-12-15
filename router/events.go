@@ -113,7 +113,7 @@ func HandleAddEventTag(c echo.Context) error {
 	if err := c.Bind(tag); err != nil {
 		badRequest()
 	}
-	if err := repo.MatchEventTag(tag); err != nil {
+	if err := repo.MatchTag(tag, "event"); err != nil {
 		internalServerError()
 	}
 	var err error

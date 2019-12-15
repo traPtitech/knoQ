@@ -25,7 +25,7 @@ func (e *Event) Create() error {
 		return err
 	}
 
-	err = MatchEventTags(e.Tags)
+	err = MatchTags(e.Tags, "event")
 	if err != nil {
 		return err
 	}
