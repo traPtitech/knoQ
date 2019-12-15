@@ -67,9 +67,9 @@ func HandleDeleteGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
-	if err := repo.DB.Delete(&g).Error; err != nil {
+	if err := g.Delete(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return badRequest()
+			return notFound()
 		}
 		return internalServerError()
 	}

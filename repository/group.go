@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"net/url"
 	"strconv"
 )
@@ -148,6 +149,22 @@ func (g *Group) Update() error {
 		return err
 	}
 
+	return nil
+}
+
+func (g *Group) Delete() error {
+	if g.ID == 0 {
+		err := errors.New("ID=0. You want to Delete All ?")
+		dbErrorLog(err)
+		return err
+	}
+	if err := g.Read(); err != nil {
+		return err
+	}
+	if err := DB.Debug().Delete(&g).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
 	return nil
 }
 
