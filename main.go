@@ -45,7 +45,6 @@ func main() {
 
 	// API定義 (/api)
 	api := e.Group("/api", router.TraQUserMiddleware)
-	groupCreatedAPI := api.Group("/groups", router.GroupCreatedUserMiddleware)
 	{
 		adminMiddle := router.AdminUserMiddleware
 
@@ -53,8 +52,18 @@ func main() {
 		{
 			apiGroups.GET("", router.HandleGetGroups)
 			apiGroups.POST("", router.HandlePostGroup)
-			groupCreatedAPI.PATCH("/:groupid", router.HandleUpdateGroup)
-			apiGroups.DELETE("/:groupid", router.HandleDeleteGroup, adminMiddle)
+			apiGroup := apiGroups.Group("/:groupid", router.GroupIDMiddleware)
+			{
+				apiGroup.GET("", router.HandleGetGroup)
+				apiGroup.PUT("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
+				apiGroup.DELETE("", router.HandleDeleteGroup, adminMiddle)
+
+				apiGroup.PATCH("/tags", router.HandleAddGroupTag)
+				apiGroup.DELETE("/tags/:tagid", router.HandleDeleteGroupTag)
+
+				apiGroup.PATCH("/members/me", router.HandleAddMeGroup)
+				apiGroup.DELETE("/members/me", router.HandleDeleteMeGroup)
+			}
 		}
 
 		apiEvents := api.Group("/events")
@@ -65,12 +74,11 @@ func main() {
 			apiEvent := apiEvents.Group("/:eventid", router.EventIDMiddleware)
 			{
 				apiEvent.GET("", router.HandleGetEvent)
+				apiEvent.PUT("", router.HandleUpdateEvent, router.EventCreatedUserMiddleware)
+				apiEvent.DELETE("", router.HandleDeleteEvent, router.EventCreatedUserMiddleware)
+
 				apiEvent.PATCH("/tags", router.HandleAddEventTag)
 				apiEvent.DELETE("/tags/:tagid", router.HandleDeleteEventTag)
-				{
-					apiEvent.PUT("", router.HandleUpdateEvent, router.EventCreatedUserMiddleware)
-					apiEvent.DELETE("", router.HandleDeleteEvent, router.EventCreatedUserMiddleware)
-				}
 			}
 
 		}
@@ -78,6 +86,7 @@ func main() {
 		{
 			apiRooms.GET("", router.HandleGetRooms)
 			apiRooms.POST("", router.HandlePostRoom, adminMiddle)
+			apiRooms.GET("/:roomid", router.HandleGetRoom)
 			apiRooms.POST("/all", router.HandleSetRooms, adminMiddle)
 			apiRooms.DELETE("/:roomid", router.HandleDeleteRoom, adminMiddle)
 		}

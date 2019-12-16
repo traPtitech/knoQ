@@ -13,42 +13,22 @@ import (
 
 // HandlePostEvent 部屋の使用宣言を作成
 func HandlePostEvent(c echo.Context) error {
-	rv := new(repo.Event)
+	event := new(repo.Event)
 
-	if err := c.Bind(rv); err != nil {
+	if err := c.Bind(event); err != nil {
 		return badRequest()
 	}
+	event.Group.ID = event.GroupID
+	event.Room.ID = event.RoomID
 
-	rv.CreatedBy = getRequestUser(c).TRAQID
+	event.CreatedBy = getRequestUser(c).TRAQID
 
-	// groupが存在するかチェックし依存関係を追加する
-	if err := rv.Group.AddRelation(rv.GroupID); err != nil {
-		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", rv.GroupID)))
-	}
-	// roomが存在するかチェックし依存関係を追加する
-	if err := rv.Room.AddRelation(rv.RoomID); err != nil {
-		return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", rv.RoomID)))
-	}
-
-	// format
-	rv.Room.Date = rv.Room.Date[:10]
-
-	err := rv.TimeConsistency()
+	err := event.Create()
 	if err != nil {
-		return badRequest(message(err.Error()))
+		return judgeErrorResponse(err)
 	}
 
-	err = repo.MatchEventTags(rv.Tags)
-	if err != nil {
-		internalServerError()
-	}
-
-	err = rv.Create()
-	if err != nil {
-		internalServerError()
-	}
-
-	return c.JSON(http.StatusCreated, rv)
+	return c.JSON(http.StatusCreated, event)
 }
 
 // HandleGetEvent get one event
@@ -77,7 +57,7 @@ func HandleGetEvents(c echo.Context) error {
 
 	events, err := repo.FindEvents(values)
 	if err != nil {
-		internalServerError()
+		return internalServerError()
 	}
 
 	return c.JSON(http.StatusOK, events)
@@ -98,7 +78,6 @@ func HandleDeleteEvent(c echo.Context) error {
 // HandleUpdateEvent 部屋、開始時刻、終了時刻を更新
 func HandleUpdateEvent(c echo.Context) error {
 	event := new(repo.Event)
-	nowEvent := new(repo.Event)
 
 	if err := c.Bind(event); err != nil {
 		return badRequest(message(err.Error()))
@@ -107,33 +86,14 @@ func HandleUpdateEvent(c echo.Context) error {
 	var err error
 	event.ID, err = getRequestEventID(c)
 	if err != nil {
-		internalServerError()
-	}
-	nowEvent.ID = event.ID
-	if err := nowEvent.Read(); err != nil {
 		return internalServerError()
 	}
 
-	// groupが存在するかチェックし依存関係を追加する
-	if err := event.Group.AddRelation(event.GroupID); err != nil {
-		return badRequest(message(fmt.Sprintf("GroupID: %v does not exist.", event.GroupID)))
-	}
-	// roomが存在するかチェックし依存関係を追加する
-	if err := event.Room.AddRelation(event.RoomID); err != nil {
-		return badRequest(message(fmt.Sprintf("RoomID: %v does not exist.", event.RoomID)))
-	}
-
-	// r.Date = 2018-08-10T00:00:00+09:00
-	event.Room.Date = event.Room.Date[:10]
-	err = event.TimeConsistency()
+	err = event.Update()
 	if err != nil {
-		return badRequest(message(err.Error()))
-	}
-
-	event.CreatedBy = nowEvent.CreatedBy
-	event.CreatedAt = nowEvent.CreatedAt
-
-	if err := repo.DB.Debug().Save(&event).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest()
+		}
 		return internalServerError()
 	}
 
@@ -151,25 +111,15 @@ func HandleAddEventTag(c echo.Context) error {
 	tag := new(repo.Tag)
 	event := new(repo.Event)
 	if err := c.Bind(tag); err != nil {
-		badRequest()
-	}
-	if err := repo.MatchEventTag(tag); err != nil {
-		internalServerError()
+		return badRequest()
 	}
 	var err error
 	event.ID, err = getRequestEventID(c)
 	if err != nil {
-		internalServerError()
+		return internalServerError()
 	}
 
-	if err := repo.DB.Create(&repo.EventTag{EventID: event.ID, TagID: tag.ID}).Error; err != nil {
-		internalServerError()
-	}
-
-	if err := event.Read(); err != nil {
-		internalServerError()
-	}
-	return c.JSON(http.StatusOK, event)
+	return handleAddTagRelation(c, event, event.ID, tag.Name)
 }
 
 func HandleDeleteEventTag(c echo.Context) error {
@@ -184,24 +134,6 @@ func HandleDeleteEventTag(c echo.Context) error {
 	if err != nil || eventTag.TagID == 0 {
 		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
 	}
-	eventTag.EventID = event.ID
 
-	if err := repo.DB.Debug().First(&eventTag).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound(message(fmt.Sprintf("This event does not have TagID: %v.", eventTag.TagID)))
-		}
-		internalServerError()
-	}
-	if eventTag.Locked {
-		return forbidden(message("This tag is locked."), specification("This api can delete non-locked tags"))
-	}
-
-	if err := repo.DB.Debug().Where("locked = ?", false).Delete(&repo.EventTag{EventID: event.ID, TagID: eventTag.TagID}).Error; err != nil {
-		internalServerError()
-	}
-	if err := event.Read(); err != nil {
-		internalServerError()
-	}
-	return c.JSON(http.StatusOK, event)
-
+	return handleDeleteTagRelation(c, event, eventTag.TagID)
 }

@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"room/utils"
+	"strconv"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -16,38 +18,120 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-func FindRoomsByTime(begin, end string) ([]Room, error) {
+func FindRooms(values url.Values) ([]Room, error) {
 	rooms := []Room{}
 	cmd := DB
-	if begin != "" {
-		cmd = cmd.Where("date >= ?", begin)
+	if values.Get("id") != "" {
+		id, _ := strconv.Atoi(values.Get("id"))
+		cmd = cmd.Where("id = ?", id)
 	}
-	if end != "" {
-		cmd = cmd.Where("date <= ?", end)
+	if values.Get("date_begin") != "" {
+		cmd = cmd.Where("rooms.date >= ?", values.Get("date_begin"))
+	}
+	if values.Get("date_end") != "" {
+		cmd = cmd.Where("rooms.date <= ?", values.Get("date_end"))
 	}
 
-	if err := cmd.Order("date asc").Find(&rooms).Error; err != nil {
-		return nil, err
+	rows, err := cmd.Order("date asc").Debug().Table("rooms").Order("rooms.id asc").Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	defer rows.Close()
+	if err != nil {
+		dbErrorLog(err)
+	}
+	for rows.Next() {
+		seTime := StartEndTime{}
+		var allowWith bool
+		r := Room{}
+		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		// format
+		r.Date = r.Date[:10]
+		if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {
+			if seTime.TimeStart == "" && seTime.TimeEnd == "" {
+				r.AvailableTime = append(r.AvailableTime, StartEndTime{
+					TimeStart: r.TimeStart,
+					TimeEnd:   r.TimeEnd,
+				})
+			}
+			rooms = append(rooms, r)
+		}
+		if seTime.TimeStart != "" && seTime.TimeEnd != "" {
+			r = rooms[len(rooms)-1]
+			fmt.Println(r.ID, seTime, allowWith, r.AvailableTime)
+			r.calcAvailableTime(seTime, allowWith)
+			rooms[len(rooms)-1] = r
+		}
 	}
 	return rooms, nil
 }
 
-// AddRelation add room by RoomID
-func (room *Room) AddRelation(roomID int) error {
-	room.ID = roomID
-	if err := DB.First(&room, room.ID).Error; err != nil {
+func (r *Room) Read() error {
+	if err := DB.Debug().First(&r).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	rows, err := DB.Table("rooms").Where("rooms.id = ?", r.ID).Order("e.time_start asc").Select("e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	defer rows.Close()
+	if err != nil {
+		dbErrorLog(err)
+	}
+	for rows.Next() {
+		seTime := StartEndTime{}
+		var allowWith bool
+		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		r.calcAvailableTime(seTime, allowWith)
+	}
+	err = rows.Err()
+	if err != nil {
+		dbErrorLog(err)
 		return err
 	}
 	return nil
 }
 
-func (room *Room) InTime(targetTime time.Time) bool {
-	roomStart, _ := utils.StrToTime(room.TimeStart)
-	roomEnd, _ := utils.StrToTime(room.TimeEnd)
-	if (roomStart.Equal(targetTime) || roomStart.Before(targetTime)) && (roomEnd.Equal(targetTime) || roomEnd.After(targetTime)) {
-		return true
+func (r *Room) AfterFind() error {
+	// format
+	r.Date = r.Date[:10]
+	return nil
+}
+
+func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
+	for _, v := range room.AvailableTime {
+		roomStart, _ := utils.StrToTime(v.TimeStart)
+		roomEnd, _ := utils.StrToTime(v.TimeEnd)
+		if (roomStart.Equal(targetStartTime) || roomStart.Before(targetStartTime)) && (roomEnd.Equal(targetEndTime) || roomEnd.After(targetEndTime)) {
+			fmt.Println(v)
+			return true
+		}
 	}
 	return false
+}
+
+func (r *Room) calcAvailableTime(seTime StartEndTime, allowWith bool) {
+	if r.AvailableTime == nil {
+		r.AvailableTime = append(r.AvailableTime, StartEndTime{
+			TimeStart: r.TimeStart,
+			TimeEnd:   r.TimeEnd,
+		})
+	}
+	if !allowWith {
+		avleTimes := make([]StartEndTime, 2)
+		i := len(r.AvailableTime) - 1
+		avleTimes[0] = StartEndTime{
+			TimeStart: r.AvailableTime[i].TimeStart,
+			TimeEnd:   seTime.TimeStart,
+		}
+		avleTimes[1] = StartEndTime{
+			TimeStart: seTime.TimeEnd,
+			TimeEnd:   r.TimeEnd,
+		}
+		// delete last
+		r.AvailableTime = r.AvailableTime[:len(r.AvailableTime)-1]
+		for _, v := range avleTimes {
+			if v.TimeStart != v.TimeEnd {
+				r.AvailableTime = append(r.AvailableTime, v)
+			}
+		}
+
+	}
 }
 
 var traQCalendarID string = os.Getenv("TRAQ_CALENDARID")

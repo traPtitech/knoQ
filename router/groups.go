@@ -6,6 +6,7 @@ import (
 	repo "room/repository"
 	"strconv"
 
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,24 +15,40 @@ func HandlePostGroup(c echo.Context) error {
 	g := new(repo.Group)
 
 	if err := c.Bind(&g); err != nil {
-		return err
+		return badRequest(message(err.Error()))
 	}
 
-	g.CreatedByRefer = getRequestUser(c).TRAQID
-	if err := g.AddCreatedBy(); err != nil {
-		return err
+	g.CreatedBy = getRequestUser(c).TRAQID
+
+	if err := g.Create(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest()
+		}
+		return internalServerError()
 	}
 
-	// メンバーがdbにいるか
-	if err := g.FindMembers(); err != nil {
-		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
-	}
-
-	if err := repo.DB.Create(&g).Error; err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprint(err))
+	if err := g.Read(); err != nil {
+		return internalServerError()
 	}
 
 	return c.JSON(http.StatusCreated, g)
+}
+
+// HandleGetGroup グループを一件取得
+func HandleGetGroup(c echo.Context) error {
+	group := new(repo.Group)
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
+	}
+	if err := group.Read(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return notFound()
+		}
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, group)
 }
 
 // HandleGetGroups グループを取得
@@ -50,24 +67,17 @@ func HandleGetGroups(c echo.Context) error {
 // HandleDeleteGroup グループを削除
 func HandleDeleteGroup(c echo.Context) error {
 	g := new(repo.Group)
-	g.ID, _ = strconv.Atoi(c.Param("groupid"))
-
-	fmt.Println(g.ID)
-	if err := repo.DB.First(&g, g.ID).Related(&g.Members, "Members").Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
+	var err error
+	g.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
 	}
 
-	// relationを削除
-	if err := repo.DB.Model(&g).Association("Members").Clear().Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
-	}
-	// 予約情報を削除
-	if err := repo.DB.Where("group_id = ?", g.ID).Delete(&repo.Event{}).Error; err != nil {
-		fmt.Println(err)
-	}
-
-	if err := repo.DB.Delete(&g).Error; err != nil {
-		return c.NoContent(http.StatusNotFound)
+	if err := g.Delete(); err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return notFound()
+		}
+		return internalServerError()
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -75,38 +85,106 @@ func HandleDeleteGroup(c echo.Context) error {
 
 // HandleUpdateGroup グループメンバー、グループ名を更新
 func HandleUpdateGroup(c echo.Context) error {
-	g := new(repo.Group)
-
-	if err := c.Bind(g); err != nil {
-		return err
+	group := new(repo.Group)
+	var err error
+	if err := c.Bind(group); err != nil {
+		return badRequest(message(err.Error()))
 	}
-	name := g.Name
-	description := g.Description
-
-	// メンバーがdbにいるか
-	if err := g.FindMembers(); err != nil {
-		return c.String(http.StatusBadRequest, "正しくないメンバーが含まれている")
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
 	}
-
-	g.ID, _ = strconv.Atoi(c.Param("groupid"))
-	if err := repo.DB.First(&g, g.ID).Error; err != nil {
-		return echo.NewHTTPError(http.StatusNotFound, "アクセスしたgroupIDは存在しない")
-	}
-
-	// メンバーを置き換え
-	if err := repo.DB.Model(&g).Association("Members").Replace(g.Members).Error; err != nil {
-		return err
+	err = group.Update()
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return badRequest()
+		}
+		return internalServerError()
 	}
 
-	// グループ名を変更
-	if err := repo.DB.Model(&g).Update("name", name).Error; err != nil {
-		return err
+	return c.JSON(http.StatusOK, group)
+}
+
+func HandleAddGroupTag(c echo.Context) error {
+	tag := new(repo.Tag)
+	group := new(repo.Group)
+	if err := c.Bind(tag); err != nil {
+		return badRequest()
 	}
-	fmt.Println(g.Name)
-	// グループ詳細変更
-	if err := repo.DB.Model(&g).Update("description", description).Error; err != nil {
-		return err
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, g)
+	return handleAddTagRelation(c, group, group.ID, tag.Name)
+}
+
+func HandleDeleteGroupTag(c echo.Context) error {
+	groupTag := new(repo.GroupTag)
+	group := new(repo.Group)
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
+	}
+	groupTag.TagID, err = strconv.ParseUint(c.Param("tagid"), 10, 64)
+	if err != nil || groupTag.TagID == 0 {
+		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
+	}
+
+	return handleDeleteTagRelation(c, group, groupTag.TagID)
+}
+
+func HandleAddMeGroup(c echo.Context) error {
+	user := repo.User{}
+	group := new(repo.Group)
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
+	}
+	if err := group.Read(); err != nil {
+		return internalServerError()
+	}
+	if !group.JoinFreely {
+		return forbidden(message("This group is not JoinFreely."), specification("This api can delete me at JoinFreely-group."))
+	}
+
+	user = getRequestUser(c)
+	if err := group.AddMember(user.TRAQID); err != nil {
+		return judgeErrorResponse(err)
+	}
+	if err := group.Read(); err != nil {
+		return internalServerError()
+	}
+
+	return c.JSON(http.StatusOK, group)
+}
+
+func HandleDeleteMeGroup(c echo.Context) error {
+	user := repo.User{}
+	group := new(repo.Group)
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
+	}
+	if err := group.Read(); err != nil {
+		return internalServerError()
+	}
+	if !group.JoinFreely {
+		return forbidden(message("This group is not JoinFreely."), specification("This api can delete me at JoinFreely-group."))
+	}
+
+	user = getRequestUser(c)
+	if err := group.DeleteMember(user.TRAQID); err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	if err := group.Read(); err != nil {
+		return internalServerError()
+	}
+
+	return c.JSON(http.StatusOK, group)
 }

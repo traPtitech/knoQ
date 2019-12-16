@@ -1,0 +1,37 @@
+package router
+
+import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+)
+
+type tagAddDelete interface {
+	Read() error
+	// add unlocked tag
+	AddTag(tagName string, locked bool) error
+	// delete unlocked tag
+	DeleteTag(tagID uint64) error
+}
+
+func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uint64, tagName string) error {
+	if err := tad.AddTag(tagName, false); err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	if err := tad.Read(); err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, tad)
+}
+
+func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uint64) error {
+	if err := tad.DeleteTag(tagID); err != nil {
+		return judgeErrorResponse(err)
+	}
+	if err := tad.Read(); err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, tad)
+
+}

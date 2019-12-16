@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"runtime"
 
+	"github.com/go-sql-driver/mysql"
+	"github.com/jinzhu/gorm"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,22 +17,23 @@ type ErrorResponse struct {
 type ErrorBody struct {
 	Message       string `json:"message,omitempty"`
 	Specification string `json:"specification,omitempty"`
+	errorRuntime  RuntimeCallerStruct
 }
 
 // Error interfaceに含めたい
-type ErrorRuntime struct {
+type RuntimeCallerStruct struct {
 	ProgramCounter uintptr
 	SourceFile     string
 	Line           int
 	ok             bool
 }
 
-func (ER ErrorRuntime) Error() string {
+func (ER RuntimeCallerStruct) Error() string {
 	return fmt.Sprintf("%s:%d", ER.SourceFile, ER.Line)
 }
 
-func newErrorRuntime(pc uintptr, file string, line int, ok bool) ErrorRuntime {
-	return ErrorRuntime{
+func newRuntimeCallerStruct(pc uintptr, file string, line int, ok bool) RuntimeCallerStruct {
+	return RuntimeCallerStruct{
 		ProgramCounter: pc,
 		SourceFile:     file,
 		Line:           line,
@@ -51,6 +55,12 @@ func specification(spec string) option {
 	}
 }
 
+func errorRuntime(skip int) option {
+	return func(er *ErrorResponse) {
+		er.errorRuntime = newRuntimeCallerStruct(runtime.Caller(skip + 3))
+	}
+}
+
 func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 	he := &echo.HTTPError{
 		Code: code,
@@ -63,26 +73,51 @@ func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 	if er.Message == "" {
 		er.Message = http.StatusText(code)
 	}
+	if er.errorRuntime == (RuntimeCallerStruct{}) {
+		er.errorRuntime = newRuntimeCallerStruct(runtime.Caller(2))
+	}
 	he.Message = er
+	he.SetInternal(er.errorRuntime)
 	return he
 }
 
 func badRequest(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusBadRequest, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+	return newHTTPErrorResponse(http.StatusBadRequest, responses...)
 }
 
 func forbidden(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusForbidden, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+	return newHTTPErrorResponse(http.StatusForbidden, responses...)
 }
 
 func notFound(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusNotFound, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+	return newHTTPErrorResponse(http.StatusNotFound, responses...)
 }
 
-func internalServerError() *echo.HTTPError {
+func internalServerError(responses ...option) *echo.HTTPError {
 	code := http.StatusInternalServerError
-	return newHTTPErrorResponse(code, message(http.StatusText(code))).SetInternal(newErrorRuntime(runtime.Caller(1)))
+	return newHTTPErrorResponse(code, responses...)
+}
 
+func judgeErrorResponse(err error) *echo.HTTPError {
+	if gorm.IsRecordNotFoundError(err) {
+		return badRequest(message(err.Error()), errorRuntime(1))
+	}
+	if err.Error() == "invalid time" {
+		return badRequest(message(err.Error()), errorRuntime(1))
+	}
+	if err.Error() == "this tag is locked" {
+		return forbidden(message("This tag is locked."), specification("This api can delete non-locked tags"), errorRuntime(1))
+	}
+
+	me, ok := err.(*mysql.MySQLError)
+	if !ok {
+		return internalServerError(errorRuntime(1))
+	}
+	if me.Number == 1062 {
+		return badRequest(message("It already exists"), errorRuntime(1))
+	}
+
+	return internalServerError(errorRuntime(1))
 }
 
 func HTTPErrorHandler(err error, c echo.Context) {

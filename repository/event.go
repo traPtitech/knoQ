@@ -8,29 +8,112 @@ import (
 )
 
 func (e *Event) Create() error {
+	e.ID = 0
+	// groupが存在するかチェックし依存関係を追加する
+	if err := e.Group.Read(); err != nil {
+		return err
+	}
+	// roomが存在するかチェックし依存関係を追加する
+	if err := e.Room.Read(); err != nil {
+		return err
+	}
+
+	err := e.TimeConsistency()
+	if err != nil {
+		return err
+	}
+
 	tx := DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
-
 	if err := tx.Error; err != nil {
 		dbErrorLog(err)
 		return err
 	}
-	err := tx.Set("gorm:association_save_reference", false).Create(&e).Error
+
+	err = tx.Set("gorm:association_save_reference", false).Create(&e).Error
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-
+	// Todo transaction
 	for _, v := range e.Tags {
-		if err := tx.Create(&EventTag{EventID: e.ID, TagID: v.ID, Locked: v.Locked}).Error; err != nil {
+		err := e.AddTag(v.Name, v.Locked)
+		if err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
+
+	return tx.Commit().Error
+}
+
+func (e *Event) Read() error {
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Room").Preload("Tags")
+	if err := cmd.First(&e).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
+func (e *Event) Update() error {
+	nowEvent := new(Event)
+	nowEvent.ID = e.ID
+	if err := nowEvent.Read(); err != nil {
+		return err
+	}
+
+	// groupが存在するかチェックし依存関係を追加する
+	if err := e.Group.Read(); err != nil {
+		return err
+	}
+	// roomが存在するかチェックし依存関係を追加する
+	if err := e.Room.Read(); err != nil {
+		return err
+	}
+
+	err := e.TimeConsistency()
+	if err != nil {
+		return err
+	}
+
+	e.CreatedAt = nowEvent.CreatedAt
+	e.CreatedBy = nowEvent.CreatedBy
+
+	tx := DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+	if err := tx.Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+
+	if err := tx.Debug().Save(&e).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// delete now all tags
+	if err := tx.Model(&nowEvent).Association("Tags").Clear().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// Todo transaction
+	for _, v := range e.Tags {
+		err := e.AddTag(v.Name, v.Locked)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	return tx.Commit().Error
 }
 
@@ -50,18 +133,9 @@ func (e *Event) Delete() error {
 	return nil
 }
 
-func (e *Event) Read() error {
-	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
-	if err := cmd.First(&e).Error; err != nil {
-		dbErrorLog(err)
-		return err
-	}
-	return nil
-}
-
 func FindEvents(values url.Values) ([]Event, error) {
 	events := []Event{}
-	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Group.CreatedBy").Preload("Room").Preload("Tags")
+	cmd := DB.Preload("Group").Preload("Group.Members").Preload("Room").Preload("Tags")
 
 	if values.Get("id") != "" {
 		id, _ := strconv.Atoi(values.Get("id"))
@@ -112,17 +186,18 @@ func (e *Event) AfterFind() (err error) {
 	return
 }
 
-// 時間が部屋の範囲内か、endがstartの後かどうか確認する
-func (rv *Event) TimeConsistency() error {
-	timeStart, err := utils.StrToTime(rv.TimeStart)
+// TimeConsistency 時間が部屋の範囲内か、endがstartの後か
+// available time か確認する
+func (e *Event) TimeConsistency() error {
+	timeStart, err := utils.StrToTime(e.TimeStart)
 	if err != nil {
 		return err
 	}
-	timeEnd, err := utils.StrToTime(rv.TimeEnd)
+	timeEnd, err := utils.StrToTime(e.TimeEnd)
 	if err != nil {
 		return err
 	}
-	if !(rv.Room.InTime(timeStart) && rv.Room.InTime(timeEnd)) {
+	if !e.Room.InTime(timeStart, timeEnd) {
 		return errors.New("invalid time")
 	}
 	if !timeStart.Before(timeEnd) {
@@ -138,4 +213,35 @@ func (rv *Event) GetCreatedBy() (string, error) {
 		return "", err
 	}
 	return rv.CreatedBy, nil
+}
+
+// AddTag add tag
+func (e *Event) AddTag(tagName string, locked bool) error {
+	tag := new(Tag)
+	tag.Name = tagName
+
+	if err := MatchTag(tag, "event"); err != nil {
+		return err
+	}
+	if err := DB.Create(&EventTag{EventID: e.ID, TagID: tag.ID, Locked: locked}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteTag delete unlocked tag.
+func (e *Event) DeleteTag(tagID uint64) error {
+	eventTag := new(EventTag)
+	eventTag.TagID = tagID
+	eventTag.EventID = e.ID
+	if err := DB.Debug().First(&eventTag).Error; err != nil {
+		return err
+	}
+	if eventTag.Locked {
+		return errors.New("this tag is locked")
+	}
+	if err := DB.Debug().Where("locked = ?", false).Delete(&EventTag{EventID: e.ID, TagID: eventTag.TagID}).Error; err != nil {
+		return err
+	}
+	return nil
 }

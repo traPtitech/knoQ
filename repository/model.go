@@ -12,6 +12,12 @@ type Model struct {
 	DeletedAt *time.Time `sql:"index"`
 }
 
+// StartEndTime has start and end time
+type StartEndTime struct {
+	TimeStart string `json:"time_start" gorm:"type:TIME;"`
+	TimeEnd   string `json:"time_end" gorm:"type:TIME;"`
+}
+
 // User traQユーザー情報構造体
 type User struct {
 	// TRAQID traQID
@@ -38,27 +44,32 @@ type EventTag struct {
 	Locked  bool
 }
 
+// GroupTag is many to many table
+type GroupTag struct {
+	TagID   uint64 `gorm:"primary_key"`
+	GroupID uint64 `gorm:"primary_key"`
+	Locked  bool
+}
+
 // Room 部屋情報
 type Room struct {
-	ID        int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
-	Place     string    `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
-	Date      string    `json:"date" gorm:"type:DATE; unique_index:idx_room_unique"`
-	TimeStart string    `json:"time_start" gorm:"type:TIME; unique_index:idx_room_unique"`
-	TimeEnd   string    `json:"time_end" gorm:"type:TIME; unique_index:idx_room_unique"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	Model
+	Place         string         `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
+	Date          string         `json:"date" gorm:"type:DATE; unique_index:idx_room_unique"`
+	TimeStart     string         `json:"time_start" gorm:"type:TIME; unique_index:idx_room_unique"`
+	TimeEnd       string         `json:"time_end" gorm:"type:TIME; unique_index:idx_room_unique"`
+	AvailableTime []StartEndTime `json:"available_time" gorm:"-"`
 }
 
 // Group グループ情報
 type Group struct {
-	ID             int       `json:"id" gorm:"primary_key; AUTO_INCREMENT"`
-	Name           string    `json:"name" gorm:"type:varchar(32);unique;not null"`
-	Description    string    `json:"description" gorm:"type:varchar(1024)"`
-	Members        []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
-	CreatedBy      User      `json:"created_by" gorm:"foreignkey:CreatedByRefer; not null"`
-	CreatedByRefer string    `json:"created_by_refer" gorm:"type:varchar(32);"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	Model
+	Name        string `json:"name" gorm:"type:varchar(32);not null"`
+	Description string `json:"description" gorm:"type:varchar(1024)"`
+	Members     []User `json:"members" gorm:"many2many:group_users; save_associations:false"`
+	CreatedBy   string `json:"created_by" gorm:"type:varchar(32);"`
+	Tags        []Tag  `json:"tags" gorm:"many2many:group_tags; save_associations:false"`
+	JoinFreely  bool   `json:"join_freely"`
 }
 
 // Event 予約情報
@@ -66,9 +77,9 @@ type Event struct {
 	Model
 	Name          string `json:"name" gorm:"type:varchar(32); not null"`
 	Description   string `json:"description" gorm:"type:varchar(1024)"`
-	GroupID       int    `json:"group_id,omitempty" gorm:"not null"`
+	GroupID       uint64 `json:"group_id,omitempty" gorm:"not null"`
 	Group         Group  `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
-	RoomID        int    `json:"room_id,omitempty" gorm:"not null"`
+	RoomID        uint64 `json:"room_id,omitempty" gorm:"not null"`
 	Room          Room   `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
 	TimeStart     string `json:"time_start" gorm:"type:TIME"`
 	TimeEnd       string `json:"time_end" gorm:"type:TIME"`
