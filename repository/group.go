@@ -251,3 +251,33 @@ func (g *Group) DeleteTag(tagID uint64) error {
 	}
 	return nil
 }
+
+func (g *Group) AddMember(traQID string) error {
+	user := new(User)
+	user.TRAQID = traQID
+	if err := DB.First(&user).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+
+	if err := DB.Model(&g).Association("Members").Append(user).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
+func (g *Group) DeleteMember(traQID string) error {
+	user := new(User)
+	user.TRAQID = traQID
+	if err := DB.First(&user).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+
+	if err := DB.Model(&g).Association("Members").Delete(user).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+}

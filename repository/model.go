@@ -69,6 +69,7 @@ type Group struct {
 	Members     []User `json:"members" gorm:"many2many:group_users; save_associations:false"`
 	CreatedBy   string `json:"created_by" gorm:"type:varchar(32);"`
 	Tags        []Tag  `json:"tags" gorm:"many2many:group_tags; save_associations:false"`
+	JoinFreely  bool   `json:"join_freely"`
 }
 
 // Event 予約情報

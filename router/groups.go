@@ -27,6 +27,10 @@ func HandlePostGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
+	if err := g.Read(); err != nil {
+		return internalServerError()
+	}
+
 	return c.JSON(http.StatusCreated, g)
 }
 
@@ -122,7 +126,7 @@ func HandleDeleteGroupTag(c echo.Context) error {
 	var err error
 	group.ID, err = getRequestGroupID(c)
 	if err != nil {
-		internalServerError()
+		return internalServerError()
 	}
 	groupTag.TagID, err = strconv.ParseUint(c.Param("tagid"), 10, 64)
 	if err != nil || groupTag.TagID == 0 {
@@ -130,4 +134,57 @@ func HandleDeleteGroupTag(c echo.Context) error {
 	}
 
 	return handleDeleteTagRelation(c, group, groupTag.TagID)
+}
+
+func HandleAddMeGroup(c echo.Context) error {
+	user := repo.User{}
+	group := new(repo.Group)
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
+	}
+	if err := group.Read(); err != nil {
+		return internalServerError()
+	}
+	if !group.JoinFreely {
+		return forbidden(message("This group is not JoinFreely."), specification("This api can delete me at JoinFreely-group."))
+	}
+
+	user = getRequestUser(c)
+	if err := group.AddMember(user.TRAQID); err != nil {
+		return judgeErrorResponse(err)
+	}
+	if err := group.Read(); err != nil {
+		return internalServerError()
+	}
+
+	return c.JSON(http.StatusOK, group)
+}
+
+func HandleDeleteMeGroup(c echo.Context) error {
+	user := repo.User{}
+	group := new(repo.Group)
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
+	}
+	if err := group.Read(); err != nil {
+		return internalServerError()
+	}
+	if !group.JoinFreely {
+		return forbidden(message("This group is not JoinFreely."), specification("This api can delete me at JoinFreely-group."))
+	}
+
+	user = getRequestUser(c)
+	if err := group.DeleteMember(user.TRAQID); err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	if err := group.Read(); err != nil {
+		return internalServerError()
+	}
+
+	return c.JSON(http.StatusOK, group)
 }
