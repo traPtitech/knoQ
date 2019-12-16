@@ -39,19 +39,15 @@ func (e *Event) Create() error {
 		tx.Rollback()
 		return err
 	}
-
-	// get tagID
-	err = MatchTags(e.Tags, "event")
-	if err != nil {
-		return err
-	}
-	// add relation
+	// Todo transaction
 	for _, v := range e.Tags {
-		if err := tx.Create(&EventTag{EventID: e.ID, TagID: v.ID, Locked: v.Locked}).Error; err != nil {
+		err := e.AddTag(e.ID, v.Name, v.Locked)
+		if err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
+
 	return tx.Commit().Error
 }
 
@@ -103,20 +99,16 @@ func (e *Event) Update() error {
 		tx.Rollback()
 		return err
 	}
-	// delete now tags
+	// delete now all tags
 	if err := tx.Model(&nowEvent).Association("Tags").Clear().Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	// get tagID
-	err = MatchTags(e.Tags, "event")
-	if err != nil {
-		return err
-	}
-	// add relation
+	// Todo transaction
 	for _, v := range e.Tags {
-		if err := tx.Create(&EventTag{EventID: e.ID, TagID: v.ID, Locked: v.Locked}).Error; err != nil {
+		err := e.AddTag(e.ID, v.Name, v.Locked)
+		if err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -224,14 +216,14 @@ func (rv *Event) GetCreatedBy() (string, error) {
 }
 
 // AddTag add tag
-func (e *Event) AddTag(ID uint64, tagName string) error {
+func (e *Event) AddTag(ID uint64, tagName string, locked bool) error {
 	tag := new(Tag)
 	tag.Name = tagName
 
 	if err := MatchTag(tag, "event"); err != nil {
 		return err
 	}
-	if err := DB.Create(&EventTag{EventID: ID, TagID: tag.ID}).Error; err != nil {
+	if err := DB.Create(&EventTag{EventID: ID, TagID: tag.ID, Locked: locked}).Error; err != nil {
 		return err
 	}
 	return nil

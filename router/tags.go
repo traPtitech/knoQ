@@ -9,13 +9,13 @@ import (
 type tagAddDelete interface {
 	Read() error
 	// add unlocked tag
-	AddTag(ID uint64, tagName string) error
+	AddTag(ID uint64, tagName string, locked bool) error
 	// delete unlocked tag
 	DeleteTag(tagID uint64) error
 }
 
 func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uint64, tagName string) error {
-	if err := tad.AddTag(ID, tagName); err != nil {
+	if err := tad.AddTag(ID, tagName, false); err != nil {
 		return judgeErrorResponse(err)
 	}
 
