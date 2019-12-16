@@ -2,7 +2,6 @@ package router
 
 import (
 	"net/http"
-	"runtime"
 
 	"github.com/labstack/echo/v4"
 )
@@ -17,7 +16,7 @@ type tagAddDelete interface {
 
 func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uint64, tagName string) error {
 	if err := tad.AddTag(ID, tagName); err != nil {
-		return judgeErrorResponse(err, errorRuntime(newErrorRuntime(runtime.Caller(0))))
+		return judgeErrorResponse(err)
 	}
 
 	if err := tad.Read(); err != nil {
