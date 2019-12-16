@@ -19,6 +19,7 @@ var tables = []interface{}{
 	Event{},
 	Tag{},
 	EventTag{},
+	GroupTag{},
 }
 
 var (

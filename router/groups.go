@@ -1,8 +1,10 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	repo "room/repository"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
@@ -97,4 +99,35 @@ func HandleUpdateGroup(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, group)
+}
+
+func HandleAddGroupTag(c echo.Context) error {
+	tag := new(repo.Tag)
+	group := new(repo.Group)
+	if err := c.Bind(tag); err != nil {
+		return badRequest()
+	}
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		return internalServerError()
+	}
+
+	return handleAddTagRelation(c, group, group.ID, tag.Name)
+}
+
+func HandleDeleteGroupTag(c echo.Context) error {
+	groupTag := new(repo.GroupTag)
+	group := new(repo.Group)
+	var err error
+	group.ID, err = getRequestGroupID(c)
+	if err != nil {
+		internalServerError()
+	}
+	groupTag.TagID, err = strconv.ParseUint(c.Param("tagid"), 10, 64)
+	if err != nil || groupTag.TagID == 0 {
+		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
+	}
+
+	return handleDeleteTagRelation(c, group, groupTag.TagID)
 }

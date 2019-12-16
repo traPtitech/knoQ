@@ -57,6 +57,9 @@ func main() {
 				apiGroup.GET("", router.HandleGetGroup)
 				apiGroup.PUT("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
 				apiGroup.DELETE("", router.HandleDeleteGroup, adminMiddle)
+
+				apiGroup.PATCH("/tags", router.HandleAddGroupTag)
+				apiGroup.DELETE("/tags/:tagid", router.HandleDeleteGroupTag)
 			}
 		}
 

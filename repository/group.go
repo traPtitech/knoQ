@@ -37,11 +37,20 @@ func (g *Group) Create() error {
 		return err
 	}
 
+	// Todo transaction
+	for _, v := range g.Tags {
+		err := g.AddTag(v.Name, v.Locked)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	return tx.Commit().Error
 }
 
 func (g *Group) Read() error {
-	cmd := DB.Preload("Members")
+	cmd := DB.Preload("Members").Preload("Tags")
 	if err := cmd.First(&g).Error; err != nil {
 		dbErrorLog(err)
 		return err
@@ -82,6 +91,20 @@ func (g *Group) Update() error {
 		tx.Rollback()
 		dbErrorLog(err)
 		return err
+	}
+
+	// delete now all tags
+	if err := tx.Model(&nowGroup).Association("Tags").Clear().Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// Todo transaction
+	for _, v := range g.Tags {
+		err := g.AddTag(v.Name, v.Locked)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	return tx.Commit().Error
@@ -142,7 +165,7 @@ func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
 
 func FindGroups(values url.Values) ([]Group, error) {
 	groups := []Group{}
-	cmd := DB.Preload("Members")
+	cmd := DB.Preload("Members").Preload("Tags")
 
 	if values.Get("id") != "" {
 		id, _ := strconv.Atoi(values.Get("id"))
