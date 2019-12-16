@@ -17,6 +17,7 @@ type ErrorResponse struct {
 type ErrorBody struct {
 	Message       string `json:"message,omitempty"`
 	Specification string `json:"specification,omitempty"`
+	errorRuntime  ErrorRuntime
 }
 
 // Error interfaceに含めたい
@@ -54,6 +55,12 @@ func specification(spec string) option {
 	}
 }
 
+func errorRuntime(ert ErrorRuntime) option {
+	return func(er *ErrorResponse) {
+		er.errorRuntime = ert
+	}
+}
+
 func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 	he := &echo.HTTPError{
 		Code: code,
@@ -66,29 +73,38 @@ func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 	if er.Message == "" {
 		er.Message = http.StatusText(code)
 	}
+	if er.errorRuntime == (ErrorRuntime{}) {
+		er.errorRuntime = newErrorRuntime(runtime.Caller(2))
+	}
 	he.Message = er
+	he.SetInternal(er.errorRuntime)
 	return he
 }
 
 func badRequest(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusBadRequest, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+	return newHTTPErrorResponse(http.StatusBadRequest, responses...)
 }
 
 func forbidden(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusForbidden, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+	return newHTTPErrorResponse(http.StatusForbidden, responses...)
 }
 
 func notFound(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusNotFound, responses...).SetInternal(newErrorRuntime(runtime.Caller(1)))
+	return newHTTPErrorResponse(http.StatusNotFound, responses...)
 }
 
 func internalServerError() *echo.HTTPError {
 	code := http.StatusInternalServerError
-	return newHTTPErrorResponse(code, message(http.StatusText(code))).SetInternal(newErrorRuntime(runtime.Caller(1)))
+	return newHTTPErrorResponse(code, message(http.StatusText(code)))
 
 }
 
-func judgeErrorResponse(err error) *echo.HTTPError {
+func judgeErrorResponse(err error, options ...option) *echo.HTTPError {
+	er := new(ErrorResponse)
+	for _, o := range options {
+		o(er)
+	}
+
 	if gorm.IsRecordNotFoundError(err) {
 		return badRequest(message(err.Error()))
 	}
@@ -104,7 +120,7 @@ func judgeErrorResponse(err error) *echo.HTTPError {
 		return internalServerError()
 	}
 	if me.Number == 1062 {
-		return badRequest(message("It already exists"))
+		return badRequest(message("It already exists"), errorRuntime(er.errorRuntime))
 	}
 
 	return internalServerError()
