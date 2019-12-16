@@ -44,6 +44,13 @@ type EventTag struct {
 	Locked  bool
 }
 
+// GroupTag is many to many table
+type GroupTag struct {
+	TagID   uint64 `gorm:"primary_key"`
+	GroupID uint64 `gorm:"primary_key"`
+	Locked  bool
+}
+
 // Room 部屋情報
 type Room struct {
 	Model
@@ -61,6 +68,7 @@ type Group struct {
 	Description string `json:"description" gorm:"type:varchar(1024)"`
 	Members     []User `json:"members" gorm:"many2many:group_users; save_associations:false"`
 	CreatedBy   string `json:"created_by" gorm:"type:varchar(32);"`
+	Tags        []Tag  `json:"tags" gorm:"many2many:group_tags; save_associations:false"`
 }
 
 // Event 予約情報
