@@ -6,7 +6,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// MatchTags なければ $attr = true で作成、あっても $attr = true に更新
 func MatchTags(tags []Tag, attr string) error {
 	for i := range tags {
 		tag := &tags[i]
@@ -17,6 +16,7 @@ func MatchTags(tags []Tag, attr string) error {
 	return nil
 }
 
+// MatchTag なければ $attr = true で作成、あっても $attr = true に更新
 func MatchTag(tag *Tag, attr string) error {
 	createTag, attrFlag, updateAttr, err := judgeTagAttr(*tag, attr)
 	if err != nil {

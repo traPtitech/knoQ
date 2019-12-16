@@ -197,3 +197,34 @@ func (group *Group) GetCreatedBy() (string, error) {
 	}
 	return group.CreatedBy, nil
 }
+
+// AddTag add tag
+func (g *Group) AddTag(tagName string, locked bool) error {
+	tag := new(Tag)
+	tag.Name = tagName
+
+	if err := MatchTag(tag, "group"); err != nil {
+		return err
+	}
+	if err := DB.Create(&GroupTag{GroupID: g.ID, TagID: tag.ID, Locked: locked}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteTag delete unlocked tag.
+func (g *Group) DeleteTag(tagID uint64) error {
+	groupTag := new(GroupTag)
+	groupTag.TagID = tagID
+	groupTag.GroupID = g.ID
+	if err := DB.Debug().First(&groupTag).Error; err != nil {
+		return err
+	}
+	if groupTag.Locked {
+		return errors.New("this tag is locked")
+	}
+	if err := DB.Debug().Where("locked = ?", false).Delete(&GroupTag{GroupID: g.ID, TagID: groupTag.TagID}).Error; err != nil {
+		return err
+	}
+	return nil
+}

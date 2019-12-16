@@ -41,7 +41,7 @@ func (e *Event) Create() error {
 	}
 	// Todo transaction
 	for _, v := range e.Tags {
-		err := e.AddTag(e.ID, v.Name, v.Locked)
+		err := e.AddTag(v.Name, v.Locked)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -99,15 +99,15 @@ func (e *Event) Update() error {
 		tx.Rollback()
 		return err
 	}
+
 	// delete now all tags
 	if err := tx.Model(&nowEvent).Association("Tags").Clear().Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-
 	// Todo transaction
 	for _, v := range e.Tags {
-		err := e.AddTag(e.ID, v.Name, v.Locked)
+		err := e.AddTag(v.Name, v.Locked)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -216,19 +216,20 @@ func (rv *Event) GetCreatedBy() (string, error) {
 }
 
 // AddTag add tag
-func (e *Event) AddTag(ID uint64, tagName string, locked bool) error {
+func (e *Event) AddTag(tagName string, locked bool) error {
 	tag := new(Tag)
 	tag.Name = tagName
 
 	if err := MatchTag(tag, "event"); err != nil {
 		return err
 	}
-	if err := DB.Create(&EventTag{EventID: ID, TagID: tag.ID, Locked: locked}).Error; err != nil {
+	if err := DB.Create(&EventTag{EventID: e.ID, TagID: tag.ID, Locked: locked}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
+// DeleteTag delete unlocked tag.
 func (e *Event) DeleteTag(tagID uint64) error {
 	eventTag := new(EventTag)
 	eventTag.TagID = tagID
@@ -237,7 +238,6 @@ func (e *Event) DeleteTag(tagID uint64) error {
 		return err
 	}
 	if eventTag.Locked {
-		// return forbidden(message("This tag is locked."), specification("This api can delete non-locked tags"))
 		return errors.New("this tag is locked")
 	}
 	if err := DB.Debug().Where("locked = ?", false).Delete(&EventTag{EventID: e.ID, TagID: eventTag.TagID}).Error; err != nil {
