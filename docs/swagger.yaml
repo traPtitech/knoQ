@@ -94,8 +94,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/GetRoom"
@@ -113,8 +113,8 @@ paths:
           description: 削除する部屋のID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           description: successful operation
@@ -154,15 +154,15 @@ paths:
           description: 特定のグループのみにする。
           required: false
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
         - name: roomID
           in: query
           description: 特定の部屋のみにする。
           required: false
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
         - name: date_begin
           in: query
           description: 特定の日からのみにする。(2017-07-21とか)
@@ -205,8 +205,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/event"
@@ -222,8 +222,8 @@ paths:
           description: 変更する情報のID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         $ref: "#/components/requestBodies/PutEvent"
       responses:
@@ -245,8 +245,8 @@ paths:
           description: 削除する情報のID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           description: successful operation
@@ -264,8 +264,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         $ref: "#/components/requestBodies/tag"
       responses:
@@ -282,14 +282,14 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
         - name: tagID
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/event"
@@ -337,8 +337,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/group"
@@ -353,8 +353,8 @@ paths:
           description: 変更する情報のID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         $ref: "#/components/requestBodies/group"
       responses:
@@ -378,8 +378,8 @@ paths:
           description: The id that needs to be deleted
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           description: successful operation
@@ -398,8 +398,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/group"
@@ -413,8 +413,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/group"
@@ -485,9 +485,9 @@ components:
         - date
       properties:
         id:
-          type: integer
-          format: int64
-          example: 1
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         place:
           type: string
           example: S516
@@ -542,11 +542,13 @@ components:
           type: string
           example: "20:00"
         room_id:
-          type: integer
-          example: 1
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         group_id:
-          type: integer
-          example: 3
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         tags:
           type: array
           items:
@@ -562,7 +564,9 @@ components:
         - type: object
           properties:
             id:
-              type: integer
+              type: string
+              format: uuid
+              example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         - $ref: "#/components/schemas/event"
         - type: object
           properties:
@@ -600,9 +604,9 @@ components:
     ResponseGroup:
       properties:
         id:
-          type: integer
-          format: int64
-          example: 3
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         name:
           type: string
           example: room
@@ -668,9 +672,9 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          example: 1
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         name:
           type: string
           example: Vue
