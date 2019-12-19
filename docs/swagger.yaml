@@ -293,6 +293,15 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/event"
+  /events/search:
+    get:
+      tags:
+        - events
+      requestBody:
+        $ref: "#/components/requestBodies/stringArray"
+      responses:
+        200:
+          $ref: "#/components/responses/EventArray"
 
   /groups:
     get:
@@ -705,7 +714,7 @@ components:
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         name:
           type: string
-          example: Vue
+          example: vue
         official:
           type: boolean
           example: true
@@ -745,6 +754,16 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/ReqTag"
+    stringArray:
+      description: タグで検索
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: string
+              example: "vue"
 
   responses:
     UUIDArray:
