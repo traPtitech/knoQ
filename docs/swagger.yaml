@@ -308,12 +308,6 @@ paths:
           required: false
           schema:
             type: string
-        - name: traQID
-          in: query
-          description: 特定のuserが所属するグループのみにする。(IDにするか名前にするかは検討)
-          required: false
-          schema:
-            type: string
       responses:
         200:
           $ref: "#/components/responses/groupArray"
