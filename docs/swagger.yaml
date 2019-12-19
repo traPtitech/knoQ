@@ -255,7 +255,7 @@ paths:
         404:
           description: Not Found
   /events/{eventID}/tags:
-    patch:
+    post:
       tags:
         - events
       summary: タグを追加
@@ -387,8 +387,8 @@ paths:
           description: Forbidden
         404:
           description: Groupid not found
-  /groups/{groupID}/members:
-    patch:
+  /groups/{groupID}/members/me:
+    post:
       tags:
         - groups
       summary: 自分を追加。join_freely=true
@@ -403,7 +403,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/group"
-  /groups/{groupID}/members/me:
     delete:
       tags:
         - groups
@@ -456,7 +455,7 @@ paths:
         400:
           description: Bad Request
   /tags/{type}:
-    put:
+    post:
       tags:
         - tags
       summary: タグを作成。
