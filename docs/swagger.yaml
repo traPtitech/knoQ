@@ -452,16 +452,6 @@ paths:
       description: queryで切り分ける
       operationId: getTag
       parameters:
-        - name: for_room
-          in: query
-          required: false
-          schema:
-            type: boolean
-        - name: for_group
-          in: query
-          required: false
-          schema:
-            type: boolean
         - name: for_event
           in: query
           required: false
@@ -473,11 +463,11 @@ paths:
         400:
           description: Bad Request
   /tags/{type}:
-    post:
+    put:
       tags:
         - tags
       summary: タグを作成。
-      description: すでにある場合は、for_group=trueなどにする。
+      description: すでにある場合は、for_event=trueなどにする。
       operationId: postTag
       parameters:
         - name: type
@@ -486,8 +476,6 @@ paths:
           schema:
             type: string
             enum:
-              - room
-              - group
               - event
       requestBody:
         $ref: "#/components/requestBodies/tag"
