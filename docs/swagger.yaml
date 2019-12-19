@@ -50,11 +50,6 @@ paths:
                 time_end:
                   type: string
                   example: "20:00"
-                tags:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/ReqTagAuth"
-                  example: []
       responses:
         201:
           $ref: "#/components/responses/PostRoom"
@@ -68,13 +63,6 @@ paths:
       summary: traPで確保した進捗部屋の情報を取得
       operationId: getrooms
       parameters:
-        - name: id
-          in: query
-          description: roomID
-          required: false
-          schema:
-            type: integer
-            format: int64
         - name: date_begin
           in: query
           description: 特定の日から。(2017-07-21とか)
@@ -155,13 +143,6 @@ paths:
       summary: 使用宣言の情報を取得
       operationId: getevents
       parameters:
-        - name: id
-          in: query
-          description: idで検索
-          required: false
-          schema:
-            type: integer
-            format: int64
         - name: name
           in: query
           description: 名前で検索
@@ -328,13 +309,6 @@ paths:
       description: ログインユーザーなら所属していなくても取得可能にしておく
       operationId: getGroup
       parameters:
-        - name: id
-          in: query
-          description: idで取得
-          required: false
-          schema:
-            type: integer
-            format: int64
         - name: name
           in: query
           description: nameで取得
