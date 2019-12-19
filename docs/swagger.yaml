@@ -417,7 +417,29 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/group"
-  
+
+  /users/me/groups:
+    get:
+      tags:
+        - groups
+      responses:
+        200:
+          $ref: "#/components/responses/UUIDArray"
+  /users/{userID}/groups:
+    get:
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - groups
+      responses:
+        200:
+          $ref: "#/components/responses/UUIDArray"
+
   /users:
     get:
       tags:
@@ -477,6 +499,13 @@ paths:
 
 components:
   schemas:
+    UUIDs:
+      type: array
+      description: UUIDの配列
+      items:
+        type: string
+        format: uuid
+
     room:
       type: object
       required:
@@ -718,6 +747,13 @@ components:
             $ref: "#/components/schemas/ReqTag"
 
   responses:
+    UUIDArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UUIDs"
+
     PostRoom:
       description: successful operation
       content:
