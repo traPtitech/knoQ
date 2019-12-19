@@ -149,13 +149,6 @@ paths:
           required: false
           schema:
             type: string
-        - name: traQID
-          in: query
-          description: 特定のuserが所属するグループのみにする。
-          required: false
-          schema:
-            type: integer
-            format: int64
         - name: groupID
           in: query
           description: 特定のグループのみにする。
