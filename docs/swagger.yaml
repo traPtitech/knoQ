@@ -210,10 +210,10 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/event"
-    patch:
+    put:
       tags:
         - events
-      summary: 部屋の使用宣言を更新(現状はroomid, timestart, timeendのみを変更)
+      summary: 部屋の使用宣言を更新
       description: 作成者のみ
       operationId: updateevents
       parameters:
@@ -225,7 +225,7 @@ paths:
             type: integer
             format: int64
       requestBody:
-        $ref: "#/components/requestBodies/PatchEvent"
+        $ref: "#/components/requestBodies/PutEvent"
       responses:
         200:
           $ref: "#/components/responses/event"
@@ -348,10 +348,9 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/group"
-    patch:
+    put:
       tags:
         - groups
-      summary: グループメンバー、グループ名、詳細を更新
       description: 作成者のみ変更可能
       operationId: updateGroup
       parameters:
@@ -548,35 +547,29 @@ components:
         time_end:
           type: string
           example: "20:00"
+        room_id:
+          type: integer
+          example: 1
+        group_id:
+          type: integer
+          example: 3
         tags:
           type: array
           items:
             $ref: "#/components/schemas/ReqTagAuth"
-    PatchEvent:
+    PutEvent:
       allOf:
         - $ref: "#/components/schemas/event"
-      properties:
-        room_id:
-          type: integer
-          example: 1
     PostEvent:
       allOf:
-        - $ref: "#/components/schemas/PatchEvent"
-      properties:
-        group_id:
-          type: integer
-          example: 3
+        - $ref: "#/components/schemas/PutEvent"
     ResponseEvent:
       allOf:
+        - type: object
+          properties:
+            id:
+              type: integer
         - $ref: "#/components/schemas/event"
-        - type: object
-          properties:
-            group:
-              $ref: "#/components/schemas/ResponseGroup"
-        - type: object
-          properties:
-            room:
-              $ref: "#/components/schemas/room"
         - type: object
           properties:
             tags:
@@ -699,13 +692,13 @@ components:
           example: true
 
   requestBodies:
-    PatchEvent:
+    PutEvent:
       description: 予約の編集
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PatchEvent"
+            $ref: "#/components/schemas/PutEvent"
     PostEvent:
       description: 予約の追加
       required: true

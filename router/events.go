@@ -75,7 +75,7 @@ func HandleDeleteEvent(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-// HandleUpdateEvent 部屋、開始時刻、終了時刻を更新
+// HandleUpdateEvent 任意の要素を変更
 func HandleUpdateEvent(c echo.Context) error {
 	event := new(repo.Event)
 
