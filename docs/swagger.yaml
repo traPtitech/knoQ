@@ -432,46 +432,7 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/group"
-  /groups/{groupID}/tags:
-    patch:
-      tags:
-        - groups
-      summary: タグを追加
-      parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        $ref: "#/components/requestBodies/tag"
-      responses:
-        200:
-          $ref: "#/components/responses/group"
-  /groups/{groupID}/tags/{tagID}:
-    delete:
-      tags:
-        - groups
-      summary: タグを削除
-      description: locked=falseだけ
-      parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: tagID
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        200:
-          $ref: "#/components/responses/group"
-
+  
   /users:
     get:
       tags:
@@ -574,11 +535,6 @@ components:
         updated_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
-        tags:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResponseTag"
-          example: []
         available_time:
           type: array
           items:
@@ -593,13 +549,6 @@ components:
                 format: time
                 example: "20:00:00"
 
-    GetRoom:
-      allOf:
-        - $ref: "#/components/schemas/room"
-        - type: object
-          properties:
-            available_time:
-              example: { "time_start": "09:00:00", "time_end": "17:59:59" }
     event:
       type: object
       properties:
@@ -680,10 +629,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ResUser"
-        tags:
-          type: array
-          items:
-            $ref: "#/components/schemas/ReqTagAuth"
     ResponseGroup:
       properties:
         id:
@@ -703,10 +648,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ResUser"
-        tags:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResponseTag"
         created_by:
           type: string
           example: "fuji"
@@ -735,12 +676,6 @@ components:
       allOf:
         - $ref: "#/components/schemas/ResTag"
       properties:
-        for_room:
-          type: boolean
-          example: false
-        for_group:
-          type: boolean
-          example: true
         for_event:
           type: boolean
           example: true
@@ -831,7 +766,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/GetRoom"
+            $ref: "#/components/schemas/room"
 
     GetRoomArray:
       description: successful operation
@@ -840,7 +775,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/GetRoom"
+              $ref: "#/components/schemas/room"
 
     event:
       description: successful operation
