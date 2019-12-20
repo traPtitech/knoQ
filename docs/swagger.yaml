@@ -451,16 +451,6 @@ paths:
         200:
           $ref: "#/components/responses/UUIDArray"
 
-  /users:
-    get:
-      deprecated: true
-      tags:
-        - users
-      summary: すべてのユーザーを取得
-      description: ユーザーを全取得する（traQのAPIを使うなら消す）
-      responses:
-        200:
-          $ref: "#/components/responses/userArray"
   /users/me:
     get:
       tags:
@@ -644,9 +634,7 @@ components:
           type: boolean
           example: false
         members:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResUser"
+          $ref: "#/components/schemas/UUIDs"
     ResponseGroup:
       properties:
         id:
@@ -663,9 +651,7 @@ components:
           type: boolean
           example: false
         members:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResUser"
+          $ref: "#/components/schemas/UUIDs"
         created_by:
           type: string
           example: "fuji"
@@ -678,17 +664,18 @@ components:
 
     user:
       allOf:
-        - $ref: "#/components/schemas/ResUser"
+        - $ref: "#/components/schemas/resUser"
       properties:
         admin:
           type: boolean
           example: true
-    ResUser:
+    resUser:
       type: object
       properties:
-        traq_id:
+        id:
           type: string
-          example: fuji
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 
     tag:
       allOf:
@@ -848,14 +835,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/user"
-    userArray:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/ResUser"
     tag:
       description: successful operation
       content:
