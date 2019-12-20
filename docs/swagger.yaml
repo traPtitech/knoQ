@@ -589,16 +589,23 @@ components:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+    PutEvent:
+      allOf:
+        - $ref: "#/components/schemas/event"
+      properties:
         tags:
           type: array
           items:
             $ref: "#/components/schemas/ReqTagAuth"
-    PutEvent:
-      allOf:
-        - $ref: "#/components/schemas/event"
     PostEvent:
       allOf:
         - $ref: "#/components/schemas/PutEvent"
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReqTagAuth"
+ 
     ResponseEvent:
       allOf:
         - type: object
@@ -614,16 +621,15 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ResponseTag"
-      properties:
-        created_by:
-          type: string
-          example: "fuji"
-        created_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
-        updated_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
+            created_by:
+              type: string
+              example: "fuji"
+            created_at:
+              type: string
+              example: "2019-11-02T15:24:42.5438806Z"
+            updated_at:
+              type: string
+              example: "2019-11-02T15:24:42.5438806Z"
 
     RequestGroup:
       type: object
@@ -697,7 +703,6 @@ components:
         name:
           type: string
           example: Vue
-
     ReqTagAuth:
       allOf:
         - $ref: "#/components/schemas/ReqTag"
@@ -722,9 +727,12 @@ components:
           type: boolean
           example: true
     ResponseTag:
-      allOf:
-        - $ref: "#/components/schemas/tag"
+      type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         locked:
           type: boolean
           example: true
