@@ -301,7 +301,7 @@ paths:
         $ref: "#/components/requestBodies/stringArray"
       responses:
         200:
-          $ref: "#/components/responses/EventArray"
+          $ref: "#/components/responses/eventArray"
 
   /groups:
     get:
