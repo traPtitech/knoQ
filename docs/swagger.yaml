@@ -293,12 +293,21 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/event"
+
   /events/search:
     get:
       tags:
         - events
       requestBody:
         $ref: "#/components/requestBodies/stringArray"
+      responses:
+        200:
+          $ref: "#/components/responses/eventArray"
+
+  /users/me/events:
+    get:
+      tags:
+        - events
       responses:
         200:
           $ref: "#/components/responses/eventArray"
@@ -310,13 +319,6 @@ paths:
       summary: グループを全て取得
       description: ログインユーザーなら所属していなくても取得可能にしておく
       operationId: getGroup
-      parameters:
-        - name: name
-          in: query
-          description: nameで取得
-          required: false
-          schema:
-            type: string
       responses:
         200:
           $ref: "#/components/responses/groupArray"
@@ -451,6 +453,7 @@ paths:
 
   /users:
     get:
+      deprecated: true
       tags:
         - users
       summary: すべてのユーザーを取得
