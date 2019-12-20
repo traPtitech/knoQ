@@ -518,7 +518,7 @@ components:
         type: string
         format: uuid
 
-    room:
+    Room:
       type: object
       required:
         - place
@@ -543,12 +543,6 @@ components:
           type: string
           format: time
           example: "20:00:00"
-        created_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
-        updated_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
         available_time:
           type: array
           items:
@@ -562,6 +556,12 @@ components:
                 type: string
                 format: time
                 example: "20:00:00"
+        created_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+        updated_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
 
     event:
       type: object
@@ -789,7 +789,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/room"
+            $ref: "#/components/schemas/Room"
     PostRoomArray:
       description: successful operation
       content:
@@ -797,13 +797,13 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/room"
+              $ref: "#/components/schemas/Room"
     GetRoom:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/room"
+            $ref: "#/components/schemas/Room"
 
     GetRoomArray:
       description: successful operation
@@ -812,7 +812,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/room"
+              $ref: "#/components/schemas/Room"
 
     event:
       description: successful operation
