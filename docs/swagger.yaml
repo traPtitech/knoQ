@@ -298,8 +298,12 @@ paths:
     get:
       tags:
         - events
-      requestBody:
-        $ref: "#/components/requestBodies/stringArray"
+      parameters:
+        - name: query
+          description: vue+golang てきな
+          in: query
+          schema:
+            type: string
       responses:
         200:
           $ref: "#/components/responses/eventArray"
@@ -455,7 +459,7 @@ paths:
     get:
       tags:
         - users
-      summary: クライアントのtraQIDを取得
+      summary: クライアントの権限を取得
       description: クライアントを識別するために最初に呼ばれる
       responses:
         200:
@@ -595,7 +599,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ReqTagAuth"
- 
+
     ResponseEvent:
       allOf:
         - type: object
