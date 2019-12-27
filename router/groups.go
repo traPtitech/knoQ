@@ -18,7 +18,7 @@ func HandlePostGroup(c echo.Context) error {
 		return badRequest(message(err.Error()))
 	}
 
-	g.CreatedBy = getRequestUser(c).TRAQID
+	g.CreatedBy = getRequestUser(c).ID
 
 	if err := g.Create(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -152,7 +152,7 @@ func HandleAddMeGroup(c echo.Context) error {
 	}
 
 	user = getRequestUser(c)
-	if err := group.AddMember(user.TRAQID); err != nil {
+	if err := group.AddMember(user.ID); err != nil {
 		return judgeErrorResponse(err)
 	}
 	if err := group.Read(); err != nil {
@@ -178,7 +178,7 @@ func HandleDeleteMeGroup(c echo.Context) error {
 	}
 
 	user = getRequestUser(c)
-	if err := group.DeleteMember(user.TRAQID); err != nil {
+	if err := group.DeleteMember(user.ID); err != nil {
 		return judgeErrorResponse(err)
 	}
 

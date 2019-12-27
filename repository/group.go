@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"github.com/gofrs/uuid"
 	"net/url"
 	"strconv"
 )
@@ -130,9 +131,9 @@ func (g *Group) Delete() error {
 // traQIDをもとに探す
 // いないものは警告なしに消す
 func (g *Group) verifyMembers() error {
-	memberSlice := make([]string, 0, len(g.Members))
+	memberSlice := make([]uuid.UUID, 0, len(g.Members))
 	for _, v := range g.Members {
-		memberSlice = append(memberSlice, v.TRAQID)
+		memberSlice = append(memberSlice, v.ID)
 	}
 	if err := DB.Where(memberSlice).Find(&g.Members).Error; err != nil {
 		dbErrorLog(err)
@@ -142,7 +143,7 @@ func (g *Group) verifyMembers() error {
 }
 
 // CheckBelongToGroup ユーザーが予約したグループに属しているか調べます
-func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
+func CheckBelongToGroup(reservationID int, traQID uuid.UUID) (bool, error) {
 	rv := new(Event)
 	g := new(Group)
 	// tmp
@@ -156,7 +157,7 @@ func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
 	}
 
 	for _, m := range g.Members {
-		if traQID == m.TRAQID {
+		if traQID == m.ID {
 			return true, nil
 		}
 	}
@@ -214,9 +215,9 @@ func (group *Group) AddRelation(GroupID uint64) error {
 }
 
 // GetCreatedBy get who created it
-func (group *Group) GetCreatedBy() (string, error) {
+func (group *Group) GetCreatedBy() (uuid.UUID, error) {
 	if err := DB.First(&group).Error; err != nil {
-		return "", err
+		return uuid.Nil, err
 	}
 	return group.CreatedBy, nil
 }
@@ -252,9 +253,9 @@ func (g *Group) DeleteTag(tagID uint64) error {
 	return nil
 }
 
-func (g *Group) AddMember(traQID string) error {
+func (g *Group) AddMember(userID uuid.UUID) error {
 	user := new(User)
-	user.TRAQID = traQID
+	user.ID = userID
 	if err := DB.First(&user).Error; err != nil {
 		dbErrorLog(err)
 		return err
@@ -267,9 +268,9 @@ func (g *Group) AddMember(traQID string) error {
 	return nil
 }
 
-func (g *Group) DeleteMember(traQID string) error {
+func (g *Group) DeleteMember(userID uuid.UUID) error {
 	user := new(User)
-	user.TRAQID = traQID
+	user.ID = userID
 	if err := DB.First(&user).Error; err != nil {
 		dbErrorLog(err)
 		return err

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/gofrs/uuid"
 	"time"
 )
 
@@ -20,8 +21,8 @@ type StartEndTime struct {
 
 // User traQユーザー情報構造体
 type User struct {
-	// TRAQID traQID
-	TRAQID string `json:"traq_id" gorm:"type:varchar(32);primary_key"`
+	// ID traQID
+	ID uuid.UUID `json:"traq_id" gorm:"type:varchar(32);primary_key"`
 	// Admin 管理者かどうか
 	Admin bool `gorm:"not null"`
 }
@@ -64,26 +65,26 @@ type Room struct {
 // Group グループ情報
 type Group struct {
 	Model
-	Name        string `json:"name" gorm:"type:varchar(32);not null"`
-	Description string `json:"description" gorm:"type:varchar(1024)"`
-	Members     []User `json:"members" gorm:"many2many:group_users; save_associations:false"`
-	CreatedBy   string `json:"created_by" gorm:"type:varchar(32);"`
-	Tags        []Tag  `json:"tags" gorm:"many2many:group_tags; save_associations:false"`
-	JoinFreely  bool   `json:"join_freely"`
+	Name        string    `json:"name" gorm:"type:varchar(32);not null"`
+	Description string    `json:"description" gorm:"type:varchar(1024)"`
+	Members     []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
+	CreatedBy   uuid.UUID `json:"created_by" gorm:"type:varchar(32);"`
+	Tags        []Tag     `json:"tags" gorm:"many2many:group_tags; save_associations:false"`
+	JoinFreely  bool      `json:"join_freely"`
 }
 
 // Event 予約情報
 type Event struct {
 	Model
-	Name          string `json:"name" gorm:"type:varchar(32); not null"`
-	Description   string `json:"description" gorm:"type:varchar(1024)"`
-	GroupID       uint64 `json:"group_id,omitempty" gorm:"not null"`
-	Group         Group  `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
-	RoomID        uint64 `json:"room_id,omitempty" gorm:"not null"`
-	Room          Room   `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
-	TimeStart     string `json:"time_start" gorm:"type:TIME"`
-	TimeEnd       string `json:"time_end" gorm:"type:TIME"`
-	CreatedBy     string `json:"created_by" gorm:"type:varchar(32);"`
-	AllowTogether bool   `json:"allow_together"`
-	Tags          []Tag  `json:"tags" gorm:"many2many:event_tags; save_associations:false"`
+	Name          string    `json:"name" gorm:"type:varchar(32); not null"`
+	Description   string    `json:"description" gorm:"type:varchar(1024)"`
+	GroupID       uint64    `json:"group_id,omitempty" gorm:"not null"`
+	Group         Group     `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
+	RoomID        uint64    `json:"room_id,omitempty" gorm:"not null"`
+	Room          Room      `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
+	TimeStart     string    `json:"time_start" gorm:"type:TIME"`
+	TimeEnd       string    `json:"time_end" gorm:"type:TIME"`
+	CreatedBy     uuid.UUID `json:"created_by" gorm:"type:varchar(32);"`
+	AllowTogether bool      `json:"allow_together"`
+	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; save_associations:false"`
 }

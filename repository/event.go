@@ -5,6 +5,8 @@ import (
 	"net/url"
 	"room/utils"
 	"strconv"
+
+	"github.com/gofrs/uuid"
 )
 
 func (e *Event) Create() error {
@@ -207,10 +209,10 @@ func (e *Event) TimeConsistency() error {
 }
 
 // GetCreatedBy get who created it
-func (rv *Event) GetCreatedBy() (string, error) {
+func (rv *Event) GetCreatedBy() (uuid.UUID, error) {
 	if err := DB.First(&rv).Error; err != nil {
 		dbErrorLog(err)
-		return "", err
+		return uuid.Nil, err
 	}
 	return rv.CreatedBy, nil
 }

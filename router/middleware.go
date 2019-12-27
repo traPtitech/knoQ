@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 
 	"go.uber.org/zap"
@@ -19,7 +20,7 @@ const requestUserStr string = "Request-User"
 
 // CreatedByGetter get created user
 type CreatedByGetter interface {
-	GetCreatedBy() (string, error)
+	GetCreatedBy() (uuid.UUID, error)
 }
 
 func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
@@ -81,7 +82,8 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			// test用
 			id = "fuji"
 		}
-		user, err := repo.GetUser(id)
+		userID, _ := uuid.FromString(id)
+		user, err := repo.GetUser(userID)
 		if err != nil {
 			return internalServerError()
 		}
@@ -118,7 +120,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil || g.ID == 0 {
 			internalServerError()
 		}
-		IsVerigy, err := verifyCreatedUser(g, requestUser.TRAQID)
+		IsVerigy, err := verifyCreatedUser(g, requestUser.ID)
 		if err != nil {
 			return internalServerError()
 		}
@@ -144,7 +146,7 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return internalServerError()
 		}
 
-		IsVerigy, err := verifyCreatedUser(event, requestUser.TRAQID)
+		IsVerigy, err := verifyCreatedUser(event, requestUser.ID)
 		if err != nil {
 			if gorm.IsRecordNotFoundError(err) {
 				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
@@ -204,7 +206,7 @@ func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // verifyCreatedUser verify that request-user and created-user are the same
-func verifyCreatedUser(cbg CreatedByGetter, requestUser string) (bool, error) {
+func verifyCreatedUser(cbg CreatedByGetter, requestUser uuid.UUID) (bool, error) {
 	createdByUser, err := cbg.GetCreatedBy()
 	if err != nil {
 		return false, err
