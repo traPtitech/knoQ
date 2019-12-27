@@ -294,20 +294,6 @@ paths:
         200:
           $ref: "#/components/responses/event"
 
-  /events/search:
-    get:
-      tags:
-        - events
-      parameters:
-        - name: query
-          description: vue+golang てきな
-          in: query
-          schema:
-            type: string
-      responses:
-        200:
-          $ref: "#/components/responses/eventArray"
-
   /users/me/events:
     get:
       tags:
