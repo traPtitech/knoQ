@@ -587,7 +587,7 @@ components:
                 $ref: "#/components/schemas/ResponseTag"
             created_by:
               type: string
-              example: "fuji"
+              format: uuid
             created_at:
               type: string
               example: "2019-11-02T15:24:42.5438806Z"
@@ -625,7 +625,7 @@ components:
           example: false
         created_by:
           type: string
-          example: "fuji"
+          format: uuid
         created_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
