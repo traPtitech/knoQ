@@ -267,7 +267,7 @@ paths:
             type: string
             format: uuid
       requestBody:
-        $ref: "#/components/requestBodies/tag"
+        $ref: "#/components/requestBodies/tagID"
       responses:
         200:
           $ref: "#/components/responses/event"
@@ -468,7 +468,7 @@ paths:
       description: すでにある場合は、error
       operationId: postTag
       requestBody:
-        $ref: "#/components/requestBodies/tag"
+        $ref: "#/components/requestBodies/tagName"
       responses:
         201:
           $ref: "#/components/responses/tag"
@@ -720,7 +720,13 @@ components:
           schema:
             $ref: "#/components/schemas/RequestGroup"
 
-    tag:
+    tagID:
+      description: タグを付ける。
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ReqTagID"
+    tagName:
       description: タグ本体の作成。
       content:
         application/json:
