@@ -389,7 +389,7 @@ paths:
         404:
           description: Groupid not found
   /groups/{groupID}/members/me:
-    post:
+    put:
       tags:
         - groups
       summary: 自分を追加。join_freely=true
@@ -595,7 +595,7 @@ components:
               type: string
               example: "2019-11-02T15:24:42.5438806Z"
 
-    RequestGroup:
+    group:
       type: object
       properties:
         name:
@@ -606,26 +606,23 @@ components:
           example: Sysad班room開発グループ
         join_freely:
           type: boolean
-          example: false
         members:
           $ref: "#/components/schemas/UUIDs"
+    RequestGroup:
+      $ref: "#/components/schemas/group"
     ResponseGroup:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        - $ref: "#/components/schemas/group"
       properties:
-        id:
-          type: string
-          format: uuid
-          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-        name:
-          type: string
-          example: room
-        description:
-          type: string
-          example: Sysad班room開発グループ
-        join_freely:
+        is_traQ_group:
           type: boolean
           example: false
-        members:
-          $ref: "#/components/schemas/UUIDs"
         created_by:
           type: string
           example: "fuji"
