@@ -455,34 +455,18 @@ paths:
       tags:
         - tags
       summary: タグを全て取得
-      description: queryで切り分ける
       operationId: getTag
-      parameters:
-        - name: for_event
-          in: query
-          required: false
-          schema:
-            type: boolean
       responses:
         200:
           $ref: "#/components/responses/tagArray"
         400:
           description: Bad Request
-  /tags/{type}:
     post:
       tags:
         - tags
       summary: タグを作成。
-      description: すでにある場合は、for_event=trueなどにする。
+      description: すでにある場合は、error
       operationId: postTag
-      parameters:
-        - name: type
-          in: path
-          required: true
-          schema:
-            type: string
-            enum:
-              - event
       requestBody:
         $ref: "#/components/requestBodies/tag"
       responses:
@@ -576,7 +560,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTagAuth"
+            $ref: "#/components/schemas/ReqTagIDAuth"
     PostEvent:
       allOf:
         - $ref: "#/components/schemas/PutEvent"
@@ -584,7 +568,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTagAuth"
+            $ref: "#/components/schemas/ReqTagIDAuth"
 
     ResponseEvent:
       allOf:
@@ -668,25 +652,28 @@ components:
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 
     tag:
-      allOf:
-        - $ref: "#/components/schemas/ResTag"
-      properties:
-        for_event:
-          type: boolean
-          example: true
-    ReqTag:
       type: object
       properties:
         name:
           type: string
           example: Vue
-    ReqTagAuth:
-      allOf:
-        - $ref: "#/components/schemas/ReqTag"
+    ReqTagID:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+    ReqTagName:
+      type: object
       properties:
         name:
           type: string
           example: Vue
+    ReqTagIDAuth:
+      allOf:
+        - $ref: "#/components/schemas/ReqTagID"
+      properties:
         locked:
           type: boolean
           example: true
@@ -741,7 +728,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ReqTag"
+            $ref: "#/components/schemas/ReqTagName"
     stringArray:
       description: タグで検索
       required: true
@@ -830,7 +817,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/tag"
+            $ref: "#/components/schemas/ResTag"
     tagArray:
       description: successful operation
       content:
@@ -838,7 +825,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/tag"
+              $ref: "#/components/schemas/ResTag"
 
 externalDocs:
   description: Find out more about Swagger
