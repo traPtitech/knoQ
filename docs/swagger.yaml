@@ -27,29 +27,11 @@ paths:
     post:
       tags:
         - rooms
-      summary: traPで確保した部屋の情報追加 (使わない)
+      summary: traPで確保した部屋の情報追加
       description: 管理者権限が必要
       operationId: addrooms
       requestBody:
-        description: 確保した部屋の情報
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                place:
-                  type: string
-                  example: S516
-                date:
-                  type: string
-                  example: "2019-08-08"
-                time_start:
-                  type: string
-                  example: "09:00"
-                time_end:
-                  type: string
-                  example: "20:00"
+          $ref: "#/components/requestBodies/Room"
       responses:
         201:
           $ref: "#/components/responses/PostRoom"
@@ -82,6 +64,40 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/GetRoomArray"
+
+  /rooms/private:
+    post:
+      tags:
+        - rooms
+      summary: 各自の部屋の情報追加
+      operationId: addrooms
+      requestBody:
+          $ref: "#/components/requestBodies/Room"
+      responses:
+        201:
+          $ref: "#/components/responses/PostRoom"
+        400:
+          description: Bad Request
+  /rooms/private/{roomID}:
+    delete:
+      tags:
+        - rooms
+      summary: 各自の部屋の情報削除 作成者のみ
+      parameters:
+        - name: roomID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: successful operation
+        403:
+          description: Forbidden
+        400:
+          description: Bad Request
+ 
 
   /rooms/{roomID}:
     get:
@@ -254,6 +270,37 @@ paths:
           description: Forbidden
         404:
           description: Not Found
+  /events/{eventID}/favorite:
+    put:
+      tags:
+        - events
+      parameters:
+        - name: eventID
+          in: path
+          required: true
+          description: 変更する情報のID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/event"
+    delete:
+      tags:
+        - events
+      parameters:
+        - name: eventID
+          in: path
+          required: true
+          description: 変更する情報のID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/event"
+
+
   /events/{eventID}/tags:
     post:
       tags:
@@ -481,32 +528,35 @@ components:
       items:
         type: string
         format: uuid
-
-    Room:
+    
+    room:
       type: object
-      required:
-        - place
-        - date
       properties:
-        id:
-          type: string
-          format: uuid
-          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         place:
           type: string
           example: S516
         date:
           type: string
-          format: date
           example: "2019-08-08"
         time_start:
           type: string
-          format: time
-          example: "09:00:00"
+          example: "09:00"
         time_end:
           type: string
-          format: time
-          example: "20:00:00"
+          example: "20:00"
+      
+    ResponseRoom:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        - $ref: "#/components/schemas/room"
+      properties:
+        public:
+          type: boolean
         available_time:
           type: array
           items:
@@ -520,13 +570,18 @@ components:
                 type: string
                 format: time
                 example: "20:00:00"
+        created_by:
+          type: string
+          format: uuid
         created_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
         updated_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
-
+    RequestRoom:
+      $ref: "#/components/schemas/room"
+  
     event:
       type: object
       properties:
@@ -581,6 +636,9 @@ components:
         - $ref: "#/components/schemas/event"
         - type: object
           properties:
+            favorite:
+              type: boolean
+              example: false
             tags:
               type: array
               items:
@@ -699,6 +757,14 @@ components:
           example: true
 
   requestBodies:
+    Room:
+      description: 部屋の追加
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestRoom"
+ 
     PutEvent:
       description: 予約の編集
       required: true
@@ -756,7 +822,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Room"
+            $ref: "#/components/schemas/ResponseRoom"
     PostRoomArray:
       description: successful operation
       content:
@@ -764,13 +830,13 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/Room"
+              $ref: "#/components/schemas/ResponseRoom"
     GetRoom:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Room"
+            $ref: "#/components/schemas/ResponseRoom"
 
     GetRoomArray:
       description: successful operation
@@ -779,7 +845,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/Room"
+              $ref: "#/components/schemas/ResponseRoom"
 
     event:
       description: successful operation
