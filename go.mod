@@ -15,6 +15,7 @@ require (
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/traPtitech/booQ v1.2.0 // indirect
+	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20191128160524-b544559bb6d1 // indirect

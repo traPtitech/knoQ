@@ -10,22 +10,23 @@ import (
 
 // HandlePostGroup グループを作成
 func HandlePostGroup(c echo.Context) error {
-	g := new(repo.Group)
+	g := new(GroupReq)
 
 	if err := c.Bind(&g); err != nil {
 		return badRequest(message(err.Error()))
 	}
+	group, _ := formatGroup(g)
 
-	g.CreatedBy = getRequestUser(c).ID
+	group.CreatedBy = getRequestUser(c).ID
 
-	if err := g.Create(); err != nil {
+	if err := group.Create(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return badRequest()
 		}
 		return internalServerError()
 	}
 
-	if err := g.Read(); err != nil {
+	if err := group.Read(); err != nil {
 		return internalServerError()
 	}
 
@@ -46,7 +47,8 @@ func HandleGetGroup(c echo.Context) error {
 		}
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, group)
+	g, _ := formatGroupRes(group)
+	return c.JSON(http.StatusOK, g)
 }
 
 // HandleGetGroups グループを取得

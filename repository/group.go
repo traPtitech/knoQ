@@ -25,7 +25,7 @@ func (g *Group) Create() error {
 		dbErrorLog(err)
 		return err
 	}
-	err = g.verifyMembers()
+	//err = g.verifyMembers()
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -41,7 +41,7 @@ func (g *Group) Create() error {
 }
 
 func (g *Group) Read() error {
-	cmd := DB.Preload("Members").Preload("Tags")
+	cmd := DB.Preload("Members")
 	if err := cmd.First(&g).Error; err != nil {
 		dbErrorLog(err)
 		return err
@@ -109,6 +109,15 @@ func (g *Group) Delete() error {
 	return nil
 }
 
+// BeforeCreate is gorm hook
+func (g *Group) BeforeCreate() (err error) {
+	g.ID, err = uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // VerifyUsers グループのメンバーがDBにいるか
 // traQIDをもとに探す
 // いないものは警告なしに消す
@@ -117,7 +126,7 @@ func (g *Group) verifyMembers() error {
 	for _, v := range g.Members {
 		memberSlice = append(memberSlice, v.ID)
 	}
-	if err := DB.Where(memberSlice).Find(&g.Members).Error; err != nil {
+	if err := DB.Debug().Where(memberSlice).Find(&g.Members).Error; err != nil {
 		dbErrorLog(err)
 		return err
 	}

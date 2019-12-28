@@ -60,9 +60,11 @@ type Group struct {
 	Model
 	Name        string    `json:"name" gorm:"type:varchar(32);not null"`
 	Description string    `json:"description" gorm:"type:varchar(1024)"`
-	Members     []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
-	CreatedBy   uuid.UUID `json:"created_by" gorm:"type:char(36);"`
+	ImageID     string    `json:"image_id"`
 	JoinFreely  bool      `json:"join_freely"`
+	Members     []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
+	IsTraQGroup bool      `json:"is_traQ_group" gorm:"-"`
+	CreatedBy   uuid.UUID `json:"created_by" gorm:"type:char(36);"`
 }
 
 // Event 予約情報
