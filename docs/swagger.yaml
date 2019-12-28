@@ -72,7 +72,7 @@ paths:
       tags:
         - rooms
       summary: 各自の部屋の情報追加
-      operationId: addrooms
+      operationId: addprivaterooms
       requestBody:
           $ref: "#/components/requestBodies/Room"
       responses:
@@ -556,7 +556,7 @@ paths:
             format: uuid
       tags:
         - images
-      operationId: uploadImage
+      operationId: getImage
       description: 画像をアップロードします
       responses:
         "200":
@@ -959,3 +959,4 @@ components:
 externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
+
