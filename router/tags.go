@@ -10,13 +10,13 @@ import (
 type tagAddDelete interface {
 	Read() error
 	// add unlocked tag
-	AddTag(tagName string, locked bool) error
+	AddTag(tagID uuid.UUID, locked bool) error
 	// delete unlocked tag
 	DeleteTag(tagID uuid.UUID) error
 }
 
-func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uuid.UUID, tagName string) error {
-	if err := tad.AddTag(tagName, false); err != nil {
+func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uuid.UUID, tagID uuid.UUID) error {
+	if err := tad.AddTag(tagID, false); err != nil {
 		return judgeErrorResponse(err)
 	}
 

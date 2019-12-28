@@ -80,9 +80,12 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		id := c.Request().Header.Get("X-Showcase-User")
 		if len(id) == 0 || id == "-" {
 			// test用
-			id = "fuji"
+			id = "c3f29c92-23d8-48f5-9553-002a932afeaf"
 		}
-		userID, _ := uuid.FromString(id)
+		userID, err := uuid.FromString(id)
+		if err != nil {
+			return internalServerError()
+		}
 		user, err := repo.GetUser(userID)
 		if err != nil {
 			return internalServerError()
@@ -120,7 +123,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil || g.ID == uuid.Nil {
 			internalServerError()
 		}
-		IsVerigy, err := verifyCreatedUser(g, requestUser.ID)
+		IsVerigy, err := verifyCreatedUser(g, requestUser.UserID)
 		if err != nil {
 			return internalServerError()
 		}
@@ -146,7 +149,7 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return internalServerError()
 		}
 
-		IsVerigy, err := verifyCreatedUser(event, requestUser.ID)
+		IsVerigy, err := verifyCreatedUser(event, requestUser.UserID)
 		if err != nil {
 			if gorm.IsRecordNotFoundError(err) {
 				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))

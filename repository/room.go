@@ -19,6 +19,15 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
+// BeforeCreate is gorm hook
+func (r *Room) BeforeCreate() (err error) {
+	r.ID, err = uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func FindRooms(values url.Values) ([]Room, error) {
 	rooms := []Room{}
 	cmd := DB

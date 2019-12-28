@@ -42,7 +42,7 @@ func (e *Event) Create() error {
 	}
 	// Todo transaction
 	for _, v := range e.Tags {
-		err := e.AddTag(v.Name, v.Locked)
+		err := e.AddTag(v.ID, v.Locked)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -108,7 +108,7 @@ func (e *Event) Update() error {
 	}
 	// Todo transaction
 	for _, v := range e.Tags {
-		err := e.AddTag(v.Name, v.Locked)
+		err := e.AddTag(v.ID, v.Locked)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -129,6 +129,15 @@ func (e *Event) Delete() error {
 	}
 	if err := DB.Debug().Delete(&e).Error; err != nil {
 		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
+// BeforeCreate is gorm hook
+func (e *Event) BeforeCreate() (err error) {
+	e.ID, err = uuid.NewV4()
+	if err != nil {
 		return err
 	}
 	return nil
@@ -211,9 +220,9 @@ func (rv *Event) GetCreatedBy() (uuid.UUID, error) {
 }
 
 // AddTag add tag
-func (e *Event) AddTag(tagName string, locked bool) error {
+func (e *Event) AddTag(tagID uuid.UUID, locked bool) error {
 	tag := new(Tag)
-	tag.Name = tagName
+	tag.ID = tagID
 
 	if err := MatchTag(tag, "event"); err != nil {
 		return err
