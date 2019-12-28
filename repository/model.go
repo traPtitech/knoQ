@@ -62,7 +62,6 @@ type Group struct {
 	Description string    `json:"description" gorm:"type:varchar(1024)"`
 	Members     []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
 	CreatedBy   uuid.UUID `json:"created_by" gorm:"type:char(36);"`
-	Tags        []Tag     `json:"tags" gorm:"many2many:group_tags; save_associations:false"`
 	JoinFreely  bool      `json:"join_freely"`
 }
 

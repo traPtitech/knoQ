@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	repo "room/repository"
-	"strconv"
 
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo/v4"
@@ -130,8 +130,8 @@ func HandleDeleteEventTag(c echo.Context) error {
 	if err != nil {
 		internalServerError()
 	}
-	eventTag.TagID, err = strconv.ParseUint(c.Param("tagid"), 10, 64)
-	if err != nil || eventTag.TagID == 0 {
+	eventTag.TagID, err = uuid.FromString(c.Param("tagid"))
+	if err != nil || eventTag.TagID == uuid.Nil {
 		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
 	}
 

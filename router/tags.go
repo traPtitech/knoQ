@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 
+	"github.com/gofrs/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -11,10 +12,10 @@ type tagAddDelete interface {
 	// add unlocked tag
 	AddTag(tagName string, locked bool) error
 	// delete unlocked tag
-	DeleteTag(tagID uint64) error
+	DeleteTag(tagID uuid.UUID) error
 }
 
-func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uint64, tagName string) error {
+func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uuid.UUID, tagName string) error {
 	if err := tad.AddTag(tagName, false); err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -25,7 +26,7 @@ func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uint64, tagName s
 	return c.JSON(http.StatusOK, tad)
 }
 
-func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uint64) error {
+func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uuid.UUID) error {
 	if err := tad.DeleteTag(tagID); err != nil {
 		return judgeErrorResponse(err)
 	}

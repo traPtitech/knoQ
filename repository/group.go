@@ -8,7 +8,6 @@ import (
 )
 
 func (g *Group) Create() error {
-	g.ID = 0
 	tx := DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -36,15 +35,6 @@ func (g *Group) Create() error {
 		tx.Rollback()
 		dbErrorLog(err)
 		return err
-	}
-
-	// Todo transaction
-	for _, v := range g.Tags {
-		err := g.AddTag(v.Name, v.Locked)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
 	}
 
 	return tx.Commit().Error
@@ -99,20 +89,12 @@ func (g *Group) Update() error {
 		tx.Rollback()
 		return err
 	}
-	// Todo transaction
-	for _, v := range g.Tags {
-		err := g.AddTag(v.Name, v.Locked)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
 
 	return tx.Commit().Error
 }
 
 func (g *Group) Delete() error {
-	if g.ID == 0 {
+	if g.ID == uuid.Nil {
 		err := errors.New("ID=0. You want to Delete All ?")
 		dbErrorLog(err)
 		return err
@@ -143,11 +125,10 @@ func (g *Group) verifyMembers() error {
 }
 
 // CheckBelongToGroup ユーザーが予約したグループに属しているか調べます
-func CheckBelongToGroup(reservationID int, traQID uuid.UUID) (bool, error) {
+func CheckBelongToGroup(reservationID uuid.UUID, traQID uuid.UUID) (bool, error) {
 	rv := new(Event)
 	g := new(Group)
-	// tmp
-	rv.ID = uint64(reservationID)
+	rv.ID = reservationID
 	if err := DB.First(&rv, rv.ID).Error; err != nil {
 		return false, err
 	}
@@ -193,13 +174,13 @@ func FindGroups(values url.Values) ([]Group, error) {
 	return groups, nil
 }
 
-func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {
+func GetGroupIDsBytraQID(traqID string) ([]uuid.UUID, error) {
 	groups := []Group{}
 	// traqIDが存在するグループを取得
 	if err := DB.Raw("SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id =  ?", traqID).Scan(&groups).Error; err != nil {
 		return nil, err
 	}
-	groupsID := make([]uint64, len(groups))
+	groupsID := make([]uuid.UUID, len(groups))
 	for i, g := range groups {
 		groupsID[i] = g.ID
 	}
@@ -207,7 +188,7 @@ func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {
 }
 
 // AddRelation add members and created_by by GroupID
-func (group *Group) AddRelation(GroupID uint64) error {
+func (group *Group) AddRelation(GroupID uuid.UUID) error {
 	if err := DB.First(&group, GroupID).Related(&group.Members, "Members").Error; err != nil {
 		return err
 	}
@@ -223,6 +204,7 @@ func (group *Group) GetCreatedBy() (uuid.UUID, error) {
 }
 
 // AddTag add tag
+/*
 func (g *Group) AddTag(tagName string, locked bool) error {
 	tag := new(Tag)
 	tag.Name = tagName
@@ -237,7 +219,7 @@ func (g *Group) AddTag(tagName string, locked bool) error {
 }
 
 // DeleteTag delete unlocked tag.
-func (g *Group) DeleteTag(tagID uint64) error {
+func (g *Group) DeleteTag(tagID uuid.UUID) error {
 	groupTag := new(GroupTag)
 	groupTag.TagID = tagID
 	groupTag.GroupID = g.ID
@@ -252,6 +234,7 @@ func (g *Group) DeleteTag(tagID uint64) error {
 	}
 	return nil
 }
+*/
 
 func (g *Group) AddMember(userID uuid.UUID) error {
 	user := new(User)

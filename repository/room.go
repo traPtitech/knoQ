@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -235,7 +236,7 @@ func GetEvents() ([]Room, error) {
 				return nil, err
 			}
 			// 被りはIDが0で返ってくるらしい
-			if room.ID != 0 {
+			if room.ID != uuid.Nil {
 				rooms = append(rooms, room)
 			}
 

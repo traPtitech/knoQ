@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	repo "room/repository"
-	"strconv"
 
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo/v4"
@@ -36,7 +36,7 @@ func HandleSetRooms(c echo.Context) error {
 // HandleGetRoom get one room
 func HandleGetRoom(c echo.Context) error {
 	r := new(repo.Room)
-	r.ID, _ = strconv.ParseUint(c.Param("roomid"), 10, 64)
+	r.ID, _ = uuid.FromString(c.Param("roomid"))
 
 	if err := r.Read(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -63,7 +63,7 @@ func HandleGetRooms(c echo.Context) error {
 // HandleDeleteRoom traPで確保した部屋情報を削除
 func HandleDeleteRoom(c echo.Context) error {
 	r := new(repo.Room)
-	r.ID, _ = strconv.ParseUint(c.Param("roomid"), 10, 64)
+	r.ID, _ = uuid.FromString(c.Param("roomid"))
 
 	if err := repo.DB.First(&r, r.ID).Error; err != nil {
 		return notFound(message(fmt.Sprintf("RoomID: %v does not exist.", r.ID)))

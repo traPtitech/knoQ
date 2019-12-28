@@ -117,7 +117,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		g := new(repo.Group)
 		var err error
 		g.ID, err = getRequestGroupID(c)
-		if err != nil || g.ID == 0 {
+		if err != nil || g.ID == uuid.Nil {
 			internalServerError()
 		}
 		IsVerigy, err := verifyCreatedUser(g, requestUser.ID)
@@ -168,8 +168,8 @@ func EventIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		event := new(repo.Event)
 		var err error
-		event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
-		if err != nil || event.ID == 0 {
+		event.ID, err = uuid.FromString(c.Param("eventid"))
+		if err != nil || event.ID == uuid.Nil {
 			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
 		}
 		if err := repo.DB.Select("id").First(&event).Error; err != nil {
@@ -188,8 +188,8 @@ func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		group := new(repo.Group)
 		var err error
-		group.ID, err = strconv.ParseUint(c.Param("groupid"), 10, 64)
-		if err != nil || group.ID == 0 {
+		group.ID, err = uuid.FromString(c.Param("groupid"))
+		if err != nil || group.ID == uuid.Nil {
 			return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
 		}
 		if err := repo.DB.Select("id").First(&group).Error; err != nil {
@@ -223,19 +223,19 @@ func getRequestUser(c echo.Context) repo.User {
 }
 
 // getRequestEventID :eventidを返します
-func getRequestEventID(c echo.Context) (uint64, error) {
-	eventID, ok := c.Get("EventID").(uint64)
+func getRequestEventID(c echo.Context) (uuid.UUID, error) {
+	eventID, ok := c.Get("EventID").(uuid.UUID)
 	if !ok {
-		return 0, errors.New("EventID is not set")
+		return uuid.Nil, errors.New("EventID is not set")
 	}
 	return eventID, nil
 }
 
 // getRequestGroupID :groupidを返します
-func getRequestGroupID(c echo.Context) (uint64, error) {
-	groupID, ok := c.Get("GroupID").(uint64)
+func getRequestGroupID(c echo.Context) (uuid.UUID, error) {
+	groupID, ok := c.Get("GroupID").(uuid.UUID)
 	if !ok {
-		return 0, errors.New("GroupID is not set")
+		return uuid.Nil, errors.New("GroupID is not set")
 	}
 	return groupID, nil
 }

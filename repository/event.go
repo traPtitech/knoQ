@@ -10,7 +10,6 @@ import (
 )
 
 func (e *Event) Create() error {
-	e.ID = 0
 	// groupが存在するかチェックし依存関係を追加する
 	if err := e.Group.Read(); err != nil {
 		return err
@@ -120,7 +119,7 @@ func (e *Event) Update() error {
 }
 
 func (e *Event) Delete() error {
-	if e.ID == 0 {
+	if uuid.Nil == e.ID {
 		err := errors.New("ID=0. You want to Delete All ?")
 		dbErrorLog(err)
 		return err
@@ -182,12 +181,6 @@ func FindEvents(values url.Values) ([]Event, error) {
 	return events, nil
 }
 
-func (e *Event) AfterFind() (err error) {
-	e.GroupID = 0
-	e.RoomID = 0
-	return
-}
-
 // TimeConsistency 時間が部屋の範囲内か、endがstartの後か
 // available time か確認する
 func (e *Event) TimeConsistency() error {
@@ -232,7 +225,7 @@ func (e *Event) AddTag(tagName string, locked bool) error {
 }
 
 // DeleteTag delete unlocked tag.
-func (e *Event) DeleteTag(tagID uint64) error {
+func (e *Event) DeleteTag(tagID uuid.UUID) error {
 	eventTag := new(EventTag)
 	eventTag.TagID = tagID
 	eventTag.EventID = e.ID
