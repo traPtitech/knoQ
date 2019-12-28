@@ -7,7 +7,7 @@ import (
 
 // Model is defalut
 type Model struct {
-	ID        uint64 `gorm:"primary_key"`
+	ID        uuid.UUID `gorm:"type:char(36);primary_key"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time `sql:"index"`
@@ -22,14 +22,14 @@ type StartEndTime struct {
 // User traQユーザー情報構造体
 type User struct {
 	// ID traQID
-	ID uuid.UUID `json:"traq_id" gorm:"type:varchar(32);primary_key"`
+	ID uuid.UUID `json:"traq_id" gorm:"type:char(36);primary_key"`
 	// Admin 管理者かどうか
-	Admin bool `gorm:"not null"`
+	Admin bool `json:"admin" gorm:"not null"`
 }
 
 // Tag Room Group Event have tags
 type Tag struct {
-	ID       uint64 `json:"id"`
+	Model
 	Name     string `json:"name"`
 	Official bool   `json:"official"`
 	Locked   bool   `json:"locked" gorm:"-"`
@@ -40,15 +40,8 @@ type Tag struct {
 
 // EventTag is many to many table
 type EventTag struct {
-	TagID   uint64 `gorm:"primary_key"`
-	EventID uint64 `gorm:"primary_key"`
-	Locked  bool
-}
-
-// GroupTag is many to many table
-type GroupTag struct {
-	TagID   uint64 `gorm:"primary_key"`
-	GroupID uint64 `gorm:"primary_key"`
+	TagID   uuid.UUID `gorm:"type:char(36);primary_key"`
+	EventID uuid.UUID `gorm:"type:char(36);primary_key"`
 	Locked  bool
 }
 
@@ -68,7 +61,7 @@ type Group struct {
 	Name        string    `json:"name" gorm:"type:varchar(32);not null"`
 	Description string    `json:"description" gorm:"type:varchar(1024)"`
 	Members     []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
-	CreatedBy   uuid.UUID `json:"created_by" gorm:"type:varchar(32);"`
+	CreatedBy   uuid.UUID `json:"created_by" gorm:"type:char(36);"`
 	Tags        []Tag     `json:"tags" gorm:"many2many:group_tags; save_associations:false"`
 	JoinFreely  bool      `json:"join_freely"`
 }
@@ -78,13 +71,13 @@ type Event struct {
 	Model
 	Name          string    `json:"name" gorm:"type:varchar(32); not null"`
 	Description   string    `json:"description" gorm:"type:varchar(1024)"`
-	GroupID       uint64    `json:"group_id,omitempty" gorm:"not null"`
+	GroupID       uuid.UUID `json:"group_id" gorm:"type:char(36);not null"`
 	Group         Group     `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
-	RoomID        uint64    `json:"room_id,omitempty" gorm:"not null"`
+	RoomID        uuid.UUID `json:"room_id" gorm:"type:char(36);not null"`
 	Room          Room      `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
 	TimeStart     string    `json:"time_start" gorm:"type:TIME"`
 	TimeEnd       string    `json:"time_end" gorm:"type:TIME"`
-	CreatedBy     uuid.UUID `json:"created_by" gorm:"type:varchar(32);"`
+	CreatedBy     uuid.UUID `json:"created_by" gorm:"type:char(36);"`
 	AllowTogether bool      `json:"allow_together"`
 	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; save_associations:false"`
 }
