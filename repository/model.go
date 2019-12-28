@@ -22,7 +22,7 @@ type StartEndTime struct {
 // User traQユーザー情報構造体
 type User struct {
 	// ID traQID
-	ID uuid.UUID `json:"traq_id" gorm:"type:char(36);primary_key"`
+	ID uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
 	// Admin 管理者かどうか
 	Admin bool `json:"admin" gorm:"not null"`
 }

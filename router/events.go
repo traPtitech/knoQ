@@ -119,7 +119,7 @@ func HandleAddEventTag(c echo.Context) error {
 		return internalServerError()
 	}
 
-	return handleAddTagRelation(c, event, event.ID, tag.Name)
+	return handleAddTagRelation(c, event, event.ID, tag.ID)
 }
 
 func HandleDeleteEventTag(c echo.Context) error {

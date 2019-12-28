@@ -123,7 +123,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil || g.ID == uuid.Nil {
 			internalServerError()
 		}
-		IsVerigy, err := verifyCreatedUser(g, requestUser.UserID)
+		IsVerigy, err := verifyCreatedUser(g, requestUser.ID)
 		if err != nil {
 			return internalServerError()
 		}
@@ -149,7 +149,7 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return internalServerError()
 		}
 
-		IsVerigy, err := verifyCreatedUser(event, requestUser.UserID)
+		IsVerigy, err := verifyCreatedUser(event, requestUser.ID)
 		if err != nil {
 			if gorm.IsRecordNotFoundError(err) {
 				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
