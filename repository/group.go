@@ -2,9 +2,9 @@ package repository
 
 import (
 	"errors"
-	"github.com/gofrs/uuid"
 	"net/url"
-	"strconv"
+
+	"github.com/gofrs/uuid"
 )
 
 func (g *Group) Create() error {
@@ -84,12 +84,6 @@ func (g *Group) Update() error {
 		return err
 	}
 
-	// delete now all tags
-	if err := tx.Model(&nowGroup).Association("Tags").Clear().Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	return tx.Commit().Error
 }
 
@@ -156,20 +150,11 @@ func CheckBelongToGroup(reservationID uuid.UUID, traQID uuid.UUID) (bool, error)
 
 func FindGroups(values url.Values) ([]Group, error) {
 	groups := []Group{}
-	cmd := DB.Preload("Members").Preload("Tags")
+	cmd := DB.Preload("Members")
 
-	if values.Get("id") != "" {
-		id, _ := strconv.Atoi(values.Get("id"))
-		cmd = cmd.Where("id = ?", id)
-	}
-
-	if values.Get("name") != "" {
-		cmd = cmd.Where("name LIKE ?", "%"+values.Get("name")+"%")
-	}
-
-	if values.Get("traQID") != "" {
-		// traqIDが存在するグループを取得
-		groupsID, err := GetGroupIDsBytraQID(values.Get("traQID"))
+	if values.Get("userID") != "" {
+		// userIDが存在するグループを取得
+		groupsID, err := GetGroupIDsBytraQID(values.Get("userID"))
 		if err != nil {
 			return nil, err
 		}

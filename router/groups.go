@@ -30,7 +30,11 @@ func HandlePostGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusCreated, g)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusCreated, res)
 }
 
 // HandleGetGroup グループを一件取得
@@ -47,8 +51,11 @@ func HandleGetGroup(c echo.Context) error {
 		}
 		return internalServerError()
 	}
-	g, _ := formatGroupRes(group)
-	return c.JSON(http.StatusOK, g)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleGetGroups グループを取得
@@ -60,8 +67,12 @@ func HandleGetGroups(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	res, err := formatGroupsRes(groups)
+	if err != nil {
+		return internalServerError()
+	}
 
-	return c.JSON(http.StatusOK, groups)
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleDeleteGroup グループを削除
@@ -102,7 +113,11 @@ func HandleUpdateGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, group)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, res)
 }
 
 /*
@@ -161,7 +176,11 @@ func HandleAddMeGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, group)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, res)
 }
 
 func HandleDeleteMeGroup(c echo.Context) error {
@@ -187,6 +206,9 @@ func HandleDeleteMeGroup(c echo.Context) error {
 	if err := group.Read(); err != nil {
 		return internalServerError()
 	}
-
-	return c.JSON(http.StatusOK, group)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, res)
 }
