@@ -1,8 +1,9 @@
 package repository
 
 import (
-	"github.com/gofrs/uuid"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 // Model is defalut
@@ -53,6 +54,7 @@ type Room struct {
 }
 
 // Group グループ情報
+// Group is not user JSON
 type Group struct {
 	Model
 	Name        string    `json:"name" gorm:"type:varchar(32);not null"`
