@@ -7,10 +7,10 @@ import (
 
 // Model is defalut
 type Model struct {
-	ID        uuid.UUID `gorm:"type:char(36);primary_key"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time `sql:"index"`
+	ID        uuid.UUID  `json:"id" gorm:"type:char(36);primary_key"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"update_at"`
+	DeletedAt *time.Time `json:"-" sql:"index"`
 }
 
 // StartEndTime has start and end time
@@ -70,9 +70,9 @@ type Event struct {
 	Name          string    `json:"name" gorm:"type:varchar(32); not null"`
 	Description   string    `json:"description" gorm:"type:varchar(1024)"`
 	GroupID       uuid.UUID `json:"group_id" gorm:"type:char(36);not null"`
-	Group         Group     `json:"group" gorm:"foreignkey:group_id; save_associations:false"`
+	Group         Group     `json:"-" gorm:"foreignkey:group_id; save_associations:false"`
 	RoomID        uuid.UUID `json:"room_id" gorm:"type:char(36);not null"`
-	Room          Room      `json:"room" gorm:"foreignkey:room_id; save_associations:false"`
+	Room          Room      `json:"-" gorm:"foreignkey:room_id; save_associations:false"`
 	TimeStart     string    `json:"time_start" gorm:"type:TIME"`
 	TimeEnd       string    `json:"time_end" gorm:"type:TIME"`
 	CreatedBy     uuid.UUID `json:"created_by" gorm:"type:char(36);"`
