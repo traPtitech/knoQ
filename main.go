@@ -96,6 +96,12 @@ func main() {
 			apiUsers.GET("", router.HandleGetUsers)
 			apiUsers.GET("/me", router.HandleGetUserMe)
 		}
+
+		apiTags := api.Group("/tags")
+		{
+			apiTags.POST("", router.HandlePostTag)
+			apiTags.GET("", router.HandleGetTags)
+		}
 	}
 
 	// サーバースタート

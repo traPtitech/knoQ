@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	repo "room/repository"
 
 	"github.com/gofrs/uuid"
 	"github.com/labstack/echo/v4"
@@ -35,4 +36,28 @@ func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uuid.UUID) 
 	}
 	return c.JSON(http.StatusOK, tad)
 
+}
+
+func HandlePostTag(c echo.Context) error {
+	tag := new(repo.Tag)
+	if err := c.Bind(tag); err != nil {
+		return badRequest()
+	}
+
+	tag.Official = false
+
+	if err := tag.Create(); err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	return c.JSON(http.StatusOK, &tag)
+}
+
+func HandleGetTags(c echo.Context) error {
+	tags, err := repo.FindTags()
+	if err != nil {
+		return internalServerError()
+	}
+
+	return c.JSON(http.StatusOK, tags)
 }

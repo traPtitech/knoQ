@@ -30,7 +30,7 @@ type User struct {
 // Tag Room Group Event have tags
 type Tag struct {
 	Model
-	Name     string `json:"name"`
+	Name     string `json:"name" gorm:"unique"`
 	Official bool   `json:"official"`
 	Locked   bool   `json:"locked" gorm:"-"`
 }

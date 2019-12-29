@@ -1,5 +1,38 @@
 package repository
 
+import "github.com/gofrs/uuid"
+
+import "strings"
+
+func (t *Tag) Create() error {
+	t.Name = strings.ToLower(t.Name)
+
+	if err := DB.Create(&t).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
+// FindTags return all tags
+func FindTags() ([]Tag, error) {
+	tags := []Tag{}
+	if err := DB.First(&tags).Error; err != nil {
+		dbErrorLog(err)
+		return nil, err
+	}
+	return tags, nil
+}
+
+// BeforeCreate is gorm hook
+func (t *Tag) BeforeCreate() (err error) {
+	t.ID, err = uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 /*
 func MatchTags(tags []Tag, attr string) error {
 	for i := range tags {
