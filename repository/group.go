@@ -19,19 +19,13 @@ func (g *Group) Create() error {
 		dbErrorLog(err)
 		return err
 	}
-	err := tx.Set("gorm:association_save_reference", false).Create(&g).Error
-	if err != nil {
-		tx.Rollback()
-		dbErrorLog(err)
-		return err
-	}
-	//err = g.verifyMembers()
+	err := g.verifyMembers()
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-
-	if err := tx.Debug().Model(&g).Association("Members").Append(g.Members).Error; err != nil {
+	err = tx.Set("gorm:save_associations", false).Create(&g).Error
+	if err != nil {
 		tx.Rollback()
 		dbErrorLog(err)
 		return err
@@ -120,7 +114,8 @@ func (g *Group) verifyMembers() error {
 	for _, v := range g.Members {
 		memberSlice = append(memberSlice, v.ID)
 	}
-	if err := DB.Debug().Where(memberSlice).Find(&g.Members).Error; err != nil {
+	g.Members = nil
+	if err := DB.Debug().Where("id IN (?)", memberSlice).Find(&g.Members).Error; err != nil {
 		dbErrorLog(err)
 		return err
 	}
