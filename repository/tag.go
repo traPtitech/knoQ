@@ -1,11 +1,6 @@
 package repository
 
-import (
-	"errors"
-
-	"github.com/jinzhu/gorm"
-)
-
+/*
 func MatchTags(tags []Tag, attr string) error {
 	for i := range tags {
 		tag := &tags[i]
@@ -15,8 +10,10 @@ func MatchTags(tags []Tag, attr string) error {
 	}
 	return nil
 }
+*/
 
 // MatchTag なければ $attr = true で作成、あっても $attr = true に更新
+/*
 func MatchTag(tag *Tag, attr string) error {
 	createTag, attrFlag, updateAttr, err := judgeTagAttr(*tag, attr)
 	if err != nil {
@@ -44,7 +41,9 @@ func MatchTag(tag *Tag, attr string) error {
 	}
 	return nil
 }
+*/
 
+/*
 func judgeTagAttr(tag Tag, attr string) (createTag Tag, attrFlag bool, updateAttr map[string]interface{}, err error) {
 	switch attr {
 	case "event":
@@ -64,3 +63,4 @@ func judgeTagAttr(tag Tag, attr string) (createTag Tag, attrFlag bool, updateAtt
 	}
 	return
 }
+*/

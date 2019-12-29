@@ -224,9 +224,6 @@ func (e *Event) AddTag(tagID uuid.UUID, locked bool) error {
 	tag := new(Tag)
 	tag.ID = tagID
 
-	if err := MatchTag(tag, "event"); err != nil {
-		return err
-	}
 	if err := DB.Create(&EventTag{EventID: e.ID, TagID: tag.ID, Locked: locked}).Error; err != nil {
 		return err
 	}

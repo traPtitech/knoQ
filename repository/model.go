@@ -33,9 +33,6 @@ type Tag struct {
 	Name     string `json:"name"`
 	Official bool   `json:"official"`
 	Locked   bool   `json:"locked" gorm:"-"`
-	ForRoom  bool   `json:"for_room"`
-	ForGroup bool   `json:"for_group"`
-	ForEvent bool   `json:"for_event"`
 }
 
 // EventTag is many to many table
