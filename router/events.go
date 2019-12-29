@@ -27,8 +27,11 @@ func HandlePostEvent(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-
-	return c.JSON(http.StatusCreated, event)
+	res, err := formatEventRes(event)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusCreated, res)
 }
 
 // HandleGetEvent get one event
@@ -46,7 +49,12 @@ func HandleGetEvent(c echo.Context) error {
 		}
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, event)
+	res, err := formatEventRes(event)
+	if err != nil {
+		return internalServerError()
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleGetEvents 部屋の使用宣言情報を取得
@@ -59,8 +67,12 @@ func HandleGetEvents(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
+	res, err := formatEventsRes(events)
+	if err != nil {
+		return internalServerError()
+	}
 
-	return c.JSON(http.StatusOK, events)
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleDeleteEvent 部屋の使用宣言を削除
@@ -103,8 +115,12 @@ func HandleUpdateEvent(c echo.Context) error {
 		}
 		return internalServerError()
 	}
+	res, err := formatEventRes(event)
+	if err != nil {
+		return internalServerError()
+	}
 
-	return c.JSON(http.StatusOK, event)
+	return c.JSON(http.StatusOK, res)
 }
 
 func HandleAddEventTag(c echo.Context) error {
