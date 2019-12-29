@@ -17,6 +17,9 @@ type tagAddDelete interface {
 }
 
 func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uuid.UUID, tagID uuid.UUID) error {
+	if tagID == uuid.Nil {
+		return badRequest(message("tagID is nil"))
+	}
 	if err := tad.AddTag(tagID, false); err != nil {
 		return judgeErrorResponse(err)
 	}

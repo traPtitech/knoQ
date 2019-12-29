@@ -223,7 +223,10 @@ func (rv *Event) GetCreatedBy() (uuid.UUID, error) {
 func (e *Event) AddTag(tagID uuid.UUID, locked bool) error {
 	tag := new(Tag)
 	tag.ID = tagID
-
+	if err := DB.First(&tag).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
 	if err := DB.Create(&EventTag{EventID: e.ID, TagID: tag.ID, Locked: locked}).Error; err != nil {
 		return err
 	}
