@@ -84,7 +84,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		userID, err := uuid.FromString(id)
 		if err != nil {
-			return internalServerError()
+			return forbidden(message("401"))
 		}
 		user, err := repo.GetUser(userID)
 		if err != nil {
