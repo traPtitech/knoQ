@@ -9,10 +9,12 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 
 	"go.uber.org/zap"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 )
 
@@ -77,21 +79,17 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id := c.Request().Header.Get("X-Showcase-User")
-		if len(id) == 0 || id == "-" {
-			// test用
-			id = "c3f29c92-23d8-48f5-9553-002a932afeaf"
+		sess, _ := session.Get("r_session", c)
+		sess.Options = &sessions.Options{
+			Path:     "/",
+			MaxAge:   86400 * 7,
+			HttpOnly: true,
 		}
-		userID, err := uuid.FromString(id)
-		if err != nil {
-			return forbidden(message("401"))
-		}
-		user, err := repo.GetUser(userID)
-		if err != nil {
-			return internalServerError()
-		}
-		c.Set(requestUserStr, user)
-		err = next(c)
+		sess.Values["foo"] = "bar"
+		sess.Save(c.Request(), c.Response())
+		// c.Set(requestUserStr, user)
+		err := next(c)
+		fmt.Println(sess.Store().Get(c.Request(), "r_session"))
 		return err
 	}
 }

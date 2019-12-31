@@ -14,6 +14,9 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 )
 
 func main() {
@@ -35,6 +38,7 @@ func main() {
 	}))
 	logger, _ := zap.NewDevelopment()
 	e.Use(router.AccessLoggingMiddleware(logger))
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 
 	// headerの追加のため
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
