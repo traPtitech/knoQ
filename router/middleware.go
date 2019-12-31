@@ -101,9 +101,13 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				MaxAge:   86400 * 7,
 				HttpOnly: true,
 			}
-			sess.Values[echo.HeaderAuthorization] = ah
+			// Todo sessionで直接持つのはやばい
+			// 検証コストが無駄に高い
+			// dbに入れる
+			// sess.Values[echo.HeaderAuthorization] = ah
+
 			sess.Values["uuid"] = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-			sess.Values["admin"] = true
+			// sess.Values["admin"] = true
 			sess.Save(c.Request(), c.Response())
 
 		} else {
