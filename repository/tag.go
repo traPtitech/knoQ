@@ -1,11 +1,39 @@
 package repository
 
-import (
-	"errors"
+import "github.com/gofrs/uuid"
 
-	"github.com/jinzhu/gorm"
-)
+import "strings"
 
+func (t *Tag) Create() error {
+	t.Name = strings.ToLower(t.Name)
+
+	if err := DB.Create(&t).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
+// FindTags return all tags
+func FindTags() ([]Tag, error) {
+	tags := []Tag{}
+	if err := DB.First(&tags).Error; err != nil {
+		dbErrorLog(err)
+		return nil, err
+	}
+	return tags, nil
+}
+
+// BeforeCreate is gorm hook
+func (t *Tag) BeforeCreate() (err error) {
+	t.ID, err = uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/*
 func MatchTags(tags []Tag, attr string) error {
 	for i := range tags {
 		tag := &tags[i]
@@ -15,8 +43,10 @@ func MatchTags(tags []Tag, attr string) error {
 	}
 	return nil
 }
+*/
 
 // MatchTag なければ $attr = true で作成、あっても $attr = true に更新
+/*
 func MatchTag(tag *Tag, attr string) error {
 	createTag, attrFlag, updateAttr, err := judgeTagAttr(*tag, attr)
 	if err != nil {
@@ -44,7 +74,9 @@ func MatchTag(tag *Tag, attr string) error {
 	}
 	return nil
 }
+*/
 
+/*
 func judgeTagAttr(tag Tag, attr string) (createTag Tag, attrFlag bool, updateAttr map[string]interface{}, err error) {
 	switch attr {
 	case "event":
@@ -64,3 +96,4 @@ func judgeTagAttr(tag Tag, attr string) (createTag Tag, attrFlag bool, updateAtt
 	}
 	return
 }
+*/

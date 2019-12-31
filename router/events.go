@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	repo "room/repository"
-	"strconv"
 
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo/v4"
@@ -21,14 +21,17 @@ func HandlePostEvent(c echo.Context) error {
 	event.Group.ID = event.GroupID
 	event.Room.ID = event.RoomID
 
-	event.CreatedBy = getRequestUser(c).TRAQID
+	event.CreatedBy = getRequestUser(c).ID
 
 	err := event.Create()
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-
-	return c.JSON(http.StatusCreated, event)
+	res, err := formatEventRes(event)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusCreated, res)
 }
 
 // HandleGetEvent get one event
@@ -46,7 +49,12 @@ func HandleGetEvent(c echo.Context) error {
 		}
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, event)
+	res, err := formatEventRes(event)
+	if err != nil {
+		return internalServerError()
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleGetEvents 部屋の使用宣言情報を取得
@@ -59,8 +67,12 @@ func HandleGetEvents(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
+	res, err := formatEventsRes(events)
+	if err != nil {
+		return internalServerError()
+	}
 
-	return c.JSON(http.StatusOK, events)
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleDeleteEvent 部屋の使用宣言を削除
@@ -103,8 +115,12 @@ func HandleUpdateEvent(c echo.Context) error {
 		}
 		return internalServerError()
 	}
+	res, err := formatEventRes(event)
+	if err != nil {
+		return internalServerError()
+	}
 
-	return c.JSON(http.StatusOK, event)
+	return c.JSON(http.StatusOK, res)
 }
 
 func HandleAddEventTag(c echo.Context) error {
@@ -119,7 +135,7 @@ func HandleAddEventTag(c echo.Context) error {
 		return internalServerError()
 	}
 
-	return handleAddTagRelation(c, event, event.ID, tag.Name)
+	return handleAddTagRelation(c, event, event.ID, tag.ID)
 }
 
 func HandleDeleteEventTag(c echo.Context) error {
@@ -130,8 +146,8 @@ func HandleDeleteEventTag(c echo.Context) error {
 	if err != nil {
 		internalServerError()
 	}
-	eventTag.TagID, err = strconv.ParseUint(c.Param("tagid"), 10, 64)
-	if err != nil || eventTag.TagID == 0 {
+	eventTag.TagID, err = uuid.FromString(c.Param("tagid"))
+	if err != nil || eventTag.TagID == uuid.Nil {
 		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
 	}
 

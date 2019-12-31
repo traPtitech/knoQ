@@ -58,8 +58,8 @@ func main() {
 				apiGroup.PUT("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
 				apiGroup.DELETE("", router.HandleDeleteGroup, adminMiddle)
 
-				apiGroup.PATCH("/tags", router.HandleAddGroupTag)
-				apiGroup.DELETE("/tags/:tagid", router.HandleDeleteGroupTag)
+				// apiGroup.PATCH("/tags", router.HandleAddGroupTag)
+				// apiGroup.DELETE("/tags/:tagid", router.HandleDeleteGroupTag)
 
 				apiGroup.PATCH("/members/me", router.HandleAddMeGroup)
 				apiGroup.DELETE("/members/me", router.HandleDeleteMeGroup)
@@ -95,6 +95,12 @@ func main() {
 		{
 			apiUsers.GET("", router.HandleGetUsers)
 			apiUsers.GET("/me", router.HandleGetUserMe)
+		}
+
+		apiTags := api.Group("/tags")
+		{
+			apiTags.POST("", router.HandlePostTag)
+			apiTags.GET("", router.HandleGetTags)
 		}
 	}
 

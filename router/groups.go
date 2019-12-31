@@ -1,10 +1,8 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	repo "room/repository"
-	"strconv"
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
@@ -12,26 +10,31 @@ import (
 
 // HandlePostGroup グループを作成
 func HandlePostGroup(c echo.Context) error {
-	g := new(repo.Group)
+	g := new(GroupReq)
 
 	if err := c.Bind(&g); err != nil {
 		return badRequest(message(err.Error()))
 	}
+	group, _ := formatGroup(g)
 
-	g.CreatedBy = getRequestUser(c).TRAQID
+	group.CreatedBy = getRequestUser(c).ID
 
-	if err := g.Create(); err != nil {
+	if err := group.Create(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return badRequest()
 		}
 		return internalServerError()
 	}
 
-	if err := g.Read(); err != nil {
+	if err := group.Read(); err != nil {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusCreated, g)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusCreated, res)
 }
 
 // HandleGetGroup グループを一件取得
@@ -48,7 +51,11 @@ func HandleGetGroup(c echo.Context) error {
 		}
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, group)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleGetGroups グループを取得
@@ -60,8 +67,12 @@ func HandleGetGroups(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	res, err := formatGroupsRes(groups)
+	if err != nil {
+		return internalServerError()
+	}
 
-	return c.JSON(http.StatusOK, groups)
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleDeleteGroup グループを削除
@@ -102,9 +113,14 @@ func HandleUpdateGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, group)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, res)
 }
 
+/*
 func HandleAddGroupTag(c echo.Context) error {
 	tag := new(repo.Tag)
 	group := new(repo.Group)
@@ -128,13 +144,14 @@ func HandleDeleteGroupTag(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	groupTag.TagID, err = strconv.ParseUint(c.Param("tagid"), 10, 64)
+	groupTag.TagID, err = uuid.FromString(c.Param("tagid"), 10, 64)
 	if err != nil || groupTag.TagID == 0 {
 		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
 	}
 
 	return handleDeleteTagRelation(c, group, groupTag.TagID)
 }
+*/
 
 func HandleAddMeGroup(c echo.Context) error {
 	user := repo.User{}
@@ -152,14 +169,18 @@ func HandleAddMeGroup(c echo.Context) error {
 	}
 
 	user = getRequestUser(c)
-	if err := group.AddMember(user.TRAQID); err != nil {
+	if err := group.AddMember(user.ID); err != nil {
 		return judgeErrorResponse(err)
 	}
 	if err := group.Read(); err != nil {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, group)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, res)
 }
 
 func HandleDeleteMeGroup(c echo.Context) error {
@@ -178,13 +199,16 @@ func HandleDeleteMeGroup(c echo.Context) error {
 	}
 
 	user = getRequestUser(c)
-	if err := group.DeleteMember(user.TRAQID); err != nil {
+	if err := group.DeleteMember(user.ID); err != nil {
 		return judgeErrorResponse(err)
 	}
 
 	if err := group.Read(); err != nil {
 		return internalServerError()
 	}
-
-	return c.JSON(http.StatusOK, group)
+	res, err := formatGroupRes(group)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, res)
 }

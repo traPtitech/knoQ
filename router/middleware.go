@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 
 	"go.uber.org/zap"
@@ -19,7 +20,7 @@ const requestUserStr string = "Request-User"
 
 // CreatedByGetter get created user
 type CreatedByGetter interface {
-	GetCreatedBy() (string, error)
+	GetCreatedBy() (uuid.UUID, error)
 }
 
 func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
@@ -79,9 +80,13 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		id := c.Request().Header.Get("X-Showcase-User")
 		if len(id) == 0 || id == "-" {
 			// test用
-			id = "fuji"
+			id = "c3f29c92-23d8-48f5-9553-002a932afeaf"
 		}
-		user, err := repo.GetUser(id)
+		userID, err := uuid.FromString(id)
+		if err != nil {
+			return forbidden(message("401"))
+		}
+		user, err := repo.GetUser(userID)
 		if err != nil {
 			return internalServerError()
 		}
@@ -115,10 +120,10 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		g := new(repo.Group)
 		var err error
 		g.ID, err = getRequestGroupID(c)
-		if err != nil || g.ID == 0 {
+		if err != nil || g.ID == uuid.Nil {
 			internalServerError()
 		}
-		IsVerigy, err := verifyCreatedUser(g, requestUser.TRAQID)
+		IsVerigy, err := verifyCreatedUser(g, requestUser.ID)
 		if err != nil {
 			return internalServerError()
 		}
@@ -144,7 +149,7 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return internalServerError()
 		}
 
-		IsVerigy, err := verifyCreatedUser(event, requestUser.TRAQID)
+		IsVerigy, err := verifyCreatedUser(event, requestUser.ID)
 		if err != nil {
 			if gorm.IsRecordNotFoundError(err) {
 				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
@@ -166,8 +171,8 @@ func EventIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		event := new(repo.Event)
 		var err error
-		event.ID, err = strconv.ParseUint(c.Param("eventid"), 10, 64)
-		if err != nil || event.ID == 0 {
+		event.ID, err = uuid.FromString(c.Param("eventid"))
+		if err != nil || event.ID == uuid.Nil {
 			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
 		}
 		if err := repo.DB.Select("id").First(&event).Error; err != nil {
@@ -186,8 +191,8 @@ func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		group := new(repo.Group)
 		var err error
-		group.ID, err = strconv.ParseUint(c.Param("groupid"), 10, 64)
-		if err != nil || group.ID == 0 {
+		group.ID, err = uuid.FromString(c.Param("groupid"))
+		if err != nil || group.ID == uuid.Nil {
 			return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
 		}
 		if err := repo.DB.Select("id").First(&group).Error; err != nil {
@@ -204,7 +209,7 @@ func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // verifyCreatedUser verify that request-user and created-user are the same
-func verifyCreatedUser(cbg CreatedByGetter, requestUser string) (bool, error) {
+func verifyCreatedUser(cbg CreatedByGetter, requestUser uuid.UUID) (bool, error) {
 	createdByUser, err := cbg.GetCreatedBy()
 	if err != nil {
 		return false, err
@@ -221,19 +226,19 @@ func getRequestUser(c echo.Context) repo.User {
 }
 
 // getRequestEventID :eventidを返します
-func getRequestEventID(c echo.Context) (uint64, error) {
-	eventID, ok := c.Get("EventID").(uint64)
+func getRequestEventID(c echo.Context) (uuid.UUID, error) {
+	eventID, ok := c.Get("EventID").(uuid.UUID)
 	if !ok {
-		return 0, errors.New("EventID is not set")
+		return uuid.Nil, errors.New("EventID is not set")
 	}
 	return eventID, nil
 }
 
 // getRequestGroupID :groupidを返します
-func getRequestGroupID(c echo.Context) (uint64, error) {
-	groupID, ok := c.Get("GroupID").(uint64)
+func getRequestGroupID(c echo.Context) (uuid.UUID, error) {
+	groupID, ok := c.Get("GroupID").(uuid.UUID)
 	if !ok {
-		return 0, errors.New("GroupID is not set")
+		return uuid.Nil, errors.New("GroupID is not set")
 	}
 	return groupID, nil
 }

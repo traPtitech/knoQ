@@ -10,21 +10,26 @@ import (
 	"net/url"
 	"os"
 	"room/utils"
-	"strconv"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 )
 
+// BeforeCreate is gorm hook
+func (r *Room) BeforeCreate() (err error) {
+	r.ID, err = uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func FindRooms(values url.Values) ([]Room, error) {
 	rooms := []Room{}
 	cmd := DB
-	if values.Get("id") != "" {
-		id, _ := strconv.Atoi(values.Get("id"))
-		cmd = cmd.Where("id = ?", id)
-	}
 	if values.Get("date_begin") != "" {
 		cmd = cmd.Where("rooms.date >= ?", values.Get("date_begin"))
 	}
@@ -41,7 +46,7 @@ func FindRooms(values url.Values) ([]Room, error) {
 		seTime := StartEndTime{}
 		var allowWith bool
 		r := Room{}
-		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		rows.Scan(&r.ID, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &seTime.TimeStart, &seTime.TimeEnd, &allowWith)
 		// format
 		r.Date = r.Date[:10]
 		if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {
@@ -77,6 +82,13 @@ func (r *Room) Read() error {
 		seTime := StartEndTime{}
 		var allowWith bool
 		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		if seTime.TimeStart == "" && seTime.TimeEnd == "" {
+			r.AvailableTime = append(r.AvailableTime, StartEndTime{
+				TimeStart: r.TimeStart,
+				TimeEnd:   r.TimeEnd,
+			})
+			break
+		}
 		r.calcAvailableTime(seTime, allowWith)
 	}
 	err = rows.Err()
@@ -105,6 +117,7 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 	return false
 }
 
+// Todo include seTime == nil
 func (r *Room) calcAvailableTime(seTime StartEndTime, allowWith bool) {
 	if r.AvailableTime == nil {
 		r.AvailableTime = append(r.AvailableTime, StartEndTime{
@@ -235,7 +248,7 @@ func GetEvents() ([]Room, error) {
 				return nil, err
 			}
 			// 被りはIDが0で返ってくるらしい
-			if room.ID != 0 {
+			if room.ID != uuid.Nil {
 				rooms = append(rooms, room)
 			}
 

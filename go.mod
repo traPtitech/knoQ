@@ -6,13 +6,17 @@ require (
 	cloud.google.com/go v0.38.0 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190912031109-19fca521dbdf // indirect
 	github.com/go-sql-driver/mysql v1.4.1
+	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
+	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.11
 	github.com/labstack/echo/v4 v4.1.11
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
+	github.com/traPtitech/booQ v1.2.0 // indirect
+	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	go.uber.org/zap v1.13.0
 	golang.org/x/crypto v0.0.0-20191128160524-b544559bb6d1 // indirect

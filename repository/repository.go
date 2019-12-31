@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
 
@@ -19,7 +20,6 @@ var tables = []interface{}{
 	Event{},
 	Tag{},
 	EventTag{},
-	GroupTag{},
 }
 
 var (
@@ -84,5 +84,14 @@ func dbErrorLog(err error) {
 	if gorm.IsRecordNotFoundError(err) {
 		return
 	}
+	me, ok := err.(*mysql.MySQLError)
+	if !ok {
+		logger.Warn("DB error " + err.Error())
+		return
+	}
+	if me.Number == 1062 {
+		return
+	}
+
 	logger.Warn("DB error " + err.Error())
 }

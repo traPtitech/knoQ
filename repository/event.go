@@ -5,10 +5,11 @@ import (
 	"net/url"
 	"room/utils"
 	"strconv"
+
+	"github.com/gofrs/uuid"
 )
 
 func (e *Event) Create() error {
-	e.ID = 0
 	// groupが存在するかチェックし依存関係を追加する
 	if err := e.Group.Read(); err != nil {
 		return err
@@ -41,7 +42,7 @@ func (e *Event) Create() error {
 	}
 	// Todo transaction
 	for _, v := range e.Tags {
-		err := e.AddTag(v.Name, v.Locked)
+		err := e.AddTag(v.ID, v.Locked)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -107,7 +108,7 @@ func (e *Event) Update() error {
 	}
 	// Todo transaction
 	for _, v := range e.Tags {
-		err := e.AddTag(v.Name, v.Locked)
+		err := e.AddTag(v.ID, v.Locked)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -118,7 +119,7 @@ func (e *Event) Update() error {
 }
 
 func (e *Event) Delete() error {
-	if e.ID == 0 {
+	if uuid.Nil == e.ID {
 		err := errors.New("ID=0. You want to Delete All ?")
 		dbErrorLog(err)
 		return err
@@ -128,6 +129,15 @@ func (e *Event) Delete() error {
 	}
 	if err := DB.Debug().Delete(&e).Error; err != nil {
 		dbErrorLog(err)
+		return err
+	}
+	return nil
+}
+
+// BeforeCreate is gorm hook
+func (e *Event) BeforeCreate() (err error) {
+	e.ID, err = uuid.NewV4()
+	if err != nil {
 		return err
 	}
 	return nil
@@ -180,12 +190,6 @@ func FindEvents(values url.Values) ([]Event, error) {
 	return events, nil
 }
 
-func (e *Event) AfterFind() (err error) {
-	e.GroupID = 0
-	e.RoomID = 0
-	return
-}
-
 // TimeConsistency 時間が部屋の範囲内か、endがstartの後か
 // available time か確認する
 func (e *Event) TimeConsistency() error {
@@ -207,20 +211,20 @@ func (e *Event) TimeConsistency() error {
 }
 
 // GetCreatedBy get who created it
-func (rv *Event) GetCreatedBy() (string, error) {
+func (rv *Event) GetCreatedBy() (uuid.UUID, error) {
 	if err := DB.First(&rv).Error; err != nil {
 		dbErrorLog(err)
-		return "", err
+		return uuid.Nil, err
 	}
 	return rv.CreatedBy, nil
 }
 
 // AddTag add tag
-func (e *Event) AddTag(tagName string, locked bool) error {
+func (e *Event) AddTag(tagID uuid.UUID, locked bool) error {
 	tag := new(Tag)
-	tag.Name = tagName
-
-	if err := MatchTag(tag, "event"); err != nil {
+	tag.ID = tagID
+	if err := DB.First(&tag).Error; err != nil {
+		dbErrorLog(err)
 		return err
 	}
 	if err := DB.Create(&EventTag{EventID: e.ID, TagID: tag.ID, Locked: locked}).Error; err != nil {
@@ -230,7 +234,7 @@ func (e *Event) AddTag(tagName string, locked bool) error {
 }
 
 // DeleteTag delete unlocked tag.
-func (e *Event) DeleteTag(tagID uint64) error {
+func (e *Event) DeleteTag(tagID uuid.UUID) error {
 	eventTag := new(EventTag)
 	eventTag.TagID = tagID
 	eventTag.EventID = e.ID

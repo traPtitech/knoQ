@@ -3,11 +3,11 @@ package repository
 import (
 	"errors"
 	"net/url"
-	"strconv"
+
+	"github.com/gofrs/uuid"
 )
 
 func (g *Group) Create() error {
-	g.ID = 0
 	tx := DB.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -19,38 +19,23 @@ func (g *Group) Create() error {
 		dbErrorLog(err)
 		return err
 	}
-	err := tx.Set("gorm:association_save_reference", false).Create(&g).Error
-	if err != nil {
-		tx.Rollback()
-		dbErrorLog(err)
-		return err
-	}
-	err = g.verifyMembers()
+	err := g.verifyMembers()
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-
-	if err := tx.Debug().Model(&g).Association("Members").Append(g.Members).Error; err != nil {
+	err = tx.Set("gorm:save_associations", false).Create(&g).Error
+	if err != nil {
 		tx.Rollback()
 		dbErrorLog(err)
 		return err
-	}
-
-	// Todo transaction
-	for _, v := range g.Tags {
-		err := g.AddTag(v.Name, v.Locked)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
 	}
 
 	return tx.Commit().Error
 }
 
 func (g *Group) Read() error {
-	cmd := DB.Preload("Members").Preload("Tags")
+	cmd := DB.Preload("Members")
 	if err := cmd.First(&g).Error; err != nil {
 		dbErrorLog(err)
 		return err
@@ -93,25 +78,11 @@ func (g *Group) Update() error {
 		return err
 	}
 
-	// delete now all tags
-	if err := tx.Model(&nowGroup).Association("Tags").Clear().Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	// Todo transaction
-	for _, v := range g.Tags {
-		err := g.AddTag(v.Name, v.Locked)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
-
 	return tx.Commit().Error
 }
 
 func (g *Group) Delete() error {
-	if g.ID == 0 {
+	if g.ID == uuid.Nil {
 		err := errors.New("ID=0. You want to Delete All ?")
 		dbErrorLog(err)
 		return err
@@ -126,15 +97,25 @@ func (g *Group) Delete() error {
 	return nil
 }
 
+// BeforeCreate is gorm hook
+func (g *Group) BeforeCreate() (err error) {
+	g.ID, err = uuid.NewV4()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // VerifyUsers グループのメンバーがDBにいるか
 // traQIDをもとに探す
 // いないものは警告なしに消す
 func (g *Group) verifyMembers() error {
-	memberSlice := make([]string, 0, len(g.Members))
+	memberSlice := make([]uuid.UUID, 0, len(g.Members))
 	for _, v := range g.Members {
-		memberSlice = append(memberSlice, v.TRAQID)
+		memberSlice = append(memberSlice, v.ID)
 	}
-	if err := DB.Where(memberSlice).Find(&g.Members).Error; err != nil {
+	g.Members = nil
+	if err := DB.Debug().Where("id IN (?)", memberSlice).Find(&g.Members).Error; err != nil {
 		dbErrorLog(err)
 		return err
 	}
@@ -142,11 +123,10 @@ func (g *Group) verifyMembers() error {
 }
 
 // CheckBelongToGroup ユーザーが予約したグループに属しているか調べます
-func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
+func CheckBelongToGroup(reservationID uuid.UUID, traQID uuid.UUID) (bool, error) {
 	rv := new(Event)
 	g := new(Group)
-	// tmp
-	rv.ID = uint64(reservationID)
+	rv.ID = reservationID
 	if err := DB.First(&rv, rv.ID).Error; err != nil {
 		return false, err
 	}
@@ -156,7 +136,7 @@ func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
 	}
 
 	for _, m := range g.Members {
-		if traQID == m.TRAQID {
+		if traQID == m.ID {
 			return true, nil
 		}
 	}
@@ -165,20 +145,11 @@ func CheckBelongToGroup(reservationID int, traQID string) (bool, error) {
 
 func FindGroups(values url.Values) ([]Group, error) {
 	groups := []Group{}
-	cmd := DB.Preload("Members").Preload("Tags")
+	cmd := DB.Preload("Members")
 
-	if values.Get("id") != "" {
-		id, _ := strconv.Atoi(values.Get("id"))
-		cmd = cmd.Where("id = ?", id)
-	}
-
-	if values.Get("name") != "" {
-		cmd = cmd.Where("name LIKE ?", "%"+values.Get("name")+"%")
-	}
-
-	if values.Get("traQID") != "" {
-		// traqIDが存在するグループを取得
-		groupsID, err := GetGroupIDsBytraQID(values.Get("traQID"))
+	if values.Get("userID") != "" {
+		// userIDが存在するグループを取得
+		groupsID, err := GetGroupIDsBytraQID(values.Get("userID"))
 		if err != nil {
 			return nil, err
 		}
@@ -192,13 +163,13 @@ func FindGroups(values url.Values) ([]Group, error) {
 	return groups, nil
 }
 
-func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {
+func GetGroupIDsBytraQID(traqID string) ([]uuid.UUID, error) {
 	groups := []Group{}
 	// traqIDが存在するグループを取得
 	if err := DB.Raw("SELECT * FROM groups INNER JOIN group_users ON group_users.group_id = groups.id WHERE group_users.user_traq_id =  ?", traqID).Scan(&groups).Error; err != nil {
 		return nil, err
 	}
-	groupsID := make([]uint64, len(groups))
+	groupsID := make([]uuid.UUID, len(groups))
 	for i, g := range groups {
 		groupsID[i] = g.ID
 	}
@@ -206,7 +177,7 @@ func GetGroupIDsBytraQID(traqID string) ([]uint64, error) {
 }
 
 // AddRelation add members and created_by by GroupID
-func (group *Group) AddRelation(GroupID uint64) error {
+func (group *Group) AddRelation(GroupID uuid.UUID) error {
 	if err := DB.First(&group, GroupID).Related(&group.Members, "Members").Error; err != nil {
 		return err
 	}
@@ -214,14 +185,15 @@ func (group *Group) AddRelation(GroupID uint64) error {
 }
 
 // GetCreatedBy get who created it
-func (group *Group) GetCreatedBy() (string, error) {
+func (group *Group) GetCreatedBy() (uuid.UUID, error) {
 	if err := DB.First(&group).Error; err != nil {
-		return "", err
+		return uuid.Nil, err
 	}
 	return group.CreatedBy, nil
 }
 
 // AddTag add tag
+/*
 func (g *Group) AddTag(tagName string, locked bool) error {
 	tag := new(Tag)
 	tag.Name = tagName
@@ -236,7 +208,7 @@ func (g *Group) AddTag(tagName string, locked bool) error {
 }
 
 // DeleteTag delete unlocked tag.
-func (g *Group) DeleteTag(tagID uint64) error {
+func (g *Group) DeleteTag(tagID uuid.UUID) error {
 	groupTag := new(GroupTag)
 	groupTag.TagID = tagID
 	groupTag.GroupID = g.ID
@@ -251,10 +223,11 @@ func (g *Group) DeleteTag(tagID uint64) error {
 	}
 	return nil
 }
+*/
 
-func (g *Group) AddMember(traQID string) error {
+func (g *Group) AddMember(userID uuid.UUID) error {
 	user := new(User)
-	user.TRAQID = traQID
+	user.ID = userID
 	if err := DB.First(&user).Error; err != nil {
 		dbErrorLog(err)
 		return err
@@ -267,9 +240,9 @@ func (g *Group) AddMember(traQID string) error {
 	return nil
 }
 
-func (g *Group) DeleteMember(traQID string) error {
+func (g *Group) DeleteMember(userID uuid.UUID) error {
 	user := new(User)
-	user.TRAQID = traQID
+	user.ID = userID
 	if err := DB.First(&user).Error; err != nil {
 		dbErrorLog(err)
 		return err
