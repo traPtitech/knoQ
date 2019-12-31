@@ -85,6 +85,10 @@ func badRequest(responses ...option) *echo.HTTPError {
 	return newHTTPErrorResponse(http.StatusBadRequest, responses...)
 }
 
+func unauthorized(responses ...option) *echo.HTTPError {
+	return newHTTPErrorResponse(http.StatusUnauthorized, responses...)
+}
+
 func forbidden(responses ...option) *echo.HTTPError {
 	return newHTTPErrorResponse(http.StatusForbidden, responses...)
 }

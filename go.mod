@@ -16,7 +16,8 @@ require (
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
-	github.com/traPtitech/booQ v1.2.0 // indirect
+	github.com/traPtitech/booQ v1.2.0
+	github.com/traPtitech/traQ v1.0.0-rc.2
 	github.com/ulule/deepcopier v0.0.0-20171107155558-ca99b135e50f
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	go.uber.org/zap v1.13.0

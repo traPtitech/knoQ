@@ -19,6 +19,7 @@ import (
 )
 
 const requestUserStr string = "Request-User"
+const authScheme string = "Bearer"
 
 // CreatedByGetter get created user
 type CreatedByGetter interface {
@@ -79,17 +80,51 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		sess, _ := session.Get("r_session", c)
-		sess.Options = &sessions.Options{
-			Path:     "/",
-			MaxAge:   86400 * 7,
-			HttpOnly: true,
+		var user repo.User
+		ah := c.Request().Header.Get(echo.HeaderAuthorization)
+		if len(ah) > 0 {
+			// AuthorizationヘッダーがあるためOAuth2で検証
+
+			// Authorizationスキーム検証
+			l := len(authScheme)
+			if !(len(ah) > l+1 && ah[:l] == authScheme) {
+				return unauthorized(message("invalid authorization scheme"))
+			}
+
+			// OAuth2 Token検証
+			// Todo traQ /users/me
+
+			// Todo session を認証状態にする
+			sess, _ := session.Get("r_session", c)
+			sess.Options = &sessions.Options{
+				Path:     "/",
+				MaxAge:   86400 * 7,
+				HttpOnly: true,
+			}
+			sess.Values[echo.HeaderAuthorization] = ah
+			sess.Values["uuid"] = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+			sess.Values["admin"] = true
+			sess.Save(c.Request(), c.Response())
+
+		} else {
+			sess, _ := session.Get("r_session", c)
+			auth, ok := sess.Values[echo.HeaderAuthorization].(string)
+			if !ok {
+				return unauthorized()
+			}
+
+			uid, _ := uuid.FromString(sess.Values["uuid"].(string))
+			admin := sess.Values["admin"].(bool)
+			fmt.Println(uid, admin, auth)
+
+			user = repo.User{
+				ID:    uid,
+				Admin: admin,
+				Auth:  auth,
+			}
 		}
-		sess.Values["foo"] = "bar"
-		sess.Save(c.Request(), c.Response())
-		// c.Set(requestUserStr, user)
+		c.Set(requestUserStr, user)
 		err := next(c)
-		fmt.Println(sess.Store().Get(c.Request(), "r_session"))
 		return err
 	}
 }

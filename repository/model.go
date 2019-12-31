@@ -26,6 +26,8 @@ type User struct {
 	ID uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
 	// Admin 管理者かどうか
 	Admin bool `json:"admin" gorm:"not null"`
+	// tmp
+	Auth string `json:"-" gorm:"-"`
 }
 
 // Tag Room Group Event have tags
