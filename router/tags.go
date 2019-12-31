@@ -27,7 +27,15 @@ func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uuid.UUID, tagID 
 	if err := tad.Read(); err != nil {
 		return internalServerError()
 	}
-	// Todo format response
+	switch v := tad.(type) {
+	case *repo.Event:
+		res, err := formatEventRes(v)
+		if err != nil {
+			return internalServerError()
+		}
+		return c.JSON(http.StatusOK, res)
+
+	}
 	return c.JSON(http.StatusOK, tad)
 }
 
@@ -38,7 +46,17 @@ func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uuid.UUID) 
 	if err := tad.Read(); err != nil {
 		return internalServerError()
 	}
-	// Todo format response
+
+	switch v := tad.(type) {
+	case *repo.Event:
+		res, err := formatEventRes(v)
+		if err != nil {
+			return internalServerError()
+		}
+		return c.JSON(http.StatusOK, res)
+
+	}
+
 	return c.JSON(http.StatusOK, tad)
 }
 
