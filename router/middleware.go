@@ -81,6 +81,21 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var user repo.User
+		sess, err := session.Get("r_session", c)
+		if err != nil {
+			return unauthorized()
+		}
+		token, ok := sess.Values["token"].(string)
+		if !ok {
+			sess.Options = &sessions.Options{
+				Path:     "/",
+				MaxAge:   86400 * 7,
+				HttpOnly: true,
+			}
+			// token create
+			// create DB record
+			sess.Save(c.Request(), c.Response())
+		}
 		ah := c.Request().Header.Get(echo.HeaderAuthorization)
 		if len(ah) > 0 {
 			// AuthorizationヘッダーがあるためOAuth2で検証
@@ -95,41 +110,14 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			// Todo traQ /users/me
 
 			// Todo session を認証状態にする
-			sess, _ := session.Get("r_session", c)
-			sess.Options = &sessions.Options{
-				Path:     "/",
-				MaxAge:   86400 * 7,
-				HttpOnly: true,
-			}
-			// Todo sessionで直接持つのはやばい
-			// 検証コストが無駄に高い
-			// dbに入れる
-			// sess.Values[echo.HeaderAuthorization] = ah
-
-			sess.Values["uuid"] = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-			// sess.Values["admin"] = true
-			sess.Save(c.Request(), c.Response())
+			// DB update
 
 		} else {
-			sess, _ := session.Get("r_session", c)
-			auth, ok := sess.Values[echo.HeaderAuthorization].(string)
-			if !ok {
-				return unauthorized()
-			}
+			// take from DB
 
-			uid, _ := uuid.FromString(sess.Values["uuid"].(string))
-			admin := sess.Values["admin"].(bool)
-			fmt.Println(uid, admin, auth)
-
-			user = repo.User{
-				ID:    uid,
-				Admin: admin,
-				Auth:  auth,
-			}
 		}
 		c.Set(requestUserStr, user)
-		err := next(c)
-		return err
+		return next(c)
 	}
 }
 

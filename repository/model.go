@@ -30,6 +30,16 @@ type User struct {
 	Auth string `json:"-" gorm:"-"`
 }
 
+// Session has user session
+type Session struct {
+	Token         string `gorm:"primary_key"`
+	UserID        uuid.UUID
+	Authorization string
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"update_at"`
+	DeletedAt     *time.Time `json:"-" sql:"index"`
+}
+
 // Tag Room Group Event have tags
 type Tag struct {
 	Model
