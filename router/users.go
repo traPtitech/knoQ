@@ -29,9 +29,18 @@ func HandleGetUserMe(c echo.Context) error {
 
 // HandleGetUsers ユーザーすべてを取得
 func HandleGetUsers(c echo.Context) error {
-	users := []repo.User{}
-	if err := repo.DB.Find(&users).Error; err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError)
+	requestUser := getRequestUser(c)
+	bytes, err := utils.GetUsers(requestUser.Auth)
+	if err != nil {
+		if err.Error() == http.StatusText(http.StatusUnauthorized) {
+			// 認証が切れている
+			if err = repo.DeleteAuth(requestUser.Auth); err != nil {
+				return judgeErrorResponse(err)
+			}
+			return unauthorized(message("Your auth is expired"))
+		}
+		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, users)
+
+	return c.JSONBlob(http.StatusOK, bytes)
 }

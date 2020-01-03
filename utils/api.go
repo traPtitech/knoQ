@@ -9,10 +9,14 @@ import (
 const baseURL = "https://q.trap.jp/api/1.0"
 
 func GetUserMe(token string) ([]byte, error) {
-	return apiRequest(token, "/users/me")
+	return apiGetRequest(token, "/users/me")
 }
 
-func apiRequest(token, endpoint string) ([]byte, error) {
+func GetUsers(token string) ([]byte, error) {
+	return apiGetRequest(token, "/users")
+}
+
+func apiGetRequest(token, endpoint string) ([]byte, error) {
 	if token == "" {
 		return nil, errors.New(http.StatusText(http.StatusUnauthorized))
 	}
@@ -26,7 +30,7 @@ func apiRequest(token, endpoint string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if 200 <= res.StatusCode && res.StatusCode < 300 {
+	if res.StatusCode >= 300 {
 		return nil, errors.New(http.StatusText(res.StatusCode))
 	}
 	return ioutil.ReadAll(res.Body)
