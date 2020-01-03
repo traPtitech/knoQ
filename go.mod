@@ -5,6 +5,7 @@ go 1.12
 require (
 	cloud.google.com/go v0.38.0 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20190912031109-19fca521dbdf // indirect
+	github.com/go-kit/kit v0.8.0
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/gorilla/securecookie v1.1.1
