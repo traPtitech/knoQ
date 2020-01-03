@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,8 +16,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
+)
+
+var (
+	SESSION_KEY = []byte(os.Getenv("SESSION_KEY"))
 )
 
 func main() {
@@ -38,13 +44,17 @@ func main() {
 	}))
 	logger, _ := zap.NewDevelopment()
 	e.Use(router.AccessLoggingMiddleware(logger))
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secret"))))
 
-	// headerの追加のため
+	if len(SESSION_KEY) == 0 {
+		SESSION_KEY = securecookie.GenerateRandomKey(32)
+		fmt.Println(SESSION_KEY)
+	}
+	e.Use(session.Middleware(sessions.NewCookieStore(SESSION_KEY)))
+
+	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:  []string{"*"},
-		AllowMethods:  []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
-		ExposeHeaders: []string{"X-Showcase-User"},
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
 	}))
 
 	// API定義 (/api)
