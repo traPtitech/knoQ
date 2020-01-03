@@ -20,6 +20,7 @@ var tables = []interface{}{
 	Event{},
 	Tag{},
 	EventTag{},
+	UserSession{},
 }
 
 var (
