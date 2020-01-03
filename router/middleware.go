@@ -100,6 +100,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if !ok {
 			// token create
 			token = traQutils.RandAlphabetAndNumberString(32)
+			sess.Values["token"] = token
 			sess.Options = &sessions.Options{
 				Path:     "/",
 				MaxAge:   86400 * 7,
@@ -149,11 +150,16 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			if err := userSess.Get(); err != nil {
 				return unauthorized()
 			}
+			// 認証されてないなら空文字列
+			if userSess.Authorization == "" {
+				return unauthorized()
+			}
 		}
 		user.ID = userSess.UserID
-		err = repo.DB.Take(&user).Error
+		user.Auth = userSess.Authorization
+		err = repo.DB.FirstOrCreate(&user).Error
 		if err != nil {
-			return unauthorized()
+			return internalServerError()
 		}
 		c.Set(requestUserStr, user)
 		return next(c)

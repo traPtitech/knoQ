@@ -12,7 +12,7 @@ func GetUserMe(token string) ([]byte, error) {
 	if token == "" {
 		return nil, errors.New(http.StatusText(http.StatusUnauthorized))
 	}
-	req, err := http.NewRequest(http.MethodGet, baseURL+"users/me", nil)
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/users/me", nil)
 	if err != nil {
 		return nil, err
 	}
