@@ -5,18 +5,31 @@ import (
 	"fmt"
 	log "room/logging"
 	repo "room/repository"
+	"room/utils"
 	"strconv"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
-
+	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+
+	traQutils "github.com/traPtitech/traQ/utils"
 )
 
 const requestUserStr string = "Request-User"
+const authScheme string = "Bearer"
+
+var traQjson = jsoniter.Config{
+	EscapeHTML:             true,
+	SortMapKeys:            true,
+	ValidateJsonRawMessage: true,
+	TagKey:                 "traq",
+}
 
 // CreatedByGetter get created user
 type CreatedByGetter interface {
@@ -77,22 +90,79 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id := c.Request().Header.Get("X-Showcase-User")
-		if len(id) == 0 || id == "-" {
-			// test用
-			id = "c3f29c92-23d8-48f5-9553-002a932afeaf"
-		}
-		userID, err := uuid.FromString(id)
+		var user repo.User
+		userSess := new(repo.UserSession)
+		sess, err := session.Get("r_session", c)
 		if err != nil {
-			return forbidden(message("401"))
+			return unauthorized()
 		}
-		user, err := repo.GetUser(userID)
+		token, ok := sess.Values["token"].(string)
+		if !ok {
+			// token create
+			token = traQutils.RandAlphabetAndNumberString(32)
+			sess.Values["token"] = token
+			sess.Options = &sessions.Options{
+				Path:     "/",
+				MaxAge:   86400 * 7,
+				HttpOnly: true,
+			}
+			// create DB record
+			userSess.Token = token
+			if err := userSess.Create(); err != nil {
+				return internalServerError()
+			}
+			sess.Save(c.Request(), c.Response())
+		}
+		ah := c.Request().Header.Get(echo.HeaderAuthorization)
+		if len(ah) > 0 {
+			// AuthorizationヘッダーがあるためOAuth2で検証
+			// Authorizationスキーム検証
+			l := len(authScheme)
+			if !(len(ah) > l+1 && ah[:l] == authScheme) {
+				return unauthorized(message("invalid authorization scheme"))
+			}
+
+			// OAuth2 Token検証
+			// Todo traQ /users/me
+			body, err := utils.GetUserMe(ah)
+			if err != nil {
+				return unauthorized(message(err.Error()))
+			}
+			err = traQjson.Froze().Unmarshal(body, &user)
+			if err != nil {
+				return internalServerError()
+			}
+
+			// Todo session を認証状態にする
+			// DB update
+			userSess = &repo.UserSession{
+				Token:         token,
+				UserID:        user.ID,
+				Authorization: ah,
+			}
+			if err := userSess.Update(); err != nil {
+				return unauthorized()
+			}
+
+		} else {
+			// take from DB
+			userSess.Token = token
+			if err := userSess.Get(); err != nil {
+				return unauthorized()
+			}
+			// 認証されてないなら空文字列
+			if userSess.Authorization == "" {
+				return unauthorized()
+			}
+		}
+		user.ID = userSess.UserID
+		user.Auth = userSess.Authorization
+		err = repo.DB.FirstOrCreate(&user).Error
 		if err != nil {
 			return internalServerError()
 		}
 		c.Set(requestUserStr, user)
-		err = next(c)
-		return err
+		return next(c)
 	}
 }
 

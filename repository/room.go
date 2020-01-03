@@ -37,7 +37,7 @@ func FindRooms(values url.Values) ([]Room, error) {
 		cmd = cmd.Where("rooms.date <= ?", values.Get("date_end"))
 	}
 
-	rows, err := cmd.Order("date asc").Debug().Table("rooms").Order("rooms.id asc").Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	rows, err := cmd.Order("date asc").Table("rooms").Order("rooms.id asc").Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
 	defer rows.Close()
 	if err != nil {
 		dbErrorLog(err)
@@ -60,7 +60,6 @@ func FindRooms(values url.Values) ([]Room, error) {
 		}
 		if seTime.TimeStart != "" && seTime.TimeEnd != "" {
 			r = rooms[len(rooms)-1]
-			fmt.Println(r.ID, seTime, allowWith, r.AvailableTime)
 			r.calcAvailableTime(seTime, allowWith)
 			rooms[len(rooms)-1] = r
 		}
