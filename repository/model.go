@@ -23,17 +23,17 @@ type StartEndTime struct {
 // User traQユーザー情報構造体
 type User struct {
 	// ID traQID
-	ID uuid.UUID `json:"id" gorm:"type:char(36);primary_key" traq:"userId"`
+	ID uuid.UUID `json:"id" gorm:"type:char(36); primary_key" traq:"userId"`
 	// Admin 管理者かどうか
 	Admin bool `json:"admin" gorm:"not null"`
 	// tmp
 	Auth string `json:"-" gorm:"-"`
 }
 
-// Session has user session
+// UserSession has user session
 type UserSession struct {
-	Token         string `gorm:"primary_key"`
-	UserID        uuid.UUID
+	Token         string    `gorm:"primary_key; type:char(32);"`
+	UserID        uuid.UUID `gorm:"type:char(36);"`
 	Authorization string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
@@ -43,15 +43,15 @@ type UserSession struct {
 // Tag Room Group Event have tags
 type Tag struct {
 	Model
-	Name     string `json:"name" gorm:"unique"`
+	Name     string `json:"name" gorm:"unique; type:varchar(16)"`
 	Official bool   `json:"official"`
 	Locked   bool   `json:"locked" gorm:"-"`
 }
 
 // EventTag is many to many table
 type EventTag struct {
-	TagID   uuid.UUID `gorm:"type:char(36);primary_key"`
-	EventID uuid.UUID `gorm:"type:char(36);primary_key"`
+	TagID   uuid.UUID `gorm:"type:char(36); primary_key"`
+	EventID uuid.UUID `gorm:"type:char(36); primary_key"`
 	Locked  bool
 }
 
