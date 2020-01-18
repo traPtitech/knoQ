@@ -21,40 +21,19 @@ tags:
     description: ユーザー
   - name: tags
     description: タグ
+  - name: images
+    description: 画像
 
 paths:
   /rooms:
     post:
       tags:
         - rooms
-      summary: traPで確保した部屋の情報追加 (使わない)
+      summary: traPで確保した部屋の情報追加
       description: 管理者権限が必要
       operationId: addrooms
       requestBody:
-        description: 確保した部屋の情報
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                place:
-                  type: string
-                  example: S516
-                date:
-                  type: string
-                  example: "2019-08-08"
-                time_start:
-                  type: string
-                  example: "09:00"
-                time_end:
-                  type: string
-                  example: "20:00"
-                tags:
-                  type: array
-                  items:
-                    $ref: "#/components/schemas/ReqTagAuth"
-                  example: []
+          $ref: "#/components/requestBodies/Room"
       responses:
         201:
           $ref: "#/components/responses/PostRoom"
@@ -68,13 +47,6 @@ paths:
       summary: traPで確保した進捗部屋の情報を取得
       operationId: getrooms
       parameters:
-        - name: id
-          in: query
-          description: roomID
-          required: false
-          schema:
-            type: integer
-            format: int64
         - name: date_begin
           in: query
           description: 特定の日から。(2017-07-21とか)
@@ -95,6 +67,40 @@ paths:
         200:
           $ref: "#/components/responses/GetRoomArray"
 
+  /rooms/private:
+    post:
+      tags:
+        - rooms
+      summary: 各自の部屋の情報追加
+      operationId: addprivaterooms
+      requestBody:
+          $ref: "#/components/requestBodies/Room"
+      responses:
+        201:
+          $ref: "#/components/responses/PostRoom"
+        400:
+          description: Bad Request
+  /rooms/private/{roomID}:
+    delete:
+      tags:
+        - rooms
+      summary: 各自の部屋の情報削除 作成者のみ
+      parameters:
+        - name: roomID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: successful operation
+        403:
+          description: Forbidden
+        400:
+          description: Bad Request
+ 
+
   /rooms/{roomID}:
     get:
       tags:
@@ -106,8 +112,8 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/GetRoom"
@@ -125,8 +131,8 @@ paths:
           description: 削除する部屋のID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           description: successful operation
@@ -155,40 +161,26 @@ paths:
       summary: 使用宣言の情報を取得
       operationId: getevents
       parameters:
-        - name: id
-          in: query
-          description: idで検索
-          required: false
-          schema:
-            type: integer
-            format: int64
         - name: name
           in: query
           description: 名前で検索
           required: false
           schema:
             type: string
-        - name: traQID
-          in: query
-          description: 特定のuserが所属するグループのみにする。
-          required: false
-          schema:
-            type: integer
-            format: int64
         - name: groupID
           in: query
           description: 特定のグループのみにする。
           required: false
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
         - name: roomID
           in: query
           description: 特定の部屋のみにする。
           required: false
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
         - name: date_begin
           in: query
           description: 特定の日からのみにする。(2017-07-21とか)
@@ -231,15 +223,15 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/event"
-    patch:
+    put:
       tags:
         - events
-      summary: 部屋の使用宣言を更新(現状はroomid, timestart, timeendのみを変更)
+      summary: 部屋の使用宣言を更新
       description: 作成者のみ
       operationId: updateevents
       parameters:
@@ -248,10 +240,10 @@ paths:
           description: 変更する情報のID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
-        $ref: "#/components/requestBodies/PatchEvent"
+        $ref: "#/components/requestBodies/PutEvent"
       responses:
         200:
           $ref: "#/components/responses/event"
@@ -271,8 +263,8 @@ paths:
           description: 削除する情報のID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           description: successful operation
@@ -280,8 +272,39 @@ paths:
           description: Forbidden
         404:
           description: Not Found
+  /events/{eventID}/favorite:
+    put:
+      tags:
+        - events
+      parameters:
+        - name: eventID
+          in: path
+          required: true
+          description: 変更する情報のID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/event"
+    delete:
+      tags:
+        - events
+      parameters:
+        - name: eventID
+          in: path
+          required: true
+          description: 変更する情報のID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/event"
+
+
   /events/{eventID}/tags:
-    patch:
+    post:
       tags:
         - events
       summary: タグを追加
@@ -290,10 +313,10 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
-        $ref: "#/components/requestBodies/tag"
+        $ref: "#/components/requestBodies/tagID"
       responses:
         200:
           $ref: "#/components/responses/event"
@@ -308,17 +331,25 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
         - name: tagID
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/event"
+
+  /users/me/events:
+    get:
+      tags:
+        - events
+      responses:
+        200:
+          $ref: "#/components/responses/eventArray"
 
   /groups:
     get:
@@ -327,26 +358,6 @@ paths:
       summary: グループを全て取得
       description: ログインユーザーなら所属していなくても取得可能にしておく
       operationId: getGroup
-      parameters:
-        - name: id
-          in: query
-          description: idで取得
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: name
-          in: query
-          description: nameで取得
-          required: false
-          schema:
-            type: string
-        - name: traQID
-          in: query
-          description: 特定のuserが所属するグループのみにする。(IDにするか名前にするかは検討)
-          required: false
-          schema:
-            type: string
       responses:
         200:
           $ref: "#/components/responses/groupArray"
@@ -376,15 +387,14 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/group"
-    patch:
+    put:
       tags:
         - groups
-      summary: グループメンバー、グループ名、詳細を更新
       description: 作成者のみ変更可能
       operationId: updateGroup
       parameters:
@@ -393,8 +403,8 @@ paths:
           description: 変更する情報のID
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       requestBody:
         $ref: "#/components/requestBodies/group"
       responses:
@@ -418,8 +428,8 @@ paths:
           description: The id that needs to be deleted
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           description: successful operation
@@ -427,8 +437,8 @@ paths:
           description: Forbidden
         404:
           description: Groupid not found
-  /groups/{groupID}/members:
-    patch:
+  /groups/{groupID}/members/me:
+    put:
       tags:
         - groups
       summary: 自分を追加。join_freely=true
@@ -438,12 +448,11 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/group"
-  /groups/{groupID}/members/me:
     delete:
       tags:
         - groups
@@ -453,65 +462,39 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
-            format: int64
-      responses:
-        200:
-          $ref: "#/components/responses/group"
-  /groups/{groupID}/tags:
-    patch:
-      tags:
-        - groups
-      summary: タグを追加
-      parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        $ref: "#/components/requestBodies/tag"
-      responses:
-        200:
-          $ref: "#/components/responses/group"
-  /groups/{groupID}/tags/{tagID}:
-    delete:
-      tags:
-        - groups
-      summary: タグを削除
-      description: locked=falseだけ
-      parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: tagID
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
+            type: string
+            format: uuid
       responses:
         200:
           $ref: "#/components/responses/group"
 
-  /users:
+  /users/me/groups:
     get:
       tags:
-        - users
-      summary: すべてのユーザーを取得
-      description: ユーザーを全取得する（traQのAPIを使うなら消す）
+        - groups
       responses:
         200:
-          $ref: "#/components/responses/userArray"
+          $ref: "#/components/responses/UUIDArray"
+  /users/{userID}/groups:
+    get:
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - groups
+      responses:
+        200:
+          $ref: "#/components/responses/UUIDArray"
+
   /users/me:
     get:
       tags:
         - users
-      summary: クライアントのtraQIDを取得
+      summary: クライアントの権限を取得
       description: クライアントを識別するために最初に呼ばれる
       responses:
         200:
@@ -521,90 +504,113 @@ paths:
       tags:
         - tags
       summary: タグを全て取得
-      description: queryで切り分ける
       operationId: getTag
-      parameters:
-        - name: for_room
-          in: query
-          required: false
-          schema:
-            type: boolean
-        - name: for_group
-          in: query
-          required: false
-          schema:
-            type: boolean
-        - name: for_event
-          in: query
-          required: false
-          schema:
-            type: boolean
       responses:
         200:
           $ref: "#/components/responses/tagArray"
         400:
           description: Bad Request
-  /tags/{type}:
     post:
       tags:
         - tags
       summary: タグを作成。
-      description: すでにある場合は、for_group=trueなどにする。
+      description: すでにある場合は、error
       operationId: postTag
+      requestBody:
+        $ref: "#/components/requestBodies/tagName"
+      responses:
+        201:
+          $ref: "#/components/responses/tag"
+  /images:
+    post:
+      tags:
+        - images
+      operationId: uploadImage
+      description: 画像をアップロードします
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "201":
+          description: 正常に画像がアップロードされました。
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  imageID:
+                    type: string
+                    format: uuid
+  /images/{imageID}:
+    get:
       parameters:
-        - name: type
+        - name: imageID
           in: path
           required: true
           schema:
             type: string
-            enum:
-              - room
-              - group
-              - event
-      requestBody:
-        $ref: "#/components/requestBodies/tag"
+            format: uuid
+      tags:
+        - images
+      operationId: getImage
+      description: 画像をアップロードします
       responses:
-        201:
-          $ref: "#/components/responses/tag"
+        "200":
+          description: |+
+            正常に取得できました。
+            fileのbinaryを返します。
+            application/octet-streamで返すことになっていますが、ファイルの形式によっては変わります。
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: NotFound
+ 
+    
 
 components:
   schemas:
+    UUIDs:
+      type: array
+      description: UUIDの配列
+      items:
+        type: string
+        format: uuid
+    
     room:
       type: object
-      required:
-        - place
-        - date
       properties:
-        id:
-          type: integer
-          format: int64
-          example: 1
         place:
           type: string
           example: S516
         date:
           type: string
-          format: date
           example: "2019-08-08"
         time_start:
           type: string
-          format: time
-          example: "09:00:00"
+          example: "09:00"
         time_end:
           type: string
-          format: time
-          example: "20:00:00"
-        created_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
-        updated_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
-        tags:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResponseTag"
-          example: []
+          example: "20:00"
+      
+    ResponseRoom:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        - $ref: "#/components/schemas/room"
+      properties:
+        public:
+          type: boolean
         available_time:
           type: array
           items:
@@ -618,14 +624,18 @@ components:
                 type: string
                 format: time
                 example: "20:00:00"
-
-    GetRoom:
-      allOf:
-        - $ref: "#/components/schemas/room"
-        - type: object
-          properties:
-            available_time:
-              example: { "time_start": "09:00:00", "time_end": "17:59:59" }
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+        updated_at:
+          type: string
+          example: "2019-11-02T15:24:42.5438806Z"
+    RequestRoom:
+      $ref: "#/components/schemas/room"
+  
     event:
       type: object
       properties:
@@ -644,53 +654,63 @@ components:
         time_end:
           type: string
           example: "20:00"
+        image_id:
+          type: string
+          format: uuid
+        room_id:
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        group_id:
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+    PutEvent:
+      allOf:
+        - $ref: "#/components/schemas/event"
+      properties:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTagAuth"
-    PatchEvent:
-      allOf:
-        - $ref: "#/components/schemas/event"
-      properties:
-        room_id:
-          type: integer
-          example: 1
+            $ref: "#/components/schemas/ReqTagIDAuth"
     PostEvent:
       allOf:
-        - $ref: "#/components/schemas/PatchEvent"
+        - $ref: "#/components/schemas/PutEvent"
       properties:
-        group_id:
-          type: integer
-          example: 3
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReqTagIDAuth"
+
     ResponseEvent:
       allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         - $ref: "#/components/schemas/event"
         - type: object
           properties:
-            group:
-              $ref: "#/components/schemas/ResponseGroup"
-        - type: object
-          properties:
-            room:
-              $ref: "#/components/schemas/room"
-        - type: object
-          properties:
+            favorite:
+              type: boolean
+              example: false
             tags:
               type: array
               items:
                 $ref: "#/components/schemas/ResponseTag"
-      properties:
-        created_by:
-          type: string
-          example: "fuji"
-        created_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
-        updated_at:
-          type: string
-          example: "2019-11-02T15:24:42.5438806Z"
+            created_by:
+              type: string
+              format: uuid
+            created_at:
+              type: string
+              example: "2019-11-02T15:24:42.5438806Z"
+            updated_at:
+              type: string
+              example: "2019-11-02T15:24:42.5438806Z"
 
-    RequestGroup:
+    group:
       type: object
       properties:
         name:
@@ -699,43 +719,31 @@ components:
         description:
           type: string
           example: Sysad班room開発グループ
+        image_id:
+          type: string
+          format: uuid
         join_freely:
           type: boolean
-          example: false
         members:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResUser"
-        tags:
-          type: array
-          items:
-            $ref: "#/components/schemas/ReqTagAuth"
+          $ref: "#/components/schemas/UUIDs"
+    RequestGroup:
+      $ref: "#/components/schemas/group"
     ResponseGroup:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        - $ref: "#/components/schemas/group"
       properties:
-        id:
-          type: integer
-          format: int64
-          example: 3
-        name:
-          type: string
-          example: room
-        description:
-          type: string
-          example: Sysad班room開発グループ
-        join_freely:
+        is_traQ_group:
           type: boolean
           example: false
-        members:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResUser"
-        tags:
-          type: array
-          items:
-            $ref: "#/components/schemas/ResponseTag"
         created_by:
           type: string
-          example: "fuji"
+          format: uuid
         created_at:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
@@ -745,45 +753,42 @@ components:
 
     user:
       allOf:
-        - $ref: "#/components/schemas/ResUser"
+        - $ref: "#/components/schemas/resUser"
       properties:
         admin:
           type: boolean
           example: true
-    ResUser:
+    resUser:
       type: object
       properties:
-        traq_id:
+        id:
           type: string
-          example: fuji
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
 
     tag:
-      allOf:
-        - $ref: "#/components/schemas/ResTag"
-      properties:
-        for_room:
-          type: boolean
-          example: false
-        for_group:
-          type: boolean
-          example: true
-        for_event:
-          type: boolean
-          example: true
-    ReqTag:
       type: object
       properties:
         name:
           type: string
           example: Vue
-
-    ReqTagAuth:
-      allOf:
-        - $ref: "#/components/schemas/ReqTag"
+    ReqTagID:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+    ReqTagName:
+      type: object
       properties:
         name:
           type: string
           example: Vue
+    ReqTagIDAuth:
+      allOf:
+        - $ref: "#/components/schemas/ReqTagID"
+      properties:
         locked:
           type: boolean
           example: true
@@ -791,31 +796,42 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          example: 1
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         name:
           type: string
-          example: Vue
+          example: vue
         official:
           type: boolean
           example: true
     ResponseTag:
-      allOf:
-        - $ref: "#/components/schemas/tag"
+      type: object
       properties:
+        id:
+          type: string
+          format: uuid
+          example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         locked:
           type: boolean
           example: true
 
   requestBodies:
-    PatchEvent:
+    Room:
+      description: 部屋の追加
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RequestRoom"
+ 
+    PutEvent:
       description: 予約の編集
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PatchEvent"
+            $ref: "#/components/schemas/PutEvent"
     PostEvent:
       description: 予約の追加
       required: true
@@ -830,20 +846,43 @@ components:
           schema:
             $ref: "#/components/schemas/RequestGroup"
 
-    tag:
+    tagID:
+      description: タグを付ける。
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ReqTagID"
+    tagName:
       description: タグ本体の作成。
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/ReqTag"
+            $ref: "#/components/schemas/ReqTagName"
+    stringArray:
+      description: タグで検索
+      required: true
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: string
+              example: "vue"
 
   responses:
+    UUIDArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UUIDs"
+
     PostRoom:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/room"
+            $ref: "#/components/schemas/ResponseRoom"
     PostRoomArray:
       description: successful operation
       content:
@@ -851,13 +890,13 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/room"
+              $ref: "#/components/schemas/ResponseRoom"
     GetRoom:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/GetRoom"
+            $ref: "#/components/schemas/ResponseRoom"
 
     GetRoomArray:
       description: successful operation
@@ -866,7 +905,7 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/GetRoom"
+              $ref: "#/components/schemas/ResponseRoom"
 
     event:
       description: successful operation
@@ -902,20 +941,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/user"
-    userArray:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/ResUser"
     tag:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/tag"
+            $ref: "#/components/schemas/ResTag"
     tagArray:
       description: successful operation
       content:
@@ -923,8 +954,9 @@ components:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/tag"
+              $ref: "#/components/schemas/ResTag"
 
 externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
+
