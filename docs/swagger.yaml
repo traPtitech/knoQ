@@ -33,7 +33,7 @@ paths:
       description: 管理者権限が必要
       operationId: addrooms
       requestBody:
-          $ref: "#/components/requestBodies/Room"
+        $ref: "#/components/requestBodies/Room"
       responses:
         201:
           $ref: "#/components/responses/PostRoom"
@@ -74,7 +74,7 @@ paths:
       summary: 各自の部屋の情報追加
       operationId: addprivaterooms
       requestBody:
-          $ref: "#/components/requestBodies/Room"
+        $ref: "#/components/requestBodies/Room"
       responses:
         201:
           $ref: "#/components/responses/PostRoom"
@@ -99,7 +99,6 @@ paths:
           description: Forbidden
         400:
           description: Bad Request
- 
 
   /rooms/{roomID}:
     get:
@@ -302,7 +301,6 @@ paths:
         200:
           $ref: "#/components/responses/event"
 
-
   /events/{eventID}/tags:
     post:
       tags:
@@ -490,6 +488,29 @@ paths:
         200:
           $ref: "#/components/responses/UUIDArray"
 
+  /users:
+    get:
+      tags:
+        - users
+      responses:
+        "200":
+          description: traQ api
+          content:
+            application/json:
+              example:
+                {
+                  "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "name": "string",
+                  "displayName": "string",
+                  "iconFileId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "bot": true,
+                  "twitterId": "string",
+                  "lastOnline": "2020-01-23T08:15:07.001Z",
+                  "isOnline": true,
+                  "suspended": true,
+                  "accountStatus": 0,
+                }
+
   /users/me:
     get:
       tags:
@@ -571,8 +592,6 @@ paths:
                 format: binary
         "404":
           description: NotFound
- 
-    
 
 components:
   schemas:
@@ -582,7 +601,7 @@ components:
       items:
         type: string
         format: uuid
-    
+
     room:
       type: object
       properties:
@@ -598,7 +617,7 @@ components:
         time_end:
           type: string
           example: "20:00"
-      
+
     ResponseRoom:
       allOf:
         - type: object
@@ -635,7 +654,7 @@ components:
           example: "2019-11-02T15:24:42.5438806Z"
     RequestRoom:
       $ref: "#/components/schemas/room"
-  
+
     event:
       type: object
       properties:
@@ -824,7 +843,7 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/RequestRoom"
- 
+
     PutEvent:
       description: 予約の編集
       required: true
@@ -959,4 +978,3 @@ components:
 externalDocs:
   description: Find out more about Swagger
   url: http://swagger.io
-
