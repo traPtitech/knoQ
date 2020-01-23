@@ -439,7 +439,7 @@ paths:
     put:
       tags:
         - groups
-      summary: 自分を追加。joinFreely=true
+      summary: 自分を追加。open=true
       description: Headerを見て、メンバーを追加する
       parameters:
         - name: groupID
@@ -454,7 +454,7 @@ paths:
     delete:
       tags:
         - groups
-      summary: 自分しか削除出来ない。joinFreely=true
+      summary: 自分しか削除出来ない。open=true
       parameters:
         - name: groupID
           in: path
@@ -664,7 +664,7 @@ components:
         descirption:
           type: string
           example: 第n回の進捗会です。
-        allowTogether:
+        sharedRoom:
           type: boolean
           example: false
         timeStart:
@@ -741,7 +741,7 @@ components:
         imageId:
           type: string
           format: uuid
-        joinFreely:
+        open:
           type: boolean
         members:
           $ref: "#/components/schemas/UUIDs"

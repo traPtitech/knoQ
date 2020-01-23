@@ -72,7 +72,7 @@ type Group struct {
 	Name        string    `json:"name" gorm:"type:varchar(32);not null"`
 	Description string    `json:"description" gorm:"type:varchar(1024)"`
 	ImageID     string    `json:"imageId"`
-	JoinFreely  bool      `json:"joinFreely"`
+	JoinFreely  bool      `json:"open"`
 	Members     []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
 	IsTraQGroup bool      `json:"isTraQGroup" gorm:"-"`
 	CreatedBy   uuid.UUID `json:"createdBy" gorm:"type:char(36);"`
@@ -90,6 +90,6 @@ type Event struct {
 	TimeStart     string    `json:"timeStart" gorm:"type:TIME"`
 	TimeEnd       string    `json:"timeEnd" gorm:"type:TIME"`
 	CreatedBy     uuid.UUID `json:"createdBy" gorm:"type:char(36);"`
-	AllowTogether bool      `json:"allowTogether"`
+	AllowTogether bool      `json:"sharedRoom"`
 	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; save_associations:false"`
 }
