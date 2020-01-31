@@ -23,6 +23,8 @@ tags:
     description: タグ
   - name: images
     description: 画像
+  - name: authorization
+    description: 認証
 
 paths:
   /rooms:
@@ -571,8 +573,18 @@ paths:
                 format: binary
         "404":
           description: NotFound
- 
-    
+
+  /authParams:
+    post:
+      tags:
+        - authorization
+      responses:
+        201:
+          description: "リクエストに必要な情報を返す"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/authParams"
 
 components:
   schemas:
@@ -815,6 +827,15 @@ components:
         locked:
           type: boolean
           example: true
+    authParams:
+      type: object
+      properties:
+        clientId:
+          type: string
+        state:
+          type: string
+        codeChallenge:
+          type: string
 
   requestBodies:
     Room:
