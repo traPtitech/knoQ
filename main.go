@@ -17,8 +17,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/gorilla/securecookie"
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/wader/gormstore"
 )
 
 var (
@@ -49,7 +49,7 @@ func main() {
 		SESSION_KEY = securecookie.GenerateRandomKey(32)
 		fmt.Println(SESSION_KEY)
 	}
-	e.Use(session.Middleware(sessions.NewCookieStore(SESSION_KEY)))
+	e.Use(session.Middleware(gormstore.New(db, SESSION_KEY)))
 
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -116,7 +116,9 @@ func main() {
 			apiTags.POST("", router.HandlePostTag)
 			apiTags.GET("", router.HandleGetTags)
 		}
+
 	}
+	e.POST("/api/authParams", router.HandlePostAuthParams)
 
 	// サーバースタート
 	go func() {
