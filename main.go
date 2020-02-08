@@ -38,10 +38,6 @@ func main() {
 	e.HTTPErrorHandler = router.HTTPErrorHandler
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
-	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Root:  "web/dist",
-		HTML5: true,
-	}))
 	logger, _ := zap.NewDevelopment()
 	e.Use(router.AccessLoggingMiddleware(logger))
 
@@ -49,7 +45,13 @@ func main() {
 		SESSION_KEY = securecookie.GenerateRandomKey(32)
 		fmt.Println(SESSION_KEY)
 	}
-	e.Use(session.Middleware(gormstore.New(db, SESSION_KEY)))
+	e.Use(session.Middleware(gormstore.New(db, []byte("WIP"))))
+	e.Use(router.WatchCallbackMiddleware())
+
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:  "web/dist",
+		HTML5: true,
+	}))
 
 	// CORS
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{

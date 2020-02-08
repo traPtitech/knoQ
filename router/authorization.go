@@ -2,6 +2,7 @@ package router
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"time"
@@ -25,14 +26,25 @@ func HandlePostAuthParams(c echo.Context) error {
 	codeVerifier := traQutils.RandAlphabetAndNumberString(43)
 
 	// cache codeVerifier
-	sess, _ := session.Get("session", c)
-	sessionID := sess.ID
+	sess, err := session.Get("session", c)
+	if err != nil {
+		return internalServerError()
+	}
+	// sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
+	// sess.Save(c.Request(), c.Response())
+	sessionID, ok := sess.Values["ID"].(string)
+	if !ok {
+		return internalServerError()
+	}
 	verifierCache.Set(sessionID, codeVerifier, cache.DefaultExpiration)
+	fmt.Println(codeVerifier)
+	result := sha256.Sum256([]byte(codeVerifier))
+	enc := base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_").WithPadding(base64.NoPadding)
 
 	authParams = &AuthParams{
-		ClientID:      "",
+		ClientID:      "1iZopJ2qP63BaJYkQxhlVzCdrG8h1tDHMXm7",
 		State:         traQutils.RandAlphabetAndNumberString(10),
-		CodeChallenge: fmt.Sprintf("%x", sha256.Sum256([]byte(codeVerifier))),
+		CodeChallenge: enc.EncodeToString(result[:]),
 	}
 
 	return c.JSON(http.StatusCreated, authParams)

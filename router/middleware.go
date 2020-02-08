@@ -1,13 +1,20 @@
 package router
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	log "room/logging"
 	repo "room/repository"
+	"room/utils"
 	"strconv"
+	"strings"
 	"time"
+
+	traQutils "github.com/traPtitech/traQ/utils"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/sessions"
@@ -27,6 +34,19 @@ var traQjson = jsoniter.Config{
 	SortMapKeys:            true,
 	ValidateJsonRawMessage: true,
 	TagKey:                 "traq",
+}
+
+type OauthResponse struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+	IDToken      string `json:"id_token"`
+}
+
+type UserID struct {
+	Value uuid.UUID `json:"userId"`
 }
 
 // CreatedByGetter get created user
@@ -85,6 +105,76 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 	}
 }
 
+// WatchCallbackMiddleware /callback?code= を監視
+func WatchCallbackMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			path := c.Request().URL.Path
+			if path != "/callback" {
+				return next(c)
+			}
+			code := c.QueryParam("code")
+
+			sess, _ := session.Get("session", c)
+			sessionID, ok := sess.Values["ID"].(string)
+			if !ok {
+				fmt.Println("err")
+				return internalServerError()
+			}
+			codeVerifier, ok := verifierCache.Get(sessionID)
+			fmt.Println(codeVerifier)
+			if !ok {
+				return internalServerError()
+			}
+
+			form := url.Values{}
+			form.Add("grant_type", "authorization_code")
+			form.Add("client_id", "1iZopJ2qP63BaJYkQxhlVzCdrG8h1tDHMXm7")
+			form.Add("code", code)
+			form.Add("code_verifier", codeVerifier.(string))
+			fmt.Println(form)
+
+			body := strings.NewReader(form.Encode())
+
+			req, err := http.NewRequest("POST", "https://q.trap.jp/api/1.0/oauth2/token", body)
+			if err != nil {
+				return next(c)
+			}
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return internalServerError()
+			}
+			if res.StatusCode >= 300 {
+				return internalServerError()
+			}
+			fmt.Println(res.StatusCode)
+
+			data, _ := ioutil.ReadAll(res.Body)
+			oauthRes := new(OauthResponse)
+			json.Unmarshal(data, oauthRes)
+			token := oauthRes.AccessToken
+
+			bytes, _ := utils.GetUserMe(token)
+			userID := new(UserID)
+			json.Unmarshal(bytes, userID)
+
+			sess.Values["authorization"] = token
+			fmt.Println(token)
+			sess.Values["userID"] = userID.Value
+			sess.Options = &sessions.Options{
+				Path:     "/",
+				MaxAge:   86400 * 7,
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+			}
+			sess.Save(c.Request(), c.Response())
+
+			return next(c)
+		}
+	}
+}
+
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -94,6 +184,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized()
 		}
 		auth, ok := sess.Values["authorization"].(string)
+		fmt.Println(auth)
 		if !ok {
 			sess.Options = &sessions.Options{
 				Path:     "/",
@@ -101,6 +192,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				HttpOnly: true,
 				SameSite: http.SameSiteLaxMode,
 			}
+			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
 			sess.Save(c.Request(), c.Response())
 			return unauthorized()
 		}
