@@ -146,7 +146,6 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 			if res.StatusCode >= 300 {
 				return internalServerError()
 			}
-			fmt.Println(res.StatusCode)
 
 			data, _ := ioutil.ReadAll(res.Body)
 			oauthRes := new(OauthResponse)
@@ -158,7 +157,6 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 			json.Unmarshal(bytes, userID)
 
 			sess.Values["authorization"] = token
-			fmt.Println(token)
 			sess.Values["userID"] = userID.Value.String()
 			sess.Options = &sessions.Options{
 				Path:     "/",
@@ -168,7 +166,6 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 			}
 			err = sess.Save(c.Request(), c.Response())
 			if err != nil {
-				fmt.Println(err)
 				return internalServerError()
 			}
 
