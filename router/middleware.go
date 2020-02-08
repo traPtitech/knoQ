@@ -122,7 +122,6 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 				return internalServerError()
 			}
 			codeVerifier, ok := verifierCache.Get(sessionID)
-			fmt.Println(codeVerifier)
 			if !ok {
 				return internalServerError()
 			}
@@ -132,7 +131,6 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 			form.Add("client_id", "1iZopJ2qP63BaJYkQxhlVzCdrG8h1tDHMXm7")
 			form.Add("code", code)
 			form.Add("code_verifier", codeVerifier.(string))
-			fmt.Println(form)
 
 			body := strings.NewReader(form.Encode())
 
@@ -161,14 +159,18 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 
 			sess.Values["authorization"] = token
 			fmt.Println(token)
-			sess.Values["userID"] = userID.Value
+			sess.Values["userID"] = userID.Value.String()
 			sess.Options = &sessions.Options{
 				Path:     "/",
 				MaxAge:   86400 * 7,
 				HttpOnly: true,
 				SameSite: http.SameSiteLaxMode,
 			}
-			sess.Save(c.Request(), c.Response())
+			err = sess.Save(c.Request(), c.Response())
+			if err != nil {
+				fmt.Println(err)
+				return internalServerError()
+			}
 
 			return next(c)
 		}
@@ -184,7 +186,6 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized()
 		}
 		auth, ok := sess.Values["authorization"].(string)
-		fmt.Println(auth)
 		if !ok {
 			sess.Options = &sessions.Options{
 				Path:     "/",

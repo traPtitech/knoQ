@@ -3,7 +3,6 @@ package router
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -37,7 +36,6 @@ func HandlePostAuthParams(c echo.Context) error {
 		return internalServerError()
 	}
 	verifierCache.Set(sessionID, codeVerifier, cache.DefaultExpiration)
-	fmt.Println(codeVerifier)
 	result := sha256.Sum256([]byte(codeVerifier))
 	enc := base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_").WithPadding(base64.NoPadding)
 
