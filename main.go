@@ -53,7 +53,7 @@ func main() {
 		HTML5: true,
 	}))
 
-	// CORS
+	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
