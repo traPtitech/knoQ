@@ -17,8 +17,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"github.com/gorilla/securecookie"
-	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
+	"github.com/wader/gormstore"
 )
 
 var (
@@ -38,10 +38,6 @@ func main() {
 	e.HTTPErrorHandler = router.HTTPErrorHandler
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
-	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Root:  "web/dist",
-		HTML5: true,
-	}))
 	logger, _ := zap.NewDevelopment()
 	e.Use(router.AccessLoggingMiddleware(logger))
 
@@ -49,11 +45,17 @@ func main() {
 		SESSION_KEY = securecookie.GenerateRandomKey(32)
 		fmt.Println(SESSION_KEY)
 	}
-	e.Use(session.Middleware(sessions.NewCookieStore(SESSION_KEY)))
+	e.Use(session.Middleware(gormstore.New(db, []byte("WIP"))))
+	e.Use(router.WatchCallbackMiddleware())
 
-	// CORS
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:  "web/dist",
+		HTML5: true,
+	}))
+
+	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"*"},
+		AllowOrigins: []string{"https://portal.trap.jp", "localhost:8080"},
 		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
 	}))
 
@@ -116,7 +118,9 @@ func main() {
 			apiTags.POST("", router.HandlePostTag)
 			apiTags.GET("", router.HandleGetTags)
 		}
+
 	}
+	e.POST("/api/authParams", router.HandlePostAuthParams)
 
 	// サーバースタート
 	go func() {

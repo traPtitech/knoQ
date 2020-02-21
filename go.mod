@@ -12,7 +12,9 @@ require (
 	github.com/json-iterator/go v1.1.9
 	github.com/labstack/echo-contrib v0.8.1-0.20200115200653-2d4a7f3c41d8
 	github.com/labstack/echo/v4 v4.1.13
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/traPtitech/traQ v1.0.0-rc.2
+	github.com/wader/gormstore v0.0.0-20190904144442-d36772af4310
 	go.uber.org/zap v1.13.0
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.15.0

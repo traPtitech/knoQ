@@ -1,13 +1,20 @@
 package router
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/url"
 	log "room/logging"
 	repo "room/repository"
 	"room/utils"
 	"strconv"
+	"strings"
 	"time"
+
+	traQutils "github.com/traPtitech/traQ/utils"
 
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/sessions"
@@ -17,8 +24,6 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-
-	traQutils "github.com/traPtitech/traQ/utils"
 )
 
 const requestUserStr string = "Request-User"
@@ -29,6 +34,19 @@ var traQjson = jsoniter.Config{
 	SortMapKeys:            true,
 	ValidateJsonRawMessage: true,
 	TagKey:                 "traq",
+}
+
+type OauthResponse struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+	IDToken      string `json:"id_token"`
+}
+
+type UserID struct {
+	Value uuid.UUID `json:"userId"`
 }
 
 // CreatedByGetter get created user
@@ -87,80 +105,99 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 	}
 }
 
-// TraQUserMiddleware traQユーザーか判定するミドルウェア
-func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		var user repo.User
-		userSess := new(repo.UserSession)
-		sess, err := session.Get("r_session", c)
-		if err != nil {
-			return unauthorized()
-		}
-		token, ok := sess.Values["token"].(string)
-		if !ok {
-			// token create
-			token = traQutils.RandAlphabetAndNumberString(32)
-			sess.Values["token"] = token
+// WatchCallbackMiddleware /callback?code= を監視
+func WatchCallbackMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			path := c.Request().URL.Path
+			if path != "/callback" {
+				return next(c)
+			}
+			code := c.QueryParam("code")
+
+			sess, _ := session.Get("session", c)
+			sessionID, ok := sess.Values["ID"].(string)
+			if !ok {
+				fmt.Println("err")
+				return internalServerError()
+			}
+			codeVerifier, ok := verifierCache.Get(sessionID)
+			if !ok {
+				return internalServerError()
+			}
+
+			form := url.Values{}
+			form.Add("grant_type", "authorization_code")
+			form.Add("client_id", "1iZopJ2qP63BaJYkQxhlVzCdrG8h1tDHMXm7")
+			form.Add("code", code)
+			form.Add("code_verifier", codeVerifier.(string))
+
+			body := strings.NewReader(form.Encode())
+
+			req, err := http.NewRequest("POST", "https://q.trap.jp/api/1.0/oauth2/token", body)
+			if err != nil {
+				return next(c)
+			}
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return internalServerError()
+			}
+			if res.StatusCode >= 300 {
+				return internalServerError()
+			}
+
+			data, _ := ioutil.ReadAll(res.Body)
+			oauthRes := new(OauthResponse)
+			json.Unmarshal(data, oauthRes)
+			token := oauthRes.AccessToken
+
+			bytes, _ := utils.GetUserMe(token)
+			userID := new(UserID)
+			json.Unmarshal(bytes, userID)
+
+			sess.Values["authorization"] = token
+			sess.Values["userID"] = userID.Value.String()
 			sess.Options = &sessions.Options{
 				Path:     "/",
 				MaxAge:   86400 * 7,
 				HttpOnly: true,
+				SameSite: http.SameSiteNoneMode,
 			}
-			// create DB record
-			userSess.Token = token
-			if err := userSess.Create(); err != nil {
-				return internalServerError()
-			}
-			sess.Save(c.Request(), c.Response())
-		}
-		ah := c.Request().Header.Get(echo.HeaderAuthorization)
-		if len(ah) > 0 {
-			// AuthorizationヘッダーがあるためOAuth2で検証
-			// Authorizationスキーム検証
-			l := len(authScheme)
-			if !(len(ah) > l+1 && ah[:l] == authScheme) {
-				return unauthorized(message("invalid authorization scheme"))
-			}
-
-			// OAuth2 Token検証
-			// Todo traQ /users/me
-			body, err := utils.GetUserMe(ah)
-			if err != nil {
-				return unauthorized(message(err.Error()))
-			}
-			err = traQjson.Froze().Unmarshal(body, &user)
+			err = sess.Save(c.Request(), c.Response())
 			if err != nil {
 				return internalServerError()
 			}
 
-			// Todo session を認証状態にする
-			// DB update
-			userSess = &repo.UserSession{
-				Token:         token,
-				UserID:        user.ID,
-				Authorization: ah,
-			}
-			if err := userSess.Update(); err != nil {
-				return unauthorized()
-			}
-
-		} else {
-			// take from DB
-			userSess.Token = token
-			if err := userSess.Get(); err != nil {
-				return unauthorized()
-			}
-			// 認証されてないなら空文字列
-			if userSess.Authorization == "" {
-				return unauthorized()
-			}
+			return next(c)
 		}
-		user.ID = userSess.UserID
-		user.Auth = userSess.Authorization
-		err = repo.DB.FirstOrCreate(&user).Error
+	}
+}
+
+// TraQUserMiddleware traQユーザーか判定するミドルウェア
+func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var user repo.User
+		sess, err := session.Get("session", c)
 		if err != nil {
-			return internalServerError()
+			return unauthorized()
 		}
+		auth, ok := sess.Values["authorization"].(string)
+		if !ok {
+			sess.Options = &sessions.Options{
+				Path:     "/",
+				MaxAge:   86400 * 7,
+				HttpOnly: true,
+				SameSite: http.SameSiteNoneMode,
+			}
+			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
+			sess.Save(c.Request(), c.Response())
+			return unauthorized()
+		}
+		if auth == "" {
+			return unauthorized()
+		}
+		user.Auth = auth
 		c.Set(requestUserStr, user)
 		return next(c)
 	}
