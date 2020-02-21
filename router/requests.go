@@ -10,8 +10,8 @@ import (
 type GroupReq struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	ImageID     string      `json:"image_id"`
-	JoinFreely  bool        `json:"join_freely"`
+	ImageID     string      `json:"imageId"`
+	JoinFreely  bool        `json:"joinFreely"`
 	Members     []uuid.UUID `json:"members"`
 }
 

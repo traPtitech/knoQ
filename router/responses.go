@@ -12,10 +12,10 @@ import (
 type GroupRes struct {
 	ID uuid.UUID `json:"id"`
 	GroupReq
-	IsTraQGroup bool      `json:"is_traQ_group"`
-	CreatedBy   uuid.UUID `json:"created_by"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	IsTraQGroup bool      `json:"isTraQGroup"`
+	CreatedBy   uuid.UUID `json:"createdBy"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 // EventRes is event response

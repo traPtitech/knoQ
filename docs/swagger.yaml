@@ -47,7 +47,7 @@ paths:
       summary: traPで確保した進捗部屋の情報を取得
       operationId: getrooms
       parameters:
-        - name: date_begin
+        - name: dateBegin
           in: query
           description: 特定の日から。(2017-07-21とか)
           required: false
@@ -55,7 +55,7 @@ paths:
             type: string
             format: date
             example: "2017-07-21"
-        - name: date_end
+        - name: dateEnd
           in: query
           description: 特定の日まで。(2017-07-21とか)
           required: false
@@ -180,14 +180,14 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: date_begin
+        - name: dateBegin
           in: query
           description: 特定の日からのみにする。(2017-07-21とか)
           required: false
           schema:
             type: string
             format: date
-        - name: date_end
+        - name: dateEnd
           in: query
           description: 特定の日までのみにする。(2017-07-21とか)
           required: false
@@ -439,7 +439,7 @@ paths:
     put:
       tags:
         - groups
-      summary: 自分を追加。join_freely=true
+      summary: 自分を追加。open=true
       description: Headerを見て、メンバーを追加する
       parameters:
         - name: groupID
@@ -454,7 +454,7 @@ paths:
     delete:
       tags:
         - groups
-      summary: 自分しか削除出来ない。join_freely=true
+      summary: 自分しか削除出来ない。open=true
       parameters:
         - name: groupID
           in: path
@@ -611,10 +611,10 @@ components:
         date:
           type: string
           example: "2019-08-08"
-        time_start:
+        timeStart:
           type: string
           example: "09:00"
-        time_end:
+        timeEnd:
           type: string
           example: "20:00"
 
@@ -630,26 +630,26 @@ components:
       properties:
         public:
           type: boolean
-        available_time:
+        availableTime:
           type: array
           items:
             type: object
             properties:
-              time_start:
+              timeStart:
                 type: string
                 format: time
                 example: "09:00:00"
-              time_end:
+              timeEnd:
                 type: string
                 format: time
                 example: "20:00:00"
-        created_by:
+        createdBy:
           type: string
           format: uuid
-        created_at:
+        createdAt:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
-        updated_at:
+        updatedAt:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
     RequestRoom:
@@ -664,23 +664,23 @@ components:
         descirption:
           type: string
           example: 第n回の進捗会です。
-        allow_together:
+        sharedRoom:
           type: boolean
           example: false
-        time_start:
+        timeStart:
           type: string
           example: "18:00"
-        time_end:
+        timeEnd:
           type: string
           example: "20:00"
-        image_id:
+        imageId:
           type: string
           format: uuid
-        room_id:
+        roomId:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-        group_id:
+        groupId:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -719,13 +719,13 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ResponseTag"
-            created_by:
+            createdBy:
               type: string
               format: uuid
-            created_at:
+            createdAt:
               type: string
               example: "2019-11-02T15:24:42.5438806Z"
-            updated_at:
+            updatedAt:
               type: string
               example: "2019-11-02T15:24:42.5438806Z"
 
@@ -738,10 +738,10 @@ components:
         description:
           type: string
           example: Sysad班room開発グループ
-        image_id:
+        imageId:
           type: string
           format: uuid
-        join_freely:
+        open:
           type: boolean
         members:
           $ref: "#/components/schemas/UUIDs"
@@ -757,16 +757,16 @@ components:
               example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         - $ref: "#/components/schemas/group"
       properties:
-        is_traQ_group:
+        isTraQGroup:
           type: boolean
           example: false
-        created_by:
+        createdBy:
           type: string
           format: uuid
-        created_at:
+        createdAt:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
-        updated_at:
+        updatedAt:
           type: string
           example: "2019-11-02T15:24:42.5438806Z"
 
