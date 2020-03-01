@@ -1,3 +1,4 @@
+// Package router is
 package router
 
 import (
@@ -5,34 +6,35 @@ import (
 	"net/http"
 
 	"github.com/gorilla/securecookie"
-	"github.com/labstack/echo"
+	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/wader/gormstore"
 	"go.uber.org/zap"
 )
 
 type Handlers struct {
-	Repo   // repository.Repository
+	Repo   interface{} // TODO fix
 	Logger *zap.Logger
 }
 
-func (h *Handlers) SetupRoute(e *echo.Group) {
-	echo.NotFoundHandler = router.NotFoundHandler
+func SetupRoute(SESSION_KEY []byte, db *gorm.DB) {
+	echo.NotFoundHandler = NotFoundHandler
 	// echo初期化
 	e := echo.New()
-	e.HTTPErrorHandler = router.HTTPErrorHandler
+	e.HTTPErrorHandler = HTTPErrorHandler
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
 	logger, _ := zap.NewDevelopment()
-	e.Use(router.AccessLoggingMiddleware(logger))
+	e.Use(AccessLoggingMiddleware(logger))
 
 	if len(SESSION_KEY) == 0 {
 		SESSION_KEY = securecookie.GenerateRandomKey(32)
 		fmt.Println(SESSION_KEY)
 	}
 	e.Use(session.Middleware(gormstore.New(db, []byte("WIP"))))
-	e.Use(router.WatchCallbackMiddleware())
+	e.Use(WatchCallbackMiddleware())
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Root:  "web/dist",
@@ -46,66 +48,66 @@ func (h *Handlers) SetupRoute(e *echo.Group) {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", router.TraQUserMiddleware)
+	api := e.Group("/api", TraQUserMiddleware)
 	{
-		adminMiddle := router.AdminUserMiddleware
+		adminMiddle := AdminUserMiddleware
 
 		apiGroups := api.Group("/groups")
 		{
-			apiGroups.GET("", router.HandleGetGroups)
-			apiGroups.POST("", router.HandlePostGroup)
-			apiGroup := apiGroups.Group("/:groupid", router.GroupIDMiddleware)
+			apiGroups.GET("", HandleGetGroups)
+			apiGroups.POST("", HandlePostGroup)
+			apiGroup := apiGroups.Group("/:groupid", GroupIDMiddleware)
 			{
-				apiGroup.GET("", router.HandleGetGroup)
-				apiGroup.PUT("", router.HandleUpdateGroup, router.GroupCreatedUserMiddleware)
-				apiGroup.DELETE("", router.HandleDeleteGroup, adminMiddle)
+				apiGroup.GET("", HandleGetGroup)
+				apiGroup.PUT("", HandleUpdateGroup, GroupCreatedUserMiddleware)
+				apiGroup.DELETE("", HandleDeleteGroup, adminMiddle)
 
-				// apiGroup.PATCH("/tags", router.HandleAddGroupTag)
-				// apiGroup.DELETE("/tags/:tagid", router.HandleDeleteGroupTag)
+				// apiGroup.PATCH("/tags", HandleAddGroupTag)
+				// apiGroup.DELETE("/tags/:tagid", HandleDeleteGroupTag)
 
-				apiGroup.PATCH("/members/me", router.HandleAddMeGroup)
-				apiGroup.DELETE("/members/me", router.HandleDeleteMeGroup)
+				apiGroup.PATCH("/members/me", HandleAddMeGroup)
+				apiGroup.DELETE("/members/me", HandleDeleteMeGroup)
 			}
 		}
 
 		apiEvents := api.Group("/events")
 		{
-			apiEvents.GET("", router.HandleGetEvents)
-			apiEvents.POST("", router.HandlePostEvent)
+			apiEvents.GET("", HandleGetEvents)
+			apiEvents.POST("", HandlePostEvent)
 
-			apiEvent := apiEvents.Group("/:eventid", router.EventIDMiddleware)
+			apiEvent := apiEvents.Group("/:eventid", EventIDMiddleware)
 			{
-				apiEvent.GET("", router.HandleGetEvent)
-				apiEvent.PUT("", router.HandleUpdateEvent, router.EventCreatedUserMiddleware)
-				apiEvent.DELETE("", router.HandleDeleteEvent, router.EventCreatedUserMiddleware)
+				apiEvent.GET("", HandleGetEvent)
+				apiEvent.PUT("", HandleUpdateEvent, EventCreatedUserMiddleware)
+				apiEvent.DELETE("", HandleDeleteEvent, EventCreatedUserMiddleware)
 
-				apiEvent.PATCH("/tags", router.HandleAddEventTag)
-				apiEvent.DELETE("/tags/:tagid", router.HandleDeleteEventTag)
+				apiEvent.PATCH("/tags", HandleAddEventTag)
+				apiEvent.DELETE("/tags/:tagid", HandleDeleteEventTag)
 			}
 
 		}
 		apiRooms := api.Group("/rooms")
 		{
-			apiRooms.GET("", router.HandleGetRooms)
-			apiRooms.POST("", router.HandlePostRoom, adminMiddle)
-			apiRooms.GET("/:roomid", router.HandleGetRoom)
-			apiRooms.POST("/all", router.HandleSetRooms, adminMiddle)
-			apiRooms.DELETE("/:roomid", router.HandleDeleteRoom, adminMiddle)
+			apiRooms.GET("", HandleGetRooms)
+			apiRooms.POST("", HandlePostRoom, adminMiddle)
+			apiRooms.GET("/:roomid", HandleGetRoom)
+			apiRooms.POST("/all", HandleSetRooms, adminMiddle)
+			apiRooms.DELETE("/:roomid", HandleDeleteRoom, adminMiddle)
 		}
 
 		apiUsers := api.Group("/users")
 		{
-			apiUsers.GET("", router.HandleGetUsers)
-			apiUsers.GET("/me", router.HandleGetUserMe)
+			apiUsers.GET("", HandleGetUsers)
+			apiUsers.GET("/me", HandleGetUserMe)
 		}
 
 		apiTags := api.Group("/tags")
 		{
-			apiTags.POST("", router.HandlePostTag)
-			apiTags.GET("", router.HandleGetTags)
+			apiTags.POST("", HandlePostTag)
+			apiTags.GET("", HandleGetTags)
 		}
 
 	}
-	e.POST("/api/authParams", router.HandlePostAuthParams)
+	e.POST("/api/authParams", HandlePostAuthParams)
 
 }
