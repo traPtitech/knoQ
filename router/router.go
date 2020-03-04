@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	repo "room/repository"
+
 	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo-contrib/session"
@@ -15,11 +17,12 @@ import (
 )
 
 type Handlers struct {
-	Repo   interface{} // TODO fix
-	Logger *zap.Logger
+	Repo         repo.Repository
+	subGroupRepo repo.GormRepository
+	Logger       *zap.Logger
 }
 
-func SetupRoute(SESSION_KEY []byte, db *gorm.DB) {
+func SetupRoute(SESSION_KEY []byte, db *gorm.DB) *echo.Echo {
 	echo.NotFoundHandler = NotFoundHandler
 	// echo初期化
 	e := echo.New()
@@ -110,4 +113,5 @@ func SetupRoute(SESSION_KEY []byte, db *gorm.DB) {
 	}
 	e.POST("/api/authParams", HandlePostAuthParams)
 
+	return e
 }

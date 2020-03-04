@@ -24,6 +24,20 @@ var tables = []interface{}{
 	UserSession{},
 }
 
+type Repository interface {
+	GroupRepository
+}
+
+// GormRepository implements Repository interface
+type GormRepository struct {
+	db *gorm.DB
+}
+
+// APIRepository implements only GroupRepository interface
+type APIRepository struct {
+	url string
+}
+
 var (
 	MARIADB_HOSTNAME = os.Getenv("MARIADB_HOSTNAME")
 	MARIADB_DATABASE = os.Getenv("MARIADB_DATABASE")

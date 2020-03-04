@@ -7,6 +7,10 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+// GormRepostory and API repository implement GroupRepository.
+type GroupRepository interface {
+}
+
 func (g *Group) Create() error {
 	tx := DB.Begin()
 	defer func() {
