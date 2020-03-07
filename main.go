@@ -21,12 +21,7 @@ func main() {
 	}
 	defer db.Close()
 
-	repository := repo.GormRepository{
-		DB: db,
-	}
-
 	handler := router.Handlers{
-		Repo:       repository,
 		SessionKey: SESSION_KEY,
 	}
 
