@@ -12,6 +12,18 @@ import (
 
 // WriteEventParams is used create and update
 type WriteEventParams struct {
+	Name          string
+	Description   string
+	GroupID       uuid.UUID
+	RoomID        uuid.UUID
+	TimeStart     string
+	TimeEnd       string
+	CreatedBy     uuid.UUID
+	AllowTogether bool
+	Tags          struct {
+		ID     uuid.UUID
+		Locked bool
+	}
 }
 
 // EventRepository is implemented by GormRepositoy and API repository.

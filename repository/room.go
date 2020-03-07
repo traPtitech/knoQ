@@ -19,6 +19,10 @@ import (
 )
 
 type WriteRoomParams struct {
+	Place     string
+	Date      string
+	TimeStart string
+	TimeEnd   string
 }
 
 // RoomRepository is implemted GormRepositoty and API repository

@@ -9,6 +9,12 @@ import (
 
 // WriteGroupParams is used create and update
 type WriteGroupParams struct {
+	Name        string
+	Description string
+	ImageID     string
+	JoinFreely  bool
+	Members     []uuid.UUID
+	CreatedBy   uuid.UUID
 }
 
 // GroupRepository is implemented by GormRepositoy and API repository.
