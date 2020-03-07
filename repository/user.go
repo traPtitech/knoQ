@@ -3,8 +3,8 @@ package repository
 import "github.com/gofrs/uuid"
 
 type UserRepository interface {
-	CreateUser(id uuid.UUID, isAdmin bool) (*User, error)
-	GetUser(id uuid.UUID) (*User, error)
+	CreateUser(userID uuid.UUID, isAdmin bool) (*User, error)
+	GetUser(userID uuid.UUID) (*User, error)
 	GetAllUsers() ([]*User, error)
 }
 

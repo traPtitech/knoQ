@@ -8,9 +8,9 @@ import (
 
 type TagRepository interface {
 	CreateTag(name string) (*Tag, error)
-	UpdateTag(id uuid.UUID, name string) (*Tag, error)
-	DeleteTag(id uuid.UUID) error
-	GetTag(id uuid.UUID) (*Tag, error)
+	UpdateTag(tagID uuid.UUID, name string) (*Tag, error)
+	DeleteTag(tagID uuid.UUID) error
+	GetTag(tagID uuid.UUID) (*Tag, error)
 	GetAllTags() ([]*Tag, error)
 }
 

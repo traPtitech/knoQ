@@ -17,12 +17,14 @@ type WriteEventParams struct {
 // EventRepository is implemented by GormRepositoy and API repository.
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams) (*Event, error)
-	UpdateEvent(id uuid.UUID, eventParams WriteEventParams) (*Event, error)
-	AddTagToEvent(id uuid.UUID, tagID uuid.UUID) error
-	DeleteEvent(id uuid.UUID) error
+	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
+	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID) error
+	AddEventToFavorites(eventID uuid.UUID, userID uuid.UUID) error
+	DeleteEvent(eventID uuid.UUID) error
 	// DeleteTagInEvent delete a tag in that Event if that tag is locked == false
-	DeleteTagInEvent(id uuid.UUID, tagID uuid.UUID) error
-	GetEvent(id uuid.UUID) (*Event, error)
+	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID) error
+	DeleteEventFavorite(eventID uuid.UUID, userID uuid.UUID) error
+	GetEvent(eventID uuid.UUID) (*Event, error)
 	GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
 	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
 }
