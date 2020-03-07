@@ -54,10 +54,10 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		apiGroups := api.Group("/groups")
 		{
 			apiGroups.GET("", HandleGetGroups)
-			apiGroups.POST("", HandlePostGroup)
+			apiGroups.POST("", h.HandlePostGroup)
 			apiGroup := apiGroups.Group("/:groupid", GroupIDMiddleware)
 			{
-				apiGroup.GET("", HandleGetGroup)
+				apiGroup.GET("", h.HandleGetGroup)
 				apiGroup.PUT("", HandleUpdateGroup, GroupCreatedUserMiddleware)
 				apiGroup.DELETE("", HandleDeleteGroup, adminMiddle)
 

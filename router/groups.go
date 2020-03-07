@@ -4,29 +4,28 @@ import (
 	"net/http"
 	repo "room/repository"
 
+	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 )
 
 // HandlePostGroup グループを作成
-func HandlePostGroup(c echo.Context) error {
+func (h *Handlers) HandlePostGroup(c echo.Context) error {
 	g := new(GroupReq)
 
 	if err := c.Bind(&g); err != nil {
 		return badRequest(message(err.Error()))
 	}
-	group, _ := formatGroup(g)
-
-	group.CreatedBy = getRequestUser(c).ID
-
-	if err := group.Create(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return badRequest()
-		}
+	groupParams := new(repo.WriteGroupParams)
+	err := copier.Copy(&groupParams, g)
+	if err != nil {
 		return internalServerError()
 	}
 
-	if err := group.Read(); err != nil {
+	groupParams.CreatedBy = getRequestUser(c).ID
+
+	group, err := h.Repo.CreateGroup(*groupParams)
+	if err != nil {
 		return internalServerError()
 	}
 
@@ -38,19 +37,17 @@ func HandlePostGroup(c echo.Context) error {
 }
 
 // HandleGetGroup グループを一件取得
-func HandleGetGroup(c echo.Context) error {
-	group := new(repo.Group)
-	var err error
-	group.ID, err = getRequestGroupID(c)
+func (h *Handlers) HandleGetGroup(c echo.Context) error {
+	groupID, err := getRequestGroupID(c)
 	if err != nil {
 		return internalServerError()
 	}
-	if err := group.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound()
-		}
+
+	group, err := h.Repo.GetGroup(groupID)
+	if err != nil {
 		return internalServerError()
 	}
+
 	res, err := formatGroupRes(group)
 	if err != nil {
 		return internalServerError()
@@ -60,7 +57,6 @@ func HandleGetGroup(c echo.Context) error {
 
 // HandleGetGroups グループを取得
 func HandleGetGroups(c echo.Context) error {
-	groups := []repo.Group{}
 	values := c.QueryParams()
 
 	groups, err := repo.FindGroups(values)
