@@ -26,11 +26,12 @@ var tables = []interface{}{
 
 type Repository interface {
 	GroupRepository
+	RoomRepository
 }
 
 // GormRepository implements Repository interface
 type GormRepository struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
 // APIRepository implements only GroupRepository interface

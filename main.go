@@ -21,7 +21,16 @@ func main() {
 	}
 	defer db.Close()
 
-	e := router.SetupRoute(SESSION_KEY, db)
+	repository := repo.GormRepository{
+		DB: db,
+	}
+
+	handler := router.Handlers{
+		Repo:       repository,
+		SessionKey: SESSION_KEY,
+	}
+
+	e := handler.SetupRoute(db)
 
 	// サーバースタート
 	go func() {

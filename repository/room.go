@@ -18,6 +18,18 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
+type WriteRoomParams struct {
+}
+
+// RoomRepository is implemted GormRepositoty and API repository
+type RoomRepository interface {
+	CreateRoom(roomParams WriteRoomParams) (*Room, error)
+	UpdateRoom(id uuid.UUID, roomParams WriteRoomParams) (*Room, error)
+	DeleteRoom(id uuid.UUID) error
+	GetRoom(id uuid.UUID) (*Room, error)
+	GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error)
+}
+
 // BeforeCreate is gorm hook
 func (r *Room) BeforeCreate() (err error) {
 	r.ID, err = uuid.NewV4()

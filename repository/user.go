@@ -2,6 +2,12 @@ package repository
 
 import "github.com/gofrs/uuid"
 
+type UserRepository interface {
+	CreateUser(id uuid.UUID, isAdmin bool) (*User, error)
+	GetUser(id uuid.UUID) (*User, error)
+	GetAllUsers() ([]*User, error)
+}
+
 // GetUser ユーザー情報を取得します
 func GetUser(id uuid.UUID) (User, error) {
 	user := User{}

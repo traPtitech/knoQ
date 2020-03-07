@@ -2,12 +2,10 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 
 	repo "room/repository"
 
-	"github.com/gorilla/securecookie"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -17,26 +15,24 @@ import (
 )
 
 type Handlers struct {
-	Repo         repo.Repository
-	subGroupRepo repo.GormRepository
-	Logger       *zap.Logger
+	Repo              repo.Repository
+	externalGroupRepo repo.GormRepository
+	externalRoomRepo  repo.RoomRepository
+	Logger            *zap.Logger
+	SessionKey        []byte
 }
 
-func SetupRoute(SESSION_KEY []byte, db *gorm.DB) *echo.Echo {
+func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	echo.NotFoundHandler = NotFoundHandler
 	// echo初期化
 	e := echo.New()
 	e.HTTPErrorHandler = HTTPErrorHandler
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
-	logger, _ := zap.NewDevelopment()
-	e.Use(AccessLoggingMiddleware(logger))
 
-	if len(SESSION_KEY) == 0 {
-		SESSION_KEY = securecookie.GenerateRandomKey(32)
-		fmt.Println(SESSION_KEY)
-	}
-	e.Use(session.Middleware(gormstore.New(db, []byte("WIP"))))
+	e.Use(AccessLoggingMiddleware(h.Logger))
+
+	e.Use(session.Middleware(gormstore.New(db, h.SessionKey)))
 	e.Use(WatchCallbackMiddleware())
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
