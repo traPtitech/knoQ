@@ -620,7 +620,7 @@ components:
       allOf:
         - type: object
           properties:
-            id:
+            roomId:
               type: string
               format: uuid
               example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -703,7 +703,7 @@ components:
       allOf:
         - type: object
           properties:
-            id:
+            eventId:
               type: string
               format: uuid
               example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -749,7 +749,7 @@ components:
       allOf:
         - type: object
           properties:
-            id:
+            groupId:
               type: string
               format: uuid
               example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -796,7 +796,7 @@ components:
     ReqTagID:
       type: object
       properties:
-        id:
+        tagId:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -824,7 +824,7 @@ components:
     ResTag:
       type: object
       properties:
-        id:
+        tagId:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -834,7 +834,7 @@ components:
     ResponseTag:
       type: object
       properties:
-        id:
+        tagId:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
