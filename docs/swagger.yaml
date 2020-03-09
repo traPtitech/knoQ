@@ -316,11 +316,11 @@ paths:
             type: string
             format: uuid
       requestBody:
-        $ref: "#/components/requestBodies/tagID"
+        $ref: "#/components/requestBodies/tagName"
       responses:
         200:
           $ref: "#/components/responses/event"
-  /events/{eventID}/tags/{tagID}:
+  /events/{eventID}/tags/{tagName}:
     delete:
       tags:
         - events
@@ -333,12 +333,11 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: tagID
+        - name: tagName
           in: path
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         200:
           $ref: "#/components/responses/event"
@@ -690,7 +689,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTagIDAuth"
+            $ref: "#/components/schemas/ReqTagNameAuth"
     PostEvent:
       allOf:
         - $ref: "#/components/schemas/PutEvent"
@@ -698,7 +697,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTagIDAuth"
+            $ref: "#/components/schemas/ReqTagNameAuth"
 
     ResponseEvent:
       allOf:
@@ -814,6 +813,14 @@ components:
         locked:
           type: boolean
           example: true
+    ReqTagNameAuth:
+      allOf:
+        - $ref: "#/components/schemas/ReqTagName"
+      properties:
+        locked:
+          type: boolean
+          example: true
+ 
     ResTag:
       type: object
       properties:
@@ -824,9 +831,6 @@ components:
         name:
           type: string
           example: vue
-        official:
-          type: boolean
-          example: true
     ResponseTag:
       type: object
       properties:
@@ -834,6 +838,9 @@ components:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        name:
+          type: string
+          example: vue
         locked:
           type: boolean
           example: true
