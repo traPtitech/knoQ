@@ -55,6 +55,12 @@ type EventTag struct {
 	Locked  bool
 }
 
+// GroupUsers is many to many table
+type GroupUsers struct {
+	GroupID uuid.UUID `gorm:"type:char(36); primary_key"`
+	UserID  uuid.UUID `gorm:"type:char(36); primary_key"`
+}
+
 // Room 部屋情報
 type Room struct {
 	Model
@@ -73,7 +79,7 @@ type Group struct {
 	Description string    `json:"description" gorm:"type:varchar(1024)"`
 	ImageID     string    `json:"imageId"`
 	JoinFreely  bool      `json:"open"`
-	Members     []User    `json:"members" gorm:"many2many:group_users; save_associations:false"`
+	Members     []User    `json:"members" gorm:"many2many:group_users; association_autoupdate:false;association_autocreate:false"`
 	IsTraQGroup bool      `json:"isTraQGroup" gorm:"-"`
 	CreatedBy   uuid.UUID `json:"createdBy" gorm:"type:char(36);"`
 }

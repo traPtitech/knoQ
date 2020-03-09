@@ -21,6 +21,7 @@ var tables = []interface{}{
 	Event{},
 	Tag{},
 	EventTag{},
+	GroupUsers{},
 	UserSession{},
 }
 
@@ -82,16 +83,16 @@ func SetupDatabase() (*gorm.DB, error) {
 	if err != nil {
 		return DB, err
 	}
-	if err := initDB(); err != nil {
+	if err := initDB(DB); err != nil {
 		return DB, err
 	}
 	return DB, nil
 }
 
 // initDB データベースのスキーマを更新
-func initDB() error {
+func initDB(db *gorm.DB) error {
 	// テーブルが無ければ作成
-	if err := DB.AutoMigrate(tables...).Error; err != nil {
+	if err := db.AutoMigrate(tables...).Error; err != nil {
 		return err
 	}
 	return nil

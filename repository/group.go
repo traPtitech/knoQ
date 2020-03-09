@@ -2,9 +2,11 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/gofrs/uuid"
+	"github.com/jinzhu/copier"
 )
 
 // WriteGroupParams is used create and update
@@ -30,6 +32,37 @@ type GroupRepository interface {
 	GetAllGroups() ([]*Group, error)
 	GetUserBelogingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
 }
+
+// GormRepository implements GroupRepository
+
+// CreateGroup create Group in DB
+func (repo *GormRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
+	group := new(Group)
+	err := copier.Copy(&group, groupParams)
+	for _, m := range groupParams.Members {
+		group.Members = append(group.Members, User{ID: m})
+	}
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	if err = repo.DB.Create(group).Error; err != nil {
+		return nil, err
+	}
+	return group, nil
+}
+
+/*
+func verifyuserIDs(userIDs []uuid.UUID) ([]uuid.UUID, error) {
+	if err := DB.Debug().Where("id IN (?)", userIDs).Find(&g.Members).Error; err != nil {
+		dbErrorLog(err)
+		return err
+	}
+	return nil
+
+}
+*/
 
 func (g *Group) Create() error {
 	tx := DB.Begin()
