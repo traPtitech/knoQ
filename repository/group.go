@@ -43,11 +43,31 @@ func (repo *GormRepository) CreateGroup(groupParams WriteGroupParams) (*Group, e
 		return nil, err
 	}
 	group.Members, err = verifyuserIDs(repo.DB, groupParams.Members)
-
 	if err != nil {
 		return nil, err
 	}
+
 	if err = repo.DB.Create(group).Error; err != nil {
+		return nil, err
+	}
+	return group, nil
+}
+
+// UpdateGroup update group in DB.
+func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error) {
+	group := new(Group)
+	err := copier.Copy(&group, groupParams)
+	if err != nil {
+		return nil, err
+	}
+	group.Members, err = verifyuserIDs(repo.DB, groupParams.Members)
+	if err != nil {
+		return nil, err
+	}
+
+	group.ID = groupID
+
+	if err = repo.DB.Save(group).Error; err != nil {
 		return nil, err
 	}
 	return group, nil
