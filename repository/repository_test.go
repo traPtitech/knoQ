@@ -81,6 +81,19 @@ func setupGormRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertio
 	return r, assert, require
 }
 
+func setupTraQRepo(t *testing.T) (*TraQRepository, *assert.Assertions, *require.Assertions) {
+	t.Helper()
+	repo := &TraQRepository{
+		APIRepository: APIRepository{
+			BaseURL: "https://q.trap.jp/api/1.0",
+		},
+		Token: "",
+	}
+	assert, require := assertAndRequire(t)
+	return repo, assert, require
+
+}
+
 func mustNewUUIDV4(t *testing.T) uuid.UUID {
 	id, err := uuid.NewV4()
 	require.NoError(t, err)

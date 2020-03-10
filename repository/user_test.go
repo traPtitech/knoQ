@@ -29,3 +29,12 @@ func TestGormRepository_GetUser(t *testing.T) {
 	})
 
 }
+
+func TestTraQRepository_GetAllUsers(t *testing.T) {
+	t.Parallel()
+	repo, _, _ := setupTraQRepo(t)
+
+	if users, err := repo.GetAllUsers(); assert.NoError(t, err) {
+		assert.NotNil(t, users)
+	}
+}

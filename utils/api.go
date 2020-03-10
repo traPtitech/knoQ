@@ -24,7 +24,7 @@ func APIGetRequest(token, endpoint string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", token)
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
