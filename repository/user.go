@@ -4,8 +4,8 @@ import "github.com/gofrs/uuid"
 
 type UserRepository interface {
 	CreateUser(userID uuid.UUID, isAdmin bool) (*User, error)
-	//GetUser(userID uuid.UUID) (*User, error)
-	//GetAllUsers() ([]*User, error)
+	GetUser(userID uuid.UUID) (*User, error)
+	GetAllUsers() ([]*User, error)
 }
 
 func (repo *GormRepository) CreateUser(userID uuid.UUID, isAdmin bool) (*User, error) {
@@ -19,7 +19,23 @@ func (repo *GormRepository) CreateUser(userID uuid.UUID, isAdmin bool) (*User, e
 	return &user, nil
 }
 
-// GetUser ユーザー情報を取得します
+// GetUser ユーザー情報を取得します(なければ作成)
+func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
+	user := new(User)
+	if err := repo.DB.FirstOrCreate(&user, &User{ID: userID}).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+
+}
+
+func (repo *GormRepository) GetAllUsers() ([]*User, error) {
+	users := make([]*User, 0)
+	err := repo.DB.Find(&users).Error
+	return users, err
+}
+
+// GetUser ユーザー情報を取得します(なければ作成)
 func GetUser(id uuid.UUID) (User, error) {
 	user := User{}
 
