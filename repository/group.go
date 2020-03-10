@@ -75,7 +75,7 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 
 func verifyuserIDs(db *gorm.DB, userIDs []uuid.UUID) ([]User, error) {
 	members := []User{}
-	if err := db.Debug().Where("id IN (?)", userIDs).Find(&members).Error; err != nil {
+	if err := db.Where("id IN (?)", userIDs).Find(&members).Error; err != nil {
 		return nil, err
 	}
 	return members, nil
