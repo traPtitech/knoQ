@@ -81,6 +81,12 @@ func setupGormRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertio
 	return r, assert, require
 }
 
+func mustNewUUIDV4(t *testing.T) uuid.UUID {
+	id, err := uuid.NewV4()
+	require.NoError(t, err)
+	return id
+}
+
 func mustMakeUser(t *testing.T, repo UserRepository, userID uuid.UUID, admin bool) *User {
 	t.Helper()
 	user, err := repo.CreateUser(userID, admin)
