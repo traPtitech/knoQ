@@ -1,12 +1,27 @@
 package repository
 
-import "github.com/gofrs/uuid"
+import (
+	"fmt"
+	"room/utils"
+
+	"github.com/gofrs/uuid"
+	jsoniter "github.com/json-iterator/go"
+)
+
+var traQjson = jsoniter.Config{
+	EscapeHTML:             true,
+	SortMapKeys:            true,
+	ValidateJsonRawMessage: true,
+	TagKey:                 "traq",
+}.Froze()
 
 type UserRepository interface {
 	CreateUser(userID uuid.UUID, isAdmin bool) (*User, error)
 	GetUser(userID uuid.UUID) (*User, error)
 	GetAllUsers() ([]*User, error)
 }
+
+// GormRepository implements UserRepository
 
 func (repo *GormRepository) CreateUser(userID uuid.UUID, isAdmin bool) (*User, error) {
 	user := User{
@@ -33,6 +48,36 @@ func (repo *GormRepository) GetAllUsers() ([]*User, error) {
 	users := make([]*User, 0)
 	err := repo.DB.Find(&users).Error
 	return users, err
+}
+
+// traQRepository implements UserRepository
+
+// CreateUser always return error
+func (repo *TraQRepository) CreateUser(userID uuid.UUID, isAdmin bool) (*User, error) {
+	return nil, ErrForbidden
+}
+
+// GetUser get from /users/{userID}
+func (repo *TraQRepository) GetUser(userID uuid.UUID) (*User, error) {
+	data, err := utils.APIGetRequest(repo.Token, fmt.Sprintf("users/%s", userID))
+	if err != nil {
+		return nil, err
+	}
+	user := new(User)
+	err = traQjson.Unmarshal(data, &user)
+	return user, err
+}
+
+// GetAllUsers get from /users
+func (repo *TraQRepository) GetAllUsers() ([]*User, error) {
+	data, err := utils.APIGetRequest(repo.Token, "/users")
+	if err != nil {
+		return nil, err
+	}
+	users := make([]*User, 0)
+	err = traQjson.Unmarshal(data, &users)
+	return users, err
+
 }
 
 // GetUser ユーザー情報を取得します(なければ作成)

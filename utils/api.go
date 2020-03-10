@@ -9,14 +9,14 @@ import (
 const baseURL = "https://q.trap.jp/api/1.0"
 
 func GetUserMe(token string) ([]byte, error) {
-	return apiGetRequest(token, "/users/me")
+	return APIGetRequest(token, "/users/me")
 }
 
 func GetUsers(token string) ([]byte, error) {
-	return apiGetRequest(token, "/users")
+	return APIGetRequest(token, "/users")
 }
 
-func apiGetRequest(token, endpoint string) ([]byte, error) {
+func APIGetRequest(token, endpoint string) ([]byte, error) {
 	if token == "" {
 		return nil, errors.New(http.StatusText(http.StatusUnauthorized))
 	}

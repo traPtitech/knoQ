@@ -37,7 +37,12 @@ type GormRepository struct {
 
 // APIRepository implements only GroupRepository interface
 type APIRepository struct {
-	url string
+	BaseURL string
+}
+
+type TraQRepository struct {
+	APIRepository
+	Token string
 }
 
 var (
