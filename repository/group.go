@@ -2,11 +2,11 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
+	"github.com/jinzhu/gorm"
 )
 
 // WriteGroupParams is used create and update
@@ -39,12 +39,12 @@ type GroupRepository interface {
 func (repo *GormRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
 	group := new(Group)
 	err := copier.Copy(&group, groupParams)
-	for _, m := range groupParams.Members {
-		group.Members = append(group.Members, User{ID: m})
+	if err != nil {
+		return nil, err
 	}
+	group.Members, err = verifyuserIDs(repo.DB, groupParams.Members)
 
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	if err = repo.DB.Create(group).Error; err != nil {
@@ -53,16 +53,13 @@ func (repo *GormRepository) CreateGroup(groupParams WriteGroupParams) (*Group, e
 	return group, nil
 }
 
-/*
-func verifyuserIDs(userIDs []uuid.UUID) ([]uuid.UUID, error) {
-	if err := DB.Debug().Where("id IN (?)", userIDs).Find(&g.Members).Error; err != nil {
-		dbErrorLog(err)
-		return err
+func verifyuserIDs(db *gorm.DB, userIDs []uuid.UUID) ([]User, error) {
+	members := []User{}
+	if err := db.Debug().Where("id IN (?)", userIDs).Find(&members).Error; err != nil {
+		return nil, err
 	}
-	return nil
-
+	return members, nil
 }
-*/
 
 func (g *Group) Create() error {
 	tx := DB.Begin()
