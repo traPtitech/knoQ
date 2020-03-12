@@ -16,9 +16,9 @@ import (
 
 type Handlers struct {
 	Repo              repo.Repository
-	externalGroupRepo repo.GormRepository
-	externalUserRepo  repo.UserRepository
-	externalRoomRepo  repo.RoomRepository
+	ExternalGroupRepo repo.GormRepository
+	ExternalUserRepo  repo.UserRepository
+	ExternalRoomRepo  repo.RoomRepository
 	Logger            *zap.Logger
 	SessionKey        []byte
 }

@@ -8,6 +8,8 @@ import (
 	repo "room/repository"
 	"room/router"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 var (
@@ -21,7 +23,14 @@ func main() {
 	}
 	defer db.Close()
 
-	handler := router.Handlers{
+	logger, _ := zap.NewDevelopment()
+	handler := &router.Handlers{
+		ExternalUserRepo: &repo.TraQRepository{
+			APIRepository: repo.APIRepository{
+				BaseURL: "https://q.trap.jp/api/1.0",
+			},
+		},
+		Logger:     logger,
 		SessionKey: SESSION_KEY,
 	}
 

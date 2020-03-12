@@ -59,7 +59,7 @@ func (repo *TraQRepository) CreateUser(userID uuid.UUID, isAdmin bool) (*User, e
 
 // GetUser get from /users/{userID}
 func (repo *TraQRepository) GetUser(userID uuid.UUID) (*User, error) {
-	data, err := utils.APIGetRequest(repo.Token, fmt.Sprintf("users/%s", userID))
+	data, err := utils.APIGetRequest(repo.Token, fmt.Sprintf("/users/%s", userID))
 	if err != nil {
 		return nil, err
 	}
