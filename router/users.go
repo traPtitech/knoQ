@@ -12,6 +12,7 @@ import (
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 // 認証状態を確認
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
+	// WIP
 	repo, ok := h.ExternalUserRepo.(*repo.TraQRepository)
 	if ok {
 		repo.Token, _ = getRequestUserToken(c)

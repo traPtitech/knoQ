@@ -43,8 +43,9 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://portal.trap.jp", "localhost:8080"},
-		AllowMethods: []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+		AllowOrigins:     []string{"https://portal.trap.jp", "http://localhost:8080"},
+		AllowMethods:     []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
+		AllowCredentials: true,
 	}))
 
 	// API定義 (/api)
