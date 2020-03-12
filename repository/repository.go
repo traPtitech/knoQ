@@ -26,6 +26,7 @@ var tables = []interface{}{
 }
 
 type Repository interface {
+	UserRepository
 	GroupRepository
 	RoomRepository
 }

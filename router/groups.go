@@ -42,8 +42,10 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
+	group := new(repo.Group)
+	group.ID = groupID
+	group.Read()
 
-	group, err := h.Repo.GetGroup(groupID)
 	if err != nil {
 		return internalServerError()
 	}

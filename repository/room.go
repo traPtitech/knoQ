@@ -27,11 +27,11 @@ type WriteRoomParams struct {
 
 // RoomRepository is implemted GormRepositoty and API repository
 type RoomRepository interface {
-	CreateRoom(roomParams WriteRoomParams) (*Room, error)
-	UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error)
-	DeleteRoom(roomID uuid.UUID) error
-	GetRoom(roomID uuid.UUID) (*Room, error)
-	GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error)
+	//CreateRoom(roomParams WriteRoomParams) (*Room, error)
+	//UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error)
+	//DeleteRoom(roomID uuid.UUID) error
+	//GetRoom(roomID uuid.UUID) (*Room, error)
+	//GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error)
 }
 
 // BeforeCreate is gorm hook

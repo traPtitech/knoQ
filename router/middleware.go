@@ -197,7 +197,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized()
 		}
 		// TODO get admin from db
-		c.Set("IsAdmin", false)
+		c.Set("IsAdmin", true)
 		return next(c)
 	}
 }

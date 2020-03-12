@@ -30,6 +30,8 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 		}
 		return internalServerError()
 	}
+	tmp, _ := h.Repo.GetUser(userID)
+	user.Admin = tmp.Admin
 
 	return c.JSON(http.StatusOK, user)
 }

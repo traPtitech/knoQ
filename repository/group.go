@@ -22,15 +22,15 @@ type WriteGroupParams struct {
 // GroupRepository is implemented by GormRepositoy and API repository.
 type GroupRepository interface {
 	CreateGroup(groupParams WriteGroupParams) (*Group, error)
-	UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
-	// AddUserToGroup add a user to that group if that group is open.
-	AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) error
-	DeleteGroup(groupID uuid.UUID) error
-	// DeleteUserInGroup delete a user in that group if that group is open.
-	DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUID) error
-	GetGroup(groupID uuid.UUID) (*Group, error)
-	GetAllGroups() ([]*Group, error)
-	GetUserBelogingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
+	//UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
+	//// AddUserToGroup add a user to that group if that group is open.
+	//AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) error
+	//DeleteGroup(groupID uuid.UUID) error
+	//// DeleteUserInGroup delete a user in that group if that group is open.
+	//DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUID) error
+	//GetGroup(groupID uuid.UUID) (*Group, error)
+	//GetAllGroups() ([]*Group, error)
+	//GetUserBelogingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
 }
 
 // GormRepository implements GroupRepository

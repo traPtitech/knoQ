@@ -25,6 +25,9 @@ func main() {
 
 	logger, _ := zap.NewDevelopment()
 	handler := &router.Handlers{
+		Repo: &repo.GormRepository{
+			DB: db,
+		},
 		ExternalUserRepo: &repo.TraQRepository{
 			APIRepository: repo.APIRepository{
 				BaseURL: "https://q.trap.jp/api/1.0",
