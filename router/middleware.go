@@ -177,7 +177,6 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var user repo.User
 		sess, err := session.Get("session", c)
 		if err != nil {
 			return unauthorized()
@@ -197,8 +196,8 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if auth == "" {
 			return unauthorized()
 		}
-		user.Auth = auth
-		c.Set(requestUserStr, user)
+		// TODO get admin from db
+		c.Set("IsAdmin", false)
 		return next(c)
 	}
 }
@@ -206,10 +205,10 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // AdminUserMiddleware 管理者ユーザーか判定するミドルウェア
 func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUser := getRequestUser(c)
+		isAdmin := getRequestUserIsAdmin(c)
 
 		// 判定
-		if !requestUser.Admin {
+		if !isAdmin {
 			return forbidden(
 				message("You are not admin user."),
 				specification("Only admin user can request."),
@@ -223,14 +222,14 @@ func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // GroupCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
 func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUser := getRequestUser(c)
+		requestUserID, _ := getRequestUserID(c)
 		g := new(repo.Group)
 		var err error
 		g.ID, err = getRequestGroupID(c)
 		if err != nil || g.ID == uuid.Nil {
 			internalServerError()
 		}
-		IsVerigy, err := verifyCreatedUser(g, requestUser.ID)
+		IsVerigy, err := verifyCreatedUser(g, requestUserID)
 		if err != nil {
 			return internalServerError()
 		}
@@ -248,7 +247,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // EventCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
 func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUser := getRequestUser(c)
+		requestUserID, _ := getRequestUserID(c)
 		event := new(repo.Event)
 		var err error
 		event.ID, err = getRequestEventID(c)
@@ -256,7 +255,7 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return internalServerError()
 		}
 
-		IsVerigy, err := verifyCreatedUser(event, requestUser.ID)
+		IsVerigy, err := verifyCreatedUser(event, requestUserID)
 		if err != nil {
 			if gorm.IsRecordNotFoundError(err) {
 				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
@@ -328,8 +327,43 @@ func verifyCreatedUser(cbg CreatedByGetter, requestUser uuid.UUID) (bool, error)
 }
 
 // getRequestUser リクエストユーザーを返します
-func getRequestUser(c echo.Context) repo.User {
-	return c.Get(requestUserStr).(repo.User)
+//func getRequestUser(c echo.Context) repo.User {
+//return c.Get(requestUserStr).(repo.User)
+//}
+
+func getRequestUserID(c echo.Context) (uuid.UUID, error) {
+	sess, err := session.Get("session", c)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return uuid.FromString(sess.Values["userID"].(string))
+}
+
+func getRequestUserIsAdmin(c echo.Context) bool {
+	return c.Get("IsAdmin").(bool)
+}
+
+func getRequestUserToken(c echo.Context) (string, error) {
+	sess, err := session.Get("session", c)
+	if err != nil {
+		return "", err
+	}
+	token, ok := sess.Values["authorization"].(string)
+	if !ok {
+		return "", errors.New("error")
+	}
+
+	return token, nil
+}
+
+func deleteRequestUserToken(c echo.Context) error {
+	sess, err := session.Get("session", c)
+	if err != nil {
+		return err
+	}
+	sess.Values["authorization"] = ""
+	err = sess.Save(c.Request(), c.Response())
+	return err
 }
 
 // getRequestEventID :eventidを返します

@@ -21,7 +21,7 @@ func HandlePostEvent(c echo.Context) error {
 	event.Group.ID = event.GroupID
 	event.Room.ID = event.RoomID
 
-	event.CreatedBy = getRequestUser(c).ID
+	event.CreatedBy, _ = getRequestUserID(c)
 
 	err := event.Create()
 	if err != nil {

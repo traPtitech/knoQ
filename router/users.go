@@ -2,7 +2,6 @@ package router
 
 import (
 	"net/http"
-	repo "room/repository"
 	"room/utils"
 
 	"github.com/labstack/echo/v4"
@@ -10,13 +9,13 @@ import (
 
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 // 認証状態を確認
-func HandleGetUserMe(c echo.Context) error {
-	requestUser := getRequestUser(c)
-	_, err := utils.GetUserMe(requestUser.Auth)
+func (h *Handlers) HandleGetUserMe(c echo.Context) error {
+	userID, _ := getRequestUserID(c)
+	user, err := h.externalUserRepo.GetUser(userID)
 	if err != nil {
 		if err.Error() == http.StatusText(http.StatusUnauthorized) {
 			// 認証が切れている
-			if err = repo.DeleteAuth(requestUser.Auth); err != nil {
+			if err = deleteRequestUserToken(c); err != nil {
 				return judgeErrorResponse(err)
 			}
 			return unauthorized(message("Your auth is expired"))
@@ -24,17 +23,17 @@ func HandleGetUserMe(c echo.Context) error {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, requestUser)
+	return c.JSON(http.StatusOK, user)
 }
 
 // HandleGetUsers ユーザーすべてを取得
-func HandleGetUsers(c echo.Context) error {
-	requestUser := getRequestUser(c)
-	bytes, err := utils.GetUsers(requestUser.Auth)
+func (h *Handlers) HandleGetUsers(c echo.Context) error {
+	requestUserToken, _ := getRequestUserToken(c)
+	users, err := utils.GetUsers(requestUserToken)
 	if err != nil {
 		if err.Error() == http.StatusText(http.StatusUnauthorized) {
 			// 認証が切れている
-			if err = repo.DeleteAuth(requestUser.Auth); err != nil {
+			if err = deleteRequestUserToken(c); err != nil {
 				return judgeErrorResponse(err)
 			}
 			return unauthorized(message("Your auth is expired"))
@@ -42,5 +41,5 @@ func HandleGetUsers(c echo.Context) error {
 		return internalServerError()
 	}
 
-	return c.JSONBlob(http.StatusOK, bytes)
+	return c.JSON(http.StatusOK, users)
 }

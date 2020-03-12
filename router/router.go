@@ -17,6 +17,7 @@ import (
 type Handlers struct {
 	Repo              repo.Repository
 	externalGroupRepo repo.GormRepository
+	externalUserRepo  repo.UserRepository
 	externalRoomRepo  repo.RoomRepository
 	Logger            *zap.Logger
 	SessionKey        []byte
@@ -96,8 +97,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 		apiUsers := api.Group("/users")
 		{
-			apiUsers.GET("", HandleGetUsers)
-			apiUsers.GET("/me", HandleGetUserMe)
+			apiUsers.GET("", h.HandleGetUsers)
+			apiUsers.GET("/me", h.HandleGetUserMe)
 		}
 
 		apiTags := api.Group("/tags")
