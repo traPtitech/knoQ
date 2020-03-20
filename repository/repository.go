@@ -97,6 +97,9 @@ func SetupDatabase() (*gorm.DB, error) {
 
 // initDB データベースのスキーマを更新
 func initDB(db *gorm.DB) error {
+	// gormのエラーの上書き
+	gorm.ErrRecordNotFound = ErrNotFound
+
 	// テーブルが無ければ作成
 	if err := db.AutoMigrate(tables...).Error; err != nil {
 		return err
