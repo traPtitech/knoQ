@@ -100,8 +100,12 @@ func (repo *GormRepository) DeleteGroup(groupID uuid.UUID) error {
 	if groupID == uuid.Nil {
 		return ErrNilID
 	}
-	if err := repo.DB.Where("id = ?", groupID).Delete(&Group{}).Error; err != nil {
-		return err
+	result := repo.DB.Debug().Where("id = ?", groupID).Delete(&Group{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrNotFound
 	}
 	return nil
 }
