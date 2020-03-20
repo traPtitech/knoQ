@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"room/utils"
 
-	repo "room/repository"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -13,13 +11,11 @@ import (
 // 認証状態を確認
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 	// WIP
-	repo, ok := h.ExternalUserRepo.(*repo.TraQRepository)
-	if ok {
-		repo.Token, _ = getRequestUserToken(c)
-	}
+	token, _ := getRequestUserToken(c)
+	UserGroupRepo := h.InitExternalUserGroupRepo(token)
 
 	userID, _ := getRequestUserID(c)
-	user, err := h.ExternalUserRepo.GetUser(userID)
+	user, err := UserGroupRepo.GetUser(userID)
 	if err != nil {
 		if err.Error() == http.StatusText(http.StatusUnauthorized) {
 			// 認証が切れている

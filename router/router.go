@@ -15,12 +15,14 @@ import (
 )
 
 type Handlers struct {
-	Repo              repo.Repository
-	ExternalGroupRepo repo.GormRepository
-	ExternalUserRepo  repo.UserRepository
-	ExternalRoomRepo  repo.RoomRepository
-	Logger            *zap.Logger
-	SessionKey        []byte
+	Repo                      repo.Repository
+	InitExternalUserGroupRepo func(token string) interface {
+		repo.GroupRepository
+		repo.UserRepository
+	}
+	ExternalRoomRepo repo.RoomRepository
+	Logger           *zap.Logger
+	SessionKey       []byte
 }
 
 func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {

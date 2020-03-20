@@ -28,10 +28,14 @@ func main() {
 		Repo: &repo.GormRepository{
 			DB: db,
 		},
-		ExternalUserRepo: &repo.TraQRepository{
-			APIRepository: repo.APIRepository{
-				BaseURL: "https://q.trap.jp/api/1.0",
-			},
+		InitExternalUserGroupRepo: func(token string) interface {
+			repo.UserRepository
+			repo.GroupRepository
+		} {
+			traQRepo := new(repo.TraQRepository)
+			traQRepo.Token = token
+			traQRepo.BaseURL = "https://q.trap.jp/api/1.0"
+			return traQRepo
 		},
 		Logger:     logger,
 		SessionKey: SESSION_KEY,

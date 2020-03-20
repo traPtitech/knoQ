@@ -73,6 +73,12 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 	return group, nil
 }
 
+// TraQRepository
+
+func (repo *TraQRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
+	return nil, ErrForbidden
+}
+
 func verifyuserIDs(db *gorm.DB, userIDs []uuid.UUID) ([]User, error) {
 	members := []User{}
 	if err := db.Where("id IN (?)", userIDs).Find(&members).Error; err != nil {
