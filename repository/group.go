@@ -30,7 +30,7 @@ type GroupRepository interface {
 	DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUID) error
 	GetGroup(groupID uuid.UUID) (*Group, error)
 	GetAllGroups() ([]*Group, error)
-	GetUserBelogingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
+	GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
 }
 
 // GormRepository implements GroupRepository
@@ -154,8 +154,8 @@ func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
 	return groups, nil
 }
 
-// GetUserBelogingGroupIDs gets group IDs
-func (repo *GormRepository) GetUserBelogingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+// GetUserBelongingGroupIDs gets group IDs
+func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	groupIDs := make([]uuid.UUID, 0)
 
 	// userIDが存在するグループを取得
