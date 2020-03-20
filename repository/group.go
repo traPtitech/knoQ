@@ -100,7 +100,7 @@ func (repo *GormRepository) DeleteGroup(groupID uuid.UUID) error {
 	if groupID == uuid.Nil {
 		return ErrNilID
 	}
-	result := repo.DB.Debug().Where("id = ?", groupID).Delete(&Group{})
+	result := repo.DB.Where("id = ?", groupID).Delete(&Group{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -159,7 +159,7 @@ func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 	groupIDs := make([]uuid.UUID, 0)
 
 	// userIDが存在するグループを取得
-	rows, err := repo.DB.Debug().Table("group_users").Select("group_id").Where("user_id = ?", userID).Rows()
+	rows, err := repo.DB.Table("group_users").Select("group_id").Where("user_id = ?", userID).Rows()
 	if err != nil {
 		return nil, err
 	}
