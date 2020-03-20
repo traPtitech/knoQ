@@ -71,6 +71,12 @@ func assertAndRequire(t *testing.T) (*assert.Assertions, *require.Assertions) {
 	return assert.New(t), require.New(t)
 }
 
+func mustNewUUIDV4(t *testing.T) uuid.UUID {
+	id, err := uuid.NewV4()
+	require.NoError(t, err)
+	return id
+}
+
 func setupGormRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions) {
 	t.Helper()
 	r, ok := repositories[repo]
@@ -79,6 +85,39 @@ func setupGormRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertio
 	}
 	assert, require := assertAndRequire(t)
 	return r, assert, require
+}
+
+func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User) {
+	t.Helper()
+	r, assert, require := setupGormRepo(t, repo)
+	user := mustMakeUser(t, r, mustNewUUIDV4(t), false)
+	return r, assert, require, user
+}
+
+func mustMakeUser(t *testing.T, repo UserRepository, userID uuid.UUID, admin bool) *User {
+	t.Helper()
+	user, err := repo.CreateUser(userID, admin)
+	require.NoError(t, err)
+	return user
+}
+
+// mustMakeGroup make group has no members
+func mustMakeGroup(t *testing.T, repo GroupRepository, name string, createdBy uuid.UUID) *Group {
+	t.Helper()
+	params := WriteGroupParams{
+		Name:      name,
+		Members:   nil,
+		CreatedBy: createdBy,
+	}
+	group, err := repo.CreateGroup(params)
+	require.NoError(t, err)
+	return group
+}
+
+func mustAddGroupMember(t *testing.T, repo GroupRepository, groupID uuid.UUID, userID uuid.UUID) {
+	t.Helper()
+	err := repo.AddUserToGroup(groupID, userID)
+	require.NoError(t, err)
 }
 
 func setupTraQRepo(t *testing.T) (*TraQRepository, *assert.Assertions, *require.Assertions) {
@@ -92,17 +131,4 @@ func setupTraQRepo(t *testing.T) (*TraQRepository, *assert.Assertions, *require.
 	assert, require := assertAndRequire(t)
 	return repo, assert, require
 
-}
-
-func mustNewUUIDV4(t *testing.T) uuid.UUID {
-	id, err := uuid.NewV4()
-	require.NoError(t, err)
-	return id
-}
-
-func mustMakeUser(t *testing.T, repo UserRepository, userID uuid.UUID, admin bool) *User {
-	t.Helper()
-	user, err := repo.CreateUser(userID, admin)
-	require.NoError(t, err)
-	return user
 }
