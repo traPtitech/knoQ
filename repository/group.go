@@ -22,15 +22,15 @@ type WriteGroupParams struct {
 // GroupRepository is implemented by GormRepositoy and API repository.
 type GroupRepository interface {
 	CreateGroup(groupParams WriteGroupParams) (*Group, error)
-	//UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
-	//// AddUserToGroup add a user to that group if that group is open.
-	//AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) error
-	//DeleteGroup(groupID uuid.UUID) error
-	//// DeleteUserInGroup delete a user in that group if that group is open.
-	//DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUID) error
-	//GetGroup(groupID uuid.UUID) (*Group, error)
-	//GetAllGroups() ([]*Group, error)
-	//GetUserBelogingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
+	UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
+	// AddUserToGroup add a user to that group if that group is open.
+	AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) error
+	DeleteGroup(groupID uuid.UUID) error
+	// DeleteUserInGroup delete a user in that group if that group is open.
+	DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUID) error
+	GetGroup(groupID uuid.UUID) (*Group, error)
+	GetAllGroups() ([]*Group, error)
+	GetUserBelogingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
 }
 
 // GormRepository implements GroupRepository
@@ -55,6 +55,9 @@ func (repo *GormRepository) CreateGroup(groupParams WriteGroupParams) (*Group, e
 
 // UpdateGroup update group in DB.
 func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error) {
+	if groupID == uuid.Nil {
+		return nil, ErrNilID
+	}
 	group := new(Group)
 	err := copier.Copy(&group, groupParams)
 	if err != nil {
@@ -73,10 +76,110 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 	return group, nil
 }
 
+// AddUserToGroup add user to group
+func (repo *GormRepository) AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) error {
+	if userID == uuid.Nil || groupID == uuid.Nil {
+		return ErrNilID
+	}
+	return repo.DB.Transaction(func(tx *gorm.DB) error {
+		member, err := verifyuserID(tx, userID)
+		if err != nil {
+			return err
+		}
+		if err := tx.Model(&Group{ID: groupID}).Association("Members").Append(member).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+// DeleteGroup soft deletes group column
+// and does not delete group members
+func (repo *GormRepository) DeleteGroup(groupID uuid.UUID) error {
+	if groupID == uuid.Nil {
+		return ErrNilID
+	}
+	if err := repo.DB.Where("id = ?", groupID).Delete(&Group{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *GormRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUID) error {
+	if userID == uuid.Nil || groupID == uuid.Nil {
+		return ErrNilID
+	}
+
+	return repo.DB.Transaction(func(tx *gorm.DB) error {
+		member, err := verifyuserID(tx, userID)
+		if err != nil {
+			return err
+		}
+		if err := tx.Model(&Group{ID: groupID}).Association("Members").Delete(member).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+// GetGroup gets group with members
+func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
+	if groupID == uuid.Nil {
+		return nil, ErrNilID
+	}
+
+	cmd := repo.DB.Preload("Members")
+	group := new(Group)
+	if err := cmd.Where("id = ?", groupID).Take(&group).Error; err != nil {
+		return nil, err
+	}
+	return group, nil
+}
+
+// GetAllGroups gets all groups with members
+func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
+	groups := make([]*Group, 0)
+	cmd := repo.DB.Preload("Members")
+
+	if err := cmd.Find(&groups).Error; err != nil {
+		return nil, err
+	}
+
+	return groups, nil
+}
+
+// GetUserBelogingGroupIDs gets group IDs
+func (repo *GormRepository) GetUserBelogingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+	groupIDs := make([]uuid.UUID, 0)
+
+	// userIDが存在するグループを取得
+	rows, err := repo.DB.Debug().Table("group_users").Select("group_id").Where("user_id = ?", userID).Rows()
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		var groupID uuid.UUID
+		rows.Scan(&groupID)
+		groupIDs = append(groupIDs, groupID)
+	}
+	return groupIDs, nil
+}
+
 // TraQRepository
 
+// CreateGroup always return error
 func (repo *TraQRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
 	return nil, ErrForbidden
+}
+
+func verifyuserID(db *gorm.DB, userID uuid.UUID) (*User, error) {
+	member := new(User)
+	if err := db.Where("id = ?", userID).Take(&member).Error; err != nil {
+		return nil, err
+	}
+	return member, nil
 }
 
 func verifyuserIDs(db *gorm.DB, userIDs []uuid.UUID) ([]User, error) {
