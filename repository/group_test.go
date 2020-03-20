@@ -103,7 +103,6 @@ func TestGormRepository_DeleteUserInGroup(t *testing.T) {
 	})
 
 	t.Run("Delete not existing member in group", func(t *testing.T) {
-		t.Parallel()
 		user := mustMakeUser(t, repo, mustNewUUIDV4(t), false)
 		err := repo.DeleteUserInGroup(group.ID, user.ID)
 		// TODO fix
@@ -132,7 +131,6 @@ func TestGormRepository_GetGroup(t *testing.T) {
 }
 
 func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
-	t.Parallel()
 	repo, _, _, user := setupGormRepoWithUser(t, common)
 	group1 := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
 	mustAddGroupMember(t, repo, group1.ID, user.ID)
