@@ -2,7 +2,9 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
+	"room/utils"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
@@ -190,6 +192,59 @@ func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 // CreateGroup always return error
 func (repo *TraQRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
 	return nil, ErrForbidden
+}
+
+// UpdateGroup always return error
+func (repo *TraQRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error) {
+	return nil, ErrForbidden
+}
+
+// AddUserToGroup always return error
+func (repo *TraQRepository) AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) error {
+	return ErrForbidden
+}
+
+// DeleteGroup always return error
+func (repo *TraQRepository) DeleteGroup(groupID uuid.UUID) error {
+	return ErrForbidden
+}
+
+// DeleteUserInGroup always return error
+func (repo *TraQRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUID) error {
+	return ErrForbidden
+}
+
+func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
+	if groupID == uuid.Nil {
+		return nil, ErrNilID
+	}
+	data, err := utils.APIGetRequest(repo.Token, fmt.Sprintf("/groups/%s", groupID))
+	if err != nil {
+		return nil, err
+	}
+	group := new(Group)
+	err = traQjson.Unmarshal(data, &group)
+	return group, err
+}
+
+func (repo *TraQRepository) GetAllGroups() ([]*Group, error) {
+	data, err := utils.APIGetRequest(repo.Token, "/groups")
+	if err != nil {
+		return nil, err
+	}
+	groups := make([]*Group, 0)
+	err = traQjson.Unmarshal(data, &groups)
+	return groups, err
+}
+
+func (repo *TraQRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+	data, err := utils.APIGetRequest(repo.Token, fmt.Sprintf("/users/%s/groups", userID))
+	if err != nil {
+		return nil, err
+	}
+	groupIDs := make([]uuid.UUID, 0)
+	err = traQjson.Unmarshal(data, &groupIDs)
+	return groupIDs, err
 }
 
 func verifyuserID(db *gorm.DB, userID uuid.UUID) (*User, error) {

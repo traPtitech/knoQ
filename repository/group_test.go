@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"os"
 	"testing"
 
 	"github.com/gofrs/uuid"
@@ -139,6 +140,17 @@ func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		if groupIDs, err := repo.GetUserBelongingGroupIDs(user.ID); assert.NoError(t, err) {
 			assert.Len(t, groupIDs, 2)
+		}
+	})
+}
+
+func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
+	repo, _, _ := setupTraQRepo(t)
+	userID, _ := uuid.FromString(os.Getenv("TRAQ_USERID"))
+
+	t.Run("Success", func(t *testing.T) {
+		if groupIDs, err := repo.GetUserBelongingGroupIDs(userID); assert.NoError(t, err) {
+			assert.NotNil(t, groupIDs)
 		}
 	})
 }
