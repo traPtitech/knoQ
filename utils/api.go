@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const baseURL = "https://q.trap.jp/api/1.0"
+const baseURL = "https://q.trap.jp/api/v3"
 
 func GetUserMe(token string) ([]byte, error) {
 	return APIGetRequest(token, "/users/me")

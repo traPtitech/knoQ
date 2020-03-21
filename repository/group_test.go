@@ -154,3 +154,15 @@ func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 		}
 	})
 }
+
+func TestTraQRepository_GetGroup(t *testing.T) {
+	repo, _, _ := setupTraQRepo(t)
+	groupID, _ := uuid.FromString(os.Getenv("TRAQ_GROUPID"))
+
+	t.Run("Success", func(t *testing.T) {
+		if group, err := repo.GetGroup(groupID); assert.NoError(t, err) {
+			assert.NotNil(t, group)
+		}
+	})
+
+}

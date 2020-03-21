@@ -14,9 +14,16 @@ import (
 	"go.uber.org/zap"
 )
 
+type Version int64
+
+const (
+	v2 Version = iota
+	v3
+)
+
 type Handlers struct {
 	Repo                      repo.Repository
-	InitExternalUserGroupRepo func(token string) interface {
+	InitExternalUserGroupRepo func(token string, ver Version) interface {
 		repo.GroupRepository
 		repo.UserRepository
 	}
@@ -38,11 +45,6 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.Use(session.Middleware(gormstore.New(db, h.SessionKey)))
 	e.Use(WatchCallbackMiddleware())
 
-	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
-		Root:  "web/dist",
-		HTML5: true,
-	}))
-
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://portal.trap.jp", "http://localhost:8080"},
@@ -59,11 +61,11 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		{
 			apiGroups.GET("", HandleGetGroups)
 			apiGroups.POST("", h.HandlePostGroup)
-			apiGroup := apiGroups.Group("/:groupid", GroupIDMiddleware)
+			apiGroup := apiGroups.Group("/:groupid")
 			{
-				apiGroup.GET("", h.HandleGetGroup)
-				apiGroup.PUT("", HandleUpdateGroup, GroupCreatedUserMiddleware)
-				apiGroup.DELETE("", HandleDeleteGroup, adminMiddle)
+				apiGroups.GET("/:groupid", h.HandleGetGroup)
+				apiGroups.PUT("/:groupid", HandleUpdateGroup, GroupCreatedUserMiddleware)
+				apiGroups.DELETE("/:groupid", HandleDeleteGroup, adminMiddle)
 
 				// apiGroup.PATCH("/tags", HandleAddGroupTag)
 				// apiGroup.DELETE("/tags/:tagid", HandleDeleteGroupTag)
@@ -112,6 +114,11 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 	}
 	e.POST("/api/authParams", HandlePostAuthParams)
+
+	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Root:  "web/dist",
+		HTML5: true,
+	}))
 
 	return e
 }

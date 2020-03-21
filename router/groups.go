@@ -1,6 +1,7 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
 	repo "room/repository"
 
@@ -37,17 +38,22 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 }
 
 // HandleGetGroup グループを一件取得
+// TODO fix
 func (h *Handlers) HandleGetGroup(c echo.Context) error {
 	groupID, err := getRequestGroupID(c)
 	if err != nil {
 		return internalServerError()
 	}
-	group := new(repo.Group)
-	group.ID = groupID
-	group.Read()
 
-	if err != nil {
-		return internalServerError()
+	group, _ := h.Repo.GetGroup(groupID)
+	if group == nil {
+		token, _ := getRequestUserToken(c)
+		UserGroupRepo := h.InitExternalUserGroupRepo(token, v3)
+		group, err = UserGroupRepo.GetGroup(groupID)
+		if err != nil {
+			fmt.Println(err)
+			return internalServerError()
+		}
 	}
 
 	res, err := formatGroupRes(group)

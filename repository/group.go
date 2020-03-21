@@ -3,8 +3,9 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"net/url"
-	"room/utils"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
@@ -189,6 +190,37 @@ func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 
 // TraQRepository
 
+func (repo *TraQRepository) getRequest(path string) ([]byte, error) {
+	if repo.Token == "" {
+		return nil, ErrForbidden
+	}
+	req, err := http.NewRequest(http.MethodGet, repo.BaseURL+path, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+repo.Token)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode >= 300 {
+		// TODO consider 300
+		switch res.StatusCode {
+		case 401:
+			return nil, ErrForbidden
+		case 403:
+			return nil, ErrForbidden
+		case 404:
+			return nil, ErrNotFound
+		default:
+			return nil, errors.New(http.StatusText(res.StatusCode))
+		}
+	}
+	return ioutil.ReadAll(res.Body)
+
+}
+
 // CreateGroup always return error
 func (repo *TraQRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
 	return nil, ErrForbidden
@@ -218,17 +250,18 @@ func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 	if groupID == uuid.Nil {
 		return nil, ErrNilID
 	}
-	data, err := utils.APIGetRequest(repo.Token, fmt.Sprintf("/groups/%s", groupID))
+	data, err := repo.getRequest(fmt.Sprintf("/groups/%s", groupID))
 	if err != nil {
 		return nil, err
 	}
 	group := new(Group)
+	fmt.Println(group)
 	err = traQjson.Unmarshal(data, &group)
 	return group, err
 }
 
 func (repo *TraQRepository) GetAllGroups() ([]*Group, error) {
-	data, err := utils.APIGetRequest(repo.Token, "/groups")
+	data, err := repo.getRequest("/groups")
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +271,7 @@ func (repo *TraQRepository) GetAllGroups() ([]*Group, error) {
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
-	data, err := utils.APIGetRequest(repo.Token, fmt.Sprintf("/users/%s/groups", userID))
+	data, err := repo.getRequest(fmt.Sprintf("/users/%s/groups", userID))
 	if err != nil {
 		return nil, err
 	}

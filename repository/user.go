@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"room/utils"
 
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
@@ -59,7 +58,7 @@ func (repo *TraQRepository) CreateUser(userID uuid.UUID, isAdmin bool) (*User, e
 
 // GetUser get from /users/{userID}
 func (repo *TraQRepository) GetUser(userID uuid.UUID) (*User, error) {
-	data, err := utils.APIGetRequest(repo.Token, fmt.Sprintf("/users/%s", userID))
+	data, err := repo.getRequest(fmt.Sprintf("/users/%s", userID))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +69,7 @@ func (repo *TraQRepository) GetUser(userID uuid.UUID) (*User, error) {
 
 // GetAllUsers get from /users
 func (repo *TraQRepository) GetAllUsers() ([]*User, error) {
-	data, err := utils.APIGetRequest(repo.Token, "/users")
+	data, err := repo.getRequest("/users")
 	if err != nil {
 		return nil, err
 	}

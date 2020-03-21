@@ -28,13 +28,17 @@ func main() {
 		Repo: &repo.GormRepository{
 			DB: db,
 		},
-		InitExternalUserGroupRepo: func(token string) interface {
+		InitExternalUserGroupRepo: func(token string, ver router.Version) interface {
 			repo.UserRepository
 			repo.GroupRepository
 		} {
+			traQEndPoints := []string{
+				"https://q.trap.jp/api/1.0",
+				"https://q.trap.jp/api/v3",
+			}
 			traQRepo := new(repo.TraQRepository)
 			traQRepo.Token = token
-			traQRepo.BaseURL = "https://q.trap.jp/api/1.0"
+			traQRepo.BaseURL = traQEndPoints[ver]
 			return traQRepo
 		},
 		Logger:     logger,

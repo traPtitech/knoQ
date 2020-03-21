@@ -377,9 +377,9 @@ func getRequestEventID(c echo.Context) (uuid.UUID, error) {
 
 // getRequestGroupID :groupidを返します
 func getRequestGroupID(c echo.Context) (uuid.UUID, error) {
-	groupID, ok := c.Get("GroupID").(uuid.UUID)
-	if !ok {
-		return uuid.Nil, errors.New("GroupID is not set")
+	groupID, err := uuid.FromString(c.Param("groupid"))
+	if err != nil {
+		return uuid.Nil, errors.New("GroupID is not uuid")
 	}
 	return groupID, nil
 }

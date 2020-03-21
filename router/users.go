@@ -12,7 +12,7 @@ import (
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 	// WIP
 	token, _ := getRequestUserToken(c)
-	UserGroupRepo := h.InitExternalUserGroupRepo(token)
+	UserGroupRepo := h.InitExternalUserGroupRepo(token, v3)
 
 	userID, _ := getRequestUserID(c)
 	user, err := UserGroupRepo.GetUser(userID)
