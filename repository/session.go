@@ -37,3 +37,17 @@ func (us *UserSession) Update() error {
 	return nil
 
 }
+
+// DeleteAuth make authorization column equal to {{auth}} into ""
+func DeleteAuth(auth string) error {
+	if auth == "" {
+		return nil
+	}
+
+	err := DB.Table("user_sessions").Where("authorization = ?", auth).Update("authorization", "").Error
+	if err != nil {
+		dbErrorLog(err)
+		return nil
+	}
+	return nil
+}

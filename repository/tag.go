@@ -1,8 +1,18 @@
 package repository
 
-import "github.com/gofrs/uuid"
+import (
+	"strings"
 
-import "strings"
+	"github.com/gofrs/uuid"
+)
+
+type TagRepository interface {
+	CreateTag(name string) (*Tag, error)
+	UpdateTag(tagID uuid.UUID, name string) (*Tag, error)
+	DeleteTag(tagID uuid.UUID) error
+	GetTag(tagID uuid.UUID) (*Tag, error)
+	GetAllTags() ([]*Tag, error)
+}
 
 func (t *Tag) Create() error {
 	t.Name = strings.ToLower(t.Name)

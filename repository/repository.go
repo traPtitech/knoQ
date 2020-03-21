@@ -1,3 +1,4 @@
+// Package repository is
 package repository
 
 import (
@@ -20,7 +21,36 @@ var tables = []interface{}{
 	Event{},
 	Tag{},
 	EventTag{},
+	GroupUsers{},
 	UserSession{},
+}
+
+type Repository interface {
+	UserRepository
+	GroupRepository
+	RoomRepository
+}
+
+// GormRepository implements Repository interface
+type GormRepository struct {
+	DB *gorm.DB
+}
+
+type TraQVersion int64
+
+const (
+	V1 TraQVersion = iota
+	V3
+)
+
+var traQEndPoints = [2]string{
+	"https://q.trap.jp/api/1.0",
+	"https://q.trap.jp/api/v3",
+}
+
+type TraQRepository struct {
+	Version TraQVersion
+	Token   string
 }
 
 var (
@@ -66,16 +96,19 @@ func SetupDatabase() (*gorm.DB, error) {
 	if err != nil {
 		return DB, err
 	}
-	if err := initDB(); err != nil {
+	if err := initDB(DB); err != nil {
 		return DB, err
 	}
 	return DB, nil
 }
 
 // initDB データベースのスキーマを更新
-func initDB() error {
+func initDB(db *gorm.DB) error {
+	// gormのエラーの上書き
+	gorm.ErrRecordNotFound = ErrNotFound
+
 	// テーブルが無ければ作成
-	if err := DB.AutoMigrate(tables...).Error; err != nil {
+	if err := db.AutoMigrate(tables...).Error; err != nil {
 		return err
 	}
 	return nil

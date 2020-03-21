@@ -18,6 +18,22 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
+type WriteRoomParams struct {
+	Place     string
+	Date      string
+	TimeStart string
+	TimeEnd   string
+}
+
+// RoomRepository is implemted GormRepositoty and API repository
+type RoomRepository interface {
+	//CreateRoom(roomParams WriteRoomParams) (*Room, error)
+	//UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error)
+	//DeleteRoom(roomID uuid.UUID) error
+	//GetRoom(roomID uuid.UUID) (*Room, error)
+	//GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error)
+}
+
 // BeforeCreate is gorm hook
 func (r *Room) BeforeCreate() (err error) {
 	r.ID, err = uuid.NewV4()
@@ -30,11 +46,11 @@ func (r *Room) BeforeCreate() (err error) {
 func FindRooms(values url.Values) ([]Room, error) {
 	rooms := []Room{}
 	cmd := DB
-	if values.Get("date_begin") != "" {
-		cmd = cmd.Where("rooms.date >= ?", values.Get("date_begin"))
+	if values.Get("dateBegin") != "" {
+		cmd = cmd.Where("rooms.date >= ?", values.Get("dateBegin"))
 	}
-	if values.Get("date_end") != "" {
-		cmd = cmd.Where("rooms.date <= ?", values.Get("date_end"))
+	if values.Get("dateEnd") != "" {
+		cmd = cmd.Where("rooms.date <= ?", values.Get("dateEnd"))
 	}
 
 	rows, err := cmd.Order("date asc").Table("rooms").Order("rooms.id asc").Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
@@ -46,7 +62,7 @@ func FindRooms(values url.Values) ([]Room, error) {
 		seTime := StartEndTime{}
 		var allowWith bool
 		r := Room{}
-		rows.Scan(&r.ID, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &seTime.TimeStart, &seTime.TimeEnd, &allowWith, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt)
 		// format
 		r.Date = r.Date[:10]
 		if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {

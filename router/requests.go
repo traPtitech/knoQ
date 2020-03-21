@@ -10,7 +10,6 @@ import (
 type GroupReq struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	ImageID     string      `json:"imageId"`
 	JoinFreely  bool        `json:"joinFreely"`
 	Members     []uuid.UUID `json:"members"`
 }
@@ -19,7 +18,6 @@ func formatGroup(req *GroupReq) (g *repo.Group, err error) {
 	g = &repo.Group{
 		Name:        req.Name,
 		Description: req.Description,
-		ImageID:     req.ImageID,
 		JoinFreely:  req.JoinFreely,
 	}
 

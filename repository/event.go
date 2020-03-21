@@ -5,9 +5,41 @@ import (
 	"net/url"
 	"room/utils"
 	"strconv"
+	"time"
 
 	"github.com/gofrs/uuid"
 )
+
+// WriteEventParams is used create and update
+type WriteEventParams struct {
+	Name          string
+	Description   string
+	GroupID       uuid.UUID
+	RoomID        uuid.UUID
+	TimeStart     string
+	TimeEnd       string
+	CreatedBy     uuid.UUID
+	AllowTogether bool
+	Tags          struct {
+		ID     uuid.UUID
+		Locked bool
+	}
+}
+
+// EventRepository is implemented by GormRepositoy and API repository.
+type EventRepository interface {
+	CreateEvent(eventParams WriteEventParams) (*Event, error)
+	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
+	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID) error
+	AddEventToFavorites(eventID uuid.UUID, userID uuid.UUID) error
+	DeleteEvent(eventID uuid.UUID) error
+	// DeleteTagInEvent delete a tag in that Event if that tag is locked == false
+	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID) error
+	DeleteEventFavorite(eventID uuid.UUID, userID uuid.UUID) error
+	GetEvent(eventID uuid.UUID) (*Event, error)
+	GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
+	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
+}
 
 func (e *Event) Create() error {
 	// groupが存在するかチェックし依存関係を追加する
