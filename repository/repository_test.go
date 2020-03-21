@@ -124,7 +124,7 @@ func setupTraQRepo(t *testing.T) (*TraQRepository, *assert.Assertions, *require.
 	t.Helper()
 	repo := &TraQRepository{
 		APIRepository: APIRepository{
-			BaseURL: "https://q.trap.jp/api/1.0",
+			BaseURL: "https://q.trap.jp/api/v3",
 		},
 		Token: os.Getenv("TRAQ_AUTH"),
 	}

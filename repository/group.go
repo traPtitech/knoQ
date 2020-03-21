@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
+	traQrouter "github.com/traPtitech/traQ/router/v3"
 )
 
 // WriteGroupParams is used create and update
@@ -254,9 +256,11 @@ func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 	if err != nil {
 		return nil, err
 	}
+	traQgroup := new(traQrouter.UserGroup)
+	err = json.Unmarshal(data, &traQgroup)
 	group := new(Group)
-	fmt.Println(group)
 	err = traQjson.Unmarshal(data, &group)
+	fmt.Println(group)
 	return group, err
 }
 
