@@ -91,6 +91,9 @@ func (repo *GormRepository) AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) 
 		if err := tx.Preload("Members").Where("id = ?", groupID).First(&group).Error; err != nil {
 			return err
 		}
+		if !group.JoinFreely {
+			return ErrForbidden
+		}
 		member, err := verifyuserID(tx, userID)
 		if err != nil {
 			return err
@@ -131,6 +134,9 @@ func (repo *GormRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUI
 		group := new(Group)
 		if err := tx.Preload("Members").Where("id = ?", groupID).First(&group).Error; err != nil {
 			return err
+		}
+		if !group.JoinFreely {
+			return ErrForbidden
 		}
 		member, err := verifyuserID(tx, userID)
 		if err != nil {

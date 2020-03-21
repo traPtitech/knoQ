@@ -30,32 +30,37 @@ type TagRelationRes struct {
 	Locked bool      `json:"locked"`
 }
 
-func formatGroupRes(g *repo.Group) (*GroupRes, error) {
-	res := new(GroupRes)
-	err := copier.Copy(&res, g)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
+func formatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
+	res := &GroupRes{
+		ID: g.ID,
+		GroupReq: GroupReq{
+			Name:        g.Name,
+			Description: g.Description,
+			JoinFreely:  g.JoinFreely,
+			Members:     formatGroupMembersRes(g.Members),
+		},
+		IsTraQGroup: IsTraQgroup,
+		CreatedBy:   g.CreatedBy,
+		CreatedAt:   g.CreatedAt,
+		UpdatedAt:   g.UpdatedAt,
 	}
-	for _, user := range g.Members {
-		res.Members = append(res.Members, user.ID)
-	}
-	return res, nil
+	return res
 }
 
-func formatGroupsRes(g []repo.Group) ([]GroupRes, error) {
-	res := []GroupRes{}
-	err := copier.Copy(&res, g)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
+func formatGroupMembersRes(ms []repo.User) []uuid.UUID {
+	ids := make([]uuid.UUID, len(ms))
+	for i, m := range ms {
+		ids[i] = m.ID
 	}
-	for i, v := range g {
-		for _, user := range v.Members {
-			res[i].Members = append(res[i].Members, user.ID)
-		}
+	return ids
+}
+
+func formatGroupsRes(gs []*repo.Group, IsTraQGroup bool) []*GroupRes {
+	res := make([]*GroupRes, len(gs))
+	for i, g := range gs {
+		res[i] = formatGroupRes(g, IsTraQGroup)
 	}
-	return res, err
+	return res
 }
 
 func formatEventRes(e *repo.Event) (*EventRes, error) {

@@ -1,12 +1,10 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	repo "room/repository"
 
 	"github.com/jinzhu/copier"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo/v4"
 )
 
@@ -30,10 +28,7 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
-	res, err := formatGroupRes(group)
-	if err != nil {
-		return internalServerError()
-	}
+	res := formatGroupRes(group, false)
 	return c.JSON(http.StatusCreated, res)
 }
 
@@ -51,76 +46,69 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 		UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
 		group, err = UserGroupRepo.GetGroup(groupID)
 		if err != nil {
-			fmt.Println(err)
 			return internalServerError()
 		}
+		return c.JSON(http.StatusOK, formatGroupRes(group, true))
 	}
 
-	res, err := formatGroupRes(group)
-	if err != nil {
-		return internalServerError()
-	}
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, formatGroupRes(group, false))
 }
 
 // HandleGetGroups グループを取得
-func HandleGetGroups(c echo.Context) error {
-	values := c.QueryParams()
+func (h *Handlers) HandleGetGroups(c echo.Context) error {
 
-	groups, err := repo.FindGroups(values)
+	groups, err := h.Repo.GetAllGroups()
 	if err != nil {
 		return err
 	}
-	res, err := formatGroupsRes(groups)
+	res := formatGroupsRes(groups, false)
+
+	token, _ := getRequestUserToken(c)
+	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
+	traQgroups, err := UserGroupRepo.GetAllGroups()
 	if err != nil {
-		return internalServerError()
+		return err
 	}
+	res = append(res, formatGroupsRes(traQgroups, true)...)
 
 	return c.JSON(http.StatusOK, res)
 }
 
 // HandleDeleteGroup グループを削除
-func HandleDeleteGroup(c echo.Context) error {
-	g := new(repo.Group)
-	var err error
-	g.ID, err = getRequestGroupID(c)
+func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
+	groupID, err := getRequestGroupID(c)
 	if err != nil {
 		return internalServerError()
 	}
 
-	if err := g.Delete(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound()
-		}
+	if err := h.Repo.DeleteGroup(groupID); err != nil {
 		return internalServerError()
 	}
 
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }
 
-// HandleUpdateGroup グループメンバー、グループ名を更新
-func HandleUpdateGroup(c echo.Context) error {
-	group := new(repo.Group)
-	var err error
-	if err := c.Bind(group); err != nil {
+// HandleUpdateGroup 変更できるものはpostと同等
+func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
+	g := new(GroupReq)
+	if err := c.Bind(&g); err != nil {
 		return badRequest(message(err.Error()))
 	}
-	group.ID, err = getRequestGroupID(c)
+	groupParams := new(repo.WriteGroupParams)
+	err := copier.Copy(&groupParams, g)
 	if err != nil {
-		return internalServerError()
-	}
-	err = group.Update()
-	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return badRequest()
-		}
 		return internalServerError()
 	}
 
-	res, err := formatGroupRes(group)
+	groupID, err := getRequestGroupID(c)
 	if err != nil {
 		return internalServerError()
 	}
+	group, err := h.Repo.UpdateGroup(groupID, *groupParams)
+	if err != nil {
+		return internalServerError()
+	}
+	res := formatGroupRes(group, false)
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -157,60 +145,30 @@ func HandleDeleteGroupTag(c echo.Context) error {
 }
 */
 
-func HandleAddMeGroup(c echo.Context) error {
-	group := new(repo.Group)
-	var err error
-	group.ID, err = getRequestGroupID(c)
+func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
+	groupID, err := getRequestGroupID(c)
 	if err != nil {
 		return internalServerError()
-	}
-	if err := group.Read(); err != nil {
-		return internalServerError()
-	}
-	if !group.JoinFreely {
-		return forbidden(message("This group is not JoinFreely."), specification("This api can delete me at JoinFreely-group."))
 	}
 
 	userID, _ := getRequestUserID(c)
-	if err := group.AddMember(userID); err != nil {
-		return judgeErrorResponse(err)
-	}
-	if err := group.Read(); err != nil {
+	if err := h.Repo.AddUserToGroup(groupID, userID); err != nil {
 		return internalServerError()
 	}
 
-	res, err := formatGroupRes(group)
-	if err != nil {
-		return internalServerError()
-	}
-	return c.JSON(http.StatusOK, res)
+	return c.NoContent(http.StatusNoContent)
 }
 
-func HandleDeleteMeGroup(c echo.Context) error {
-	group := new(repo.Group)
-	var err error
-	group.ID, err = getRequestGroupID(c)
+func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
+	groupID, err := getRequestGroupID(c)
 	if err != nil {
 		return internalServerError()
-	}
-	if err := group.Read(); err != nil {
-		return internalServerError()
-	}
-	if !group.JoinFreely {
-		return forbidden(message("This group is not JoinFreely."), specification("This api can delete me at JoinFreely-group."))
 	}
 
 	userID, _ := getRequestUserID(c)
-	if err := group.DeleteMember(userID); err != nil {
-		return judgeErrorResponse(err)
+	if err := h.Repo.DeleteUserInGroup(groupID, userID); err != nil {
+		return internalServerError()
 	}
 
-	if err := group.Read(); err != nil {
-		return internalServerError()
-	}
-	res, err := formatGroupRes(group)
-	if err != nil {
-		return internalServerError()
-	}
-	return c.JSON(http.StatusOK, res)
+	return c.NoContent(http.StatusNoContent)
 }
