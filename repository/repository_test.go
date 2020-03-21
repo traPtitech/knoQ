@@ -120,10 +120,10 @@ func mustAddGroupMember(t *testing.T, repo GroupRepository, groupID uuid.UUID, u
 	require.NoError(t, err)
 }
 
-func setupTraQRepo(t *testing.T) (*TraQRepository, *assert.Assertions, *require.Assertions) {
+func setupTraQRepo(t *testing.T, version TraQVersion) (*TraQRepository, *assert.Assertions, *require.Assertions) {
 	t.Helper()
 	repo := &TraQRepository{
-		Version: V3,
+		Version: version,
 		Token:   os.Getenv("TRAQ_AUTH"),
 	}
 	assert, require := assertAndRequire(t)

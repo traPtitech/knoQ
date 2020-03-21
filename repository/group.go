@@ -253,6 +253,9 @@ func (repo *TraQRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUI
 }
 
 func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
+	if repo.Version != V3 {
+		return nil, ErrForbidden
+	}
 	if groupID == uuid.Nil {
 		return nil, ErrNilID
 	}
@@ -264,7 +267,6 @@ func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 	err = json.Unmarshal(data, &traQgroup)
 	group := new(Group)
 	err = traQjson.Unmarshal(data, &group)
-	fmt.Println(group)
 	return group, err
 }
 
@@ -279,6 +281,9 @@ func (repo *TraQRepository) GetAllGroups() ([]*Group, error) {
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+	if repo.Version != V1 {
+		return nil, ErrForbidden
+	}
 	data, err := repo.getRequest(fmt.Sprintf("/users/%s/groups", userID))
 	if err != nil {
 		return nil, err
