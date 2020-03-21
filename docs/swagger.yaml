@@ -496,22 +496,7 @@ paths:
         - users
       responses:
         "200":
-          description: traQ api
-          content:
-            application/json:
-              example:
-                {
-                  "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                  "name": "string",
-                  "displayName": "string",
-                  "iconFileId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                  "bot": true,
-                  "twitterId": "string",
-                  "lastOnline": "2020-01-23T08:15:07.001Z",
-                  "isOnline": true,
-                  "suspended": true,
-                  "accountStatus": 0,
-                }
+          $ref: "#/components/responses/userArray"
 
   /users/me:
     get:
@@ -791,6 +776,10 @@ components:
         admin:
           type: boolean
           example: true
+        name:
+          type: string
+        displayName:
+          type: string
     resUser:
       type: object
       properties:
@@ -983,6 +972,16 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/user"
+    userArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/user"
+
+
     tag:
       description: successful operation
       content:
