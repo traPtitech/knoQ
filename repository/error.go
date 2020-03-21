@@ -11,6 +11,8 @@ var (
 	ErrNotFound = errors.New("not found")
 	// ErrForbidden forbidden
 	ErrForbidden = errors.New("forbidden")
+	// ErrAlreadyExists already exists
+	ErrAlreadyExists = errors.New("already exists")
 )
 
 // gorm.ErrRecordNotFound = ErrNotFound

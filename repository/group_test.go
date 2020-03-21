@@ -67,8 +67,7 @@ func TestGormRepository_AddUserToGroup(t *testing.T) {
 		err := repo.AddUserToGroup(group.ID, user.ID)
 		assert.NoError(t, err)
 		err = repo.AddUserToGroup(group.ID, user.ID)
-		// association_autoupdate:false;association_autocreate:false" の影響?
-		assert.NoError(t, err)
+		assert.EqualError(t, err, ErrAlreadyExists.Error())
 	})
 }
 
@@ -105,8 +104,7 @@ func TestGormRepository_DeleteUserInGroup(t *testing.T) {
 	t.Run("Delete not existing member in group", func(t *testing.T) {
 		user := mustMakeUser(t, repo, mustNewUUIDV4(t), false)
 		err := repo.DeleteUserInGroup(group.ID, user.ID)
-		// TODO fix
-		assert.NoError(t, err)
+		assert.EqualError(t, err, ErrNotFound.Error())
 	})
 
 }

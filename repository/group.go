@@ -82,9 +82,16 @@ func (repo *GormRepository) AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) 
 		return ErrNilID
 	}
 	return repo.DB.Transaction(func(tx *gorm.DB) error {
+		group := new(Group)
+		if err := tx.Preload("Members").Where("id = ?", groupID).First(&group).Error; err != nil {
+			return err
+		}
 		member, err := verifyuserID(tx, userID)
 		if err != nil {
 			return err
+		}
+		if group.IsMember(member) {
+			return ErrAlreadyExists
 		}
 		if err := tx.Model(&Group{ID: groupID}).Association("Members").Append(member).Error; err != nil {
 			return err
@@ -116,9 +123,16 @@ func (repo *GormRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUI
 	}
 
 	return repo.DB.Transaction(func(tx *gorm.DB) error {
+		group := new(Group)
+		if err := tx.Preload("Members").Where("id = ?", groupID).First(&group).Error; err != nil {
+			return err
+		}
 		member, err := verifyuserID(tx, userID)
 		if err != nil {
 			return err
+		}
+		if !group.IsMember(member) {
+			return ErrNotFound
 		}
 		if err := tx.Model(&Group{ID: groupID}).Association("Members").Delete(member).Error; err != nil {
 			return err
@@ -192,6 +206,15 @@ func verifyuserIDs(db *gorm.DB, userIDs []uuid.UUID) ([]User, error) {
 		return nil, err
 	}
 	return members, nil
+}
+
+func (g *Group) IsMember(user *User) bool {
+	for _, member := range g.Members {
+		if member.ID == user.ID {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *Group) Create() error {
