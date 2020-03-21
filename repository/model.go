@@ -75,14 +75,12 @@ type Room struct {
 // Group グループ情報
 // Group is not user JSON
 type Group struct {
-	ID          uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
-	Name        string    `json:"name" gorm:"type:varchar(32);not null"`
-	Description string    `json:"description" gorm:"type:varchar(1024)"`
-	ImageID     string    `json:"imageId"`
-	JoinFreely  bool      `json:"open"`
-	Members     []User    `json:"members" gorm:"many2many:group_users; association_autoupdate:false;association_autocreate:false"`
-	IsTraQGroup bool      `json:"isTraQGroup" gorm:"-"`
-	CreatedBy   uuid.UUID `json:"createdBy" gorm:"type:char(36);"`
+	ID          uuid.UUID `gorm:"type:char(36);primary_key"`
+	Name        string    `gorm:"type:varchar(32);not null"`
+	Description string    `gorm:"type:varchar(1024)"`
+	JoinFreely  bool
+	Members     []User    `gorm:"many2many:group_users; association_autoupdate:false;association_autocreate:false"`
+	CreatedBy   uuid.UUID `gorm:"type:char(36);"`
 	Model
 }
 
