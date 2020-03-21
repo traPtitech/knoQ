@@ -15,8 +15,8 @@ type Model struct {
 
 // StartEndTime has start and end time
 type StartEndTime struct {
-	TimeStart string `json:"timeStart" gorm:"type:TIME;"`
-	TimeEnd   string `json:"timeEnd" gorm:"type:TIME;"`
+	TimeStart time.Time `json:"timeStart" gorm:"type:TIME;"`
+	TimeEnd   time.Time `json:"timeEnd" gorm:"type:TIME;"`
 }
 
 // User traQユーザー情報構造体
@@ -66,8 +66,8 @@ type Room struct {
 	ID            uuid.UUID      `json:"id" gorm:"type:char(36);primary_key"`
 	Place         string         `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
 	Date          string         `json:"date" gorm:"type:DATE; unique_index:idx_room_unique"`
-	TimeStart     string         `json:"timeStart" gorm:"type:TIME; unique_index:idx_room_unique"`
-	TimeEnd       string         `json:"timeEnd" gorm:"type:TIME; unique_index:idx_room_unique"`
+	TimeStart     time.Time      `json:"timeStart" gorm:"type:TIME; unique_index:idx_room_unique"`
+	TimeEnd       time.Time      `json:"timeEnd" gorm:"type:TIME; unique_index:idx_room_unique"`
 	AvailableTime []StartEndTime `json:"availableTime" gorm:"-"`
 	Model
 }

@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"room/utils"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/jinzhu/copier"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -21,17 +21,17 @@ import (
 type WriteRoomParams struct {
 	Place     string
 	Date      string
-	TimeStart string
-	TimeEnd   string
+	TimeStart time.Time
+	TimeEnd   time.Time
 }
 
 // RoomRepository is implemted GormRepositoty and API repository
 type RoomRepository interface {
-	//CreateRoom(roomParams WriteRoomParams) (*Room, error)
-	//UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error)
-	//DeleteRoom(roomID uuid.UUID) error
-	//GetRoom(roomID uuid.UUID) (*Room, error)
-	//GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error)
+	CreateRoom(roomParams WriteRoomParams) (*Room, error)
+	UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error)
+	DeleteRoom(roomID uuid.UUID) error
+	GetRoom(roomID uuid.UUID) (*Room, error)
+	GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error)
 }
 
 // BeforeCreate is gorm hook
@@ -41,6 +41,77 @@ func (r *Room) BeforeCreate() (err error) {
 		return err
 	}
 	return nil
+}
+
+func (repo *GormRepository) CreateRoom(roomParams WriteRoomParams) (*Room, error) {
+	room := new(Room)
+	err := copier.Copy(&room, roomParams)
+	if err != nil {
+		return nil, err
+	}
+	err = repo.DB.Create(&room).Error
+	return room, err
+}
+
+func (repo *GormRepository) UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error) {
+	if roomID == uuid.Nil {
+		return nil, ErrNilID
+	}
+	room := new(Room)
+	err := copier.Copy(&room, roomParams)
+	room.ID = roomID
+	if err != nil {
+		return nil, err
+	}
+	err = repo.DB.Save(&room).Error
+	return room, err
+}
+
+func (repo *GormRepository) DeleteRoom(roomID uuid.UUID) error {
+	if roomID == uuid.Nil {
+		return ErrNilID
+	}
+	result := repo.DB.Delete(&Room{ID: roomID})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
+
+}
+func (repo *GormRepository) GetRoom(roomID uuid.UUID) (*Room, error) {
+	if roomID == uuid.Nil {
+		return nil, ErrNilID
+	}
+	room := new(Room)
+	err := repo.DB.Where("id = ?", roomID).Take(&room).Error
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := DB.Table("rooms").Where("rooms.id = ?", room.ID).Order("e.time_start asc").Select("e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		seTime := StartEndTime{}
+		var allowWith bool
+		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd, &allowWith)
+		// イベントがない時
+		if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
+			room.AvailableTime = append(room.AvailableTime, StartEndTime{
+				TimeStart: room.TimeStart,
+				TimeEnd:   room.TimeEnd,
+			})
+			break
+		}
+		room.calcAvailableTime(seTime, allowWith)
+	}
+	err = rows.Err()
+	return room, err
 }
 
 func FindRooms(values url.Values) ([]Room, error) {
@@ -66,7 +137,7 @@ func FindRooms(values url.Values) ([]Room, error) {
 		// format
 		r.Date = r.Date[:10]
 		if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {
-			if seTime.TimeStart == "" && seTime.TimeEnd == "" {
+			if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
 				r.AvailableTime = append(r.AvailableTime, StartEndTime{
 					TimeStart: r.TimeStart,
 					TimeEnd:   r.TimeEnd,
@@ -74,7 +145,7 @@ func FindRooms(values url.Values) ([]Room, error) {
 			}
 			rooms = append(rooms, r)
 		}
-		if seTime.TimeStart != "" && seTime.TimeEnd != "" {
+		if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
 			r = rooms[len(rooms)-1]
 			r.calcAvailableTime(seTime, allowWith)
 			rooms[len(rooms)-1] = r
@@ -89,15 +160,15 @@ func (r *Room) Read() error {
 		return err
 	}
 	rows, err := DB.Table("rooms").Where("rooms.id = ?", r.ID).Order("e.time_start asc").Select("e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
-	defer rows.Close()
 	if err != nil {
 		dbErrorLog(err)
 	}
+	defer rows.Close()
 	for rows.Next() {
 		seTime := StartEndTime{}
 		var allowWith bool
 		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd, &allowWith)
-		if seTime.TimeStart == "" && seTime.TimeEnd == "" {
+		if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
 			r.AvailableTime = append(r.AvailableTime, StartEndTime{
 				TimeStart: r.TimeStart,
 				TimeEnd:   r.TimeEnd,
@@ -122,8 +193,8 @@ func (r *Room) AfterFind() error {
 
 func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 	for _, v := range room.AvailableTime {
-		roomStart, _ := utils.StrToTime(v.TimeStart)
-		roomEnd, _ := utils.StrToTime(v.TimeEnd)
+		roomStart := v.TimeStart
+		roomEnd := v.TimeEnd
 		if (roomStart.Equal(targetStartTime) || roomStart.Before(targetStartTime)) && (roomEnd.Equal(targetEndTime) || roomEnd.After(targetEndTime)) {
 			fmt.Println(v)
 			return true
@@ -132,7 +203,7 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 	return false
 }
 
-// Todo include seTime == nil
+// TODO include seTime == nil
 func (r *Room) calcAvailableTime(seTime StartEndTime, allowWith bool) {
 	if r.AvailableTime == nil {
 		r.AvailableTime = append(r.AvailableTime, StartEndTime{
@@ -254,10 +325,10 @@ func GetEvents() ([]Room, error) {
 				date = item.Start.Date
 			}
 			room := Room{
-				Place:     item.Location,
-				Date:      date[:10],
-				TimeStart: item.Start.DateTime[11:16],
-				TimeEnd:   item.End.DateTime[11:16],
+				Place: item.Location,
+				Date:  date[:10],
+				//TimeStart: item.Start.DateTime[11:16],
+				//TimeEnd:   item.End.DateTime[11:16],
 			}
 			if err := DB.Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE place=place").Create(&room).Error; err != nil {
 				return nil, err
