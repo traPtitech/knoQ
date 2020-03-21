@@ -105,9 +105,10 @@ func mustMakeUser(t *testing.T, repo UserRepository, userID uuid.UUID, admin boo
 func mustMakeGroup(t *testing.T, repo GroupRepository, name string, createdBy uuid.UUID) *Group {
 	t.Helper()
 	params := WriteGroupParams{
-		Name:      name,
-		Members:   nil,
-		CreatedBy: createdBy,
+		Name:       name,
+		Members:    nil,
+		JoinFreely: true,
+		CreatedBy:  createdBy,
 	}
 	group, err := repo.CreateGroup(params)
 	require.NoError(t, err)
