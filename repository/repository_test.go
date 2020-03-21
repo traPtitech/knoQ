@@ -123,10 +123,8 @@ func mustAddGroupMember(t *testing.T, repo GroupRepository, groupID uuid.UUID, u
 func setupTraQRepo(t *testing.T) (*TraQRepository, *assert.Assertions, *require.Assertions) {
 	t.Helper()
 	repo := &TraQRepository{
-		APIRepository: APIRepository{
-			BaseURL: "https://q.trap.jp/api/v3",
-		},
-		Token: os.Getenv("TRAQ_AUTH"),
+		Version: V3,
+		Token:   os.Getenv("TRAQ_AUTH"),
 	}
 	assert, require := assertAndRequire(t)
 	return repo, assert, require

@@ -48,7 +48,7 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 	group, _ := h.Repo.GetGroup(groupID)
 	if group == nil {
 		token, _ := getRequestUserToken(c)
-		UserGroupRepo := h.InitExternalUserGroupRepo(token, v3)
+		UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
 		group, err = UserGroupRepo.GetGroup(groupID)
 		if err != nil {
 			fmt.Println(err)

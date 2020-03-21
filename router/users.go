@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	repo "room/repository"
 	"room/utils"
 
 	"github.com/labstack/echo/v4"
@@ -12,7 +13,7 @@ import (
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 	// WIP
 	token, _ := getRequestUserToken(c)
-	UserGroupRepo := h.InitExternalUserGroupRepo(token, v3)
+	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
 
 	userID, _ := getRequestUserID(c)
 	user, err := UserGroupRepo.GetUser(userID)

@@ -36,14 +36,21 @@ type GormRepository struct {
 	DB *gorm.DB
 }
 
-// APIRepository implements only GroupRepository interface
-type APIRepository struct {
-	BaseURL string
+type TraQVersion int64
+
+const (
+	V1 TraQVersion = iota
+	V3
+)
+
+var traQEndPoints = [2]string{
+	"https://q.trap.jp/api/1.0",
+	"https://q.trap.jp/api/v3",
 }
 
 type TraQRepository struct {
-	APIRepository
-	Token string
+	Version TraQVersion
+	Token   string
 }
 
 var (

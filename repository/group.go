@@ -192,11 +192,15 @@ func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 
 // TraQRepository
 
+func (repo *TraQRepository) getBaseURL() string {
+	return traQEndPoints[repo.Version]
+}
+
 func (repo *TraQRepository) getRequest(path string) ([]byte, error) {
 	if repo.Token == "" {
 		return nil, ErrForbidden
 	}
-	req, err := http.NewRequest(http.MethodGet, repo.BaseURL+path, nil)
+	req, err := http.NewRequest(http.MethodGet, repo.getBaseURL()+path, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -14,16 +14,9 @@ import (
 	"go.uber.org/zap"
 )
 
-type Version int64
-
-const (
-	v2 Version = iota
-	v3
-)
-
 type Handlers struct {
 	Repo                      repo.Repository
-	InitExternalUserGroupRepo func(token string, ver Version) interface {
+	InitExternalUserGroupRepo func(token string, ver repo.TraQVersion) interface {
 		repo.GroupRepository
 		repo.UserRepository
 	}
