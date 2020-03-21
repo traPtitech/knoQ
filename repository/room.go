@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"time"
 
@@ -91,105 +90,76 @@ func (repo *GormRepository) GetRoom(roomID uuid.UUID) (*Room, error) {
 		return nil, err
 	}
 
-	rows, err := DB.Table("rooms").Where("rooms.id = ?", room.ID).Order("e.time_start asc").Select("e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+	rows, err := DB.Table("rooms").Where("rooms.id = ?", room.ID).Order("e.time_start asc").
+		Select("e.time_start, e.time_end").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").
+		Where("e.allow_together = ?", false).Rows()
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+	seTimes := make([]StartEndTime, 0)
 	for rows.Next() {
 		seTime := StartEndTime{}
-		var allowWith bool
-		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd, &allowWith)
-		// イベントがない時
-		if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
-			room.AvailableTime = append(room.AvailableTime, StartEndTime{
-				TimeStart: room.TimeStart,
-				TimeEnd:   room.TimeEnd,
-			})
-			break
-		}
-		room.calcAvailableTime(seTime, allowWith)
+		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd)
+		seTimes = append(seTimes, seTime)
 	}
+	room.calcAvailableTime(seTimes)
 	err = rows.Err()
 	return room, err
 }
 
-func FindRooms(values url.Values) ([]Room, error) {
-	rooms := []Room{}
-	cmd := DB
-	if values.Get("dateBegin") != "" {
-		cmd = cmd.Where("rooms.date >= ?", values.Get("dateBegin"))
+func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error) {
+	rooms := make([]*Room, 0)
+	cmd := repo.DB
+	if start != nil {
+		cmd = cmd.Where("rooms.end_time >= ?", start.String())
 	}
-	if values.Get("dateEnd") != "" {
-		cmd = cmd.Where("rooms.date <= ?", values.Get("dateEnd"))
+	if end != nil {
+		cmd = cmd.Where("rooms.start_time <= ?", end.String())
 	}
-
-	rows, err := cmd.Order("date asc").Table("rooms").Order("rooms.id asc").Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
-	defer rows.Close()
-	if err != nil {
-		dbErrorLog(err)
-	}
-	for rows.Next() {
-		seTime := StartEndTime{}
-		var allowWith bool
-		r := Room{}
-		rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &seTime.TimeStart, &seTime.TimeEnd, &allowWith, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt)
-		// format
-		r.Date = r.Date[:10]
-		if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {
-			if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
-				r.AvailableTime = append(r.AvailableTime, StartEndTime{
-					TimeStart: r.TimeStart,
-					TimeEnd:   r.TimeEnd,
-				})
-			}
-			rooms = append(rooms, r)
-		}
-		if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
-			r = rooms[len(rooms)-1]
-			r.calcAvailableTime(seTime, allowWith)
-			rooms[len(rooms)-1] = r
-		}
-	}
-	return rooms, nil
+	err := cmd.Find(&rooms).Error
+	return rooms, err
 }
 
-func (r *Room) Read() error {
-	if err := DB.Debug().First(&r).Error; err != nil {
-		dbErrorLog(err)
-		return err
-	}
-	rows, err := DB.Table("rooms").Where("rooms.id = ?", r.ID).Order("e.time_start asc").Select("e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
-	if err != nil {
-		dbErrorLog(err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		seTime := StartEndTime{}
-		var allowWith bool
-		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd, &allowWith)
-		if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
-			r.AvailableTime = append(r.AvailableTime, StartEndTime{
-				TimeStart: r.TimeStart,
-				TimeEnd:   r.TimeEnd,
-			})
-			break
-		}
-		r.calcAvailableTime(seTime, allowWith)
-	}
-	err = rows.Err()
-	if err != nil {
-		dbErrorLog(err)
-		return err
-	}
-	return nil
-}
+//func FindRooms(values url.Values) ([]Room, error) {
+//rooms := []Room{}
+//cmd := DB
+//if values.Get("dateBegin") != "" {
+//cmd = cmd.Where("rooms.date >= ?", values.Get("dateBegin"))
+//}
+//if values.Get("dateEnd") != "" {
+//cmd = cmd.Where("rooms.date <= ?", values.Get("dateEnd"))
+//}
 
-func (r *Room) AfterFind() error {
-	// format
-	r.Date = r.Date[:10]
-	return nil
-}
+//rows, err := cmd.Order("date asc").Table("rooms").Order("rooms.id asc").Order("e.time_start asc").Select("rooms.*, e.time_start, e.time_end, e.allow_together").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").Rows()
+//defer rows.Close()
+//if err != nil {
+//dbErrorLog(err)
+//}
+//for rows.Next() {
+//seTime := StartEndTime{}
+//var allowWith bool
+//r := Room{}
+//rows.Scan(&r.ID, &r.Place, &r.Date, &r.TimeStart, &r.TimeEnd, &seTime.TimeStart, &seTime.TimeEnd, &allowWith, &r.CreatedAt, &r.UpdatedAt, &r.DeletedAt)
+//// format
+//r.Date = r.Date[:10]
+//if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {
+//if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
+//r.AvailableTime = append(r.AvailableTime, StartEndTime{
+//TimeStart: r.TimeStart,
+//TimeEnd:   r.TimeEnd,
+//})
+//}
+//rooms = append(rooms, r)
+//}
+//if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
+//r = rooms[len(rooms)-1]
+//r.calcAvailableTime(seTime, allowWith)
+//rooms[len(rooms)-1] = r
+//}
+//}
+//return rooms, nil
+//}
 
 func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 	for _, v := range room.AvailableTime {
@@ -204,14 +174,14 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 }
 
 // TODO include seTime == nil
-func (r *Room) calcAvailableTime(seTime StartEndTime, allowWith bool) {
+func (r *Room) calcAvailableTime(seTimes []StartEndTime) {
 	if r.AvailableTime == nil {
 		r.AvailableTime = append(r.AvailableTime, StartEndTime{
 			TimeStart: r.TimeStart,
 			TimeEnd:   r.TimeEnd,
 		})
 	}
-	if !allowWith {
+	for _, seTime := range seTimes {
 		avleTimes := make([]StartEndTime, 2)
 		i := len(r.AvailableTime) - 1
 		avleTimes[0] = StartEndTime{
@@ -229,7 +199,6 @@ func (r *Room) calcAvailableTime(seTime StartEndTime, allowWith bool) {
 				r.AvailableTime = append(r.AvailableTime, v)
 			}
 		}
-
 	}
 }
 
@@ -326,7 +295,7 @@ func GetEvents() ([]Room, error) {
 			}
 			room := Room{
 				Place: item.Location,
-				Date:  date[:10],
+				//Date:  date[:10],
 				//TimeStart: item.Start.DateTime[11:16],
 				//TimeEnd:   item.End.DateTime[11:16],
 			}

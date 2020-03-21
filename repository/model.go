@@ -65,7 +65,6 @@ type GroupUsers struct {
 type Room struct {
 	ID            uuid.UUID      `json:"id" gorm:"type:char(36);primary_key"`
 	Place         string         `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
-	Date          string         `json:"date" gorm:"type:DATE; unique_index:idx_room_unique"`
 	TimeStart     time.Time      `json:"timeStart" gorm:"type:TIME; unique_index:idx_room_unique"`
 	TimeEnd       time.Time      `json:"timeEnd" gorm:"type:TIME; unique_index:idx_room_unique"`
 	AvailableTime []StartEndTime `json:"availableTime" gorm:"-"`

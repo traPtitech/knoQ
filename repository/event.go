@@ -47,9 +47,9 @@ func (e *Event) Create() error {
 		return err
 	}
 	// roomが存在するかチェックし依存関係を追加する
-	if err := e.Room.Read(); err != nil {
-		return err
-	}
+	//if err := e.Room.Read(); err != nil {
+	//return err
+	//}
 
 	err := e.TimeConsistency()
 	if err != nil {
@@ -105,9 +105,9 @@ func (e *Event) Update() error {
 		return err
 	}
 	// roomが存在するかチェックし依存関係を追加する
-	if err := e.Room.Read(); err != nil {
-		return err
-	}
+	//if err := e.Room.Read(); err != nil {
+	//return err
+	//}
 
 	err := e.TimeConsistency()
 	if err != nil {
