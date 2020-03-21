@@ -22,11 +22,11 @@ type StartEndTime struct {
 // User traQユーザー情報構造体
 type User struct {
 	// ID traQID
-	ID uuid.UUID `json:"id" gorm:"type:char(36); primary_key" traq:"userId"`
-	// Admin 管理者かどうか
-	Admin bool `json:"admin" gorm:"not null"`
-	// tmp
-	Auth string `json:"-" gorm:"-"`
+	ID uuid.UUID `gorm:"type:char(36); primary_key"`
+	// Admin アプリの管理者かどうか
+	Admin       bool   `gorm:"not null"`
+	Name        string `gorm:"-"`
+	DisplayName string `gorm:"-"`
 }
 
 // UserSession has user session
@@ -79,7 +79,7 @@ type Group struct {
 	Name        string    `gorm:"type:varchar(32);not null"`
 	Description string    `gorm:"type:varchar(1024)"`
 	JoinFreely  bool
-	Members     []User    `gorm:"many2many:group_users; association_autoupdate:false;association_autocreate:false" traq:"members"`
+	Members     []User    `gorm:"many2many:group_users; association_autoupdate:false;association_autocreate:false"`
 	CreatedBy   uuid.UUID `gorm:"type:char(36);"`
 	Model
 }

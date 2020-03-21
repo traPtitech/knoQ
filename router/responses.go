@@ -30,6 +30,13 @@ type TagRelationRes struct {
 	Locked bool      `json:"locked"`
 }
 
+type UserRes struct {
+	ID          uuid.UUID `json:"userId"`
+	Admin       bool      `json:"admin"`
+	Name        string    `json:"name"`
+	DisplayName string    `json:"displayName"`
+}
+
 func formatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 	res := &GroupRes{
 		ID: g.ID,
@@ -81,4 +88,13 @@ func formatEventsRes(e []repo.Event) ([]EventRes, error) {
 		return nil, err
 	}
 	return res, err
+}
+
+func formatUserRes(u *repo.User) *UserRes {
+	return &UserRes{
+		ID:          u.ID,
+		Admin:       u.Admin,
+		Name:        u.Name,
+		DisplayName: u.DisplayName,
+	}
 }

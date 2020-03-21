@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
+	traQrouterV3 "github.com/traPtitech/traQ/router/v3"
 )
 
 var traQjson = jsoniter.Config{
@@ -62,9 +64,9 @@ func (repo *TraQRepository) GetUser(userID uuid.UUID) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user := new(User)
-	err = traQjson.Unmarshal(data, &user)
-	return user, err
+	traQuser := new(traQrouterV3.User)
+	err = json.Unmarshal(data, &traQuser)
+	return formatV3User(traQuser), err
 }
 
 // GetAllUsers get from /users
@@ -73,10 +75,22 @@ func (repo *TraQRepository) GetAllUsers() ([]*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	users := make([]*User, 0)
-	err = traQjson.Unmarshal(data, &users)
+	traQusers := make([]*traQrouterV3.User, 0)
+	err = traQjson.Unmarshal(data, &traQusers)
+	users := make([]*User, len(traQusers))
+	for i, u := range traQusers {
+		users[i] = formatV3User(u)
+	}
 	return users, err
+}
 
+func formatV3User(u *traQrouterV3.User) *User {
+	return &User{
+		ID:          u.ID,
+		Admin:       false,
+		Name:        u.Name,
+		DisplayName: u.DisplayName,
+	}
 }
 
 // GetUser ユーザー情報を取得します(なければ作成)
