@@ -10,7 +10,7 @@ import (
 type GroupReq struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
-	JoinFreely  bool        `json:"joinFreely"`
+	JoinFreely  bool        `json:"open"`
 	Members     []uuid.UUID `json:"members"`
 }
 
