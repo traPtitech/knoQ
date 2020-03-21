@@ -11,7 +11,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
-	traQrouter "github.com/traPtitech/traQ/router/v3"
+	traQrouterV3 "github.com/traPtitech/traQ/router/v3"
 )
 
 // WriteGroupParams is used create and update
@@ -263,20 +263,26 @@ func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 	if err != nil {
 		return nil, err
 	}
-	traQgroup := new(traQrouter.UserGroup)
+	traQgroup := new(traQrouterV3.UserGroup)
 	err = json.Unmarshal(data, &traQgroup)
-	group := new(Group)
-	err = traQjson.Unmarshal(data, &group)
-	return group, err
+	return formatV3Group(traQgroup), err
 }
 
 func (repo *TraQRepository) GetAllGroups() ([]*Group, error) {
+	if repo.Version != V3 {
+		return nil, ErrForbidden
+	}
+
 	data, err := repo.getRequest("/groups")
 	if err != nil {
 		return nil, err
 	}
-	groups := make([]*Group, 0)
-	err = traQjson.Unmarshal(data, &groups)
+	traQgroups := make([]*traQrouterV3.UserGroup, 0)
+	err = traQjson.Unmarshal(data, &traQgroups)
+	groups := make([]*Group, len(traQgroups))
+	for i, g := range traQgroups {
+		groups[i] = formatV3Group(g)
+	}
 	return groups, err
 }
 
@@ -291,6 +297,31 @@ func (repo *TraQRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 	groupIDs := make([]uuid.UUID, 0)
 	err = traQjson.Unmarshal(data, &groupIDs)
 	return groupIDs, err
+}
+
+func formatV3Group(g *traQrouterV3.UserGroup) *Group {
+	return &Group{
+		ID:          g.ID,
+		Name:        g.Name,
+		Description: g.Description,
+		JoinFreely:  false,
+		Members:     formatV3GroupMemebers(g.Members),
+		CreatedBy:   g.Admins[0],
+		Model: Model{
+			CreatedAt: g.CreatedAt,
+			UpdatedAt: g.UpdatedAt,
+		},
+	}
+}
+
+func formatV3GroupMemebers(ms []traQrouterV3.UserGroupMember) []User {
+	users := make([]User, len(ms))
+	for i, m := range ms {
+		users[i] = User{
+			ID: m.ID,
+		}
+	}
+	return users
 }
 
 func verifyuserID(db *gorm.DB, userID uuid.UUID) (*User, error) {
