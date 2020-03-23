@@ -554,15 +554,12 @@ components:
         place:
           type: string
           example: S516
-        date:
-          type: string
-          example: "2019-08-08"
         timeStart:
           type: string
-          example: "09:00"
+          example: "2004-04-01T12:00Z"
         timeEnd:
           type: string
-          example: "20:00"
+          example: "2004-04-01T12:00Z"
 
     ResponseRoom:
       allOf:
@@ -584,11 +581,11 @@ components:
               timeStart:
                 type: string
                 format: time
-                example: "09:00:00"
+                example: "2004-04-01T12:00Z"
               timeEnd:
                 type: string
                 format: time
-                example: "20:00:00"
+                example: "2004-04-01T12:00Z"
         createdBy:
           type: string
           format: uuid
@@ -615,10 +612,10 @@ components:
           example: false
         timeStart:
           type: string
-          example: "18:00"
+          example: "2004-04-01T12:00Z"
         timeEnd:
           type: string
-          example: "20:00"
+          example: "2004-04-01T12:00Z"
         roomId:
           type: string
           format: uuid
