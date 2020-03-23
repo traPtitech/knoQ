@@ -22,7 +22,6 @@ var tables = []interface{}{
 	Tag{},
 	EventTag{},
 	GroupUsers{},
-	UserSession{},
 }
 
 type Repository interface {

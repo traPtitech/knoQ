@@ -29,16 +29,6 @@ type User struct {
 	DisplayName string `gorm:"-"`
 }
 
-// UserSession has user session
-type UserSession struct {
-	Token         string    `gorm:"primary_key; type:char(32);"`
-	UserID        uuid.UUID `gorm:"type:char(36);"`
-	Authorization string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	DeletedAt     *time.Time `sql:"index"`
-}
-
 // Tag Room Group Event have tags
 type Tag struct {
 	ID       uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
