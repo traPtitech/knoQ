@@ -19,7 +19,6 @@ import (
 
 type WriteRoomParams struct {
 	Place     string
-	Date      string
 	TimeStart time.Time
 	TimeEnd   time.Time
 }
@@ -48,6 +47,9 @@ func (repo *GormRepository) CreateRoom(roomParams WriteRoomParams) (*Room, error
 	if err != nil {
 		return nil, err
 	}
+	if !room.isTimeContext() {
+		return nil, ErrInvalidArg
+	}
 	err = repo.DB.Create(&room).Error
 	return room, err
 }
@@ -61,6 +63,9 @@ func (repo *GormRepository) UpdateRoom(roomID uuid.UUID, roomParams WriteRoomPar
 	room.ID = roomID
 	if err != nil {
 		return nil, err
+	}
+	if !room.isTimeContext() {
+		return nil, ErrInvalidArg
 	}
 	err = repo.DB.Save(&room).Error
 	return room, err
@@ -89,23 +94,13 @@ func (repo *GormRepository) GetRoom(roomID uuid.UUID) (*Room, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	rows, err := DB.Table("rooms").Where("rooms.id = ?", room.ID).Order("e.time_start asc").
-		Select("e.time_start, e.time_end").Joins("LEFT JOIN events AS e ON e.room_id = rooms.id").
-		Where("e.allow_together = ?", false).Rows()
-	if err != nil {
+	events := make([]Event, 0)
+	if err = repo.DB.Where("room_id = ?", room.ID).Order("time_start").Find(&events).Error; err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	seTimes := make([]StartEndTime, 0)
-	for rows.Next() {
-		seTime := StartEndTime{}
-		rows.Scan(&seTime.TimeStart, &seTime.TimeEnd)
-		seTimes = append(seTimes, seTime)
-	}
-	room.calcAvailableTime(seTimes)
-	err = rows.Err()
-	return room, err
+
+	room.calcAvailableTime(events)
+	return room, nil
 }
 
 func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error) {
@@ -173,23 +168,26 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 	return false
 }
 
-// TODO include seTime == nil
-func (r *Room) calcAvailableTime(seTimes []StartEndTime) {
-	if r.AvailableTime == nil {
-		r.AvailableTime = append(r.AvailableTime, StartEndTime{
-			TimeStart: r.TimeStart,
-			TimeEnd:   r.TimeEnd,
-		})
-	}
-	for _, seTime := range seTimes {
+// TODO return error
+func (r *Room) calcAvailableTime(events []Event) {
+	// TODO sort events by TimeStart
+	r.AvailableTime = []StartEndTime{}
+	r.AvailableTime = append(r.AvailableTime, StartEndTime{
+		TimeStart: r.TimeStart,
+		TimeEnd:   r.TimeEnd,
+	})
+	for _, event := range events {
+		if event.AllowTogether {
+			continue
+		}
 		avleTimes := make([]StartEndTime, 2)
 		i := len(r.AvailableTime) - 1
 		avleTimes[0] = StartEndTime{
 			TimeStart: r.AvailableTime[i].TimeStart,
-			TimeEnd:   seTime.TimeStart,
+			TimeEnd:   event.TimeStart,
 		}
 		avleTimes[1] = StartEndTime{
-			TimeStart: seTime.TimeEnd,
+			TimeStart: event.TimeEnd,
 			TimeEnd:   r.TimeEnd,
 		}
 		// delete last
@@ -200,6 +198,11 @@ func (r *Room) calcAvailableTime(seTimes []StartEndTime) {
 			}
 		}
 	}
+}
+
+// isTimeContext 開始時間が終了時間より前か見る
+func (r *Room) isTimeContext() bool {
+	return r.TimeStart.Before(r.TimeEnd)
 }
 
 var traQCalendarID string = os.Getenv("TRAQ_CALENDARID")

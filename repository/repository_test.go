@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -119,6 +120,19 @@ func mustAddGroupMember(t *testing.T, repo GroupRepository, groupID uuid.UUID, u
 	t.Helper()
 	err := repo.AddUserToGroup(groupID, userID)
 	require.NoError(t, err)
+}
+
+// mustMakeRoom make room. now ~ now + 1h
+func mustMakeRoom(t *testing.T, repo RoomRepository, place string) *Room {
+	t.Helper()
+	params := WriteRoomParams{
+		Place:     place,
+		TimeStart: time.Now(),
+		TimeEnd:   time.Now().Add(1 * time.Hour),
+	}
+	room, err := repo.CreateRoom(params)
+	require.NoError(t, err)
+	return room
 }
 
 func setupTraQRepo(t *testing.T, version TraQVersion) (*TraQRepository, *assert.Assertions, *require.Assertions) {

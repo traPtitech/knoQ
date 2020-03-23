@@ -3,7 +3,6 @@ package repository
 import (
 	"errors"
 	"net/url"
-	"room/utils"
 	"strconv"
 	"time"
 
@@ -225,18 +224,10 @@ func FindEvents(values url.Values) ([]Event, error) {
 // TimeConsistency 時間が部屋の範囲内か、endがstartの後か
 // available time か確認する
 func (e *Event) TimeConsistency() error {
-	timeStart, err := utils.StrToTime(e.TimeStart)
-	if err != nil {
-		return err
-	}
-	timeEnd, err := utils.StrToTime(e.TimeEnd)
-	if err != nil {
-		return err
-	}
-	if !e.Room.InTime(timeStart, timeEnd) {
+	if !e.Room.InTime(e.TimeStart, e.TimeEnd) {
 		return errors.New("invalid time")
 	}
-	if !timeStart.Before(timeEnd) {
+	if !e.TimeStart.Before(e.TimeEnd) {
 		return errors.New("invalid time")
 	}
 	return nil
