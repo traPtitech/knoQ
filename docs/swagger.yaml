@@ -21,8 +21,6 @@ tags:
     description: ユーザー
   - name: tags
     description: タグ
-  - name: images
-    description: 画像
   - name: authorization
     description: 認証
 
@@ -316,11 +314,11 @@ paths:
             type: string
             format: uuid
       requestBody:
-        $ref: "#/components/requestBodies/tagID"
+        $ref: "#/components/requestBodies/tagName"
       responses:
         200:
           $ref: "#/components/responses/event"
-  /events/{eventID}/tags/{tagID}:
+  /events/{eventID}/tags/{tagName}:
     delete:
       tags:
         - events
@@ -333,12 +331,11 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: tagID
+        - name: tagName
           in: path
           required: true
           schema:
             type: string
-            format: uuid
       responses:
         200:
           $ref: "#/components/responses/event"
@@ -529,56 +526,6 @@ paths:
       responses:
         201:
           $ref: "#/components/responses/tag"
-  /images:
-    post:
-      tags:
-        - images
-      operationId: uploadImage
-      description: 画像をアップロードします
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: string
-              format: binary
-      responses:
-        "201":
-          description: 正常に画像がアップロードされました。
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  imageID:
-                    type: string
-                    format: uuid
-  /images/{imageID}:
-    get:
-      parameters:
-        - name: imageID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      tags:
-        - images
-      operationId: getImage
-      description: 画像をアップロードします
-      responses:
-        "200":
-          description: |+
-            正常に取得できました。
-            fileのbinaryを返します。
-            application/octet-streamで返すことになっていますが、ファイルの形式によっては変わります。
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-        "404":
-          description: NotFound
 
   /authParams:
     post:
@@ -621,7 +568,7 @@ components:
       allOf:
         - type: object
           properties:
-            id:
+            roomId:
               type: string
               format: uuid
               example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -672,9 +619,6 @@ components:
         timeEnd:
           type: string
           example: "20:00"
-        imageId:
-          type: string
-          format: uuid
         roomId:
           type: string
           format: uuid
@@ -690,7 +634,7 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTagIDAuth"
+            $ref: "#/components/schemas/ReqTagNameAuth"
     PostEvent:
       allOf:
         - $ref: "#/components/schemas/PutEvent"
@@ -698,13 +642,13 @@ components:
         tags:
           type: array
           items:
-            $ref: "#/components/schemas/ReqTagIDAuth"
+            $ref: "#/components/schemas/ReqTagNameAuth"
 
     ResponseEvent:
       allOf:
         - type: object
           properties:
-            id:
+            eventId:
               type: string
               format: uuid
               example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -737,9 +681,6 @@ components:
         description:
           type: string
           example: Sysad班room開発グループ
-        imageId:
-          type: string
-          format: uuid
         open:
           type: boolean
         members:
@@ -750,7 +691,7 @@ components:
       allOf:
         - type: object
           properties:
-            id:
+            groupId:
               type: string
               format: uuid
               example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -797,7 +738,7 @@ components:
     ReqTagID:
       type: object
       properties:
-        id:
+        tagId:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
@@ -814,26 +755,34 @@ components:
         locked:
           type: boolean
           example: true
+    ReqTagNameAuth:
+      allOf:
+        - $ref: "#/components/schemas/ReqTagName"
+      properties:
+        locked:
+          type: boolean
+          example: true
+ 
     ResTag:
       type: object
       properties:
-        id:
+        tagId:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
         name:
           type: string
           example: vue
-        official:
-          type: boolean
-          example: true
     ResponseTag:
       type: object
       properties:
-        id:
+        tagId:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        name:
+          type: string
+          example: vue
         locked:
           type: boolean
           example: true
