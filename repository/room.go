@@ -90,17 +90,9 @@ func (repo *GormRepository) GetRoom(roomID uuid.UUID) (*Room, error) {
 		return nil, ErrNilID
 	}
 	room := new(Room)
-	err := repo.DB.Where("id = ?", roomID).Take(&room).Error
-	if err != nil {
-		return nil, err
-	}
-	events := make([]Event, 0)
-	if err = repo.DB.Model(&room).Related(&events).Error; err != nil {
-		return nil, err
-	}
+	repo.DB.Preload("Events").Take(&room)
 
-	room.calcAvailableTime(events)
-	room.Events = events
+	room.calcAvailableTime()
 	return room, nil
 }
 
@@ -170,14 +162,14 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 }
 
 // TODO return error
-func (r *Room) calcAvailableTime(events []Event) {
+func (r *Room) calcAvailableTime() {
 	// TODO sort events by TimeStart
 	r.AvailableTime = []StartEndTime{}
 	r.AvailableTime = append(r.AvailableTime, StartEndTime{
 		TimeStart: r.TimeStart,
 		TimeEnd:   r.TimeEnd,
 	})
-	for _, event := range events {
+	for _, event := range r.Events {
 		if event.AllowTogether {
 			continue
 		}

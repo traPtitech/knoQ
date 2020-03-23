@@ -141,7 +141,7 @@ func mustMakeEvent(t *testing.T, repo Repository, name string, userID uuid.UUID)
 	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
 
 	params := WriteEventParams{
-		Name:      traQutils.RandAlphabetAndNumberString(20),
+		Name:      name,
 		GroupID:   group.ID,
 		RoomID:    room.ID,
 		TimeStart: time.Now(),
