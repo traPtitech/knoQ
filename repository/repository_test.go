@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/traPtitech/traQ/migration"
+	traQutils "github.com/traPtitech/traQ/utils"
 )
 
 const (
@@ -133,6 +134,24 @@ func mustMakeRoom(t *testing.T, repo RoomRepository, place string) *Room {
 	room, err := repo.CreateRoom(params)
 	require.NoError(t, err)
 	return room
+}
+
+func mustMakeEvent(t *testing.T, repo Repository, name string, userID uuid.UUID) (*Event, *Group, *Room) {
+	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(10), userID)
+	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
+
+	params := WriteEventParams{
+		Name:      traQutils.RandAlphabetAndNumberString(20),
+		GroupID:   group.ID,
+		RoomID:    room.ID,
+		TimeStart: time.Now(),
+		TimeEnd:   time.Now().Add(1 * time.Hour),
+		CreatedBy: userID,
+	}
+
+	event, err := repo.CreateEvent(params)
+	require.NoError(t, err)
+	return event, group, room
 }
 
 func setupTraQRepo(t *testing.T, version TraQVersion) (*TraQRepository, *assert.Assertions, *require.Assertions) {

@@ -69,11 +69,12 @@ func TestGormRepository_DeleteRoom(t *testing.T) {
 
 func TestGormRepository_GetRoom(t *testing.T) {
 	t.Parallel()
-	repo, _, _ := setupGormRepo(t, common)
-	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
+	repo, _, _, user := setupGormRepoWithUser(t, common)
+	event, _, room := mustMakeEvent(t, repo, "", user.ID)
 
 	if room, err := repo.GetRoom(room.ID); assert.NoError(t, err) {
 		assert.NotNil(t, room)
+		assert.Equal(t, event.ID, room.Events[0].ID)
 	}
 }
 
