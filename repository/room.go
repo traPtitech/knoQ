@@ -90,7 +90,11 @@ func (repo *GormRepository) GetRoom(roomID uuid.UUID) (*Room, error) {
 		return nil, ErrNilID
 	}
 	room := new(Room)
-	repo.DB.Preload("Events").Take(&room)
+	room.ID = roomID
+	err := repo.DB.Preload("Events").Take(&room).Error
+	if err != nil {
+		return nil, err
+	}
 
 	room.calcAvailableTime()
 	return room, nil
