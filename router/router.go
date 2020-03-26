@@ -92,6 +92,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiRooms.GET("/:roomid", h.HandleGetRoom)
 			apiRooms.POST("/all", h.HandleSetRooms, adminMiddle)
 			apiRooms.DELETE("/:roomid", h.HandleDeleteRoom, adminMiddle)
+			// TODO createdBy only
 			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom)
 		}
 
