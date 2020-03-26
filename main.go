@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -10,6 +11,8 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/calendar/v3"
 )
 
 var (
@@ -22,6 +25,20 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+
+	googleAPI := &repo.GoogleAPIRepository{
+		CalendarID: os.Getenv("TRAQ_CALENDARID"),
+	}
+	bytes, err := ioutil.ReadFile("service.json")
+	if err != nil {
+		panic("service.json does not exist.")
+	}
+	googleAPI.Config, err = google.JWTConfigFromJSON(bytes, calendar.CalendarReadonlyScope)
+	if err != nil {
+		panic(err)
+	}
+
+	googleAPI.Setup()
 
 	logger, _ := zap.NewDevelopment()
 	handler := &router.Handlers{
@@ -37,8 +54,9 @@ func main() {
 			traQRepo.Version = ver
 			return traQRepo
 		},
-		Logger:     logger,
-		SessionKey: SESSION_KEY,
+		ExternalRoomRepo: googleAPI,
+		Logger:           logger,
+		SessionKey:       SESSION_KEY,
 	}
 
 	e := handler.SetupRoute(db)

@@ -3,11 +3,14 @@ package repository
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/jwt"
 
 	// mysql
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -29,6 +32,7 @@ type Repository interface {
 	UserRepository
 	GroupRepository
 	RoomRepository
+	EventRepository
 }
 
 // GormRepository implements Repository interface
@@ -53,6 +57,12 @@ type TraQRepository struct {
 	Token   string
 }
 
+type GoogleAPIRepository struct {
+	Config     *jwt.Config
+	Client     *http.Client
+	CalendarID string
+}
+
 var (
 	MARIADB_HOSTNAME = os.Getenv("MARIADB_HOSTNAME")
 	MARIADB_DATABASE = os.Getenv("MARIADB_DATABASE")
@@ -71,6 +81,10 @@ type CRUD interface {
 	// Update update omitempty
 	Update() error
 	Delete() error
+}
+
+func (repo *GoogleAPIRepository) Setup() {
+	repo.Client = repo.Config.Client(oauth2.NoContext)
 }
 
 // SetupDatabase set up DB and crate tables

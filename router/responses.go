@@ -37,6 +37,17 @@ type UserRes struct {
 	DisplayName string    `json:"displayName"`
 }
 
+type RoomRes struct {
+	ID            uuid.UUID `json:"roomId"`
+	Place         string    `json:"place"`
+	Public        bool      `json:"public"`
+	TimeStart     string    `json:"timeStart"`
+	TimeEnd       string    `json:"timeEnd"`
+	AvailableTime []repo.StartEndTime
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+}
+
 func formatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 	res := &GroupRes{
 		ID: g.ID,
@@ -96,5 +107,18 @@ func formatUserRes(u *repo.User) *UserRes {
 		Admin:       u.Admin,
 		Name:        u.Name,
 		DisplayName: u.DisplayName,
+	}
+}
+
+func formatRoomRes(r *repo.Room) *RoomRes {
+	return &RoomRes{
+		ID:            r.ID,
+		Place:         r.Place,
+		Public:        r.Public,
+		TimeStart:     r.TimeStart.Format(time.RFC3339),
+		TimeEnd:       r.TimeEnd.Format(time.RFC3339),
+		AvailableTime: r.CalcAvailableTime(),
+		CreatedAt:     r.CreatedAt,
+		UpdatedAt:     r.UpdatedAt,
 	}
 }

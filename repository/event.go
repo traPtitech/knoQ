@@ -3,11 +3,11 @@ package repository
 import (
 	"errors"
 	"net/url"
-	"room/utils"
 	"strconv"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/jinzhu/copier"
 )
 
 // WriteEventParams is used create and update
@@ -16,8 +16,8 @@ type WriteEventParams struct {
 	Description   string
 	GroupID       uuid.UUID
 	RoomID        uuid.UUID
-	TimeStart     string
-	TimeEnd       string
+	TimeStart     time.Time
+	TimeEnd       time.Time
 	CreatedBy     uuid.UUID
 	AllowTogether bool
 	Tags          struct {
@@ -29,32 +29,44 @@ type WriteEventParams struct {
 // EventRepository is implemented by GormRepositoy and API repository.
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams) (*Event, error)
-	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
-	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID) error
-	AddEventToFavorites(eventID uuid.UUID, userID uuid.UUID) error
-	DeleteEvent(eventID uuid.UUID) error
-	// DeleteTagInEvent delete a tag in that Event if that tag is locked == false
-	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID) error
-	DeleteEventFavorite(eventID uuid.UUID, userID uuid.UUID) error
-	GetEvent(eventID uuid.UUID) (*Event, error)
-	GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
-	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
+	//UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
+	//AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID) error
+	//AddEventToFavorites(eventID uuid.UUID, userID uuid.UUID) error
+	//DeleteEvent(eventID uuid.UUID) error
+	//// DeleteTagInEvent delete a tag in that Event if that tag is locked == false
+	//DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID) error
+	//DeleteEventFavorite(eventID uuid.UUID, userID uuid.UUID) error
+	//GetEvent(eventID uuid.UUID) (*Event, error)
+	//GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
+	//GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
+}
+
+// TODO fix
+
+func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, error) {
+	event := new(Event)
+	err := copier.Copy(&event, eventParams)
+	if err != nil {
+		return nil, ErrInvalidArg
+	}
+	err = repo.DB.Create(&event).Error
+	return event, err
 }
 
 func (e *Event) Create() error {
 	// groupが存在するかチェックし依存関係を追加する
-	if err := e.Group.Read(); err != nil {
-		return err
-	}
+	//if err := e.Group.Read(); err != nil {
+	//return err
+	//}
 	// roomが存在するかチェックし依存関係を追加する
-	if err := e.Room.Read(); err != nil {
-		return err
-	}
+	//if err := e.Room.Read(); err != nil {
+	//return err
+	//}
 
-	err := e.TimeConsistency()
-	if err != nil {
-		return err
-	}
+	//err := e.TimeConsistency()
+	//if err != nil {
+	//return err
+	//}
 
 	tx := DB.Begin()
 	defer func() {
@@ -67,7 +79,7 @@ func (e *Event) Create() error {
 		return err
 	}
 
-	err = tx.Set("gorm:association_save_reference", false).Create(&e).Error
+	err := tx.Set("gorm:association_save_reference", false).Create(&e).Error
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -105,9 +117,9 @@ func (e *Event) Update() error {
 		return err
 	}
 	// roomが存在するかチェックし依存関係を追加する
-	if err := e.Room.Read(); err != nil {
-		return err
-	}
+	//if err := e.Room.Read(); err != nil {
+	//return err
+	//}
 
 	err := e.TimeConsistency()
 	if err != nil {
@@ -225,18 +237,10 @@ func FindEvents(values url.Values) ([]Event, error) {
 // TimeConsistency 時間が部屋の範囲内か、endがstartの後か
 // available time か確認する
 func (e *Event) TimeConsistency() error {
-	timeStart, err := utils.StrToTime(e.TimeStart)
-	if err != nil {
-		return err
-	}
-	timeEnd, err := utils.StrToTime(e.TimeEnd)
-	if err != nil {
-		return err
-	}
-	if !e.Room.InTime(timeStart, timeEnd) {
+	if !e.Room.InTime(e.TimeStart, e.TimeEnd) {
 		return errors.New("invalid time")
 	}
-	if !timeStart.Before(timeEnd) {
+	if !e.TimeStart.Before(e.TimeEnd) {
 		return errors.New("invalid time")
 	}
 	return nil

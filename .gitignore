@@ -9,6 +9,7 @@ debug
 
 phpmyadmin
 mariadb
+service.json
 
 /tmp/
 node_modules

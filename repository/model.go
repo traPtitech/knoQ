@@ -15,8 +15,8 @@ type Model struct {
 
 // StartEndTime has start and end time
 type StartEndTime struct {
-	TimeStart string `json:"timeStart" gorm:"type:TIME;"`
-	TimeEnd   string `json:"timeEnd" gorm:"type:TIME;"`
+	TimeStart time.Time `json:"timeStart" gorm:"type:TIME;"`
+	TimeEnd   time.Time `json:"timeEnd" gorm:"type:TIME;"`
 }
 
 // User traQユーザー情報構造体
@@ -63,12 +63,12 @@ type GroupUsers struct {
 
 // Room 部屋情報
 type Room struct {
-	ID            uuid.UUID      `json:"id" gorm:"type:char(36);primary_key"`
-	Place         string         `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
-	Date          string         `json:"date" gorm:"type:DATE; unique_index:idx_room_unique"`
-	TimeStart     string         `json:"timeStart" gorm:"type:TIME; unique_index:idx_room_unique"`
-	TimeEnd       string         `json:"timeEnd" gorm:"type:TIME; unique_index:idx_room_unique"`
-	AvailableTime []StartEndTime `json:"availableTime" gorm:"-"`
+	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
+	Place     string    `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
+	Public    bool
+	TimeStart time.Time `json:"timeStart" gorm:"type:DATETIME; unique_index:idx_room_unique"`
+	TimeEnd   time.Time `json:"timeEnd" gorm:"type:DATETIME; unique_index:idx_room_unique"`
+	Events    []Event   `gorm:"foreignkey:RoomID"`
 	Model
 }
 
@@ -93,8 +93,8 @@ type Event struct {
 	Group         Group     `json:"-" gorm:"foreignkey:group_id; save_associations:false"`
 	RoomID        uuid.UUID `json:"roomId" gorm:"type:char(36);not null"`
 	Room          Room      `json:"-" gorm:"foreignkey:room_id; save_associations:false"`
-	TimeStart     string    `json:"timeStart" gorm:"type:TIME"`
-	TimeEnd       string    `json:"timeEnd" gorm:"type:TIME"`
+	TimeStart     time.Time `json:"timeStart" gorm:"type:DATETIME"`
+	TimeEnd       time.Time `json:"timeEnd" gorm:"type:DATETIME"`
 	CreatedBy     uuid.UUID `json:"createdBy" gorm:"type:char(36);"`
 	AllowTogether bool      `json:"sharedRoom"`
 	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; association_autoupdate:false;association_autocreate:false"`
