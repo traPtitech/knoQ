@@ -137,7 +137,7 @@ func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Ro
 //r.Date = r.Date[:10]
 //if len(rooms) == 0 || rooms[len(rooms)-1].ID != r.ID {
 //if seTime.TimeStart.IsZero() && seTime.TimeEnd.IsZero() {
-//r.AvailableTime = append(r.AvailableTime, StartEndTime{
+//availableTime = append(availableTime, StartEndTime{
 //TimeStart: r.TimeStart,
 //TimeEnd:   r.TimeEnd,
 //})
@@ -154,7 +154,7 @@ func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Ro
 //}
 
 func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
-	for _, v := range room.AvailableTime {
+	for _, v := range room.calcAvailableTime() {
 		roomStart := v.TimeStart
 		roomEnd := v.TimeEnd
 		if (roomStart.Equal(targetStartTime) || roomStart.Before(targetStartTime)) && (roomEnd.Equal(targetEndTime) || roomEnd.After(targetEndTime)) {
@@ -166,10 +166,10 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 }
 
 // TODO return error
-func (r *Room) calcAvailableTime() {
+func (r *Room) calcAvailableTime() []StartEndTime {
 	// TODO sort events by TimeStart
-	r.AvailableTime = []StartEndTime{}
-	r.AvailableTime = append(r.AvailableTime, StartEndTime{
+	availableTime := []StartEndTime{}
+	availableTime = append(availableTime, StartEndTime{
 		TimeStart: r.TimeStart,
 		TimeEnd:   r.TimeEnd,
 	})
@@ -178,9 +178,9 @@ func (r *Room) calcAvailableTime() {
 			continue
 		}
 		avleTimes := make([]StartEndTime, 2)
-		i := len(r.AvailableTime) - 1
+		i := len(availableTime) - 1
 		avleTimes[0] = StartEndTime{
-			TimeStart: r.AvailableTime[i].TimeStart,
+			TimeStart: availableTime[i].TimeStart,
 			TimeEnd:   event.TimeStart,
 		}
 		avleTimes[1] = StartEndTime{
@@ -188,13 +188,14 @@ func (r *Room) calcAvailableTime() {
 			TimeEnd:   r.TimeEnd,
 		}
 		// delete last
-		r.AvailableTime = r.AvailableTime[:len(r.AvailableTime)-1]
+		availableTime = availableTime[:len(availableTime)-1]
 		for _, v := range avleTimes {
 			if v.TimeStart != v.TimeEnd {
-				r.AvailableTime = append(r.AvailableTime, v)
+				availableTime = append(availableTime, v)
 			}
 		}
 	}
+	return availableTime
 }
 
 // isTimeContext 開始時間が終了時間より前か見る

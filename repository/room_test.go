@@ -121,8 +121,8 @@ func TestRoom_calcAvailableTime(t *testing.T) {
 				TimeEnd:   tt.fields.TimeEnd,
 				Events:    tt.fields.Events,
 			}
-			r.calcAvailableTime()
-			assert.Equal(t, tt.want, r.AvailableTime)
+			availableTime := r.calcAvailableTime()
+			assert.Equal(t, tt.want, availableTime)
 		})
 	}
 }

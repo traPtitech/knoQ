@@ -63,12 +63,11 @@ type GroupUsers struct {
 
 // Room 部屋情報
 type Room struct {
-	ID            uuid.UUID      `json:"id" gorm:"type:char(36);primary_key"`
-	Place         string         `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
-	TimeStart     time.Time      `json:"timeStart" gorm:"type:DATETIME; unique_index:idx_room_unique"`
-	TimeEnd       time.Time      `json:"timeEnd" gorm:"type:DATETIME; unique_index:idx_room_unique"`
-	Events        []Event        `gorm:"foreignkey:RoomID"`
-	AvailableTime []StartEndTime `json:"availableTime" gorm:"-"`
+	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
+	Place     string    `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
+	TimeStart time.Time `json:"timeStart" gorm:"type:DATETIME; unique_index:idx_room_unique"`
+	TimeEnd   time.Time `json:"timeEnd" gorm:"type:DATETIME; unique_index:idx_room_unique"`
+	Events    []Event   `gorm:"foreignkey:RoomID"`
 	Model
 }
 
