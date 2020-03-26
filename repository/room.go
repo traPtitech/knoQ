@@ -43,7 +43,7 @@ func (repo *GormRepository) CreateRoom(roomParams WriteRoomParams) (*Room, error
 	if !room.isTimeContext() {
 		return nil, ErrInvalidArg
 	}
-	err = repo.DB.Create(&room).Error
+	err = repo.DB.Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE updated_at=updated_at").Create(&room).Error
 	return room, err
 }
 
@@ -106,7 +106,7 @@ func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Ro
 	if end != nil {
 		cmd = cmd.Where("rooms.start_time <= ?", end.String())
 	}
-	err := cmd.Find(&rooms).Error
+	err := cmd.Order("time_start").Find(&rooms).Error
 	return rooms, err
 }
 
@@ -131,9 +131,17 @@ func (repo *GoogleAPIRepository) GetAllRooms(start *time.Time, end *time.Time) (
 	if err != nil {
 		return nil, err
 	}
-	events, err := srv.Events.List(repo.CalendarID).ShowDeleted(false).SingleEvents(true).
-		TimeMin(start.String()).TimeMax(end.String()).OrderBy("startTime").Do()
+	cmd := srv.Events.List(repo.CalendarID).ShowDeleted(false).SingleEvents(true)
+	if start != nil {
+		cmd = cmd.TimeMin(start.Format(time.RFC3339))
+	}
+	if end != nil {
+		cmd = cmd.TimeMax(end.Format(time.RFC3339))
+	}
+
+	events, err := cmd.OrderBy("startTime").Do()
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	return formatCalendar(events)
@@ -159,6 +167,8 @@ func formatCalendar(events *calendar.Events) ([]*Room, error) {
 		if err != nil {
 			return nil, err
 		}
+		room.TimeStart = room.TimeStart.UTC()
+		room.TimeEnd = room.TimeEnd.UTC()
 
 		rooms = append(rooms, room)
 	}

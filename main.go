@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -11,7 +12,6 @@ import (
 
 	"go.uber.org/zap"
 	"golang.org/x/oauth2/google"
-	"golang.org/x/oauth2/jwt"
 	"google.golang.org/api/calendar/v3"
 )
 
@@ -25,17 +25,19 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+
 	googleAPI := &repo.GoogleAPIRepository{
-		Config: &jwt.Config{
-			Email:      os.Getenv("SERVICE_ACCOUNT_EMAIL"),
-			PrivateKey: []byte(os.Getenv("SERVICE_ACCOUNT_KEY")),
-			Scopes: []string{
-				calendar.CalendarReadonlyScope,
-			},
-			TokenURL: google.JWTTokenURL,
-		},
 		CalendarID: os.Getenv("TRAQ_CALENDARID"),
 	}
+	bytes, err := ioutil.ReadFile("service.json")
+	if err != nil {
+		panic("service.json does not exist.")
+	}
+	googleAPI.Config, err = google.JWTConfigFromJSON(bytes, calendar.CalendarReadonlyScope)
+	if err != nil {
+		panic(err)
+	}
+
 	googleAPI.Setup()
 
 	logger, _ := zap.NewDevelopment()

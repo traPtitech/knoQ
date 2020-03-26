@@ -33,14 +33,15 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 
 // HandleSetRooms Googleカレンダーから部屋情報を作成
 func (h *Handlers) HandleSetRooms(c echo.Context) error {
-	googleEvents, err := h.ExternalRoomRepo.GetAllRooms(nil, nil)
+	now := time.Now()
+	googleRooms, err := h.ExternalRoomRepo.GetAllRooms(&now, nil)
 	if err != nil {
 		return internalServerError()
 	}
 	res := make([]*RoomRes, 0)
-	for _, event := range googleEvents {
+	for _, room := range googleRooms {
 		roomParams := new(repo.WriteRoomParams)
-		err := copier.Copy(&roomParams, event)
+		err := copier.Copy(&roomParams, room)
 		if err != nil {
 			return internalServerError()
 		}
