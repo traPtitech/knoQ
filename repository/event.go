@@ -85,13 +85,13 @@ func (e *Event) Create() error {
 		return err
 	}
 	// Todo transaction
-	for _, v := range e.Tags {
-		err := e.AddTag(v.ID, v.Locked)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
+	//for _, v := range e.Tags {
+	//err := e.AddTag(v.ID, v.Locked)
+	//if err != nil {
+	//tx.Rollback()
+	//return err
+	//}
+	//}
 
 	return tx.Commit().Error
 }
@@ -151,13 +151,13 @@ func (e *Event) Update() error {
 		return err
 	}
 	// Todo transaction
-	for _, v := range e.Tags {
-		err := e.AddTag(v.ID, v.Locked)
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
+	//for _, v := range e.Tags {
+	//err := e.AddTag(v.ID, v.Locked)
+	//if err != nil {
+	//tx.Rollback()
+	//return err
+	//}
+	//}
 
 	return tx.Commit().Error
 }

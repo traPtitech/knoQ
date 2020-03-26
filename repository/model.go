@@ -41,10 +41,8 @@ type UserSession struct {
 
 // Tag Room Group Event have tags
 type Tag struct {
-	ID       uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
-	Name     string    `json:"name" gorm:"unique; type:varchar(16)"`
-	Official bool      `json:"official"`
-	Locked   bool      `json:"locked" gorm:"-"`
+	ID   uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
+	Name string    `json:"name" gorm:"unique; type:varchar(16)"`
 	Model
 }
 
