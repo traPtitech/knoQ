@@ -10,6 +10,9 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/jwt"
+	"google.golang.org/api/calendar/v3"
 )
 
 var (
@@ -22,6 +25,18 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
+	googleAPI := &repo.GoogleAPIRepository{
+		Config: &jwt.Config{
+			Email:      os.Getenv("SERVICE_ACCOUNT_EMAIL"),
+			PrivateKey: []byte(os.Getenv("SERVICE_ACCOUNT_KEY")),
+			Scopes: []string{
+				calendar.CalendarReadonlyScope,
+			},
+			TokenURL: google.JWTTokenURL,
+		},
+		CalendarID: os.Getenv("TRAQ_CALENDARID"),
+	}
+	googleAPI.Setup()
 
 	logger, _ := zap.NewDevelopment()
 	handler := &router.Handlers{
@@ -37,8 +52,9 @@ func main() {
 			traQRepo.Version = ver
 			return traQRepo
 		},
-		Logger:     logger,
-		SessionKey: SESSION_KEY,
+		ExternalRoomRepo: googleAPI,
+		Logger:           logger,
+		SessionKey:       SESSION_KEY,
 	}
 
 	e := handler.SetupRoute(db)

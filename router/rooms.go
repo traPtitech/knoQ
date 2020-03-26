@@ -1,77 +1,148 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	repo "room/repository"
+	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/copier"
 
 	"github.com/labstack/echo/v4"
 )
 
 // HandlePostRoom traPで確保した部屋情報を作成
-func HandlePostRoom(c echo.Context) error {
-	r := new(repo.Room)
-	if err := c.Bind(r); err != nil {
+func (h *Handlers) HandlePostRoom(c echo.Context) error {
+	req := new(RoomReq)
+	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
-
-	if err := repo.DB.Create(&r).Error; err != nil {
+	roomParams := new(repo.WriteRoomParams)
+	err := copier.Copy(&roomParams, req)
+	if err != nil {
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, r)
+	roomParams.Public = true
+
+	room, err := h.Repo.CreateRoom(*roomParams)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, formatRoomRes(room))
 }
 
 // HandleSetRooms Googleカレンダーから部屋情報を作成
-func HandleSetRooms(c echo.Context) error {
-	rooms, err := repo.GetEvents()
+func (h *Handlers) HandleSetRooms(c echo.Context) error {
+	googleEvents, err := h.ExternalRoomRepo.GetAllRooms(nil, nil)
 	if err != nil {
 		return internalServerError()
 	}
-	return c.JSON(http.StatusCreated, rooms)
+	res := make([]*RoomRes, 0)
+	for _, event := range googleEvents {
+		roomParams := new(repo.WriteRoomParams)
+		err := copier.Copy(&roomParams, event)
+		if err != nil {
+			return internalServerError()
+		}
+
+		room, err := h.Repo.CreateRoom(*roomParams)
+		if err != nil {
+			return internalServerError()
+		}
+		res = append(res, formatRoomRes(room))
+	}
+
+	return c.JSON(http.StatusCreated, res)
 }
 
 // HandleGetRoom get one room
-func HandleGetRoom(c echo.Context) error {
-	r := new(repo.Room)
-	r.ID, _ = uuid.FromString(c.Param("roomid"))
-
-	if err := r.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound()
-		}
-		return internalServerError()
+func (h *Handlers) HandleGetRoom(c echo.Context) error {
+	roomID, err := uuid.FromString(c.Param("roomid"))
+	if err != nil {
+		return notFound()
 	}
-	return c.JSON(http.StatusOK, r)
+
+	room, err := h.Repo.GetRoom(roomID)
+	if err != nil {
+		return notFound()
+	}
+	return c.JSON(http.StatusOK, formatRoomRes(room))
 }
 
 // HandleGetRooms traPで確保した部屋情報を取得
-func HandleGetRooms(c echo.Context) error {
-	rooms := []repo.Room{}
-
+func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	values := c.QueryParams()
-	rooms, err := repo.FindRooms(values)
+	var err error
+	var start, end *time.Time = nil, nil
+	if values.Get("dateBegin") != "" {
+		*start, err = time.Parse(time.RFC3339, values.Get("dateBegin"))
+		if err != nil {
+			return notFound()
+		}
+	}
+	if values.Get("dateEnd") != "" {
+		*end, err = time.Parse(time.RFC3339, values.Get("dateEnd"))
+		if err != nil {
+			return notFound()
+		}
+	}
+
+	rooms, err := h.Repo.GetAllRooms(start, end)
+	if err != nil {
+		return internalServerError()
+	}
+	res := make([]*RoomRes, len(rooms))
+	for i, r := range rooms {
+		res[i] = formatRoomRes(r)
+	}
+	return c.JSON(http.StatusCreated, res)
+
+}
+
+// HandleDeleteRoom traPで確保した部屋情報を削除
+func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
+	roomID, err := uuid.FromString(c.Param("roomid"))
+	if err != nil {
+		return notFound()
+	}
+	err = h.Repo.DeleteRoom(roomID, true)
+	if err != nil {
+		return notFound()
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *Handlers) HandlePostPrivateRoom(c echo.Context) error {
+	req := new(RoomReq)
+	if err := c.Bind(&req); err != nil {
+		return badRequest()
+	}
+	roomParams := new(repo.WriteRoomParams)
+	err := copier.Copy(&roomParams, req)
 	if err != nil {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, rooms)
-}
+	roomParams.Public = false
 
-// HandleDeleteRoom traPで確保した部屋情報を削除
-func HandleDeleteRoom(c echo.Context) error {
-	r := new(repo.Room)
-	r.ID, _ = uuid.FromString(c.Param("roomid"))
-
-	if err := repo.DB.First(&r, r.ID).Error; err != nil {
-		return notFound(message(fmt.Sprintf("RoomID: %v does not exist.", r.ID)))
-	}
-
-	if err := repo.DB.Delete(&r).Error; err != nil {
+	room, err := h.Repo.CreateRoom(*roomParams)
+	if err != nil {
 		return internalServerError()
 	}
+	return c.JSON(http.StatusOK, formatRoomRes(room))
+}
 
-	return c.NoContent(http.StatusOK)
+func (h *Handlers) HandleDeletePrivateRoom(c echo.Context) error {
+	roomID, err := uuid.FromString(c.Param("roomid"))
+	if err != nil {
+		return notFound()
+	}
+	err = h.Repo.DeleteRoom(roomID, false)
+	if err != nil {
+		return notFound()
+	}
+
+	return c.NoContent(http.StatusNoContent)
+
 }

@@ -56,13 +56,13 @@ func TestGormRepository_DeleteRoom(t *testing.T) {
 
 	t.Run("Delete existing room", func(t *testing.T) {
 		t.Parallel()
-		err := repo.DeleteRoom(room.ID)
+		err := repo.DeleteRoom(room.ID, true)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Delete not existing room", func(t *testing.T) {
 		t.Parallel()
-		err := repo.DeleteRoom(mustNewUUIDV4(t))
+		err := repo.DeleteRoom(mustNewUUIDV4(t), true)
 		assert.EqualError(t, err, ErrNotFound.Error())
 	})
 }
@@ -77,7 +77,7 @@ func TestGormRepository_GetRoom(t *testing.T) {
 	}
 }
 
-func TestRoom_calcAvailableTime(t *testing.T) {
+func TestRoom_CalcAvailableTime(t *testing.T) {
 	now := time.Now()
 	type fields struct {
 		TimeStart time.Time
@@ -121,7 +121,7 @@ func TestRoom_calcAvailableTime(t *testing.T) {
 				TimeEnd:   tt.fields.TimeEnd,
 				Events:    tt.fields.Events,
 			}
-			availableTime := r.calcAvailableTime()
+			availableTime := r.CalcAvailableTime()
 			assert.Equal(t, tt.want, availableTime)
 		})
 	}

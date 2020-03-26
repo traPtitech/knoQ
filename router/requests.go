@@ -2,6 +2,7 @@ package router
 
 import (
 	repo "room/repository"
+	"time"
 
 	"github.com/gofrs/uuid"
 )
@@ -12,6 +13,13 @@ type GroupReq struct {
 	Description string      `json:"description"`
 	JoinFreely  bool        `json:"open"`
 	Members     []uuid.UUID `json:"members"`
+}
+
+// RoomReq is group request model
+type RoomReq struct {
+	Place     string    `json:"place"`
+	TimeStart time.Time `json:"timeStart"`
+	TimeEnd   time.Time `json:"timeEnd"`
 }
 
 func formatGroup(req *GroupReq) (g *repo.Group, err error) {
