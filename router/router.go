@@ -104,8 +104,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 		apiTags := api.Group("/tags")
 		{
-			apiTags.POST("", HandlePostTag)
-			apiTags.GET("", HandleGetTags)
+			apiTags.POST("", h.HandlePostTag)
+			apiTags.GET("", h.HandleGetTags)
 		}
 
 	}

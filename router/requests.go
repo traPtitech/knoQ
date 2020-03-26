@@ -22,6 +22,10 @@ type RoomReq struct {
 	TimeEnd   time.Time `json:"timeEnd"`
 }
 
+type TagReq struct {
+	Name string `json:"name"`
+}
+
 func formatGroup(req *GroupReq) (g *repo.Group, err error) {
 	g = &repo.Group{
 		Name:        req.Name,

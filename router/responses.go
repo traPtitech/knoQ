@@ -48,6 +48,13 @@ type RoomRes struct {
 	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
+type TagRes struct {
+	ID        uuid.UUID `json:"tagId"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 func formatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 	res := &GroupRes{
 		ID: g.ID,
@@ -120,5 +127,14 @@ func formatRoomRes(r *repo.Room) *RoomRes {
 		AvailableTime: r.CalcAvailableTime(),
 		CreatedAt:     r.CreatedAt,
 		UpdatedAt:     r.UpdatedAt,
+	}
+}
+
+func formatTagRes(t *repo.Tag) *TagRes {
+	return &TagRes{
+		ID:        t.ID,
+		Name:      t.Name,
+		CreatedAt: t.CreatedAt,
+		UpdatedAt: t.UpdatedAt,
 	}
 }

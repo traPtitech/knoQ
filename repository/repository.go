@@ -33,6 +33,7 @@ type Repository interface {
 	GroupRepository
 	RoomRepository
 	EventRepository
+	TagRepository
 }
 
 // GormRepository implements Repository interface
