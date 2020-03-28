@@ -12,18 +12,17 @@ import (
 )
 
 // HandlePostEvent 部屋の使用宣言を作成
-func HandlePostEvent(c echo.Context) error {
-	event := new(repo.Event)
+func (h *Handlers) HandlePostEvent(c echo.Context) error {
+	req := new(EventReq)
 
-	if err := c.Bind(event); err != nil {
+	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
-	event.Group.ID = event.GroupID
-	event.Room.ID = event.RoomID
+	eventParams := new(repo.WriteEventParams)
 
-	event.CreatedBy, _ = getRequestUserID(c)
+	eventParams.CreatedBy, _ = getRequestUserID(c)
 
-	err := event.Create()
+	event, err := h.Repo.CreateEvent(*eventParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

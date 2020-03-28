@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
+	"github.com/jinzhu/gorm"
 )
 
 // WriteEventParams is used create and update
@@ -30,7 +31,7 @@ type WriteEventParams struct {
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams) (*Event, error)
 	//UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
-	//AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID) error
+	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error
 	//AddEventToFavorites(eventID uuid.UUID, userID uuid.UUID) error
 	//DeleteEvent(eventID uuid.UUID) error
 	//// DeleteTagInEvent delete a tag in that Event if that tag is locked == false
@@ -49,8 +50,24 @@ func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, e
 	if err != nil {
 		return nil, ErrInvalidArg
 	}
-	err = repo.DB.Create(&event).Error
+	err = repo.DB.Transaction(func(tx *gorm.DB) error {
+		err = tx.Create(&event).Error
+
+	})
 	return event, err
+}
+
+func (repo *GormRepository) AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error {
+	if eventID == uuid.Nil || tagID == uuid.Nil {
+		return ErrNilID
+	}
+	eventTag := &EventTag{
+		EventID: eventID,
+		TagID:   tagID,
+		Locked:  locked,
+	}
+	// TODO update event updated_at
+	return repo.DB.Create(&eventTag).Error
 }
 
 func (e *Event) Create() error {

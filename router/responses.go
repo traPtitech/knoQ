@@ -10,7 +10,7 @@ import (
 )
 
 type GroupRes struct {
-	ID uuid.UUID `json:"id"`
+	ID uuid.UUID `json:"groupId"`
 	GroupReq
 	IsTraQGroup bool      `json:"isTraQGroup"`
 	CreatedBy   uuid.UUID `json:"createdBy"`
@@ -20,14 +20,17 @@ type GroupRes struct {
 
 // EventRes is event response
 type EventRes struct {
-	repo.Event
-	Tags []TagRelationRes `json:"tags"`
+	ID uuid.UUID `json:"eventId"`
+	EventReq
+	Tags      []TagRelationRes `json:"tags"`
+	CreatedAt time.Time        `json:"createdAt"`
+	UpdatedAt time.Time        `json:"updatedAt"`
 }
 
 // TagRelationRes show relation one to tag
 type TagRelationRes struct {
-	ID     uuid.UUID `json:"id"`
-	Locked bool      `json:"locked"`
+	ID uuid.UUID `json:"tagId"`
+	TagRelationReq
 }
 
 type UserRes struct {
