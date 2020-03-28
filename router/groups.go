@@ -100,6 +100,7 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
+	groupParams.CreatedBy, _ = getRequestUserID(c)
 
 	groupID, err := getRequestGroupID(c)
 	if err != nil {

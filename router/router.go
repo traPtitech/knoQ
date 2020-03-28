@@ -57,11 +57,11 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiGroup := apiGroups.Group("/:groupid")
 			{
 				apiGroups.GET("/:groupid", h.HandleGetGroup)
-				apiGroups.PUT("/:groupid", h.HandleUpdateGroup, GroupCreatedUserMiddleware)
-				apiGroups.DELETE("/:groupid", h.HandleDeleteGroup, adminMiddle)
 
-				// apiGroup.PATCH("/tags", HandleAddGroupTag)
-				// apiGroup.DELETE("/tags/:tagid", HandleDeleteGroupTag)
+				//apiGroups.PUT("/:groupid", h.HandleUpdateGroup, GroupCreatedUserMiddleware)
+				apiGroups.PUT("/:groupid", h.HandleUpdateGroup)
+
+				apiGroups.DELETE("/:groupid", h.HandleDeleteGroup, adminMiddle)
 
 				apiGroup.PATCH("/members/me", h.HandleAddMeGroup)
 				apiGroup.DELETE("/members/me", h.HandleDeleteMeGroup)
