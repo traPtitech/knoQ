@@ -1,11 +1,9 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	repo "room/repository"
 
-	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 
@@ -124,33 +122,41 @@ func HandleUpdateEvent(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func HandleAddEventTag(c echo.Context) error {
-	tag := new(repo.Tag)
-	event := new(repo.Event)
-	if err := c.Bind(tag); err != nil {
+func (h *Handlers) HandleAddEventTag(c echo.Context) error {
+	var req TagRelationReq
+	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
-	var err error
-	event.ID, err = getRequestEventID(c)
+	eventID, err := getRequestEventID(c)
+	if err != nil {
+		return notFound(message(err.Error()))
+	}
+	tag, err := h.Repo.CreateOrGetTag(req.Name)
+	if err != nil {
+		return internalServerError()
+	}
+	err = h.Repo.AddTagToEvent(eventID, tag.ID, false)
 	if err != nil {
 		return internalServerError()
 	}
 
-	return handleAddTagRelation(c, event, event.ID, tag.ID)
+	return c.NoContent(http.StatusNoContent)
 }
 
-func HandleDeleteEventTag(c echo.Context) error {
-	eventTag := new(repo.EventTag)
-	event := new(repo.Event)
-	var err error
-	event.ID, err = getRequestEventID(c)
+func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
+	eventID, err := getRequestEventID(c)
 	if err != nil {
-		internalServerError()
+		return notFound(message(err.Error()))
 	}
-	eventTag.TagID, err = uuid.FromString(c.Param("tagid"))
-	if err != nil || eventTag.TagID == uuid.Nil {
-		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
+	tagName := c.Param("tagName")
+	tag, err := h.Repo.CreateOrGetTag(tagName)
+	if err != nil {
+		return internalServerError()
+	}
+	err = h.Repo.DeleteTagInEvent(eventID, tag.ID, false)
+	if err != nil {
+		return internalServerError()
 	}
 
-	return handleDeleteTagRelation(c, event, eventTag.TagID)
+	return c.NoContent(http.StatusNoContent)
 }

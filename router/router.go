@@ -79,8 +79,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 				apiEvent.PUT("", HandleUpdateEvent, EventCreatedUserMiddleware)
 				apiEvent.DELETE("", HandleDeleteEvent, EventCreatedUserMiddleware)
 
-				apiEvent.PATCH("/tags", HandleAddEventTag)
-				apiEvent.DELETE("/tags/:tagid", HandleDeleteEventTag)
+				apiEvent.PATCH("/tags", h.HandleAddEventTag)
+				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)
 			}
 
 		}
