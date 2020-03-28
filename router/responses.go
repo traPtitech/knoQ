@@ -1,16 +1,14 @@
 package router
 
 import (
-	"fmt"
 	repo "room/repository"
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/copier"
 )
 
 type GroupRes struct {
-	ID uuid.UUID `json:"id"`
+	ID uuid.UUID `json:"groupId"`
 	GroupReq
 	IsTraQGroup bool      `json:"isTraQGroup"`
 	CreatedBy   uuid.UUID `json:"createdBy"`
@@ -20,14 +18,17 @@ type GroupRes struct {
 
 // EventRes is event response
 type EventRes struct {
-	repo.Event
-	Tags []TagRelationRes `json:"tags"`
+	ID uuid.UUID `json:"eventId"`
+	EventReq
+	Tags      []TagRelationRes `json:"tags"`
+	CreatedAt time.Time        `json:"createdAt"`
+	UpdatedAt time.Time        `json:"updatedAt"`
 }
 
 // TagRelationRes show relation one to tag
 type TagRelationRes struct {
-	ID     uuid.UUID `json:"id"`
-	Locked bool      `json:"locked"`
+	ID uuid.UUID `json:"tagId"`
+	TagRelationReq
 }
 
 type UserRes struct {
@@ -46,6 +47,13 @@ type RoomRes struct {
 	AvailableTime []repo.StartEndTime
 	CreatedAt     time.Time `json:"createdAt"`
 	UpdatedAt     time.Time `json:"updatedAt"`
+}
+
+type TagRes struct {
+	ID        uuid.UUID `json:"tagId"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 func formatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
@@ -81,24 +89,45 @@ func formatGroupsRes(gs []*repo.Group, IsTraQGroup bool) []*GroupRes {
 	return res
 }
 
-func formatEventRes(e *repo.Event) (*EventRes, error) {
-	res := new(EventRes)
-	err := copier.Copy(&res, e)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
+func formatTagsRes(ts []repo.Tag) []TagRelationRes {
+	res := make([]TagRelationRes, len(ts))
+	for i, t := range ts {
+		res[i] = TagRelationRes{
+			ID: t.ID,
+			TagRelationReq: TagRelationReq{
+				Name:   t.Name,
+				Locked: t.Locked,
+			},
+		}
 	}
-	return res, err
+	return res
+
 }
 
-func formatEventsRes(e []repo.Event) ([]EventRes, error) {
-	res := []EventRes{}
-	err := copier.Copy(&res, e)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
+func formatEventRes(e *repo.Event) *EventRes {
+	return &EventRes{
+		ID: e.ID,
+		EventReq: EventReq{
+			Name:          e.Name,
+			Description:   e.Description,
+			AllowTogether: e.AllowTogether,
+			TimeStart:     e.TimeStart,
+			TimeEnd:       e.TimeEnd,
+			RoomID:        e.RoomID,
+			GroupID:       e.GroupID,
+		},
+		Tags:      formatTagsRes(e.Tags),
+		CreatedAt: e.CreatedAt,
+		UpdatedAt: e.UpdatedAt,
 	}
-	return res, err
+}
+
+func formatEventsRes(es []*repo.Event) []*EventRes {
+	res := make([]*EventRes, len(es))
+	for i, e := range es {
+		res[i] = formatEventRes(e)
+	}
+	return res
 }
 
 func formatUserRes(u *repo.User) *UserRes {
@@ -120,5 +149,14 @@ func formatRoomRes(r *repo.Room) *RoomRes {
 		AvailableTime: r.CalcAvailableTime(),
 		CreatedAt:     r.CreatedAt,
 		UpdatedAt:     r.UpdatedAt,
+	}
+}
+
+func formatTagRes(t *repo.Tag) *TagRes {
+	return &TagRes{
+		ID:        t.ID,
+		Name:      t.Name,
+		CreatedAt: t.CreatedAt,
+		UpdatedAt: t.UpdatedAt,
 	}
 }

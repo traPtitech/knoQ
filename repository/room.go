@@ -93,20 +93,19 @@ func (repo *GormRepository) GetRoom(roomID uuid.UUID) (*Room, error) {
 		return nil, err
 	}
 
-	room.CalcAvailableTime()
 	return room, nil
 }
 
 func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error) {
 	rooms := make([]*Room, 0)
 	cmd := repo.DB
-	if start != nil {
-		cmd = cmd.Where("rooms.end_time >= ?", start.String())
+	if start != nil && !start.IsZero() {
+		cmd = cmd.Where("time_end >= ?", start.UTC())
 	}
-	if end != nil {
-		cmd = cmd.Where("rooms.start_time <= ?", end.String())
+	if end != nil && !end.IsZero() {
+		cmd = cmd.Where("time_start <= ?", end.String())
 	}
-	err := cmd.Order("time_start").Find(&rooms).Error
+	err := cmd.Debug().Order("time_start").Find(&rooms).Error
 	return rooms, err
 }
 

@@ -367,9 +367,10 @@ func deleteRequestUserToken(c echo.Context) error {
 
 // getRequestEventID :eventidを返します
 func getRequestEventID(c echo.Context) (uuid.UUID, error) {
-	eventID, ok := c.Get("EventID").(uuid.UUID)
-	if !ok {
-		return uuid.Nil, errors.New("EventID is not set")
+
+	eventID, err := uuid.FromString(c.Param("eventid"))
+	if err != nil {
+		return uuid.Nil, errors.New("EventID is not uuid")
 	}
 	return eventID, nil
 }

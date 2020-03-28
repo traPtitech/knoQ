@@ -15,11 +15,30 @@ type GroupReq struct {
 	Members     []uuid.UUID `json:"members"`
 }
 
-// RoomReq is group request model
+// RoomReq is room request model
 type RoomReq struct {
 	Place     string    `json:"place"`
 	TimeStart time.Time `json:"timeStart"`
 	TimeEnd   time.Time `json:"timeEnd"`
+}
+
+type TagReq struct {
+	Name string `json:"name"`
+}
+type TagRelationReq struct {
+	Name   string `json:"name"`
+	Locked bool   `json:"locked"`
+}
+
+type EventReq struct {
+	Name          string           `json:"name"`
+	Description   string           `json:"description"`
+	AllowTogether bool             `json:"sharedRoom"`
+	TimeStart     time.Time        `json:"timeStart"`
+	TimeEnd       time.Time        `json:"timeEnd"`
+	RoomID        uuid.UUID        `json:"roomId"`
+	GroupID       uuid.UUID        `json:"groupId"`
+	Tags          []TagRelationReq `json:"tags"`
 }
 
 func formatGroup(req *GroupReq) (g *repo.Group, err error) {

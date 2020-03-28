@@ -29,10 +29,7 @@ func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uuid.UUID, tagID 
 	}
 	switch v := tad.(type) {
 	case *repo.Event:
-		res, err := formatEventRes(v)
-		if err != nil {
-			return internalServerError()
-		}
+		res := formatEventRes(v)
 		return c.JSON(http.StatusOK, res)
 
 	}
@@ -49,10 +46,7 @@ func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uuid.UUID) 
 
 	switch v := tad.(type) {
 	case *repo.Event:
-		res, err := formatEventRes(v)
-		if err != nil {
-			return internalServerError()
-		}
+		res := formatEventRes(v)
 		return c.JSON(http.StatusOK, res)
 
 	}
@@ -60,26 +54,29 @@ func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uuid.UUID) 
 	return c.JSON(http.StatusOK, tad)
 }
 
-func HandlePostTag(c echo.Context) error {
-	tag := new(repo.Tag)
-	if err := c.Bind(tag); err != nil {
+func (h *Handlers) HandlePostTag(c echo.Context) error {
+	req := new(TagReq)
+	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
 
-	tag.Official = false
-
-	if err := tag.Create(); err != nil {
+	tag, err := h.Repo.CreateOrGetTag(req.Name)
+	if err != nil {
 		return judgeErrorResponse(err)
 	}
 
-	return c.JSON(http.StatusOK, &tag)
+	return c.JSON(http.StatusOK, formatTagRes(tag))
 }
 
-func HandleGetTags(c echo.Context) error {
-	tags, err := repo.FindTags()
+func (h *Handlers) HandleGetTags(c echo.Context) error {
+	tags, err := h.Repo.GetAllTags()
 	if err != nil {
 		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, tags)
+	res := make([]*TagRes, len(tags))
+	for i, tag := range tags {
+		res[i] = formatTagRes(tag)
+	}
+	return c.JSON(http.StatusOK, res)
 }

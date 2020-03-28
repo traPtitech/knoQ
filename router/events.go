@@ -1,155 +1,172 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	repo "room/repository"
 
-	"github.com/gofrs/uuid"
-	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/copier"
 
 	"github.com/labstack/echo/v4"
 )
 
 // HandlePostEvent 部屋の使用宣言を作成
-func HandlePostEvent(c echo.Context) error {
-	event := new(repo.Event)
-
-	if err := c.Bind(event); err != nil {
-		return badRequest()
+func (h *Handlers) HandlePostEvent(c echo.Context) error {
+	var req EventReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(message(err.Error()))
 	}
-	event.Group.ID = event.GroupID
-	event.Room.ID = event.RoomID
-
-	event.CreatedBy, _ = getRequestUserID(c)
-
-	err := event.Create()
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-	res, err := formatEventRes(event)
+	eventParams := new(repo.WriteEventParams)
+	err := copier.Copy(&eventParams, req)
 	if err != nil {
 		return internalServerError()
 	}
-	return c.JSON(http.StatusCreated, res)
+
+	eventParams.CreatedBy, _ = getRequestUserID(c)
+
+	event, err := h.Repo.CreateEvent(*eventParams)
+	if err != nil {
+		return badRequest(message(err.Error()))
+	}
+	// add tag
+	for _, reqTag := range req.Tags {
+		tag, err := h.Repo.CreateOrGetTag(reqTag.Name)
+		if err != nil {
+			continue
+		}
+		tag.Locked = reqTag.Locked
+		event.Tags = append(event.Tags, *tag)
+		err = h.Repo.AddTagToEvent(event.ID, tag.ID, reqTag.Locked)
+		if err != nil {
+			return internalServerError()
+		}
+	}
+
+	return c.JSON(http.StatusCreated, formatEventRes(event))
 }
 
 // HandleGetEvent get one event
-func HandleGetEvent(c echo.Context) error {
-	event := new(repo.Event)
-	var err error
-	event.ID, err = getRequestEventID(c)
+func (h *Handlers) HandleGetEvent(c echo.Context) error {
+	eventID, err := getRequestEventID(c)
+	if err != nil {
+		return notFound()
+	}
+
+	event, err := h.Repo.GetEvent(eventID)
 	if err != nil {
 		return internalServerError()
 	}
-
-	if err := event.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound()
-		}
-		return internalServerError()
-	}
-	res, err := formatEventRes(event)
-	if err != nil {
-		return internalServerError()
-	}
-
+	res := formatEventRes(event)
 	return c.JSON(http.StatusOK, res)
 }
 
 // HandleGetEvents 部屋の使用宣言情報を取得
-func HandleGetEvents(c echo.Context) error {
-	events := []repo.Event{}
-
+func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	values := c.QueryParams()
 
-	events, err := repo.FindEvents(values)
+	start, end, err := getTiemRange(values)
 	if err != nil {
-		return internalServerError()
-	}
-	res, err := formatEventsRes(events)
-	if err != nil {
-		return internalServerError()
+		return notFound()
 	}
 
+	events, err := h.Repo.GetAllEvents(&start, &end)
+	if err != nil {
+		return internalServerError()
+	}
+	res := formatEventsRes(events)
 	return c.JSON(http.StatusOK, res)
 }
 
 // HandleDeleteEvent 部屋の使用宣言を削除
-func HandleDeleteEvent(c echo.Context) error {
-	event := new(repo.Event)
-	var err error
-	event.ID, err = getRequestEventID(c)
+func (h *Handlers) HandleDeleteEvent(c echo.Context) error {
+	eventID, err := getRequestEventID(c)
+	if err != nil {
+		return notFound()
+	}
 
-	if err = event.Delete(); err != nil {
+	if err = h.Repo.DeleteEvent(eventID); err != nil {
 		return internalServerError()
 	}
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }
 
 // HandleUpdateEvent 任意の要素を変更
-func HandleUpdateEvent(c echo.Context) error {
-	event := new(repo.Event)
-
-	if err := c.Bind(event); err != nil {
+func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
+	var req EventReq
+	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
-
-	var err error
-	event.ID, err = getRequestEventID(c)
+	eventParams := new(repo.WriteEventParams)
+	err := copier.Copy(&eventParams, req)
 	if err != nil {
 		return internalServerError()
 	}
-
-	err = event.Update()
+	eventID, err := getRequestEventID(c)
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return badRequest()
+		return notFound()
+	}
+	eventParams.CreatedBy, _ = getRequestUserID(c)
+
+	event, err := h.Repo.UpdateEvent(eventID, *eventParams)
+	if err != nil {
+		return internalServerError()
+	}
+	// update tag
+	tagsParams := make([]repo.WriteTagRelationParams, 0)
+	for _, reqTag := range req.Tags {
+		tag, err := h.Repo.CreateOrGetTag(reqTag.Name)
+		if err != nil {
+			continue
 		}
-		return internalServerError()
+		tagsParams = append(tagsParams, repo.WriteTagRelationParams{
+			ID:     tag.ID,
+			Locked: reqTag.Locked,
+		})
+		event.Tags = append(event.Tags, *tag)
 	}
-
-	if err := event.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound()
-		}
-		return internalServerError()
-	}
-	res, err := formatEventRes(event)
+	err = h.Repo.UpdateTagsInEvent(eventID, tagsParams)
 	if err != nil {
-		return internalServerError()
+		return err
 	}
 
+	res := formatEventRes(event)
 	return c.JSON(http.StatusOK, res)
 }
 
-func HandleAddEventTag(c echo.Context) error {
-	tag := new(repo.Tag)
-	event := new(repo.Event)
-	if err := c.Bind(tag); err != nil {
+func (h *Handlers) HandleAddEventTag(c echo.Context) error {
+	var req TagRelationReq
+	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
-	var err error
-	event.ID, err = getRequestEventID(c)
+	eventID, err := getRequestEventID(c)
+	if err != nil {
+		return notFound(message(err.Error()))
+	}
+	tag, err := h.Repo.CreateOrGetTag(req.Name)
+	if err != nil {
+		return internalServerError()
+	}
+	err = h.Repo.AddTagToEvent(eventID, tag.ID, false)
 	if err != nil {
 		return internalServerError()
 	}
 
-	return handleAddTagRelation(c, event, event.ID, tag.ID)
+	return c.NoContent(http.StatusNoContent)
 }
 
-func HandleDeleteEventTag(c echo.Context) error {
-	eventTag := new(repo.EventTag)
-	event := new(repo.Event)
-	var err error
-	event.ID, err = getRequestEventID(c)
+func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
+	eventID, err := getRequestEventID(c)
 	if err != nil {
-		internalServerError()
+		return notFound(message(err.Error()))
 	}
-	eventTag.TagID, err = uuid.FromString(c.Param("tagid"))
-	if err != nil || eventTag.TagID == uuid.Nil {
-		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
+	tagName := c.Param("tagName")
+	tag, err := h.Repo.GetTagByName(tagName)
+	if err != nil {
+		return internalServerError()
+	}
+	err = h.Repo.DeleteTagInEvent(eventID, tag.ID, false)
+	if err != nil {
+		return internalServerError()
 	}
 
-	return handleDeleteTagRelation(c, event, eventTag.TagID)
+	return c.NoContent(http.StatusNoContent)
 }

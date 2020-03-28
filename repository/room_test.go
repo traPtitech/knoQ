@@ -69,12 +69,20 @@ func TestGormRepository_DeleteRoom(t *testing.T) {
 
 func TestGormRepository_GetRoom(t *testing.T) {
 	repo, _, _, user := setupGormRepoWithUser(t, common)
-	event, _, room := mustMakeEvent(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
 
+	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
 	if room, err := repo.GetRoom(room.ID); assert.NoError(t, err) {
 		assert.NotNil(t, room)
-		assert.Equal(t, event.ID, room.Events[0].ID)
 	}
+
+	t.Run("room event test", func(t *testing.T) {
+		event, _, room := mustMakeEvent(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+		if room, err := repo.GetRoom(room.ID); assert.NoError(t, err) {
+			assert.NotNil(t, room)
+			assert.Equal(t, event.ID, room.Events[0].ID)
+		}
+
+	})
 }
 
 func TestRoom_CalcAvailableTime(t *testing.T) {

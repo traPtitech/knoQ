@@ -41,10 +41,9 @@ type UserSession struct {
 
 // Tag Room Group Event have tags
 type Tag struct {
-	ID       uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
-	Name     string    `json:"name" gorm:"unique; type:varchar(16)"`
-	Official bool      `json:"official"`
-	Locked   bool      `json:"locked" gorm:"-"`
+	ID     uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
+	Name   string    `json:"name" gorm:"unique; type:varchar(16)"`
+	Locked bool      `gorm:"-"`
 	Model
 }
 
@@ -86,11 +85,11 @@ type Group struct {
 
 // Event 予約情報
 type Event struct {
-	ID            uuid.UUID `json:"eventId" gorm:"type:char(36);primary_key"`
-	Name          string    `json:"name" gorm:"type:varchar(32); not null"`
-	Description   string    `json:"description" gorm:"type:varchar(1024)"`
-	GroupID       uuid.UUID `json:"groupId" gorm:"type:char(36);not null"`
-	Group         Group     `json:"-" gorm:"foreignkey:group_id; save_associations:false"`
+	ID          uuid.UUID `json:"eventId" gorm:"type:char(36);primary_key"`
+	Name        string    `json:"name" gorm:"type:varchar(32); not null"`
+	Description string    `json:"description" gorm:"type:varchar(1024)"`
+	GroupID     uuid.UUID `json:"groupId" gorm:"type:char(36);not null"`
+	//Group         Group     `json:"-" gorm:"foreignkey:group_id; save_associations:false"`
 	RoomID        uuid.UUID `json:"roomId" gorm:"type:char(36);not null"`
 	Room          Room      `json:"-" gorm:"foreignkey:room_id; save_associations:false"`
 	TimeStart     time.Time `json:"timeStart" gorm:"type:DATETIME"`
