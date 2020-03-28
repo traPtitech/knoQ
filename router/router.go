@@ -76,8 +76,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiEvent := apiEvents.Group("/:eventid", EventIDMiddleware)
 			{
 				apiEvent.GET("", h.HandleGetEvent)
-				apiEvent.PUT("", HandleUpdateEvent, EventCreatedUserMiddleware)
-				apiEvent.DELETE("", HandleDeleteEvent, EventCreatedUserMiddleware)
+				apiEvent.PUT("", h.HandleUpdateEvent)
+				apiEvent.DELETE("", h.HandleDeleteEvent)
 
 				apiEvent.PATCH("/tags", h.HandleAddEventTag)
 				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)

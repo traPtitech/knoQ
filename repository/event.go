@@ -27,10 +27,17 @@ type WriteEventParams struct {
 	//}
 }
 
+// WriteTagRelationParams is used create and update
+type WriteTagRelationParams struct {
+	ID     uuid.UUID
+	Locked bool
+}
+
 // EventRepository is implemented by GormRepositoy and API repository.
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams) (*Event, error)
 	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
+	UpdateTagsInEvent(eventID uuid.UUID, tagsParams []WriteTagRelationParams) error
 	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error
 	//AddEventToFavorites(eventID uuid.UUID, userID uuid.UUID) error
 	DeleteEvent(eventID uuid.UUID) error
@@ -100,6 +107,29 @@ func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, eventParams WriteEven
 	event.ID = eventID
 	err = repo.DB.Save(&event).Error
 	return event, err
+}
+
+func (repo *GormRepository) UpdateTagsInEvent(eventID uuid.UUID, tagsParams []WriteTagRelationParams) error {
+	if eventID == uuid.Nil {
+		return ErrNilID
+	}
+	return repo.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("event_id = ?", eventID).Delete(&EventTag{}).Error; err != nil {
+			return err
+		}
+
+		for _, tagParams := range tagsParams {
+			eventTag := &EventTag{
+				EventID: eventID,
+				TagID:   tagParams.ID,
+				Locked:  tagParams.Locked,
+			}
+			if err := tx.Create(&eventTag).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 // AddTagToEvent タグを追加。

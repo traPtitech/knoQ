@@ -5,15 +5,13 @@ import (
 	repo "room/repository"
 
 	"github.com/jinzhu/copier"
-	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo/v4"
 )
 
 // HandlePostEvent 部屋の使用宣言を作成
 func (h *Handlers) HandlePostEvent(c echo.Context) error {
-	req := new(EventReq)
-
+	var req EventReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
@@ -79,45 +77,57 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 }
 
 // HandleDeleteEvent 部屋の使用宣言を削除
-func HandleDeleteEvent(c echo.Context) error {
-	event := new(repo.Event)
-	var err error
-	event.ID, err = getRequestEventID(c)
+func (h *Handlers) HandleDeleteEvent(c echo.Context) error {
+	eventID, err := getRequestEventID(c)
+	if err != nil {
+		return notFound()
+	}
 
-	if err = event.Delete(); err != nil {
+	if err = h.Repo.DeleteEvent(eventID); err != nil {
 		return internalServerError()
 	}
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }
 
 // HandleUpdateEvent 任意の要素を変更
-func HandleUpdateEvent(c echo.Context) error {
-	event := new(repo.Event)
-
-	if err := c.Bind(event); err != nil {
+func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
+	var req EventReq
+	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
-
-	var err error
-	event.ID, err = getRequestEventID(c)
+	eventParams := new(repo.WriteEventParams)
+	err := copier.Copy(&eventParams, req)
 	if err != nil {
 		return internalServerError()
 	}
-
-	err = event.Update()
+	eventID, err := getRequestEventID(c)
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return badRequest()
-		}
+		return notFound()
+	}
+	eventParams.CreatedBy, _ = getRequestUserID(c)
+
+	event, err := h.Repo.UpdateEvent(eventID, *eventParams)
+	if err != nil {
 		return internalServerError()
+	}
+	// update tag
+	tagsParams := make([]repo.WriteTagRelationParams, 0)
+	for _, reqTag := range req.Tags {
+		tag, err := h.Repo.CreateOrGetTag(reqTag.Name)
+		if err != nil {
+			continue
+		}
+		tagsParams = append(tagsParams, repo.WriteTagRelationParams{
+			ID:     tag.ID,
+			Locked: reqTag.Locked,
+		})
+		event.Tags = append(event.Tags, *tag)
+	}
+	err = h.Repo.UpdateTagsInEvent(eventID, tagsParams)
+	if err != nil {
+		return err
 	}
 
-	if err := event.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound()
-		}
-		return internalServerError()
-	}
 	res := formatEventRes(event)
 	return c.JSON(http.StatusOK, res)
 }
