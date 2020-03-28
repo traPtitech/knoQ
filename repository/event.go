@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
+	"github.com/jinzhu/gorm"
 )
 
 // WriteEventParams is used create and update
@@ -29,10 +30,10 @@ type WriteEventParams struct {
 // EventRepository is implemented by GormRepositoy and API repository.
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams) (*Event, error)
-	//UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
+	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
 	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error
 	//AddEventToFavorites(eventID uuid.UUID, userID uuid.UUID) error
-	//DeleteEvent(eventID uuid.UUID) error
+	DeleteEvent(eventID uuid.UUID) error
 	// DeleteTagInEvent delete a tag in that Event
 	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, deleteLocked bool) error
 	DeleteAllTagInEvent(eventID uuid.UUID) error
@@ -62,6 +63,45 @@ func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, e
 	return event, err
 }
 
+func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error) {
+	if eventID == uuid.Nil {
+		return nil, ErrNilID
+	}
+
+	event := new(Event)
+	err := copier.Copy(&event, eventParams)
+	if err != nil {
+		return nil, ErrInvalidArg
+	}
+	tx := repo.DB.Begin()
+	err = func(tx *gorm.DB) error {
+		defer tx.Rollback()
+		// delete this event
+		result := tx.Delete(&Event{ID: eventID})
+		if result.RowsAffected == 0 {
+			return ErrNotFound
+		}
+
+		// calc time consistency
+		event.Room.ID = eventParams.RoomID
+		if err := tx.Preload("Events").Take(&event.Room).Error; err != nil {
+			return err
+		}
+		if !event.IsTimeConsistency() {
+			return ErrInvalidArg
+		}
+		return nil
+	}(tx)
+	if err != nil {
+		return nil, err
+	}
+
+	// update event
+	event.ID = eventID
+	err = repo.DB.Save(&event).Error
+	return event, err
+}
+
 // AddTagToEvent タグを追加。
 func (repo *GormRepository) AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error {
 	if eventID == uuid.Nil || tagID == uuid.Nil {
@@ -75,6 +115,14 @@ func (repo *GormRepository) AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, lo
 	// TODO update event updated_at
 	return repo.DB.Create(&eventTag).Error
 }
+
+func (repo *GormRepository) DeleteEvent(eventID uuid.UUID) error {
+	if eventID == uuid.Nil {
+		return ErrNilID
+	}
+	return repo.DB.Delete(&Event{ID: eventID}).Error
+}
+
 func (repo *GormRepository) DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, deleteLocked bool) error {
 	if eventID == uuid.Nil || tagID == uuid.Nil {
 		return ErrNilID

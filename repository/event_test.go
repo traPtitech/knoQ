@@ -67,3 +67,22 @@ func TestGormRepository_DeleteTagInEvent(t *testing.T) {
 	})
 
 }
+
+func TestGormRepository_UpdateEvent(t *testing.T) {
+	repo, _, _, user := setupGormRepoWithUser(t, common)
+	e, _, _ := mustMakeEvent(t, repo, traQutils.RandAlphabetAndNumberString(10), user.ID)
+
+	params := WriteEventParams{
+		Name:      e.Name,
+		GroupID:   e.GroupID,
+		RoomID:    e.RoomID,
+		TimeStart: time.Now(),
+		TimeEnd:   time.Now().Add(10 * time.Minute),
+		CreatedBy: e.CreatedBy,
+	}
+
+	if event, err := repo.UpdateEvent(e.ID, params); assert.NoError(t, err) {
+		assert.Equal(t, e.ID, event.ID)
+		assert.Equal(t, params.TimeEnd, event.TimeEnd)
+	}
+}

@@ -144,6 +144,7 @@ func mustMakeTag(t *testing.T, repo TagRepository, name string) *Tag {
 	return tag
 }
 
+// mustMakeEvent make event. now ~ now + 1m
 func mustMakeEvent(t *testing.T, repo Repository, name string, userID uuid.UUID) (*Event, *Group, *Room) {
 	t.Helper()
 	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(10), userID)
