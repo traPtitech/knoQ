@@ -8,7 +8,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
-	"github.com/jinzhu/gorm"
 )
 
 // WriteEventParams is used create and update
@@ -21,10 +20,10 @@ type WriteEventParams struct {
 	TimeEnd       time.Time
 	CreatedBy     uuid.UUID
 	AllowTogether bool
-	Tags          struct {
-		ID     uuid.UUID
-		Locked bool
-	}
+	//Tags          struct {
+	//ID     uuid.UUID
+	//Locked bool
+	//}
 }
 
 // EventRepository is implemented by GormRepositoy and API repository.
@@ -37,26 +36,34 @@ type EventRepository interface {
 	//// DeleteTagInEvent delete a tag in that Event if that tag is locked == false
 	//DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID) error
 	//DeleteEventFavorite(eventID uuid.UUID, userID uuid.UUID) error
-	//GetEvent(eventID uuid.UUID) (*Event, error)
-	//GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
-	//GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
+	GetEvent(eventID uuid.UUID) (*Event, error)
+	GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
+	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
 }
 
 // TODO fix
 
+// CreateEvent roomが正当かは見る
 func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, error) {
 	event := new(Event)
 	err := copier.Copy(&event, eventParams)
 	if err != nil {
 		return nil, ErrInvalidArg
 	}
-	err = repo.DB.Transaction(func(tx *gorm.DB) error {
-		err = tx.Create(&event).Error
-
-	})
+	// get room
+	eventRoom, err := repo.GetRoom(eventParams.RoomID)
+	if err != nil {
+		return nil, ErrInvalidArg
+	}
+	event.Room = *eventRoom
+	if !event.IsTimeConsistency() {
+		return nil, ErrInvalidArg
+	}
+	err = repo.DB.Create(&event).Error
 	return event, err
 }
 
+// AddTagToEvent タグを追加。
 func (repo *GormRepository) AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error {
 	if eventID == uuid.Nil || tagID == uuid.Nil {
 		return ErrNilID
@@ -68,6 +75,39 @@ func (repo *GormRepository) AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, lo
 	}
 	// TODO update event updated_at
 	return repo.DB.Create(&eventTag).Error
+}
+
+func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
+	if eventID == uuid.Nil {
+		return nil, ErrNilID
+	}
+
+	event := new(Event)
+	cmd := repo.DB.Preload("Room").Preload("Tags")
+	err := cmd.First(&event).Error
+	return event, err
+}
+
+func (repo *GormRepository) GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error) {
+	events := make([]*Event, 0)
+	cmd := repo.DB.Preload("Room").Preload("Tags")
+	if start != nil && !start.IsZero() {
+		cmd = cmd.Where("time_end >= ?", start.UTC())
+	}
+	if end != nil && !end.IsZero() {
+		cmd = cmd.Where("time_start <= ?", end.String())
+	}
+	err := cmd.Debug().Order("time_start").Find(&events).Error
+	return events, err
+
+}
+
+func (repo *GormRepository) GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error) {
+	events := make([]*Event, 0)
+	cmd := repo.DB.Preload("Room").Preload("Tags")
+
+	err := cmd.Where("group_id IN (?)", groupIDs).Find(&events).Error
+	return events, err
 }
 
 func (e *Event) Create() error {
@@ -130,18 +170,18 @@ func (e *Event) Update() error {
 	}
 
 	// groupが存在するかチェックし依存関係を追加する
-	if err := e.Group.Read(); err != nil {
-		return err
-	}
+	//if err := e.Group.Read(); err != nil {
+	//return err
+	//}
 	// roomが存在するかチェックし依存関係を追加する
 	//if err := e.Room.Read(); err != nil {
 	//return err
 	//}
 
-	err := e.TimeConsistency()
-	if err != nil {
-		return err
-	}
+	//	err := e.TimeConsistency()
+	//if err != nil {
+	//return err
+	//}
 
 	e.CreatedAt = nowEvent.CreatedAt
 	e.CreatedBy = nowEvent.CreatedBy
@@ -251,16 +291,16 @@ func FindEvents(values url.Values) ([]Event, error) {
 	return events, nil
 }
 
-// TimeConsistency 時間が部屋の範囲内か、endがstartの後か
+// IsTimeConsistency 時間が部屋の範囲内か、endがstartの後か
 // available time か確認する
-func (e *Event) TimeConsistency() error {
+func (e *Event) IsTimeConsistency() bool {
 	if !e.Room.InTime(e.TimeStart, e.TimeEnd) {
-		return errors.New("invalid time")
+		return false
 	}
 	if !e.TimeStart.Before(e.TimeEnd) {
-		return errors.New("invalid time")
+		return false
 	}
-	return nil
+	return true
 }
 
 // GetCreatedBy get who created it

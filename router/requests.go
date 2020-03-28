@@ -31,14 +31,14 @@ type TagRelationReq struct {
 }
 
 type EventReq struct {
-	Name         string           `json:"name"`
-	Description  string           `json:"description"`
-	AllowTogeter bool             `json:"sharedRoom"`
-	TimeStart    time.Time        `json:"timeStart"`
-	TimeEnd      time.Time        `json:"timeEnd"`
-	RoomID       uuid.UUID        `json:"roomId"`
-	GroupID      uuid.UUID        `json:"groupId"`
-	Tags         []TagRelationReq `json:"tags"`
+	Name          string           `json:"name"`
+	Description   string           `json:"description"`
+	AllowTogether bool             `json:"sharedRoom"`
+	TimeStart     time.Time        `json:"timeStart"`
+	TimeEnd       time.Time        `json:"timeEnd"`
+	RoomID        uuid.UUID        `json:"roomId"`
+	GroupID       uuid.UUID        `json:"groupId"`
+	Tags          []TagRelationReq `json:"tags"`
 }
 
 func formatGroup(req *GroupReq) (g *repo.Group, err error) {

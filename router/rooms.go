@@ -73,21 +73,10 @@ func (h *Handlers) HandleGetRoom(c echo.Context) error {
 // HandleGetRooms traPで確保した部屋情報を取得
 func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	values := c.QueryParams()
-	var err error
-	var start, end time.Time
-	if values.Get("dateBegin") != "" {
-		start, err = time.Parse(time.RFC3339, values.Get("dateBegin"))
-		if err != nil {
-			return notFound()
-		}
+	start, end, err := getTiemRange(values)
+	if err != nil {
+		return notFound()
 	}
-	if values.Get("dateEnd") != "" {
-		end, err = time.Parse(time.RFC3339, values.Get("dateEnd"))
-		if err != nil {
-			return notFound()
-		}
-	}
-
 	rooms, err := h.Repo.GetAllRooms(&start, &end)
 	if err != nil {
 		return internalServerError()

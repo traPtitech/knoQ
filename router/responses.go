@@ -1,12 +1,10 @@
 package router
 
 import (
-	"fmt"
 	repo "room/repository"
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/copier"
 )
 
 type GroupRes struct {
@@ -91,24 +89,45 @@ func formatGroupsRes(gs []*repo.Group, IsTraQGroup bool) []*GroupRes {
 	return res
 }
 
-func formatEventRes(e *repo.Event) (*EventRes, error) {
-	res := new(EventRes)
-	err := copier.Copy(&res, e)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
+func formatTagsRes(ts []repo.Tag) []TagRelationRes {
+	res := make([]TagRelationRes, len(ts))
+	for i, t := range ts {
+		res[i] = TagRelationRes{
+			ID: t.ID,
+			TagRelationReq: TagRelationReq{
+				Name:   t.Name,
+				Locked: t.Locked,
+			},
+		}
 	}
-	return res, err
+	return res
+
 }
 
-func formatEventsRes(e []repo.Event) ([]EventRes, error) {
-	res := []EventRes{}
-	err := copier.Copy(&res, e)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
+func formatEventRes(e *repo.Event) *EventRes {
+	return &EventRes{
+		ID: e.ID,
+		EventReq: EventReq{
+			Name:          e.Name,
+			Description:   e.Description,
+			AllowTogether: e.AllowTogether,
+			TimeStart:     e.TimeStart,
+			TimeEnd:       e.TimeEnd,
+			RoomID:        e.RoomID,
+			GroupID:       e.GroupID,
+		},
+		Tags:      formatTagsRes(e.Tags),
+		CreatedAt: e.CreatedAt,
+		UpdatedAt: e.UpdatedAt,
 	}
-	return res, err
+}
+
+func formatEventsRes(es []*repo.Event) []*EventRes {
+	res := make([]*EventRes, len(es))
+	for i, e := range es {
+		res[i] = formatEventRes(e)
+	}
+	return res
 }
 
 func formatUserRes(u *repo.User) *UserRes {

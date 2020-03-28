@@ -29,10 +29,7 @@ func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uuid.UUID, tagID 
 	}
 	switch v := tad.(type) {
 	case *repo.Event:
-		res, err := formatEventRes(v)
-		if err != nil {
-			return internalServerError()
-		}
+		res := formatEventRes(v)
 		return c.JSON(http.StatusOK, res)
 
 	}
@@ -49,10 +46,7 @@ func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uuid.UUID) 
 
 	switch v := tad.(type) {
 	case *repo.Event:
-		res, err := formatEventRes(v)
-		if err != nil {
-			return internalServerError()
-		}
+		res := formatEventRes(v)
 		return c.JSON(http.StatusOK, res)
 
 	}

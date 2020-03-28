@@ -6,6 +6,7 @@ import (
 	repo "room/repository"
 
 	"github.com/gofrs/uuid"
+	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo/v4"
@@ -16,61 +17,66 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 	req := new(EventReq)
 
 	if err := c.Bind(&req); err != nil {
-		return badRequest()
+		return badRequest(message(err.Error()))
 	}
 	eventParams := new(repo.WriteEventParams)
+	err := copier.Copy(&eventParams, req)
+	if err != nil {
+		return internalServerError()
+	}
 
 	eventParams.CreatedBy, _ = getRequestUserID(c)
 
 	event, err := h.Repo.CreateEvent(*eventParams)
 	if err != nil {
-		return judgeErrorResponse(err)
+		return badRequest(message(err.Error()))
 	}
-	res, err := formatEventRes(event)
-	if err != nil {
-		return internalServerError()
+	// add tag
+	for _, reqTag := range req.Tags {
+		tag, err := h.Repo.CreateOrGetTag(reqTag.Name)
+		if err != nil {
+			continue
+		}
+		tag.Locked = reqTag.Locked
+		event.Tags = append(event.Tags, *tag)
+		err = h.Repo.AddTagToEvent(event.ID, tag.ID, reqTag.Locked)
+		if err != nil {
+			return internalServerError()
+		}
 	}
-	return c.JSON(http.StatusCreated, res)
+
+	return c.JSON(http.StatusCreated, formatEventRes(event))
 }
 
 // HandleGetEvent get one event
-func HandleGetEvent(c echo.Context) error {
-	event := new(repo.Event)
-	var err error
-	event.ID, err = getRequestEventID(c)
+func (h *Handlers) HandleGetEvent(c echo.Context) error {
+	eventID, err := getRequestEventID(c)
+	if err != nil {
+		return notFound()
+	}
+
+	event, err := h.Repo.GetEvent(eventID)
 	if err != nil {
 		return internalServerError()
 	}
-
-	if err := event.Read(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
-			return notFound()
-		}
-		return internalServerError()
-	}
-	res, err := formatEventRes(event)
-	if err != nil {
-		return internalServerError()
-	}
-
+	res := formatEventRes(event)
 	return c.JSON(http.StatusOK, res)
 }
 
 // HandleGetEvents 部屋の使用宣言情報を取得
-func HandleGetEvents(c echo.Context) error {
-	events := []repo.Event{}
-
+func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	values := c.QueryParams()
 
-	events, err := repo.FindEvents(values)
+	start, end, err := getTiemRange(values)
 	if err != nil {
-		return internalServerError()
-	}
-	res, err := formatEventsRes(events)
-	if err != nil {
-		return internalServerError()
+		return notFound()
 	}
 
+	events, err := h.Repo.GetAllEvents(&start, &end)
+	if err != nil {
+		return internalServerError()
+	}
+	res := formatEventsRes(events)
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -114,11 +120,7 @@ func HandleUpdateEvent(c echo.Context) error {
 		}
 		return internalServerError()
 	}
-	res, err := formatEventRes(event)
-	if err != nil {
-		return internalServerError()
-	}
-
+	res := formatEventRes(event)
 	return c.JSON(http.StatusOK, res)
 }
 

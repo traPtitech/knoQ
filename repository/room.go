@@ -93,7 +93,6 @@ func (repo *GormRepository) GetRoom(roomID uuid.UUID) (*Room, error) {
 		return nil, err
 	}
 
-	room.CalcAvailableTime()
 	return room, nil
 }
 

@@ -70,12 +70,12 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 		apiEvents := api.Group("/events")
 		{
-			apiEvents.GET("", HandleGetEvents)
-			apiEvents.POST("", HandlePostEvent)
+			apiEvents.GET("", h.HandleGetEvents)
+			apiEvents.POST("", h.HandlePostEvent)
 
 			apiEvent := apiEvents.Group("/:eventid", EventIDMiddleware)
 			{
-				apiEvent.GET("", HandleGetEvent)
+				apiEvent.GET("", h.HandleGetEvent)
 				apiEvent.PUT("", HandleUpdateEvent, EventCreatedUserMiddleware)
 				apiEvent.DELETE("", HandleDeleteEvent, EventCreatedUserMiddleware)
 

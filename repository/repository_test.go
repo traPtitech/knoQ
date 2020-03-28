@@ -123,12 +123,12 @@ func mustAddGroupMember(t *testing.T, repo GroupRepository, groupID uuid.UUID, u
 	require.NoError(t, err)
 }
 
-// mustMakeRoom make room. now ~ now + 1h
+// mustMakeRoom make room. now -1h ~ now + 1h
 func mustMakeRoom(t *testing.T, repo RoomRepository, place string) *Room {
 	t.Helper()
 	params := WriteRoomParams{
 		Place:     place,
-		TimeStart: time.Now(),
+		TimeStart: time.Now().Add(-1 * time.Hour),
 		TimeEnd:   time.Now().Add(1 * time.Hour),
 	}
 	room, err := repo.CreateRoom(params)
@@ -145,7 +145,7 @@ func mustMakeEvent(t *testing.T, repo Repository, name string, userID uuid.UUID)
 		GroupID:   group.ID,
 		RoomID:    room.ID,
 		TimeStart: time.Now(),
-		TimeEnd:   time.Now().Add(1 * time.Hour),
+		TimeEnd:   time.Now().Add(1 * time.Minute),
 		CreatedBy: userID,
 	}
 
