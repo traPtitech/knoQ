@@ -220,28 +220,28 @@ func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // GroupCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
-func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		requestUserID, _ := getRequestUserID(c)
-		g := new(repo.Group)
-		var err error
-		g.ID, err = getRequestGroupID(c)
-		if err != nil || g.ID == uuid.Nil {
-			return notFound()
-		}
-		IsVerigy, err := verifyCreatedUser(g, requestUserID)
-		if err != nil {
-			return internalServerError()
-		}
-		if !IsVerigy {
-			return badRequest(
-				message("You are not user by whom this group is created."),
-				specification("Only the author can request."),
-			)
-		}
-		return next(c)
-	}
-}
+//func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+//return func(c echo.Context) error {
+//requestUserID, _ := getRequestUserID(c)
+//g := new(repo.Group)
+//var err error
+//g.ID, err = getRequestGroupID(c)
+//if err != nil || g.ID == uuid.Nil {
+//return notFound()
+//}
+//IsVerigy, err := verifyCreatedUser(g, requestUserID)
+//if err != nil {
+//return internalServerError()
+//}
+//if !IsVerigy {
+//return badRequest(
+//message("You are not user by whom this group is created."),
+//specification("Only the author can request."),
+//)
+//}
+//return next(c)
+//}
+//}
 
 // EventCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
 func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

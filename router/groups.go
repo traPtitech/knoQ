@@ -94,13 +94,11 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
-
 	groupParams := new(repo.WriteGroupParams)
 	err := copier.Copy(&groupParams, req)
 	if err != nil {
 		return internalServerError()
 	}
-	groupParams.CreatedBy, _ = getRequestUserID(c)
 
 	groupID, err := getRequestGroupID(c)
 	if err != nil {
@@ -113,39 +111,6 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	res := formatGroupRes(group, false)
 	return c.JSON(http.StatusOK, res)
 }
-
-/*
-func HandleAddGroupTag(c echo.Context) error {
-	tag := new(repo.Tag)
-	group := new(repo.Group)
-	if err := c.Bind(tag); err != nil {
-		return badRequest()
-	}
-	var err error
-	group.ID, err = getRequestGroupID(c)
-	if err != nil {
-		return internalServerError()
-	}
-
-	return handleAddTagRelation(c, group, group.ID, tag.Name)
-}
-
-func HandleDeleteGroupTag(c echo.Context) error {
-	groupTag := new(repo.GroupTag)
-	group := new(repo.Group)
-	var err error
-	group.ID, err = getRequestGroupID(c)
-	if err != nil {
-		return internalServerError()
-	}
-	groupTag.TagID, err = uuid.FromString(c.Param("tagid"), 10, 64)
-	if err != nil || groupTag.TagID == 0 {
-		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
-	}
-
-	return handleDeleteTagRelation(c, group, groupTag.TagID)
-}
-*/
 
 func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 	groupID, err := getRequestGroupID(c)
