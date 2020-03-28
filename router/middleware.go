@@ -227,7 +227,7 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		var err error
 		g.ID, err = getRequestGroupID(c)
 		if err != nil || g.ID == uuid.Nil {
-			internalServerError()
+			return notFound()
 		}
 		IsVerigy, err := verifyCreatedUser(g, requestUserID)
 		if err != nil {
@@ -239,7 +239,6 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				specification("Only the author can request."),
 			)
 		}
-
 		return next(c)
 	}
 }

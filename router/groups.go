@@ -10,13 +10,13 @@ import (
 
 // HandlePostGroup グループを作成
 func (h *Handlers) HandlePostGroup(c echo.Context) error {
-	g := new(GroupReq)
+	var req GroupReq
 
-	if err := c.Bind(&g); err != nil {
+	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
 	groupParams := new(repo.WriteGroupParams)
-	err := copier.Copy(&groupParams, g)
+	err := copier.Copy(&groupParams, req)
 	if err != nil {
 		return internalServerError()
 	}
@@ -90,12 +90,13 @@ func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 
 // HandleUpdateGroup 変更できるものはpostと同等
 func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
-	g := new(GroupReq)
-	if err := c.Bind(&g); err != nil {
+	var req GroupReq
+	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
+
 	groupParams := new(repo.WriteGroupParams)
-	err := copier.Copy(&groupParams, g)
+	err := copier.Copy(&groupParams, req)
 	if err != nil {
 		return internalServerError()
 	}

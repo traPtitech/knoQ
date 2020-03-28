@@ -13,7 +13,7 @@ import (
 
 // HandlePostRoom traPで確保した部屋情報を作成
 func (h *Handlers) HandlePostRoom(c echo.Context) error {
-	req := new(RoomReq)
+	var req RoomReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
@@ -115,7 +115,7 @@ func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 }
 
 func (h *Handlers) HandlePostPrivateRoom(c echo.Context) error {
-	req := new(RoomReq)
+	var req RoomReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
