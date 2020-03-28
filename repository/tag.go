@@ -9,6 +9,7 @@ import (
 
 type TagRepository interface {
 	CreateOrGetTag(name string) (*Tag, error)
+	GetTagByName(name string) (*Tag, error)
 	// UpdateTag(tagID uuid.UUID, name string) (*Tag, error)
 	// DeleteTag(tagID uuid.UUID) error
 	GetTag(tagID uuid.UUID) (*Tag, error)
@@ -29,6 +30,12 @@ func (repo *GormRepository) CreateOrGetTag(name string) (*Tag, error) {
 		}
 	}
 	return tag, nil
+}
+
+func (repo *GormRepository) GetTagByName(name string) (*Tag, error) {
+	tag := new(Tag)
+	err := repo.DB.Where("name = ?", name).Take(&tag).Error
+	return tag, err
 }
 
 func (repo *GormRepository) GetTag(tagID uuid.UUID) (*Tag, error) {

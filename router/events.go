@@ -149,7 +149,7 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 		return notFound(message(err.Error()))
 	}
 	tagName := c.Param("tagName")
-	tag, err := h.Repo.CreateOrGetTag(tagName)
+	tag, err := h.Repo.GetTagByName(tagName)
 	if err != nil {
 		return internalServerError()
 	}
