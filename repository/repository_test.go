@@ -136,7 +136,16 @@ func mustMakeRoom(t *testing.T, repo RoomRepository, place string) *Room {
 	return room
 }
 
+func mustMakeTag(t *testing.T, repo TagRepository, name string) *Tag {
+	t.Helper()
+
+	tag, err := repo.CreateOrGetTag(name)
+	require.NoError(t, err)
+	return tag
+}
+
 func mustMakeEvent(t *testing.T, repo Repository, name string, userID uuid.UUID) (*Event, *Group, *Room) {
+	t.Helper()
 	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(10), userID)
 	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
 

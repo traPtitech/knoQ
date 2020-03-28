@@ -33,15 +33,14 @@ type EventRepository interface {
 	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error
 	//AddEventToFavorites(eventID uuid.UUID, userID uuid.UUID) error
 	//DeleteEvent(eventID uuid.UUID) error
-	//// DeleteTagInEvent delete a tag in that Event if that tag is locked == false
-	//DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID) error
+	// DeleteTagInEvent delete a tag in that Event
+	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, deleteLocked bool) error
+	DeleteAllTagInEvent(eventID uuid.UUID) error
 	//DeleteEventFavorite(eventID uuid.UUID, userID uuid.UUID) error
 	GetEvent(eventID uuid.UUID) (*Event, error)
 	GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
 	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
 }
-
-// TODO fix
 
 // CreateEvent roomが正当かは見る
 func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, error) {
@@ -75,6 +74,31 @@ func (repo *GormRepository) AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, lo
 	}
 	// TODO update event updated_at
 	return repo.DB.Create(&eventTag).Error
+}
+func (repo *GormRepository) DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, deleteLocked bool) error {
+	if eventID == uuid.Nil || tagID == uuid.Nil {
+		return ErrNilID
+	}
+	cmd := repo.DB
+	if !deleteLocked {
+		cmd = cmd.Where("locked = ?", false)
+	}
+	eventTag := &EventTag{
+		EventID: eventID,
+		TagID:   tagID,
+	}
+	result := cmd.Delete(&eventTag)
+	if result.RowsAffected == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (repo *GormRepository) DeleteAllTagInEvent(eventID uuid.UUID) error {
+	if eventID == uuid.Nil {
+		return ErrNilID
+	}
+	return repo.DB.Where("event_id = ?", eventID).Delete(&EventTag{}).Error
 }
 
 func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
