@@ -162,7 +162,7 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 				Path:     "/",
 				MaxAge:   86400 * 7,
 				HttpOnly: true,
-				SameSite: http.SameSiteNoneMode,
+				SameSite: http.SameSiteLaxMode,
 			}
 			err = sess.Save(c.Request(), c.Response())
 			if err != nil {
@@ -187,7 +187,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				Path:     "/",
 				MaxAge:   86400 * 7,
 				HttpOnly: true,
-				SameSite: http.SameSiteNoneMode,
+				SameSite: http.SameSiteLaxMode,
 			}
 			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
 			sess.Save(c.Request(), c.Response())
