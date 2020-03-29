@@ -65,7 +65,7 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 
 	start, end, err := getTiemRange(values)
 	if err != nil {
-		return notFound()
+		return badRequest(message("invalid time"))
 	}
 
 	events, err := h.Repo.GetAllEvents(&start, &end)
