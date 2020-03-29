@@ -2,7 +2,9 @@
 package router
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"room/router/service"
 
@@ -110,6 +112,10 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.POST("/api/authParams", HandlePostAuthParams)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
+		Skipper: func(c echo.Context) bool {
+			fmt.Println(c.Request().URL.Path)
+			return strings.HasPrefix(c.Request().URL.Path, "/api")
+		},
 		Root:  "web/dist",
 		HTML5: true,
 	}))
