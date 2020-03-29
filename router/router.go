@@ -63,7 +63,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 				apiGroups.DELETE("/:groupid", h.HandleDeleteGroup, adminMiddle)
 
-				apiGroup.PATCH("/members/me", h.HandleAddMeGroup)
+				apiGroup.PUT("/members/me", h.HandleAddMeGroup)
 				apiGroup.DELETE("/members/me", h.HandleDeleteMeGroup)
 			}
 		}
@@ -79,7 +79,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 				apiEvent.PUT("", h.HandleUpdateEvent)
 				apiEvent.DELETE("", h.HandleDeleteEvent)
 
-				apiEvent.PATCH("/tags", h.HandleAddEventTag)
+				apiEvent.PUT("/tags", h.HandleAddEventTag)
 				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)
 			}
 
