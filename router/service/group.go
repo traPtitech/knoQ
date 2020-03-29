@@ -22,7 +22,7 @@ func (d Dao) GetUserBelongingGroupIDs(token string, userID uuid.UUID) ([]uuid.UU
 		return nil, err
 	}
 
-	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.V3)
+	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.V1)
 	externalGroupIDs, err := UserGroupRepo.GetUserBelongingGroupIDs(userID)
 	if err != nil {
 		return nil, err
