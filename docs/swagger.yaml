@@ -271,36 +271,7 @@ paths:
           description: Forbidden
         404:
           description: Not Found
-  /events/{eventID}/favorite:
-    put:
-      tags:
-        - events
-      parameters:
-        - name: eventID
-          in: path
-          required: true
-          description: 変更する情報のID
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          $ref: "#/components/responses/event"
-    delete:
-      tags:
-        - events
-      parameters:
-        - name: eventID
-          in: path
-          required: true
-          description: 変更する情報のID
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          $ref: "#/components/responses/event"
-
+    
   /events/{eventID}/tags:
     post:
       tags:
@@ -652,9 +623,6 @@ components:
         - $ref: "#/components/schemas/event"
         - type: object
           properties:
-            favorite:
-              type: boolean
-              example: false
             tags:
               type: array
               items:
