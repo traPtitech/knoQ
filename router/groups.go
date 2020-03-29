@@ -67,7 +67,7 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
 	traQgroups, err := UserGroupRepo.GetAllGroups()
 	if err != nil {
-		return err
+		return internalServerError()
 	}
 	res = append(res, formatGroupsRes(traQgroups, true)...)
 
@@ -173,4 +173,15 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *Handlers) HandleGetMeGroups(c echo.Context) error {
+	userID, _ := getRequestUserID(c)
+
+	token, _ := getRequestUserToken(c)
+	groupIDs, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, groupIDs)
 }

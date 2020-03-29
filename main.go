@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	repo "room/repository"
 	"room/router"
+	"room/router/service"
 	"time"
 
 	"go.uber.org/zap"
@@ -42,21 +43,23 @@ func main() {
 
 	logger, _ := zap.NewDevelopment()
 	handler := &router.Handlers{
-		Repo: &repo.GormRepository{
-			DB: db,
+		Dao: service.Dao{
+			Repo: &repo.GormRepository{
+				DB: db,
+			},
+			InitExternalUserGroupRepo: func(token string, ver repo.TraQVersion) interface {
+				repo.UserRepository
+				repo.GroupRepository
+			} {
+				traQRepo := new(repo.TraQRepository)
+				traQRepo.Token = token
+				traQRepo.Version = ver
+				return traQRepo
+			},
+			ExternalRoomRepo: googleAPI,
 		},
-		InitExternalUserGroupRepo: func(token string, ver repo.TraQVersion) interface {
-			repo.UserRepository
-			repo.GroupRepository
-		} {
-			traQRepo := new(repo.TraQRepository)
-			traQRepo.Token = token
-			traQRepo.Version = ver
-			return traQRepo
-		},
-		ExternalRoomRepo: googleAPI,
-		Logger:           logger,
-		SessionKey:       SESSION_KEY,
+		Logger:     logger,
+		SessionKey: SESSION_KEY,
 	}
 
 	e := handler.SetupRoute(db)

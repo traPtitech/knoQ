@@ -4,7 +4,7 @@ package router
 import (
 	"net/http"
 
-	repo "room/repository"
+	"room/router/service"
 
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo-contrib/session"
@@ -15,14 +15,9 @@ import (
 )
 
 type Handlers struct {
-	Repo                      repo.Repository
-	InitExternalUserGroupRepo func(token string, ver repo.TraQVersion) interface {
-		repo.GroupRepository
-		repo.UserRepository
-	}
-	ExternalRoomRepo repo.RoomRepository
-	Logger           *zap.Logger
-	SessionKey       []byte
+	service.Dao
+	Logger     *zap.Logger
+	SessionKey []byte
 }
 
 func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
@@ -100,6 +95,9 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		{
 			apiUsers.GET("", h.HandleGetUsers)
 			apiUsers.GET("/me", h.HandleGetUserMe)
+
+			apiUsers.GET("/me/groups", h.HandleGetMeGroups)
+			apiUsers.GET("/me/events", h.HandleGetMeEvents)
 		}
 
 		apiTags := api.Group("/tags")

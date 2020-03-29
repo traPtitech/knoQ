@@ -170,3 +170,18 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
+
+func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
+	userID, _ := getRequestUserID(c)
+
+	token, _ := getRequestUserToken(c)
+	groupIDs, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
+	if err != nil {
+		return internalServerError()
+	}
+	events, err := h.Repo.GetEventsByGroupIDs(groupIDs)
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, formatEventsRes(events))
+}
