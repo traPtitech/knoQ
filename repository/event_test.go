@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	traQutils "github.com/traPtitech/traQ/utils"
@@ -84,5 +85,15 @@ func TestGormRepository_UpdateEvent(t *testing.T) {
 	if event, err := repo.UpdateEvent(e.ID, params); assert.NoError(t, err) {
 		assert.Equal(t, e.ID, event.ID)
 		assert.Equal(t, params.TimeEnd, event.TimeEnd)
+	}
+}
+
+func TestGormRepository_GetEventsByGroupIDs(t *testing.T) {
+	repo, _, _, user := setupGormRepoWithUser(t, common)
+	_, g1, _ := mustMakeEvent(t, repo, traQutils.RandAlphabetAndNumberString(10), user.ID)
+	_, g2, _ := mustMakeEvent(t, repo, traQutils.RandAlphabetAndNumberString(10), user.ID)
+
+	if events, err := repo.GetEventsByGroupIDs([]uuid.UUID{g1.ID, g2.ID}); assert.NoError(t, err) {
+		assert.Equal(t, 2, len(events))
 	}
 }
