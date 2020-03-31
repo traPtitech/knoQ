@@ -97,3 +97,14 @@ func TestGormRepository_GetEventsByGroupIDs(t *testing.T) {
 		assert.Equal(t, 2, len(events))
 	}
 }
+
+func TestGormRepository_GetEvent(t *testing.T) {
+	repo, _, _, user := setupGormRepoWithUser(t, common)
+	e, _, _ := mustMakeEvent(t, repo, traQutils.RandAlphabetAndNumberString(10), user.ID)
+
+	t.Run("Get an existing event", func(t *testing.T) {
+		if event, err := repo.GetEvent(e.ID); assert.NoError(t, err) {
+			assert.Equal(t, e.ID, event.ID)
+		}
+	})
+}
