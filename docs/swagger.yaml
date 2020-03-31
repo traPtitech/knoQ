@@ -49,20 +49,18 @@ paths:
       parameters:
         - name: dateBegin
           in: query
-          description: 特定の日から。(2017-07-21とか)
+          description: 特定の日から。(iso8601)
           required: false
           schema:
             type: string
-            format: date
-            example: "2017-07-21"
+            format: datetime
         - name: dateEnd
           in: query
-          description: 特定の日まで。(2017-07-21とか)
+          description: 特定の日まで。(iso8601)
           required: false
           schema:
             type: string
-            format: date
-            example: "2017-07-21"
+            format: datetime
       responses:
         200:
           $ref: "#/components/responses/GetRoomArray"
@@ -160,40 +158,20 @@ paths:
       summary: 使用宣言の情報を取得
       operationId: getevents
       parameters:
-        - name: name
-          in: query
-          description: 名前で検索
-          required: false
-          schema:
-            type: string
-        - name: groupID
-          in: query
-          description: 特定のグループのみにする。
-          required: false
-          schema:
-            type: string
-            format: uuid
-        - name: roomID
-          in: query
-          description: 特定の部屋のみにする。
-          required: false
-          schema:
-            type: string
-            format: uuid
         - name: dateBegin
           in: query
-          description: 特定の日からのみにする。(2017-07-21とか)
+          description: 特定の日からのみにする。(iso8601)
           required: false
           schema:
             type: string
-            format: date
+            format: datetime
         - name: dateEnd
           in: query
-          description: 特定の日までのみにする。(2017-07-21とか)
+          description: 特定の日までのみにする。(iso8601)
           required: false
           schema:
             type: string
-            format: date
+            format: datetime
       responses:
         200:
           $ref: "#/components/responses/eventArray"
@@ -265,42 +243,13 @@ paths:
             type: string
             format: uuid
       responses:
-        200:
-          description: successful operation
+        204:
+          $ref: "#/components/responses/Nocontent"
         403:
           description: Forbidden
         404:
           description: Not Found
-  /events/{eventID}/favorite:
-    put:
-      tags:
-        - events
-      parameters:
-        - name: eventID
-          in: path
-          required: true
-          description: 変更する情報のID
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          $ref: "#/components/responses/event"
-    delete:
-      tags:
-        - events
-      parameters:
-        - name: eventID
-          in: path
-          required: true
-          description: 変更する情報のID
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          $ref: "#/components/responses/event"
-
+    
   /events/{eventID}/tags:
     post:
       tags:
@@ -316,8 +265,8 @@ paths:
       requestBody:
         $ref: "#/components/requestBodies/tagName"
       responses:
-        200:
-          $ref: "#/components/responses/event"
+        204:
+          $ref: "#/components/responses/Nocontent"
   /events/{eventID}/tags/{tagName}:
     delete:
       tags:
@@ -337,8 +286,8 @@ paths:
           schema:
             type: string
       responses:
-        200:
-          $ref: "#/components/responses/event"
+        204:
+          $ref: "#/components/responses/Nocontent"
 
   /users/me/events:
     get:
@@ -652,9 +601,6 @@ components:
         - $ref: "#/components/schemas/event"
         - type: object
           properties:
-            favorite:
-              type: boolean
-              example: false
             tags:
               type: array
               items:
@@ -847,6 +793,9 @@ components:
               example: "vue"
 
   responses:
+    Nocontent:
+      description: Nocontent
+
     UUIDArray:
       description: successful operation
       content:
