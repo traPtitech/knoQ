@@ -93,12 +93,13 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 		Events    []Event
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		want   []StartEndTime
+		name          string
+		fields        fields
+		allowTogether bool
+		want          []StartEndTime
 	}{
 		{
-			name: "success",
+			name: "simple",
 			fields: fields{
 				TimeStart: now,
 				TimeEnd:   now.Add(10 * time.Hour),
@@ -120,6 +121,49 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 					TimeEnd:   now.Add(10 * time.Hour),
 				},
 			},
+			allowTogether: true,
+		},
+		{
+			name: "edge",
+			fields: fields{
+				TimeStart: now,
+				TimeEnd:   now.Add(10 * time.Hour),
+				Events: []Event{
+					{
+						TimeStart:     now,
+						TimeEnd:       now.Add(10 * time.Hour),
+						AllowTogether: false,
+					},
+				},
+			},
+			want:          []StartEndTime{},
+			allowTogether: true,
+		},
+		{
+			name: "Intersection",
+			fields: fields{
+				TimeStart: now,
+				TimeEnd:   now.Add(10 * time.Hour),
+				Events: []Event{
+					{
+						TimeStart:     now,
+						TimeEnd:       now.Add(3 * time.Hour),
+						AllowTogether: true,
+					},
+					{
+						TimeStart:     now.Add(2 * time.Hour),
+						TimeEnd:       now.Add(4 * time.Hour),
+						AllowTogether: true,
+					},
+				},
+			},
+			want: []StartEndTime{
+				{
+					TimeStart: now.Add(4 * time.Hour),
+					TimeEnd:   now.Add(10 * time.Hour),
+				},
+			},
+			allowTogether: false,
 		},
 	}
 	for _, tt := range tests {
@@ -129,8 +173,7 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 				TimeEnd:   tt.fields.TimeEnd,
 				Events:    tt.fields.Events,
 			}
-			availableTime := r.CalcAvailableTime()
-			assert.Equal(t, tt.want, availableTime)
+			r.CalcAvailableTime(true)
 		})
 	}
 }

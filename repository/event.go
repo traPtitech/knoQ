@@ -63,7 +63,7 @@ func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, e
 		return nil, ErrInvalidArg
 	}
 	event.Room = *eventRoom
-	if !event.IsTimeConsistency() {
+	if !event.IsTimeConsistency(eventParams.AllowTogether) {
 		return nil, ErrInvalidArg
 	}
 	err = repo.DB.Create(&event).Error
@@ -94,7 +94,7 @@ func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, eventParams WriteEven
 		if err := tx.Preload("Events").Take(&event.Room).Error; err != nil {
 			return err
 		}
-		if !event.IsTimeConsistency() {
+		if !event.IsTimeConsistency(eventParams.AllowTogether) {
 			return ErrInvalidArg
 		}
 		return nil
@@ -396,8 +396,8 @@ func FindEvents(values url.Values) ([]Event, error) {
 
 // IsTimeConsistency 時間が部屋の範囲内か、endがstartの後か
 // available time か確認する
-func (e *Event) IsTimeConsistency() bool {
-	if !e.Room.InTime(e.TimeStart, e.TimeEnd) {
+func (e *Event) IsTimeConsistency(allowTogether bool) bool {
+	if !e.Room.InTime(e.TimeStart, e.TimeEnd, allowTogether) {
 		return false
 	}
 	if !e.TimeStart.Before(e.TimeEnd) {

@@ -174,8 +174,9 @@ func formatCalendar(events *calendar.Events) ([]*Room, error) {
 	return rooms, nil
 }
 
-func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
-	for _, v := range room.CalcAvailableTime() {
+func (room *Room) InTime(targetStartTime, targetEndTime time.Time, allowTogether bool) bool {
+	// TODO
+	for _, v := range room.CalcAvailableTime(true) {
 		roomStart := v.TimeStart
 		roomEnd := v.TimeEnd
 		if (roomStart.Equal(targetStartTime) || roomStart.Before(targetStartTime)) && (roomEnd.Equal(targetEndTime) || roomEnd.After(targetEndTime)) {
@@ -187,36 +188,84 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time) bool {
 }
 
 // TODO return error
-func (r *Room) CalcAvailableTime() []StartEndTime {
-	// TODO sort events by TimeStart
-	availableTime := []StartEndTime{}
-	availableTime = append(availableTime, StartEndTime{
-		TimeStart: r.TimeStart,
-		TimeEnd:   r.TimeEnd,
-	})
-	for _, event := range r.Events {
-		if event.AllowTogether {
+// allowTogether = true 併用化の時間帯
+// allowTogether = false 誰も取っていない時間帯
+func (r *Room) CalcAvailableTime(allowTogether bool) []StartEndTime {
+	availabletime := []StartEndTime{
+		{
+			TimeStart: r.TimeStart,
+			TimeEnd:   r.TimeEnd,
+		},
+	}
+	for _, e := range r.Events {
+		if allowTogether && e.AllowTogether {
 			continue
 		}
-		avleTimes := make([]StartEndTime, 2)
-		i := len(availableTime) - 1
-		avleTimes[0] = StartEndTime{
-			TimeStart: availableTime[i].TimeStart,
-			TimeEnd:   event.TimeStart,
-		}
-		avleTimes[1] = StartEndTime{
-			TimeStart: event.TimeEnd,
-			TimeEnd:   r.TimeEnd,
-		}
-		// delete last
-		availableTime = availableTime[:len(availableTime)-1]
-		for _, v := range avleTimes {
-			if v.TimeStart != v.TimeEnd {
-				availableTime = append(availableTime, v)
-			}
+		TimeRangesSub(availabletime, StartEndTime{e.TimeStart, e.TimeEnd})
+	}
+	return availabletime
+}
+
+func TimeRangesSub(as []StartEndTime, b StartEndTime) (cs []StartEndTime) {
+	for _, a := range as {
+		cs = append(cs, TimeRangeSub(a, b)...)
+	}
+	return
+}
+
+func TimeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
+	/*
+		a: s####e-------
+		b: -------s####e
+		-> s####e
+	*/
+	if a.TimeStart.Unix() >= b.TimeEnd.Unix() || a.TimeEnd.Unix() <= b.TimeEnd.Unix() {
+		return []StartEndTime{a}
+	}
+
+	/*
+		a: ---s#####e---
+		b: s##########e-
+		-> -------------
+	*/
+	if b.TimeStart.Unix() <= a.TimeStart.Unix() && b.TimeEnd.Unix() >= a.TimeEnd.Unix() {
+		return nil
+	}
+
+	/*
+		a: s###########e
+		b: ----s####e---
+		-> s###e----s##e
+	*/
+	if a.TimeStart.Unix() < b.TimeStart.Unix() && b.TimeEnd.Unix() < a.TimeEnd.Unix() {
+		return []StartEndTime{
+			{a.TimeStart, b.TimeStart},
+			{b.TimeEnd, a.TimeEnd},
 		}
 	}
-	return availableTime
+
+	/*
+		a: s#####e------
+		b: ----s######e-
+		-> s###e--------
+	*/
+	if a.TimeStart.Unix() < b.TimeStart.Unix() && a.TimeEnd.Unix() < b.TimeEnd.Unix() {
+		return []StartEndTime{
+			{a.TimeStart, b.TimeStart},
+		}
+	}
+
+	/*
+		a: -----s######e
+		b: --s#####e----
+		-> --------s###e
+	*/
+	if b.TimeStart.Unix() < a.TimeStart.Unix() && b.TimeEnd.Unix() < a.TimeEnd.Unix() {
+		return []StartEndTime{
+			{b.TimeEnd, a.TimeEnd},
+		}
+	}
+	return nil
 }
 
 // isTimeContext 開始時間が終了時間より前か見る

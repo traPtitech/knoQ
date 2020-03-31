@@ -146,7 +146,7 @@ func formatRoomRes(r *repo.Room) *RoomRes {
 		Public:        r.Public,
 		TimeStart:     r.TimeStart.Format(time.RFC3339),
 		TimeEnd:       r.TimeEnd.Format(time.RFC3339),
-		AvailableTime: r.CalcAvailableTime(),
+		AvailableTime: r.CalcAvailableTime(true),
 		CreatedAt:     r.CreatedAt,
 		UpdatedAt:     r.UpdatedAt,
 	}
