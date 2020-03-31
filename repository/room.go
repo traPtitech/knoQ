@@ -175,8 +175,7 @@ func formatCalendar(events *calendar.Events) ([]*Room, error) {
 }
 
 func (room *Room) InTime(targetStartTime, targetEndTime time.Time, allowTogether bool) bool {
-	// TODO
-	for _, v := range room.CalcAvailableTime(true) {
+	for _, v := range room.CalcAvailableTime(allowTogether) {
 		roomStart := v.TimeStart
 		roomEnd := v.TimeEnd
 		if (roomStart.Equal(targetStartTime) || roomStart.Before(targetStartTime)) && (roomEnd.Equal(targetEndTime) || roomEnd.After(targetEndTime)) {
@@ -187,7 +186,7 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time, allowTogether
 	return false
 }
 
-// TODO return error
+// CalcAvailableTime calclate available time
 // allowTogether = true 併用化の時間帯
 // allowTogether = false 誰も取っていない時間帯
 func (r *Room) CalcAvailableTime(allowTogether bool) []StartEndTime {
