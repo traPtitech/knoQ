@@ -185,6 +185,7 @@ func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 	}
 
 	event := new(Event)
+	event.ID = eventID
 	cmd := repo.DB.Preload("Room").Preload("Tags")
 	err := cmd.First(&event).Error
 	return event, err
