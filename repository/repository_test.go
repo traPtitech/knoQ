@@ -60,13 +60,13 @@ func TestMain(m *testing.M) {
 			DB: db,
 		}
 		repositories[key] = &repo
-
-		code := m.Run()
-		for _, v := range repositories {
-			v.DB.Close()
-		}
-		os.Exit(code)
 	}
+
+	code := m.Run()
+	for _, v := range repositories {
+		v.DB.Close()
+	}
+	os.Exit(code)
 }
 
 func assertAndRequire(t *testing.T) (*assert.Assertions, *require.Assertions) {
