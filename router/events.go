@@ -4,6 +4,7 @@ import (
 	"net/http"
 	repo "room/repository"
 
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 
 	"github.com/labstack/echo/v4"
@@ -74,6 +75,20 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	}
 	res := formatEventsRes(events)
 	return c.JSON(http.StatusOK, res)
+}
+
+// HandleGetEvents groupidの仕様宣言を取得
+func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
+	groupID, err := getRequestGroupID(c)
+	if err != nil {
+		return notFound()
+	}
+	events, err := h.Repo.GetEventsByGroupIDs([]uuid.UUID{groupID})
+	if err != nil {
+		return internalServerError()
+	}
+	return c.JSON(http.StatusOK, formatEventsRes(events))
+
 }
 
 // HandleDeleteEvent 部屋の使用宣言を削除
