@@ -1,9 +1,11 @@
 package repository
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/jinzhu/copier"
 	"github.com/stretchr/testify/assert"
 	traQutils "github.com/traPtitech/traQ/utils"
 )
@@ -17,14 +19,23 @@ func TestGormRepository_CreateRoom(t *testing.T) {
 		TimeStart: time.Now(),
 		TimeEnd:   time.Now().Add(1 * time.Hour),
 	}
-	if room, err := repo.CreateRoom(params); assert.NoError(t, err) {
+	room, err := repo.CreateRoom(params)
+	if assert.NoError(t, err) {
 		assert.NotNil(t, room)
 	}
 
 	t.Run("Time error", func(t *testing.T) {
-		params.TimeEnd = params.TimeStart.Add(-1 * time.Hour)
-		_, err := repo.CreateRoom(params)
+		var tmpParams WriteRoomParams
+		copier.Copy(&tmpParams, params)
+		tmpParams.TimeEnd = tmpParams.TimeStart.Add(-1 * time.Hour)
+		_, err := repo.CreateRoom(tmpParams)
 		assert.EqualError(t, err, ErrInvalidArg.Error())
+	})
+
+	t.Run("duplicate room", func(t *testing.T) {
+		if room2, err := repo.CreateRoom(params); assert.NoError(t, err) {
+			assert.Equal(t, room.ID, room2.ID)
+		}
 	})
 }
 
@@ -176,4 +187,19 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 			r.CalcAvailableTime(true)
 		})
 	}
+}
+
+func TestGormRepository_GetAllRooms(t *testing.T) {
+	t.Parallel()
+	repo, _, _ := setupGormRepo(t, ex)
+	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
+
+	t.Run("edge time", func(t *testing.T) {
+		fmt.Println(room.TimeStart, room.TimeEnd)
+		start := room.TimeStart.Truncate(time.Second)
+		end := room.TimeEnd.Truncate(time.Second)
+		if rooms, err := repo.GetAllRooms(&start, &end); assert.NoError(t, err) {
+			assert.Equal(t, 1, len(rooms))
+		}
+	})
 }

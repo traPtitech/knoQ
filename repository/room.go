@@ -43,8 +43,21 @@ func (repo *GormRepository) CreateRoom(roomParams WriteRoomParams) (*Room, error
 	if !room.isTimeContext() {
 		return nil, ErrInvalidArg
 	}
-	err = repo.DB.Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE updated_at=updated_at").Create(&room).Error
-	return room, err
+	result := repo.DB.Debug().Set("gorm:insert_option", "ON DUPLICATE KEY UPDATE updated_at=updated_at").Create(&room)
+	if result.RowsAffected == 0 {
+		// duplicate
+		room = new(Room)
+		copier.Copy(&room, roomParams)
+		room.TimeStart = room.TimeStart.UTC().Truncate(time.Second)
+		room.TimeEnd = room.TimeEnd.UTC().Truncate(time.Second)
+		if err := repo.DB.Debug().Where(&room).Where("public = ?", room.Public).Take(&room).Error; err != nil {
+			return nil, err
+		}
+	} else if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return room, nil
 }
 
 func (repo *GormRepository) UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error) {
@@ -100,10 +113,10 @@ func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Ro
 	rooms := make([]*Room, 0)
 	cmd := repo.DB
 	if start != nil && !start.IsZero() {
-		cmd = cmd.Where("time_end >= ?", start.UTC())
+		cmd = cmd.Where("time_start >= ?", start.UTC())
 	}
 	if end != nil && !end.IsZero() {
-		cmd = cmd.Where("time_start <= ?", end.String())
+		cmd = cmd.Where("time_end <= ?", end.UTC())
 	}
 	err := cmd.Debug().Order("time_start").Find(&rooms).Error
 	return rooms, err
