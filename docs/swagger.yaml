@@ -383,6 +383,22 @@ paths:
           description: Forbidden
         404:
           description: Groupid not found
+  /groups/{groupID}/events:
+    get:
+      tags:
+        - events
+      description: groupIdのeventsを取得
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/eventArray"
+      
   /groups/{groupID}/members/me:
     put:
       tags:
