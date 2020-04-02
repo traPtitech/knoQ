@@ -21,6 +21,7 @@ type EventRes struct {
 	ID uuid.UUID `json:"eventId"`
 	EventReq
 	Tags      []TagRelationRes `json:"tags"`
+	CreatedBy uuid.UUID        `json:"createdBy"`
 	CreatedAt time.Time        `json:"createdAt"`
 	UpdatedAt time.Time        `json:"updatedAt"`
 }
@@ -45,6 +46,7 @@ type RoomRes struct {
 	TimeStart     string    `json:"timeStart"`
 	TimeEnd       string    `json:"timeEnd"`
 	AvailableTime []repo.StartEndTime
+	CreatedBy     uuid.UUID `json:"createdBy"`
 	CreatedAt     time.Time `json:"createdAt"`
 	UpdatedAt     time.Time `json:"updatedAt"`
 }
@@ -117,6 +119,7 @@ func FormatEventRes(e *repo.Event) *EventRes {
 			GroupID:       e.GroupID,
 		},
 		Tags:      FormatTagsRes(e.Tags),
+		CreatedBy: e.CreatedBy,
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 	}
@@ -147,6 +150,7 @@ func FormatRoomRes(r *repo.Room) *RoomRes {
 		TimeStart:     r.TimeStart.Format(time.RFC3339),
 		TimeEnd:       r.TimeEnd.Format(time.RFC3339),
 		AvailableTime: r.CalcAvailableTime(true),
+		CreatedBy:     r.CreatedBy,
 		CreatedAt:     r.CreatedAt,
 		UpdatedAt:     r.UpdatedAt,
 	}
