@@ -96,8 +96,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 				apiRoom.GET("/:roomid", h.HandleGetRoom)
 				apiRoom.DELETE("/:roomid", h.HandleDeleteRoom, adminMiddle)
 			}
-			// TODO createdBy only
-			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom)
+			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom, h.RoomCreatedUserMiddleware)
 		}
 
 		apiUsers := api.Group("/users")

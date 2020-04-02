@@ -58,6 +58,7 @@ type Room struct {
 	TimeStart time.Time `json:"timeStart" gorm:"type:DATETIME; unique_index:idx_room_unique"`
 	TimeEnd   time.Time `json:"timeEnd" gorm:"type:DATETIME; unique_index:idx_room_unique"`
 	Events    []Event   `gorm:"foreignkey:RoomID"`
+	CreatedBy uuid.UUID `gorm:"type:char(36)"`
 	Model
 }
 

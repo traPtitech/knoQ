@@ -14,6 +14,7 @@ type WriteRoomParams struct {
 	Public    bool
 	TimeStart time.Time
 	TimeEnd   time.Time
+	CreatedBy uuid.UUID
 }
 
 // RoomRepository is implemted GormRepositoty and API repository

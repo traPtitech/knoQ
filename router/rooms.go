@@ -24,6 +24,7 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 		return internalServerError()
 	}
 	roomParams.Public = true
+	setCreatedBytoRoom(c, roomParams)
 
 	room, err := h.Repo.CreateRoom(*roomParams)
 	if err != nil {
@@ -47,6 +48,7 @@ func (h *Handlers) HandleSetRooms(c echo.Context) error {
 			return internalServerError()
 		}
 
+		setCreatedBytoRoom(c, roomParams)
 		room, err := h.Repo.CreateRoom(*roomParams)
 		if err != nil {
 			return internalServerError()
@@ -136,4 +138,8 @@ func (h *Handlers) HandleDeletePrivateRoom(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 
+}
+
+func setCreatedBytoRoom(c echo.Context, roomParams *repo.WriteRoomParams) {
+	roomParams.CreatedBy, _ = getRequestUserID(c)
 }

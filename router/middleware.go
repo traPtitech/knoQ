@@ -204,7 +204,7 @@ func (h *Handlers) GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 	}
 }
 
-// EventCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
+// EventCreatedUserMiddleware イベント作成ユーザーか判定するミドルウェア
 func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
@@ -217,6 +217,29 @@ func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 			return internalServerError()
 		}
 		if event.CreatedBy != requestUserID {
+			return forbidden(
+				message("You are not user by whom this even is created."),
+				specification("Only the author can request."),
+			)
+		}
+
+		return next(c)
+	}
+}
+
+// RoomCreatedUserMiddleware イベント作成ユーザーか判定するミドルウェア
+func (h *Handlers) RoomCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		requestUserID, _ := getRequestUserID(c)
+		roomID, err := getRequestRoomID(c)
+		if err != nil {
+			return internalServerError()
+		}
+		room, err := h.Repo.GetRoom(roomID)
+		if err != nil {
+			return internalServerError()
+		}
+		if room.CreatedBy != requestUserID {
 			return forbidden(
 				message("You are not user by whom this even is created."),
 				specification("Only the author can request."),
@@ -319,4 +342,13 @@ func getRequestGroupID(c echo.Context) (uuid.UUID, error) {
 		return uuid.Nil, errors.New("GroupID is not uuid")
 	}
 	return groupID, nil
+}
+
+// getRequestRoomID :roomidを返します
+func getRequestRoomID(c echo.Context) (uuid.UUID, error) {
+	roomID, err := uuid.FromString(c.Param("roomid"))
+	if err != nil {
+		return uuid.Nil, errors.New("RoomID is not uuid")
+	}
+	return roomID, nil
 }
