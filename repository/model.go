@@ -53,7 +53,7 @@ type GroupUsers struct {
 // Room 部屋情報
 type Room struct {
 	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
-	Place     string    `json:"place" gorm:"type:varchar(16);unique_index:idx_room_unique"`
+	Place     string    `json:"place" gorm:"type:varchar(32);unique_index:idx_room_unique"`
 	Public    bool      `gorm:"unique_index:idx_room_unique"`
 	TimeStart time.Time `json:"timeStart" gorm:"type:DATETIME; unique_index:idx_room_unique"`
 	TimeEnd   time.Time `json:"timeEnd" gorm:"type:DATETIME; unique_index:idx_room_unique"`
@@ -67,7 +67,7 @@ type Room struct {
 type Group struct {
 	ID          uuid.UUID `gorm:"type:char(36);primary_key"`
 	Name        string    `gorm:"type:varchar(32);not null"`
-	Description string    `gorm:"type:varchar(1024)"`
+	Description string    `gorm:"type:TEXT"`
 	JoinFreely  bool
 	Members     []User    `gorm:"many2many:group_users; association_autoupdate:false;association_autocreate:false"`
 	CreatedBy   uuid.UUID `gorm:"type:char(36);"`
@@ -78,7 +78,7 @@ type Group struct {
 type Event struct {
 	ID          uuid.UUID `json:"eventId" gorm:"type:char(36);primary_key"`
 	Name        string    `json:"name" gorm:"type:varchar(32); not null"`
-	Description string    `json:"description" gorm:"type:varchar(1024)"`
+	Description string    `json:"description" gorm:"type:TEXT"`
 	GroupID     uuid.UUID `json:"groupId" gorm:"type:char(36);not null"`
 	//Group         Group     `json:"-" gorm:"foreignkey:group_id; save_associations:false"`
 	RoomID        uuid.UUID `json:"roomId" gorm:"type:char(36);not null"`
