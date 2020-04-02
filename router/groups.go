@@ -14,19 +14,19 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 	var req service.GroupReq
 
 	if err := c.Bind(&req); err != nil {
-		return badRequest(message(err.Error()))
+		return badRequest(err, message(err.Error()))
 	}
 	groupParams := new(repo.WriteGroupParams)
 	err := copier.Copy(&groupParams, req)
 	if err != nil {
-		return internalServerError()
+		return internalServerError(err)
 	}
 
 	groupParams.CreatedBy, _ = getRequestUserID(c)
 
 	group, err := h.Repo.CreateGroup(*groupParams)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 
 	res := service.FormatGroupRes(group, false)
@@ -38,13 +38,13 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 func (h *Handlers) HandleGetGroup(c echo.Context) error {
 	groupID, err := getRequestGroupID(c)
 	if err != nil {
-		return internalServerError()
+		return notFound(err)
 	}
 
 	token, _ := getRequestUserToken(c)
 	groupRes, err := h.Dao.GetGroup(token, groupID)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 
 	return c.JSON(http.StatusOK, groupRes)
@@ -55,7 +55,7 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 
 	groups, err := h.Repo.GetAllGroups()
 	if err != nil {
-		return err
+		return judgeErrorResponse(err)
 	}
 	res := service.FormatGroupsRes(groups, false)
 
@@ -63,7 +63,7 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
 	traQgroups, err := UserGroupRepo.GetAllGroups()
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 	res = append(res, service.FormatGroupsRes(traQgroups, true)...)
 
@@ -74,11 +74,11 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 	groupID, err := getRequestGroupID(c)
 	if err != nil {
-		return internalServerError()
+		return notFound(err)
 	}
 
 	if err := h.Repo.DeleteGroup(groupID); err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -88,70 +88,37 @@ func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	var req service.GroupReq
 	if err := c.Bind(&req); err != nil {
-		return badRequest(message(err.Error()))
+		return badRequest(err, message(err.Error()))
 	}
 
 	groupParams := new(repo.WriteGroupParams)
 	err := copier.Copy(&groupParams, req)
 	if err != nil {
-		return internalServerError()
+		return internalServerError(err)
 	}
 	groupParams.CreatedBy, _ = getRequestUserID(c)
 
 	groupID, err := getRequestGroupID(c)
 	if err != nil {
-		return internalServerError()
+		return notFound(err)
 	}
 	group, err := h.Repo.UpdateGroup(groupID, *groupParams)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 	res := service.FormatGroupRes(group, false)
 	return c.JSON(http.StatusOK, res)
 }
 
-/*
-func HandleAddGroupTag(c echo.Context) error {
-	tag := new(repo.Tag)
-	group := new(repo.Group)
-	if err := c.Bind(tag); err != nil {
-		return badRequest()
-	}
-	var err error
-	group.ID, err = getRequestGroupID(c)
-	if err != nil {
-		return internalServerError()
-	}
-
-	return handleAddTagRelation(c, group, group.ID, tag.Name)
-}
-
-func HandleDeleteGroupTag(c echo.Context) error {
-	groupTag := new(repo.GroupTag)
-	group := new(repo.Group)
-	var err error
-	group.ID, err = getRequestGroupID(c)
-	if err != nil {
-		return internalServerError()
-	}
-	groupTag.TagID, err = uuid.FromString(c.Param("tagid"), 10, 64)
-	if err != nil || groupTag.TagID == 0 {
-		return notFound(message(fmt.Sprintf("TagID: %v does not exist.", c.Param("tagid"))))
-	}
-
-	return handleDeleteTagRelation(c, group, groupTag.TagID)
-}
-*/
-
 func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 	groupID, err := getRequestGroupID(c)
 	if err != nil {
-		return internalServerError()
+		return notFound(err)
 	}
 
 	userID, _ := getRequestUserID(c)
 	if err := h.Repo.AddUserToGroup(groupID, userID); err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -160,12 +127,12 @@ func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 	groupID, err := getRequestGroupID(c)
 	if err != nil {
-		return internalServerError()
+		return notFound(err)
 	}
 
 	userID, _ := getRequestUserID(c)
 	if err := h.Repo.DeleteUserInGroup(groupID, userID); err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -177,7 +144,7 @@ func (h *Handlers) HandleGetMeGroups(c echo.Context) error {
 	token, _ := getRequestUserToken(c)
 	groupIDs, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 	return c.JSON(http.StatusOK, groupIDs)
 }
