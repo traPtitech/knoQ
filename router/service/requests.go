@@ -1,4 +1,4 @@
-package router
+package service
 
 import (
 	repo "room/repository"
@@ -41,7 +41,7 @@ type EventReq struct {
 	Tags          []TagRelationReq `json:"tags"`
 }
 
-func formatGroup(req *GroupReq) (g *repo.Group, err error) {
+func FormatGroup(req *GroupReq) (g *repo.Group, err error) {
 	g = &repo.Group{
 		Name:        req.Name,
 		Description: req.Description,

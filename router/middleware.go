@@ -17,8 +17,6 @@ import (
 	traQutils "github.com/traPtitech/traQ/utils"
 
 	"github.com/gofrs/uuid"
-	"github.com/gorilla/sessions"
-	"github.com/jinzhu/gorm"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
@@ -47,11 +45,6 @@ type OauthResponse struct {
 
 type UserID struct {
 	Value uuid.UUID `json:"userId"`
-}
-
-// CreatedByGetter get created user
-type CreatedByGetter interface {
-	GetCreatedBy() (uuid.UUID, error)
 }
 
 func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
@@ -106,7 +99,7 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 }
 
 // WatchCallbackMiddleware /callback?code= を監視
-func WatchCallbackMiddleware() echo.MiddlewareFunc {
+func (h *Handlers) WatchCallbackMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := c.Request().URL.Path
@@ -126,44 +119,19 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 				return internalServerError()
 			}
 
-			form := url.Values{}
-			form.Add("grant_type", "authorization_code")
-			form.Add("client_id", "1iZopJ2qP63BaJYkQxhlVzCdrG8h1tDHMXm7")
-			form.Add("code", code)
-			form.Add("code_verifier", codeVerifier.(string))
-
-			body := strings.NewReader(form.Encode())
-
-			req, err := http.NewRequest("POST", "https://q.trap.jp/api/1.0/oauth2/token", body)
-			if err != nil {
-				return next(c)
-			}
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			res, err := http.DefaultClient.Do(req)
+			token, err := requestOAuth(h.ClientID, code, codeVerifier.(string))
 			if err != nil {
 				return internalServerError()
 			}
-			if res.StatusCode >= 300 {
-				return internalServerError()
-			}
 
-			data, _ := ioutil.ReadAll(res.Body)
-			oauthRes := new(OauthResponse)
-			json.Unmarshal(data, oauthRes)
-			token := oauthRes.AccessToken
-
+			// TODO fix
 			bytes, _ := utils.GetUserMe(token)
 			userID := new(UserID)
 			json.Unmarshal(bytes, userID)
 
 			sess.Values["authorization"] = token
 			sess.Values["userID"] = userID.Value.String()
-			sess.Options = &sessions.Options{
-				Path:     "/",
-				MaxAge:   86400 * 7,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-			}
+			// sess.Options = &h.SessionOption
 			err = sess.Save(c.Request(), c.Response())
 			if err != nil {
 				return internalServerError()
@@ -175,7 +143,7 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 }
 
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
-func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sess, err := session.Get("session", c)
 		if err != nil {
@@ -183,12 +151,7 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		auth, ok := sess.Values["authorization"].(string)
 		if !ok {
-			sess.Options = &sessions.Options{
-				Path:     "/",
-				MaxAge:   86400 * 7,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-			}
+			sess.Options = &h.SessionOption
 			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
 			sess.Save(c.Request(), c.Response())
 			return unauthorized()
@@ -196,14 +159,13 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if auth == "" {
 			return unauthorized()
 		}
-		// TODO get admin from db
-		c.Set("IsAdmin", true)
+		setRequestUserIsAdmin(c, h.Repo)
 		return next(c)
 	}
 }
 
 // AdminUserMiddleware 管理者ユーザーか判定するミドルウェア
-func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (h *Handlers) AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		isAdmin := getRequestUserIsAdmin(c)
 
@@ -220,21 +182,20 @@ func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // GroupCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
-func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (h *Handlers) GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
-		g := new(repo.Group)
-		var err error
-		g.ID, err = getRequestGroupID(c)
-		if err != nil || g.ID == uuid.Nil {
+		token, _ := getRequestUserToken(c)
+		groupID, err := getRequestGroupID(c)
+		if err != nil {
 			return notFound()
 		}
-		IsVerigy, err := verifyCreatedUser(g, requestUserID)
+		group, err := h.Dao.GetGroup(token, groupID)
 		if err != nil {
 			return internalServerError()
 		}
-		if !IsVerigy {
-			return badRequest(
+		if group.CreatedBy != requestUserID || group.IsTraQGroup {
+			return forbidden(
 				message("You are not user by whom this group is created."),
 				specification("Only the author can request."),
 			)
@@ -243,26 +204,20 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// EventCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
-func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// EventCreatedUserMiddleware イベント作成ユーザーか判定するミドルウェア
+func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
-		event := new(repo.Event)
-		var err error
-		event.ID, err = getRequestEventID(c)
+		eventID, err := getRequestEventID(c)
 		if err != nil {
 			return internalServerError()
 		}
-
-		IsVerigy, err := verifyCreatedUser(event, requestUserID)
+		event, err := h.Repo.GetEvent(eventID)
 		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-			}
 			return internalServerError()
 		}
-		if !IsVerigy {
-			return badRequest(
+		if event.CreatedBy != requestUserID {
+			return forbidden(
 				message("You are not user by whom this even is created."),
 				specification("Only the author can request."),
 			)
@@ -272,63 +227,58 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func EventIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// RoomCreatedUserMiddleware イベント作成ユーザーか判定するミドルウェア
+func (h *Handlers) RoomCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		event := new(repo.Event)
-		var err error
-		event.ID, err = uuid.FromString(c.Param("eventid"))
-		if err != nil || event.ID == uuid.Nil {
-			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-		}
-		if err := repo.DB.Select("id").First(&event).Error; err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-			}
+		requestUserID, _ := getRequestUserID(c)
+		roomID, err := getRequestRoomID(c)
+		if err != nil {
 			return internalServerError()
 		}
-		c.Set("EventID", event.ID)
+		room, err := h.Repo.GetRoom(roomID)
+		if err != nil {
+			return internalServerError()
+		}
+		if room.CreatedBy != requestUserID {
+			return forbidden(
+				message("You are not user by whom this even is created."),
+				specification("Only the author can request."),
+			)
+		}
 
 		return next(c)
 	}
 }
 
-func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		group := new(repo.Group)
-		var err error
-		group.ID, err = uuid.FromString(c.Param("groupid"))
-		if err != nil || group.ID == uuid.Nil {
-			return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
-		}
-		if err := repo.DB.Select("id").First(&group).Error; err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
-			}
-			return internalServerError()
-		}
-		c.Set("GroupID", group.ID)
+func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {
+	form := url.Values{}
+	form.Add("grant_type", "authorization_code")
+	form.Add("client_id", clientID)
+	form.Add("code", code)
+	form.Add("code_verifier", codeVerifier)
 
-		return next(c)
+	body := strings.NewReader(form.Encode())
 
-	}
-}
-
-// verifyCreatedUser verify that request-user and created-user are the same
-func verifyCreatedUser(cbg CreatedByGetter, requestUser uuid.UUID) (bool, error) {
-	createdByUser, err := cbg.GetCreatedBy()
+	req, err := http.NewRequest("POST", "https://q.trap.jp/api/1.0/oauth2/token", body)
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	if createdByUser != requestUser {
-		return false, nil
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
 	}
-	return true, nil
-}
+	if res.StatusCode >= 300 {
+		return "", err
+	}
 
-// getRequestUser リクエストユーザーを返します
-//func getRequestUser(c echo.Context) repo.User {
-//return c.Get(requestUserStr).(repo.User)
-//}
+	data, _ := ioutil.ReadAll(res.Body)
+	oauthRes := new(OauthResponse)
+	json.Unmarshal(data, oauthRes)
+
+	token = oauthRes.AccessToken
+	return
+}
 
 func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	sess, err := session.Get("session", c)
@@ -336,6 +286,16 @@ func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 		return uuid.Nil, err
 	}
 	return uuid.FromString(sess.Values["userID"].(string))
+}
+
+func setRequestUserIsAdmin(c echo.Context, repo repo.UserRepository) error {
+	userID, _ := getRequestUserID(c)
+	user, err := repo.GetUser(userID)
+	if err != nil {
+		return err
+	}
+	c.Set("IsAdmin", user.Admin)
+	return nil
 }
 
 func getRequestUserIsAdmin(c echo.Context) bool {
@@ -382,4 +342,13 @@ func getRequestGroupID(c echo.Context) (uuid.UUID, error) {
 		return uuid.Nil, errors.New("GroupID is not uuid")
 	}
 	return groupID, nil
+}
+
+// getRequestRoomID :roomidを返します
+func getRequestRoomID(c echo.Context) (uuid.UUID, error) {
+	roomID, err := uuid.FromString(c.Param("roomid"))
+	if err != nil {
+		return uuid.Nil, errors.New("RoomID is not uuid")
+	}
+	return roomID, nil
 }

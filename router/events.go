@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 	repo "room/repository"
+	"room/router/service"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
@@ -12,7 +13,7 @@ import (
 
 // HandlePostEvent 部屋の使用宣言を作成
 func (h *Handlers) HandlePostEvent(c echo.Context) error {
-	var req EventReq
+	var req service.EventReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
@@ -42,7 +43,7 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(http.StatusCreated, formatEventRes(event))
+	return c.JSON(http.StatusCreated, service.FormatEventRes(event))
 }
 
 // HandleGetEvent get one event
@@ -56,7 +57,7 @@ func (h *Handlers) HandleGetEvent(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	res := formatEventRes(event)
+	res := service.FormatEventRes(event)
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -73,7 +74,7 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	res := formatEventsRes(events)
+	res := service.FormatEventsRes(events)
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -87,7 +88,7 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, formatEventsRes(events))
+	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
 
 }
 
@@ -106,7 +107,7 @@ func (h *Handlers) HandleDeleteEvent(c echo.Context) error {
 
 // HandleUpdateEvent 任意の要素を変更
 func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
-	var req EventReq
+	var req service.EventReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
@@ -143,12 +144,12 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 		return err
 	}
 
-	res := formatEventRes(event)
+	res := service.FormatEventRes(event)
 	return c.JSON(http.StatusOK, res)
 }
 
 func (h *Handlers) HandleAddEventTag(c echo.Context) error {
-	var req TagRelationReq
+	var req service.TagRelationReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
@@ -198,5 +199,5 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, formatEventsRes(events))
+	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
 }

@@ -14,6 +14,7 @@ type WriteRoomParams struct {
 	Public    bool
 	TimeStart time.Time
 	TimeEnd   time.Time
+	CreatedBy uuid.UUID
 }
 
 // RoomRepository is implemted GormRepositoty and API repository
@@ -111,7 +112,7 @@ func (repo *GormRepository) GetRoom(roomID uuid.UUID) (*Room, error) {
 
 func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error) {
 	rooms := make([]*Room, 0)
-	cmd := repo.DB
+	cmd := repo.DB.Preload("Events")
 	if start != nil && !start.IsZero() {
 		cmd = cmd.Where("time_start >= ?", start.UTC())
 	}

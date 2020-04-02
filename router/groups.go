@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 	repo "room/repository"
+	"room/router/service"
 
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
@@ -10,7 +11,7 @@ import (
 
 // HandlePostGroup グループを作成
 func (h *Handlers) HandlePostGroup(c echo.Context) error {
-	var req GroupReq
+	var req service.GroupReq
 
 	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
@@ -28,7 +29,7 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
-	res := formatGroupRes(group, false)
+	res := service.FormatGroupRes(group, false)
 	return c.JSON(http.StatusCreated, res)
 }
 
@@ -40,18 +41,13 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 		return internalServerError()
 	}
 
-	group, _ := h.Repo.GetGroup(groupID)
-	if group == nil {
-		token, _ := getRequestUserToken(c)
-		UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
-		group, err = UserGroupRepo.GetGroup(groupID)
-		if err != nil {
-			return internalServerError()
-		}
-		return c.JSON(http.StatusOK, formatGroupRes(group, true))
+	token, _ := getRequestUserToken(c)
+	groupRes, err := h.Dao.GetGroup(token, groupID)
+	if err != nil {
+		return internalServerError()
 	}
 
-	return c.JSON(http.StatusOK, formatGroupRes(group, false))
+	return c.JSON(http.StatusOK, groupRes)
 }
 
 // HandleGetGroups グループを取得
@@ -61,7 +57,7 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	res := formatGroupsRes(groups, false)
+	res := service.FormatGroupsRes(groups, false)
 
 	token, _ := getRequestUserToken(c)
 	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
@@ -69,7 +65,7 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	res = append(res, formatGroupsRes(traQgroups, true)...)
+	res = append(res, service.FormatGroupsRes(traQgroups, true)...)
 
 	return c.JSON(http.StatusOK, res)
 }
@@ -90,7 +86,7 @@ func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 
 // HandleUpdateGroup 変更できるものはpostと同等
 func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
-	var req GroupReq
+	var req service.GroupReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest(message(err.Error()))
 	}
@@ -110,7 +106,7 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	res := formatGroupRes(group, false)
+	res := service.FormatGroupRes(group, false)
 	return c.JSON(http.StatusOK, res)
 }
 

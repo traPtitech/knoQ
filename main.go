@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	repo "room/repository"
@@ -11,6 +12,7 @@ import (
 	"room/router/service"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -60,6 +62,13 @@ func main() {
 		},
 		Logger:     logger,
 		SessionKey: SESSION_KEY,
+		ClientID:   os.Getenv("CLIENT_ID"),
+		SessionOption: sessions.Options{
+			Path:     "/",
+			MaxAge:   86400 * 30,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		},
 	}
 
 	e := handler.SetupRoute(db)

@@ -7,6 +7,7 @@ import (
 
 	"room/router/service"
 
+	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -17,8 +18,10 @@ import (
 
 type Handlers struct {
 	service.Dao
-	Logger     *zap.Logger
-	SessionKey []byte
+	Logger        *zap.Logger
+	SessionKey    []byte
+	SessionOption sessions.Options
+	ClientID      string
 }
 
 func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
@@ -32,7 +35,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.Use(AccessLoggingMiddleware(h.Logger))
 
 	e.Use(session.Middleware(gormstore.New(db, h.SessionKey)))
-	e.Use(WatchCallbackMiddleware())
+	e.Use(h.WatchCallbackMiddleware())
 
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -42,9 +45,9 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", TraQUserMiddleware)
+	api := e.Group("/api", h.TraQUserMiddleware)
 	{
-		adminMiddle := AdminUserMiddleware
+		adminMiddle := h.AdminUserMiddleware
 
 		apiGroups := api.Group("/groups")
 		{
@@ -52,12 +55,10 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiGroups.POST("", h.HandlePostGroup)
 			apiGroup := apiGroups.Group("/:groupid")
 			{
-				apiGroups.GET("/:groupid", h.HandleGetGroup)
+				apiGroup.GET("", h.HandleGetGroup)
 
-				//apiGroups.PUT("/:groupid", h.HandleUpdateGroup, GroupCreatedUserMiddleware)
-				apiGroups.PUT("/:groupid", h.HandleUpdateGroup)
-
-				apiGroups.DELETE("/:groupid", h.HandleDeleteGroup, adminMiddle)
+				apiGroup.PUT("", h.HandleUpdateGroup, h.GroupCreatedUserMiddleware)
+				apiGroup.DELETE("", h.HandleDeleteGroup, h.GroupCreatedUserMiddleware)
 
 				apiGroup.PUT("/members/me", h.HandleAddMeGroup)
 				apiGroup.DELETE("/members/me", h.HandleDeleteMeGroup)
@@ -71,11 +72,11 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiEvents.GET("", h.HandleGetEvents)
 			apiEvents.POST("", h.HandlePostEvent)
 
-			apiEvent := apiEvents.Group("/:eventid", EventIDMiddleware)
+			apiEvent := apiEvents.Group("/:eventid")
 			{
 				apiEvent.GET("", h.HandleGetEvent)
-				apiEvent.PUT("", h.HandleUpdateEvent)
-				apiEvent.DELETE("", h.HandleDeleteEvent)
+				apiEvent.PUT("", h.HandleUpdateEvent, h.EventCreatedUserMiddleware)
+				apiEvent.DELETE("", h.HandleDeleteEvent, h.EventCreatedUserMiddleware)
 
 				apiEvent.POST("/tags", h.HandleAddEventTag)
 				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)
@@ -86,12 +87,16 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		{
 			apiRooms.GET("", h.HandleGetRooms)
 			apiRooms.POST("", h.HandlePostRoom, adminMiddle)
-			apiRooms.POST("/private", h.HandlePostPrivateRoom)
-			apiRooms.GET("/:roomid", h.HandleGetRoom)
 			apiRooms.POST("/all", h.HandleSetRooms, adminMiddle)
-			apiRooms.DELETE("/:roomid", h.HandleDeleteRoom, adminMiddle)
-			// TODO createdBy only
-			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom)
+
+			apiRooms.POST("/private", h.HandlePostPrivateRoom)
+
+			apiRoom := apiRooms.Group("/:roomid")
+			{
+				apiRoom.GET("/:roomid", h.HandleGetRoom)
+				apiRoom.DELETE("/:roomid", h.HandleDeleteRoom, adminMiddle)
+			}
+			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom, h.RoomCreatedUserMiddleware)
 		}
 
 		apiUsers := api.Group("/users")
@@ -110,7 +115,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		}
 
 	}
-	e.POST("/api/authParams", HandlePostAuthParams)
+	e.POST("/api/authParams", h.HandlePostAuthParams)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {

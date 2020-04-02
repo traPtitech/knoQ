@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 	repo "room/repository"
+	"room/router/service"
 
 	"github.com/gofrs/uuid"
 	"github.com/labstack/echo/v4"
@@ -29,7 +30,7 @@ func handleAddTagRelation(c echo.Context, tad tagAddDelete, ID uuid.UUID, tagID 
 	}
 	switch v := tad.(type) {
 	case *repo.Event:
-		res := formatEventRes(v)
+		res := service.FormatEventRes(v)
 		return c.JSON(http.StatusOK, res)
 
 	}
@@ -46,7 +47,7 @@ func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uuid.UUID) 
 
 	switch v := tad.(type) {
 	case *repo.Event:
-		res := formatEventRes(v)
+		res := service.FormatEventRes(v)
 		return c.JSON(http.StatusOK, res)
 
 	}
@@ -55,7 +56,7 @@ func handleDeleteTagRelation(c echo.Context, tad tagAddDelete, tagID uuid.UUID) 
 }
 
 func (h *Handlers) HandlePostTag(c echo.Context) error {
-	req := new(TagReq)
+	req := new(service.TagReq)
 	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
@@ -65,7 +66,7 @@ func (h *Handlers) HandlePostTag(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 
-	return c.JSON(http.StatusOK, formatTagRes(tag))
+	return c.JSON(http.StatusOK, service.FormatTagRes(tag))
 }
 
 func (h *Handlers) HandleGetTags(c echo.Context) error {
@@ -74,9 +75,9 @@ func (h *Handlers) HandleGetTags(c echo.Context) error {
 		return internalServerError()
 	}
 
-	res := make([]*TagRes, len(tags))
+	res := make([]*service.TagRes, len(tags))
 	for i, tag := range tags {
-		res[i] = formatTagRes(tag)
+		res[i] = service.FormatTagRes(tag)
 	}
 	return c.JSON(http.StatusOK, res)
 }
