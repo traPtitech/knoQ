@@ -272,46 +272,46 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func EventIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		event := new(repo.Event)
-		var err error
-		event.ID, err = uuid.FromString(c.Param("eventid"))
-		if err != nil || event.ID == uuid.Nil {
-			return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-		}
-		if err := repo.DB.Select("id").First(&event).Error; err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-			}
-			return internalServerError()
-		}
-		c.Set("EventID", event.ID)
+//func EventIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+//return func(c echo.Context) error {
+//event := new(repo.Event)
+//var err error
+//event.ID, err = uuid.FromString(c.Param("eventid"))
+//if err != nil || event.ID == uuid.Nil {
+//return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+//}
+//if err := repo.DB.Select("id").First(&event).Error; err != nil {
+//if gorm.IsRecordNotFoundError(err) {
+//return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
+//}
+//return internalServerError()
+//}
+//c.Set("EventID", event.ID)
 
-		return next(c)
-	}
-}
+//return next(c)
+//}
+//}
 
-func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		group := new(repo.Group)
-		var err error
-		group.ID, err = uuid.FromString(c.Param("groupid"))
-		if err != nil || group.ID == uuid.Nil {
-			return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
-		}
-		if err := repo.DB.Select("id").First(&group).Error; err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
-			}
-			return internalServerError()
-		}
-		c.Set("GroupID", group.ID)
+//func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+//return func(c echo.Context) error {
+//group := new(repo.Group)
+//var err error
+//group.ID, err = uuid.FromString(c.Param("groupid"))
+//if err != nil || group.ID == uuid.Nil {
+//return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
+//}
+//if err := repo.DB.Select("id").First(&group).Error; err != nil {
+//if gorm.IsRecordNotFoundError(err) {
+//return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
+//}
+//return internalServerError()
+//}
+//c.Set("GroupID", group.ID)
 
-		return next(c)
+//return next(c)
 
-	}
-}
+//}
+//}
 
 // verifyCreatedUser verify that request-user and created-user are the same
 func verifyCreatedUser(cbg CreatedByGetter, requestUser uuid.UUID) (bool, error) {

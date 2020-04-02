@@ -52,12 +52,12 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiGroups.POST("", h.HandlePostGroup)
 			apiGroup := apiGroups.Group("/:groupid")
 			{
-				apiGroups.GET("/:groupid", h.HandleGetGroup)
+				apiGroup.GET("", h.HandleGetGroup)
 
 				//apiGroups.PUT("/:groupid", h.HandleUpdateGroup, GroupCreatedUserMiddleware)
-				apiGroups.PUT("/:groupid", h.HandleUpdateGroup)
+				apiGroup.PUT("", h.HandleUpdateGroup)
 
-				apiGroups.DELETE("/:groupid", h.HandleDeleteGroup, adminMiddle)
+				apiGroup.DELETE("", h.HandleDeleteGroup, adminMiddle)
 
 				apiGroup.PUT("/members/me", h.HandleAddMeGroup)
 				apiGroup.DELETE("/members/me", h.HandleDeleteMeGroup)
@@ -71,7 +71,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiEvents.GET("", h.HandleGetEvents)
 			apiEvents.POST("", h.HandlePostEvent)
 
-			apiEvent := apiEvents.Group("/:eventid", EventIDMiddleware)
+			apiEvent := apiEvents.Group("/:eventid")
 			{
 				apiEvent.GET("", h.HandleGetEvent)
 				apiEvent.PUT("", h.HandleUpdateEvent)
