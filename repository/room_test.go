@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -195,7 +194,6 @@ func TestGormRepository_GetAllRooms(t *testing.T) {
 	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
 
 	t.Run("edge time", func(t *testing.T) {
-		fmt.Println(room.TimeStart, room.TimeEnd)
 		start := room.TimeStart.Truncate(time.Second)
 		end := room.TimeEnd.Truncate(time.Second)
 		if rooms, err := repo.GetAllRooms(&start, &end); assert.NoError(t, err) {

@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -154,7 +153,6 @@ func (repo *GoogleAPIRepository) GetAllRooms(start *time.Time, end *time.Time) (
 
 	events, err := cmd.OrderBy("startTime").Do()
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	return formatCalendar(events)
@@ -193,7 +191,6 @@ func (room *Room) InTime(targetStartTime, targetEndTime time.Time, allowTogether
 		roomStart := v.TimeStart
 		roomEnd := v.TimeEnd
 		if (roomStart.Equal(targetStartTime) || roomStart.Before(targetStartTime)) && (roomEnd.Equal(targetEndTime) || roomEnd.After(targetEndTime)) {
-			fmt.Println(v)
 			return true
 		}
 	}

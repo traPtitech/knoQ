@@ -2,7 +2,6 @@ package repository
 
 import (
 	"errors"
-	"fmt"
 	"net/url"
 	"sort"
 	"strconv"
@@ -228,7 +227,6 @@ func (repo *GormRepository) GetEventActivities(day int) ([]*Event, error) {
 		return nil, err
 	}
 	sort.Slice(events, func(i, j int) bool {
-		fmt.Println(events[j])
 		mostRecentI := timeMax(&events[i].CreatedAt, timeMax(&events[i].UpdatedAt, events[i].DeletedAt))
 		mostRecentJ := timeMax(&events[j].CreatedAt, timeMax(&events[j].UpdatedAt, events[j].DeletedAt))
 		return mostRecentI.Unix() > mostRecentJ.Unix()
