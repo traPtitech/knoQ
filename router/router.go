@@ -42,9 +42,9 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", TraQUserMiddleware)
+	api := e.Group("/api", h.TraQUserMiddleware)
 	{
-		adminMiddle := AdminUserMiddleware
+		adminMiddle := h.AdminUserMiddleware
 
 		apiGroups := api.Group("/groups")
 		{

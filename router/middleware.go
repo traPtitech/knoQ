@@ -175,7 +175,7 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 }
 
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
-func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sess, err := session.Get("session", c)
 		if err != nil {
@@ -197,13 +197,13 @@ func TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized()
 		}
 		// TODO get admin from db
-		c.Set("IsAdmin", true)
+		setRequestUserIsAdmin(c, h.Repo)
 		return next(c)
 	}
 }
 
 // AdminUserMiddleware 管理者ユーザーか判定するミドルウェア
-func AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (h *Handlers) AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		isAdmin := getRequestUserIsAdmin(c)
 
@@ -325,17 +325,22 @@ func verifyCreatedUser(cbg CreatedByGetter, requestUser uuid.UUID) (bool, error)
 	return true, nil
 }
 
-// getRequestUser リクエストユーザーを返します
-//func getRequestUser(c echo.Context) repo.User {
-//return c.Get(requestUserStr).(repo.User)
-//}
-
 func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	sess, err := session.Get("session", c)
 	if err != nil {
 		return uuid.Nil, err
 	}
 	return uuid.FromString(sess.Values["userID"].(string))
+}
+
+func setRequestUserIsAdmin(c echo.Context, repo repo.UserRepository) error {
+	userID, _ := getRequestUserID(c)
+	user, err := repo.GetUser(userID)
+	if err != nil {
+		return err
+	}
+	c.Set("IsAdmin", user.Admin)
+	return nil
 }
 
 func getRequestUserIsAdmin(c echo.Context) bool {

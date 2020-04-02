@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 	repo "room/repository"
+	"room/router/service"
 
 	"github.com/labstack/echo/v4"
 )
@@ -28,7 +29,7 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 	tmp, _ := h.Repo.GetUser(userID)
 	user.Admin = tmp.Admin
 
-	return c.JSON(http.StatusOK, formatUserRes(user))
+	return c.JSON(http.StatusOK, service.FormatUserRes(user))
 }
 
 // HandleGetUsers ユーザーすべてを取得
@@ -59,9 +60,9 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 			}
 		}
 	}
-	res := make([]*UserRes, len(users))
+	res := make([]*service.UserRes, len(users))
 	for i, u := range users {
-		res[i] = formatUserRes(u)
+		res[i] = service.FormatUserRes(u)
 	}
 	return c.JSON(http.StatusOK, res)
 }

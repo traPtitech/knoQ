@@ -1,4 +1,4 @@
-package router
+package service
 
 import (
 	repo "room/repository"
@@ -56,7 +56,7 @@ type TagRes struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func formatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
+func FormatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 	res := &GroupRes{
 		ID: g.ID,
 		GroupReq: GroupReq{
@@ -81,15 +81,15 @@ func formatGroupMembersRes(ms []repo.User) []uuid.UUID {
 	return ids
 }
 
-func formatGroupsRes(gs []*repo.Group, IsTraQGroup bool) []*GroupRes {
+func FormatGroupsRes(gs []*repo.Group, IsTraQGroup bool) []*GroupRes {
 	res := make([]*GroupRes, len(gs))
 	for i, g := range gs {
-		res[i] = formatGroupRes(g, IsTraQGroup)
+		res[i] = FormatGroupRes(g, IsTraQGroup)
 	}
 	return res
 }
 
-func formatTagsRes(ts []repo.Tag) []TagRelationRes {
+func FormatTagsRes(ts []repo.Tag) []TagRelationRes {
 	res := make([]TagRelationRes, len(ts))
 	for i, t := range ts {
 		res[i] = TagRelationRes{
@@ -104,7 +104,7 @@ func formatTagsRes(ts []repo.Tag) []TagRelationRes {
 
 }
 
-func formatEventRes(e *repo.Event) *EventRes {
+func FormatEventRes(e *repo.Event) *EventRes {
 	return &EventRes{
 		ID: e.ID,
 		EventReq: EventReq{
@@ -116,21 +116,21 @@ func formatEventRes(e *repo.Event) *EventRes {
 			RoomID:        e.RoomID,
 			GroupID:       e.GroupID,
 		},
-		Tags:      formatTagsRes(e.Tags),
+		Tags:      FormatTagsRes(e.Tags),
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
 	}
 }
 
-func formatEventsRes(es []*repo.Event) []*EventRes {
+func FormatEventsRes(es []*repo.Event) []*EventRes {
 	res := make([]*EventRes, len(es))
 	for i, e := range es {
-		res[i] = formatEventRes(e)
+		res[i] = FormatEventRes(e)
 	}
 	return res
 }
 
-func formatUserRes(u *repo.User) *UserRes {
+func FormatUserRes(u *repo.User) *UserRes {
 	return &UserRes{
 		ID:          u.ID,
 		Admin:       u.Admin,
@@ -139,7 +139,7 @@ func formatUserRes(u *repo.User) *UserRes {
 	}
 }
 
-func formatRoomRes(r *repo.Room) *RoomRes {
+func FormatRoomRes(r *repo.Room) *RoomRes {
 	return &RoomRes{
 		ID:            r.ID,
 		Place:         r.Place,
@@ -152,7 +152,7 @@ func formatRoomRes(r *repo.Room) *RoomRes {
 	}
 }
 
-func formatTagRes(t *repo.Tag) *TagRes {
+func FormatTagRes(t *repo.Tag) *TagRes {
 	return &TagRes{
 		ID:        t.ID,
 		Name:      t.Name,

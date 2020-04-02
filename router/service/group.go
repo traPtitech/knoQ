@@ -16,6 +16,19 @@ type Dao struct {
 	ExternalRoomRepo repo.RoomRepository
 }
 
+func (d Dao) GetGroup(token string, groupID uuid.UUID) (*GroupRes, error) {
+	group, _ := d.Repo.GetGroup(groupID)
+	if group == nil {
+		UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.V3)
+		group, err := UserGroupRepo.GetGroup(groupID)
+		if err != nil {
+			return nil, err
+		}
+		return FormatGroupRes(group, true), nil
+	}
+	return FormatGroupRes(group, false), nil
+}
+
 func (d Dao) GetUserBelongingGroupIDs(token string, userID uuid.UUID) ([]uuid.UUID, error) {
 	groupIDs, err := d.Repo.GetUserBelongingGroupIDs(userID)
 	if err != nil {

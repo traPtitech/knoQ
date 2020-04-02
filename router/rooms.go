@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 	repo "room/repository"
+	"room/router/service"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -13,7 +14,7 @@ import (
 
 // HandlePostRoom traPで確保した部屋情報を作成
 func (h *Handlers) HandlePostRoom(c echo.Context) error {
-	var req RoomReq
+	var req service.RoomReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
@@ -28,7 +29,7 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, formatRoomRes(room))
+	return c.JSON(http.StatusOK, service.FormatRoomRes(room))
 }
 
 // HandleSetRooms Googleカレンダーから部屋情報を作成
@@ -38,7 +39,7 @@ func (h *Handlers) HandleSetRooms(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	res := make([]*RoomRes, 0)
+	res := make([]*service.RoomRes, 0)
 	for _, room := range googleRooms {
 		roomParams := new(repo.WriteRoomParams)
 		err := copier.Copy(&roomParams, room)
@@ -50,7 +51,7 @@ func (h *Handlers) HandleSetRooms(c echo.Context) error {
 		if err != nil {
 			return internalServerError()
 		}
-		res = append(res, formatRoomRes(room))
+		res = append(res, service.FormatRoomRes(room))
 	}
 
 	return c.JSON(http.StatusCreated, res)
@@ -67,7 +68,7 @@ func (h *Handlers) HandleGetRoom(c echo.Context) error {
 	if err != nil {
 		return notFound()
 	}
-	return c.JSON(http.StatusOK, formatRoomRes(room))
+	return c.JSON(http.StatusOK, service.FormatRoomRes(room))
 }
 
 // HandleGetRooms traPで確保した部屋情報を取得
@@ -81,9 +82,9 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	res := make([]*RoomRes, len(rooms))
+	res := make([]*service.RoomRes, len(rooms))
 	for i, r := range rooms {
-		res[i] = formatRoomRes(r)
+		res[i] = service.FormatRoomRes(r)
 	}
 	return c.JSON(http.StatusCreated, res)
 
@@ -104,7 +105,7 @@ func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 }
 
 func (h *Handlers) HandlePostPrivateRoom(c echo.Context) error {
-	var req RoomReq
+	var req service.RoomReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest()
 	}
@@ -120,7 +121,7 @@ func (h *Handlers) HandlePostPrivateRoom(c echo.Context) error {
 	if err != nil {
 		return internalServerError()
 	}
-	return c.JSON(http.StatusOK, formatRoomRes(room))
+	return c.JSON(http.StatusOK, service.FormatRoomRes(room))
 }
 
 func (h *Handlers) HandleDeletePrivateRoom(c echo.Context) error {
