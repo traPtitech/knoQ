@@ -22,9 +22,9 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 			if err = deleteRequestUserToken(c); err != nil {
 				return judgeErrorResponse(err)
 			}
-			return unauthorized(message("Your auth is expired"))
+			return unauthorized(err, message("Your auth is expired"))
 		}
-		return internalServerError()
+		return internalServerError(err)
 	}
 	tmp, _ := h.Repo.GetUser(userID)
 	user.Admin = tmp.Admin
@@ -44,13 +44,13 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 			if err = deleteRequestUserToken(c); err != nil {
 				return judgeErrorResponse(err)
 			}
-			return unauthorized(message("Your auth is expired"))
+			return unauthorized(err, message("Your auth is expired"))
 		}
-		return internalServerError()
+		return internalServerError(err)
 	}
 	gormUsers, err := h.Repo.GetAllUsers()
 	if err != nil {
-		return internalServerError()
+		return internalServerError(err)
 	}
 	// add admin field
 	for _, user := range gormUsers {

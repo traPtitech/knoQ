@@ -26,7 +26,7 @@ func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
 	// cache codeVerifier
 	sess, err := session.Get("session", c)
 	if err != nil {
-		return internalServerError()
+		return internalServerError(err)
 	}
 	// sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
 	// sess.Save(c.Request(), c.Response())

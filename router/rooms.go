@@ -16,19 +16,19 @@ import (
 func (h *Handlers) HandlePostRoom(c echo.Context) error {
 	var req service.RoomReq
 	if err := c.Bind(&req); err != nil {
-		return badRequest()
+		return badRequest(err)
 	}
 	roomParams := new(repo.WriteRoomParams)
 	err := copier.Copy(&roomParams, req)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 	roomParams.Public = true
 	setCreatedBytoRoom(c, roomParams)
 
 	room, err := h.Repo.CreateRoom(*roomParams)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 	return c.JSON(http.StatusOK, service.FormatRoomRes(room))
 }
@@ -38,20 +38,20 @@ func (h *Handlers) HandleSetRooms(c echo.Context) error {
 	now := time.Now()
 	googleRooms, err := h.ExternalRoomRepo.GetAllRooms(&now, nil)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 	res := make([]*service.RoomRes, 0)
 	for _, room := range googleRooms {
 		roomParams := new(repo.WriteRoomParams)
 		err := copier.Copy(&roomParams, room)
 		if err != nil {
-			return internalServerError()
+			return internalServerError(err)
 		}
 
 		setCreatedBytoRoom(c, roomParams)
 		room, err := h.Repo.CreateRoom(*roomParams)
 		if err != nil {
-			return internalServerError()
+			return judgeErrorResponse(err)
 		}
 		res = append(res, service.FormatRoomRes(room))
 	}
@@ -63,12 +63,12 @@ func (h *Handlers) HandleSetRooms(c echo.Context) error {
 func (h *Handlers) HandleGetRoom(c echo.Context) error {
 	roomID, err := uuid.FromString(c.Param("roomid"))
 	if err != nil {
-		return notFound()
+		return notFound(err)
 	}
 
 	room, err := h.Repo.GetRoom(roomID)
 	if err != nil {
-		return notFound()
+		return judgeErrorResponse(err)
 	}
 	return c.JSON(http.StatusOK, service.FormatRoomRes(room))
 }
@@ -78,11 +78,11 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	values := c.QueryParams()
 	start, end, err := getTiemRange(values)
 	if err != nil {
-		return notFound()
+		return notFound(err)
 	}
 	rooms, err := h.Repo.GetAllRooms(&start, &end)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 	res := make([]*service.RoomRes, len(rooms))
 	for i, r := range rooms {
@@ -96,11 +96,11 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 	roomID, err := uuid.FromString(c.Param("roomid"))
 	if err != nil {
-		return notFound()
+		return notFound(err)
 	}
 	err = h.Repo.DeleteRoom(roomID, true)
 	if err != nil {
-		return notFound()
+		return judgeErrorResponse(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -109,12 +109,12 @@ func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 func (h *Handlers) HandlePostPrivateRoom(c echo.Context) error {
 	var req service.RoomReq
 	if err := c.Bind(&req); err != nil {
-		return badRequest()
+		return badRequest(err)
 	}
 	roomParams := new(repo.WriteRoomParams)
 	err := copier.Copy(&roomParams, req)
 	if err != nil {
-		return internalServerError()
+		return internalServerError(err)
 	}
 
 	roomParams.Public = false
@@ -122,7 +122,7 @@ func (h *Handlers) HandlePostPrivateRoom(c echo.Context) error {
 
 	room, err := h.Repo.CreateRoom(*roomParams)
 	if err != nil {
-		return internalServerError()
+		return judgeErrorResponse(err)
 	}
 	return c.JSON(http.StatusOK, service.FormatRoomRes(room))
 }
@@ -130,11 +130,11 @@ func (h *Handlers) HandlePostPrivateRoom(c echo.Context) error {
 func (h *Handlers) HandleDeletePrivateRoom(c echo.Context) error {
 	roomID, err := uuid.FromString(c.Param("roomid"))
 	if err != nil {
-		return notFound()
+		return notFound(err)
 	}
 	err = h.Repo.DeleteRoom(roomID, false)
 	if err != nil {
-		return notFound()
+		return judgeErrorResponse(err)
 	}
 
 	return c.NoContent(http.StatusNoContent)

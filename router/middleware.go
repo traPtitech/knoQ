@@ -3,7 +3,6 @@ package router
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -73,19 +72,19 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 			httpCode := res.Status
 			switch {
 			case httpCode >= 500:
-				errorRuntime, ok := c.Get("Error-Runtime").(error)
+				errorRuntime, ok := c.Get("Error").(error)
 				if ok {
-					tmp.ErrorLocation = errorRuntime.Error()
+					tmp.Error = errorRuntime.Error()
 				} else {
-					tmp.ErrorLocation = "no data"
+					tmp.Error = "no data"
 				}
 				logger.Info("server error", zap.Object("field", tmp))
 			case httpCode >= 400:
-				errorRuntime, ok := c.Get("Error-Runtime").(error)
+				errorRuntime, ok := c.Get("Error").(error)
 				if ok {
-					tmp.ErrorLocation = errorRuntime.Error()
+					tmp.Error = errorRuntime.Error()
 				} else {
-					tmp.ErrorLocation = "no data"
+					tmp.Error = "no data"
 				}
 				logger.Info("client error", zap.Object("field", tmp))
 			case httpCode >= 300:
@@ -111,17 +110,16 @@ func (h *Handlers) WatchCallbackMiddleware() echo.MiddlewareFunc {
 			sess, _ := session.Get("session", c)
 			sessionID, ok := sess.Values["ID"].(string)
 			if !ok {
-				fmt.Println("err")
-				return internalServerError()
+				return internalServerError(errors.New("sessionID can not parse string"))
 			}
 			codeVerifier, ok := verifierCache.Get(sessionID)
 			if !ok {
-				return internalServerError()
+				return internalServerError(errors.New("codeVerifier is not cached"))
 			}
 
 			token, err := requestOAuth(h.ClientID, code, codeVerifier.(string))
 			if err != nil {
-				return internalServerError()
+				return internalServerError(err)
 			}
 
 			// TODO fix
@@ -134,7 +132,7 @@ func (h *Handlers) WatchCallbackMiddleware() echo.MiddlewareFunc {
 			// sess.Options = &h.SessionOption
 			err = sess.Save(c.Request(), c.Response())
 			if err != nil {
-				return internalServerError()
+				return internalServerError(err)
 			}
 
 			return next(c)
@@ -147,17 +145,17 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sess, err := session.Get("session", c)
 		if err != nil {
-			return unauthorized()
+			return unauthorized(err)
 		}
 		auth, ok := sess.Values["authorization"].(string)
 		if !ok {
 			sess.Options = &h.SessionOption
 			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
 			sess.Save(c.Request(), c.Response())
-			return unauthorized()
+			return unauthorized(err)
 		}
 		if auth == "" {
-			return unauthorized()
+			return unauthorized(err)
 		}
 		setRequestUserIsAdmin(c, h.Repo)
 		return next(c)
@@ -172,6 +170,7 @@ func (h *Handlers) AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// 判定
 		if !isAdmin {
 			return forbidden(
+				errors.New("not admin"),
 				message("You are not admin user."),
 				specification("Only admin user can request."),
 			)
@@ -188,14 +187,15 @@ func (h *Handlers) GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 		token, _ := getRequestUserToken(c)
 		groupID, err := getRequestGroupID(c)
 		if err != nil {
-			return notFound()
+			return notFound(err)
 		}
 		group, err := h.Dao.GetGroup(token, groupID)
 		if err != nil {
-			return internalServerError()
+			return judgeErrorResponse(err)
 		}
 		if group.CreatedBy != requestUserID || group.IsTraQGroup {
 			return forbidden(
+				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
 				specification("Only the author can request."),
 			)
@@ -210,14 +210,15 @@ func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 		requestUserID, _ := getRequestUserID(c)
 		eventID, err := getRequestEventID(c)
 		if err != nil {
-			return internalServerError()
+			return notFound(err)
 		}
 		event, err := h.Repo.GetEvent(eventID)
 		if err != nil {
-			return internalServerError()
+			return judgeErrorResponse(err)
 		}
 		if event.CreatedBy != requestUserID {
 			return forbidden(
+				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
 				specification("Only the author can request."),
 			)
@@ -233,14 +234,15 @@ func (h *Handlers) RoomCreatedUserMiddleware(next echo.HandlerFunc) echo.Handler
 		requestUserID, _ := getRequestUserID(c)
 		roomID, err := getRequestRoomID(c)
 		if err != nil {
-			return internalServerError()
+			return notFound(err)
 		}
 		room, err := h.Repo.GetRoom(roomID)
 		if err != nil {
-			return internalServerError()
+			return judgeErrorResponse(err)
 		}
 		if room.CreatedBy != requestUserID {
 			return forbidden(
+				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
 				specification("Only the author can request."),
 			)

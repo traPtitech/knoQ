@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"runtime"
 
+	repo "room/repository"
+
 	"github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 
 	"github.com/labstack/echo/v4"
 )
@@ -61,7 +62,7 @@ func errorRuntime(skip int) option {
 	}
 }
 
-func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
+func newHTTPErrorResponse(err error, code int, options ...option) *echo.HTTPError {
 	he := &echo.HTTPError{
 		Code: code,
 	}
@@ -77,64 +78,67 @@ func newHTTPErrorResponse(code int, options ...option) *echo.HTTPError {
 		er.errorRuntime = newRuntimeCallerStruct(runtime.Caller(2))
 	}
 	he.Message = er
-	he.SetInternal(er.errorRuntime)
+	err = fmt.Errorf("%s: %s", er.errorRuntime, err)
+	he.SetInternal(err)
 	return he
 }
 
-func badRequest(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusBadRequest, responses...)
+func badRequest(err error, responses ...option) *echo.HTTPError {
+	return newHTTPErrorResponse(err, http.StatusBadRequest, responses...)
 }
 
-func unauthorized(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusUnauthorized, responses...)
+func unauthorized(err error, responses ...option) *echo.HTTPError {
+	return newHTTPErrorResponse(err, http.StatusUnauthorized, responses...)
 }
 
-func forbidden(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusForbidden, responses...)
+func forbidden(err error, responses ...option) *echo.HTTPError {
+	return newHTTPErrorResponse(err, http.StatusForbidden, responses...)
 }
 
-func notFound(responses ...option) *echo.HTTPError {
-	return newHTTPErrorResponse(http.StatusNotFound, responses...)
+func notFound(err error, responses ...option) *echo.HTTPError {
+	return newHTTPErrorResponse(err, http.StatusNotFound, responses...)
 }
 
-func internalServerError(responses ...option) *echo.HTTPError {
+func internalServerError(err error, responses ...option) *echo.HTTPError {
 	code := http.StatusInternalServerError
-	return newHTTPErrorResponse(code, responses...)
+	return newHTTPErrorResponse(err, code, responses...)
 }
 
 func judgeErrorResponse(err error) *echo.HTTPError {
-	if gorm.IsRecordNotFoundError(err) {
-		return badRequest(message(err.Error()), errorRuntime(1))
+	switch err {
+	case repo.ErrNilID:
+		return internalServerError(err, message("ID is nil"), errorRuntime(1))
+	case repo.ErrNotFound:
+		return notFound(err, errorRuntime(1))
+	case repo.ErrForbidden:
+		return forbidden(err, errorRuntime(1))
+	case repo.ErrAlreadyExists:
+		return badRequest(err, message("already exists"), errorRuntime(1))
+	case repo.ErrInvalidArg:
+		return badRequest(err, message("invalid arguments"), errorRuntime(1))
 	}
-	if err.Error() == "invalid time" {
-		return badRequest(message(err.Error()), errorRuntime(1))
-	}
-	if err.Error() == "this tag is locked" {
-		return forbidden(message("This tag is locked."), specification("This api can delete non-locked tags"), errorRuntime(1))
-	}
-
 	me, ok := err.(*mysql.MySQLError)
 	if !ok {
-		return internalServerError(errorRuntime(1))
+		return internalServerError(err, errorRuntime(1))
 	}
 	if me.Number == 1062 {
-		return badRequest(message("It already exists"), errorRuntime(1))
+		return badRequest(err, message("It already exists"), errorRuntime(1))
 	}
 
-	return internalServerError(errorRuntime(1))
+	return internalServerError(err, errorRuntime(1))
 }
 
 func HTTPErrorHandler(err error, c echo.Context) {
 	he, ok := err.(*echo.HTTPError)
 	if ok {
 		if he.Internal != nil {
-			c.Set("Error-Runtime", he.Internal)
+			c.Set("Error", he.Internal)
 			if herr, ok := he.Internal.(*echo.HTTPError); ok {
 				he = herr
 			}
 		}
 	} else {
-		he = internalServerError()
+		he = internalServerError(err)
 	}
 
 	// Issue #1426
@@ -155,5 +159,5 @@ func HTTPErrorHandler(err error, c echo.Context) {
 }
 
 func NotFoundHandler(c echo.Context) error {
-	return notFound()
+	return notFound(nil)
 }
