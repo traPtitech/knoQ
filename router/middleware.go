@@ -17,7 +17,6 @@ import (
 	traQutils "github.com/traPtitech/traQ/utils"
 
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/gorm"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
@@ -46,11 +45,6 @@ type OauthResponse struct {
 
 type UserID struct {
 	Value uuid.UUID `json:"userId"`
-}
-
-// CreatedByGetter get created user
-type CreatedByGetter interface {
-	GetCreatedBy() (uuid.UUID, error)
 }
 
 func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
@@ -188,21 +182,20 @@ func (h *Handlers) AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // GroupCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
-func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (h *Handlers) GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
-		g := new(repo.Group)
-		var err error
-		g.ID, err = getRequestGroupID(c)
-		if err != nil || g.ID == uuid.Nil {
+		token, _ := getRequestUserToken(c)
+		groupID, err := getRequestGroupID(c)
+		if err != nil {
 			return notFound()
 		}
-		IsVerigy, err := verifyCreatedUser(g, requestUserID)
+		group, err := h.Dao.GetGroup(token, groupID)
 		if err != nil {
 			return internalServerError()
 		}
-		if !IsVerigy {
-			return badRequest(
+		if group.CreatedBy != requestUserID || group.IsTraQGroup {
+			return forbidden(
 				message("You are not user by whom this group is created."),
 				specification("Only the author can request."),
 			)
@@ -212,25 +205,19 @@ func GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // EventCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
-func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
-		event := new(repo.Event)
-		var err error
-		event.ID, err = getRequestEventID(c)
+		eventID, err := getRequestEventID(c)
 		if err != nil {
 			return internalServerError()
 		}
-
-		IsVerigy, err := verifyCreatedUser(event, requestUserID)
+		event, err := h.Repo.GetEvent(eventID)
 		if err != nil {
-			if gorm.IsRecordNotFoundError(err) {
-				return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-			}
 			return internalServerError()
 		}
-		if !IsVerigy {
-			return badRequest(
+		if event.CreatedBy != requestUserID {
+			return forbidden(
 				message("You are not user by whom this even is created."),
 				specification("Only the author can request."),
 			)
@@ -238,59 +225,6 @@ func EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		return next(c)
 	}
-}
-
-//func EventIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-//return func(c echo.Context) error {
-//event := new(repo.Event)
-//var err error
-//event.ID, err = uuid.FromString(c.Param("eventid"))
-//if err != nil || event.ID == uuid.Nil {
-//return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-//}
-//if err := repo.DB.Select("id").First(&event).Error; err != nil {
-//if gorm.IsRecordNotFoundError(err) {
-//return notFound(message(fmt.Sprintf("EventID: %v does not exist.", c.Param("eventid"))))
-//}
-//return internalServerError()
-//}
-//c.Set("EventID", event.ID)
-
-//return next(c)
-//}
-//}
-
-//func GroupIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-//return func(c echo.Context) error {
-//group := new(repo.Group)
-//var err error
-//group.ID, err = uuid.FromString(c.Param("groupid"))
-//if err != nil || group.ID == uuid.Nil {
-//return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
-//}
-//if err := repo.DB.Select("id").First(&group).Error; err != nil {
-//if gorm.IsRecordNotFoundError(err) {
-//return notFound(message(fmt.Sprintf("GroupID: %v does not exist.", c.Param("groupid"))))
-//}
-//return internalServerError()
-//}
-//c.Set("GroupID", group.ID)
-
-//return next(c)
-
-//}
-//}
-
-// verifyCreatedUser verify that request-user and created-user are the same
-func verifyCreatedUser(cbg CreatedByGetter, requestUser uuid.UUID) (bool, error) {
-	createdByUser, err := cbg.GetCreatedBy()
-	if err != nil {
-		return false, err
-	}
-	if createdByUser != requestUser {
-		return false, nil
-	}
-	return true, nil
 }
 
 func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {

@@ -57,10 +57,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			{
 				apiGroup.GET("", h.HandleGetGroup)
 
-				//apiGroups.PUT("/:groupid", h.HandleUpdateGroup, GroupCreatedUserMiddleware)
-				apiGroup.PUT("", h.HandleUpdateGroup)
-
-				apiGroup.DELETE("", h.HandleDeleteGroup, adminMiddle)
+				apiGroup.PUT("", h.HandleUpdateGroup, h.GroupCreatedUserMiddleware)
+				apiGroup.DELETE("", h.HandleDeleteGroup, h.GroupCreatedUserMiddleware)
 
 				apiGroup.PUT("/members/me", h.HandleAddMeGroup)
 				apiGroup.DELETE("/members/me", h.HandleDeleteMeGroup)
@@ -77,8 +75,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiEvent := apiEvents.Group("/:eventid")
 			{
 				apiEvent.GET("", h.HandleGetEvent)
-				apiEvent.PUT("", h.HandleUpdateEvent)
-				apiEvent.DELETE("", h.HandleDeleteEvent)
+				apiEvent.PUT("", h.HandleUpdateEvent, h.EventCreatedUserMiddleware)
+				apiEvent.DELETE("", h.HandleDeleteEvent, h.EventCreatedUserMiddleware)
 
 				apiEvent.POST("/tags", h.HandleAddEventTag)
 				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)
@@ -89,10 +87,15 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		{
 			apiRooms.GET("", h.HandleGetRooms)
 			apiRooms.POST("", h.HandlePostRoom, adminMiddle)
-			apiRooms.POST("/private", h.HandlePostPrivateRoom)
-			apiRooms.GET("/:roomid", h.HandleGetRoom)
 			apiRooms.POST("/all", h.HandleSetRooms, adminMiddle)
-			apiRooms.DELETE("/:roomid", h.HandleDeleteRoom, adminMiddle)
+
+			apiRooms.POST("/private", h.HandlePostPrivateRoom)
+
+			apiRoom := apiRooms.Group("/:roomid")
+			{
+				apiRoom.GET("/:roomid", h.HandleGetRoom)
+				apiRoom.DELETE("/:roomid", h.HandleDeleteRoom, adminMiddle)
+			}
 			// TODO createdBy only
 			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom)
 		}
