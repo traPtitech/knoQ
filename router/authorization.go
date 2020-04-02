@@ -20,8 +20,7 @@ type AuthParams struct {
 	CodeChallenge string `json:"codeChallenge"`
 }
 
-func HandlePostAuthParams(c echo.Context) error {
-	authParams := new(AuthParams)
+func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
 	codeVerifier := traQutils.RandAlphabetAndNumberString(43)
 
 	// cache codeVerifier
@@ -33,14 +32,17 @@ func HandlePostAuthParams(c echo.Context) error {
 	// sess.Save(c.Request(), c.Response())
 	sessionID, ok := sess.Values["ID"].(string)
 	if !ok {
-		return internalServerError()
+		sess.Options = &h.SessionOption
+		sessionID = traQutils.RandAlphabetAndNumberString(10)
+		sess.Values["ID"] = sessionID
+		sess.Save(c.Request(), c.Response())
 	}
 	verifierCache.Set(sessionID, codeVerifier, cache.DefaultExpiration)
 	result := sha256.Sum256([]byte(codeVerifier))
 	enc := base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_").WithPadding(base64.NoPadding)
 
-	authParams = &AuthParams{
-		ClientID:      "1iZopJ2qP63BaJYkQxhlVzCdrG8h1tDHMXm7",
+	authParams := &AuthParams{
+		ClientID:      h.ClientID,
 		State:         traQutils.RandAlphabetAndNumberString(10),
 		CodeChallenge: enc.EncodeToString(result[:]),
 	}

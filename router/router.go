@@ -7,6 +7,7 @@ import (
 
 	"room/router/service"
 
+	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -17,8 +18,10 @@ import (
 
 type Handlers struct {
 	service.Dao
-	Logger     *zap.Logger
-	SessionKey []byte
+	Logger        *zap.Logger
+	SessionKey    []byte
+	SessionOption sessions.Options
+	ClientID      string
 }
 
 func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
@@ -32,7 +35,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.Use(AccessLoggingMiddleware(h.Logger))
 
 	e.Use(session.Middleware(gormstore.New(db, h.SessionKey)))
-	e.Use(WatchCallbackMiddleware())
+	e.Use(h.WatchCallbackMiddleware())
 
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -110,7 +113,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		}
 
 	}
-	e.POST("/api/authParams", HandlePostAuthParams)
+	e.POST("/api/authParams", h.HandlePostAuthParams)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {

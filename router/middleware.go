@@ -17,7 +17,6 @@ import (
 	traQutils "github.com/traPtitech/traQ/utils"
 
 	"github.com/gofrs/uuid"
-	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
@@ -106,7 +105,7 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 }
 
 // WatchCallbackMiddleware /callback?code= を監視
-func WatchCallbackMiddleware() echo.MiddlewareFunc {
+func (h *Handlers) WatchCallbackMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := c.Request().URL.Path
@@ -126,44 +125,19 @@ func WatchCallbackMiddleware() echo.MiddlewareFunc {
 				return internalServerError()
 			}
 
-			form := url.Values{}
-			form.Add("grant_type", "authorization_code")
-			form.Add("client_id", "1iZopJ2qP63BaJYkQxhlVzCdrG8h1tDHMXm7")
-			form.Add("code", code)
-			form.Add("code_verifier", codeVerifier.(string))
-
-			body := strings.NewReader(form.Encode())
-
-			req, err := http.NewRequest("POST", "https://q.trap.jp/api/1.0/oauth2/token", body)
-			if err != nil {
-				return next(c)
-			}
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			res, err := http.DefaultClient.Do(req)
+			token, err := requestOAuth(h.ClientID, code, codeVerifier.(string))
 			if err != nil {
 				return internalServerError()
 			}
-			if res.StatusCode >= 300 {
-				return internalServerError()
-			}
 
-			data, _ := ioutil.ReadAll(res.Body)
-			oauthRes := new(OauthResponse)
-			json.Unmarshal(data, oauthRes)
-			token := oauthRes.AccessToken
-
+			// TODO fix
 			bytes, _ := utils.GetUserMe(token)
 			userID := new(UserID)
 			json.Unmarshal(bytes, userID)
 
 			sess.Values["authorization"] = token
 			sess.Values["userID"] = userID.Value.String()
-			sess.Options = &sessions.Options{
-				Path:     "/",
-				MaxAge:   86400 * 7,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-			}
+			// sess.Options = &h.SessionOption
 			err = sess.Save(c.Request(), c.Response())
 			if err != nil {
 				return internalServerError()
@@ -183,12 +157,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		auth, ok := sess.Values["authorization"].(string)
 		if !ok {
-			sess.Options = &sessions.Options{
-				Path:     "/",
-				MaxAge:   86400 * 7,
-				HttpOnly: true,
-				SameSite: http.SameSiteLaxMode,
-			}
+			sess.Options = &h.SessionOption
 			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
 			sess.Save(c.Request(), c.Response())
 			return unauthorized()
@@ -196,7 +165,6 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if auth == "" {
 			return unauthorized()
 		}
-		// TODO get admin from db
 		setRequestUserIsAdmin(c, h.Repo)
 		return next(c)
 	}
@@ -323,6 +291,36 @@ func verifyCreatedUser(cbg CreatedByGetter, requestUser uuid.UUID) (bool, error)
 		return false, nil
 	}
 	return true, nil
+}
+
+func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {
+	form := url.Values{}
+	form.Add("grant_type", "authorization_code")
+	form.Add("client_id", clientID)
+	form.Add("code", code)
+	form.Add("code_verifier", codeVerifier)
+
+	body := strings.NewReader(form.Encode())
+
+	req, err := http.NewRequest("POST", "https://q.trap.jp/api/1.0/oauth2/token", body)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	if res.StatusCode >= 300 {
+		return "", err
+	}
+
+	data, _ := ioutil.ReadAll(res.Body)
+	oauthRes := new(OauthResponse)
+	json.Unmarshal(data, oauthRes)
+
+	token = oauthRes.AccessToken
+	return
 }
 
 func getRequestUserID(c echo.Context) (uuid.UUID, error) {
