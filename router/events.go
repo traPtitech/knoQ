@@ -201,3 +201,12 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
 }
+
+func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
+	events, err := h.Repo.GetEventActivities(7)
+	if err != nil {
+		judgeErrorResponse(err)
+	}
+
+	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
+}

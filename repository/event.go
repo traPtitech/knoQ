@@ -2,7 +2,9 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
+	"sort"
 	"strconv"
 	"time"
 
@@ -48,6 +50,7 @@ type EventRepository interface {
 	GetEvent(eventID uuid.UUID) (*Event, error)
 	GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
 	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
+	GetEventActivities(day int) ([]*Event, error)
 }
 
 // CreateEvent roomが正当かは見る
@@ -211,6 +214,40 @@ func (repo *GormRepository) GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event,
 
 	err := cmd.Where("group_id IN (?)", groupIDs).Find(&events).Error
 	return events, err
+}
+
+func (repo *GormRepository) GetEventActivities(day int) ([]*Event, error) {
+	events := make([]*Event, 0)
+	now := time.Now()
+	period := now.AddDate(0, 0, -1*day)
+	cmd := repo.DB.Preload("Room").Preload("Tags")
+
+	err := cmd.Unscoped().Where("created_at > ? ", period).Or("updated_at > ?", period).
+		Or("deleted_at > ?", period).Find(&events).Error
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(events, func(i, j int) bool {
+		fmt.Println(events[j])
+		mostRecentI := timeMax(&events[i].CreatedAt, timeMax(&events[i].UpdatedAt, events[i].DeletedAt))
+		mostRecentJ := timeMax(&events[j].CreatedAt, timeMax(&events[j].UpdatedAt, events[j].DeletedAt))
+		return mostRecentI.Unix() > mostRecentJ.Unix()
+
+	})
+	return events, nil
+}
+
+func timeMax(a, b *time.Time) *time.Time {
+	if a == nil {
+		a = new(time.Time)
+	}
+	if b == nil {
+		b = new(time.Time)
+	}
+	if a.Unix() > b.Unix() {
+		return a
+	}
+	return b
 }
 
 func (e *Event) Create() error {

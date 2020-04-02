@@ -24,6 +24,7 @@ type EventRes struct {
 	CreatedBy uuid.UUID        `json:"createdBy"`
 	CreatedAt time.Time        `json:"createdAt"`
 	UpdatedAt time.Time        `json:"updatedAt"`
+	DeletedAt *time.Time       `json:"deletedAt,omitempty"`
 }
 
 // TagRelationRes show relation one to tag
@@ -122,6 +123,7 @@ func FormatEventRes(e *repo.Event) *EventRes {
 		CreatedBy: e.CreatedBy,
 		CreatedAt: e.CreatedAt,
 		UpdatedAt: e.UpdatedAt,
+		DeletedAt: e.DeletedAt,
 	}
 }
 

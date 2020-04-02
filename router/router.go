@@ -114,6 +114,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiTags.GET("", h.HandleGetTags)
 		}
 
+		api.GET("/activities", h.HandleGetEventActivities)
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
 
