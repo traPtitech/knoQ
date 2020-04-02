@@ -93,8 +93,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 			apiRoom := apiRooms.Group("/:roomid")
 			{
-				apiRoom.GET("/:roomid", h.HandleGetRoom)
-				apiRoom.DELETE("/:roomid", h.HandleDeleteRoom, adminMiddle)
+				apiRoom.GET("", h.HandleGetRoom)
+				apiRoom.DELETE("", h.HandleDeleteRoom, adminMiddle)
 			}
 			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom, h.RoomCreatedUserMiddleware)
 		}
