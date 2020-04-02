@@ -118,6 +118,7 @@ func (h *Handlers) HandlePostPrivateRoom(c echo.Context) error {
 	}
 
 	roomParams.Public = false
+	setCreatedBytoRoom(c, roomParams)
 
 	room, err := h.Repo.CreateRoom(*roomParams)
 	if err != nil {
