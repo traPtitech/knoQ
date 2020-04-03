@@ -90,13 +90,11 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return badRequest(err, message(err.Error()))
 	}
-
 	groupParams := new(repo.WriteGroupParams)
 	err := copier.Copy(&groupParams, req)
 	if err != nil {
 		return internalServerError(err)
 	}
-	groupParams.CreatedBy, _ = getRequestUserID(c)
 
 	groupID, err := getRequestGroupID(c)
 	if err != nil {
