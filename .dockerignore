@@ -4,10 +4,11 @@
 .gitmodules
 .dockerignore
 .DS_Store
-showcase.yaml
 README.md
-init.sh
 room
+service.json
+
 /development/
 !/development/fresh.conf
 /web/node_modules
+/web/dist
