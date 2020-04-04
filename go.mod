@@ -1,33 +1,21 @@
 module room
 
-go 1.12
+go 1.13
 
 require (
-	cloud.google.com/go v0.38.0 // indirect
-	github.com/davecgh/go-spew v1.1.0 // indirect
-	github.com/denisenkom/go-mssqldb v0.0.0-20190912031109-19fca521dbdf // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
-	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
-	github.com/go-sql-driver/mysql v1.4.0 // indirect
-	github.com/golang/protobuf v1.3.1 // indirect
-	github.com/hashicorp/golang-lru v0.5.1 // indirect
-	github.com/jinzhu/gorm v1.9.1
-	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
-	github.com/jinzhu/now v1.0.1 // indirect
-	github.com/labstack/echo v3.3.10+incompatible
-	github.com/labstack/gommon v0.2.7 // indirect
-	github.com/lib/pq v1.2.0 // indirect
-	github.com/mattn/go-colorable v0.0.9 // indirect
-	github.com/mattn/go-isatty v0.0.4 // indirect
-	github.com/mattn/go-sqlite3 v1.11.0 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/stretchr/testify v1.2.1 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasttemplate v0.0.0-20170224212429-dcecefd839c4 // indirect
-	golang.org/x/net v0.0.0-20190509222800-a4d6f7feada5
-	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
-	golang.org/x/text v0.3.2 // indirect
-	google.golang.org/api v0.5.0
-	google.golang.org/genproto v0.0.0-20190508193815-b515fa19cec8 // indirect
-	google.golang.org/grpc v1.20.1 // indirect
+	github.com/go-sql-driver/mysql v1.5.0
+	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gorilla/sessions v1.2.0
+	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
+	github.com/jinzhu/gorm v1.9.12
+	github.com/json-iterator/go v1.1.9
+	github.com/labstack/echo-contrib v0.8.1-0.20200115200653-2d4a7f3c41d8
+	github.com/labstack/echo/v4 v4.1.14
+	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/stretchr/testify v1.5.1
+	github.com/traPtitech/traQ v1.0.0-rc.2.0.20200309071637-82e15593b8c0
+	github.com/wader/gormstore v0.0.0-20190904144442-d36772af4310
+	go.uber.org/zap v1.14.0
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	google.golang.org/api v0.20.0
 )

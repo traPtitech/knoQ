@@ -2,59 +2,76 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
-	"room/model"
+	repo "room/repository"
+	"room/router"
+	"room/router/service"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/gorilla/sessions"
+	"go.uber.org/zap"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/calendar/v3"
+)
+
+var (
+	SESSION_KEY = []byte(os.Getenv("SESSION_KEY"))
 )
 
 func main() {
-	db, err := model.SetupDatabase()
+	db, err := repo.SetupDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	// echo初期化
-	e := echo.New()
-	e.Use(middleware.Recover())
-	e.Use(middleware.Logger())
-	e.Use(middleware.Secure())
-	e.Use(middleware.Static("./web/dist"))
+	googleAPI := &repo.GoogleAPIRepository{
+		CalendarID: os.Getenv("TRAQ_CALENDARID"),
+	}
+	bytes, err := ioutil.ReadFile("service.json")
+	if err != nil {
+		panic("service.json does not exist.")
+	}
+	googleAPI.Config, err = google.JWTConfigFromJSON(bytes, calendar.CalendarReadonlyScope)
+	if err != nil {
+		panic(err)
+	}
 
-	// headerの追加のため
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:  []string{"*"},
-		AllowMethods:  []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
-		ExposeHeaders: []string{"X-Showcase-User"},
-	}))
+	googleAPI.Setup()
 
-	// API定義 (/api)
-	api := e.Group("/api", model.TraQUserMiddleware)
-	api.GET("/hello", model.HandleGetHello) // テスト用
-	api.GET("/users", model.HandleGetUsers)
-	api.GET("/users/me", model.HandleGetUserMe)
-	api.GET("/rooms", model.HandleGetRooms)
-	api.GET("/groups", model.HandleGetGroups)
-	api.POST("/groups", model.HandlePostGroup)
-	api.PATCH("/groups/:groupid", model.HandleUpdateGroup)
-	api.GET("/reservations", model.HandleGetReservations)
-	api.POST("/reservations", model.HandlePostReservation)
-	api.DELETE("/reservations/:reservationid", model.HandleDeleteReservation)
-	api.PATCH("/reservations/:reservationid", model.HandleUpdateReservation)
+	logger, _ := zap.NewDevelopment()
+	handler := &router.Handlers{
+		Dao: service.Dao{
+			Repo: &repo.GormRepository{
+				DB: db,
+			},
+			InitExternalUserGroupRepo: func(token string, ver repo.TraQVersion) interface {
+				repo.UserRepository
+				repo.GroupRepository
+			} {
+				traQRepo := new(repo.TraQRepository)
+				traQRepo.Token = token
+				traQRepo.Version = ver
+				return traQRepo
+			},
+			ExternalRoomRepo: googleAPI,
+		},
+		Logger:     logger,
+		SessionKey: SESSION_KEY,
+		ClientID:   os.Getenv("CLIENT_ID"),
+		SessionOption: sessions.Options{
+			Path:     "/",
+			MaxAge:   86400 * 30,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		},
+	}
 
-	// 管理者専用API定義 (/api/admin)
-	adminAPI := api.Group("/admin", model.AdminUserMiddleware)
-	adminAPI.GET("/hello", model.HandleGetHello) // テスト用
-	adminAPI.POST("/rooms", model.HandlePostRoom)
-	adminAPI.POST("/rooms/all", model.HandleSetRooms)
-	adminAPI.DELETE("/rooms/:roomid", model.HandleDeleteRoom)
-	adminAPI.DELETE("/groups/:groupid", model.HandleDeleteGroup)
+	e := handler.SetupRoute(db)
 
 	// サーバースタート
 	go func() {
