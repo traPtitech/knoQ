@@ -46,7 +46,7 @@ func (repo *GormRepository) CreateGroup(groupParams WriteGroupParams) (*Group, e
 	if err != nil {
 		return nil, err
 	}
-	group.Members, err = verifyuserIDs(repo.DB, groupParams.Members)
+	group.Members = formatGroupMembers(groupParams.Members)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 	if err != nil {
 		return nil, err
 	}
-	group.Members, err = verifyuserIDs(repo.DB, groupParams.Members)
+	group.Members = formatGroupMembers(groupParams.Members)
 	if err != nil {
 		return nil, err
 	}
@@ -93,10 +93,7 @@ func (repo *GormRepository) AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) 
 		if !group.JoinFreely {
 			return ErrForbidden
 		}
-		member, err := verifyuserID(tx, userID)
-		if err != nil {
-			return err
-		}
+		member := &User{ID: userID}
 		if group.IsMember(member) {
 			return ErrAlreadyExists
 		}
@@ -137,10 +134,7 @@ func (repo *GormRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUI
 		if !group.JoinFreely {
 			return ErrForbidden
 		}
-		member, err := verifyuserID(tx, userID)
-		if err != nil {
-			return err
-		}
+		member := &User{ID: userID}
 		if !group.IsMember(member) {
 			return ErrNotFound
 		}
@@ -329,20 +323,14 @@ func formatV3GroupMemebers(ms []traQrouterV3.UserGroupMember) []User {
 	return users
 }
 
-func verifyuserID(db *gorm.DB, userID uuid.UUID) (*User, error) {
-	member := new(User)
-	if err := db.Where("id = ?", userID).Take(&member).Error; err != nil {
-		return nil, err
+func formatGroupMembers(userIDs []uuid.UUID) []User {
+	users := make([]User, len(userIDs))
+	for i, v := range userIDs {
+		users[i] = User{
+			ID: v,
+		}
 	}
-	return member, nil
-}
-
-func verifyuserIDs(db *gorm.DB, userIDs []uuid.UUID) ([]User, error) {
-	members := []User{}
-	if err := db.Where("id IN (?)", userIDs).Find(&members).Error; err != nil {
-		return nil, err
-	}
-	return members, nil
+	return users
 }
 
 func (g *Group) IsMember(user *User) bool {
