@@ -21,15 +21,14 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 	if err != nil {
 		return internalServerError(err)
 	}
-
 	groupParams.CreatedBy, _ = getRequestUserID(c)
 
-	group, err := h.Repo.CreateGroup(*groupParams)
+	token, _ := getRequestUserToken(c)
+
+	res, err := h.Dao.CreateGroup(token, *groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-
-	res := service.FormatGroupRes(group, false)
 	return c.JSON(http.StatusCreated, res)
 }
 
@@ -100,11 +99,11 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	group, err := h.Repo.UpdateGroup(groupID, *groupParams)
+	token, _ := getRequestUserToken(c)
+	res, err := h.Dao.UpdateGroup(token, groupID, *groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	res := service.FormatGroupRes(group, false)
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -115,7 +114,8 @@ func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 	}
 
 	userID, _ := getRequestUserID(c)
-	if err := h.Repo.AddUserToGroup(groupID, userID); err != nil {
+	token, _ := getRequestUserToken(c)
+	if err := h.Dao.AddUserToGroup(token, groupID, userID); err != nil {
 		return judgeErrorResponse(err)
 	}
 
