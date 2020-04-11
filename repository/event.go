@@ -199,7 +199,7 @@ func (repo *GormRepository) GetAllEvents(start *time.Time, end *time.Time) ([]*E
 	if end != nil && !end.IsZero() {
 		cmd = cmd.Where("time_start <= ?", end.String())
 	}
-	err := cmd.Debug().Order("time_start").Find(&events).Error
+	err := cmd.Order("time_start").Find(&events).Error
 	return events, err
 
 }

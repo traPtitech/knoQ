@@ -23,7 +23,7 @@ func TestGormRepository_CreateGroup(t *testing.T) {
 	if group, err := repo.CreateGroup(params); assert.NoError(t, err) {
 		assert.NotNil(t, group)
 		assert.Equal(t, params.Members[0], group.Members[0].ID)
-		assert.Equal(t, 1, len(group.Members))
+		assert.Equal(t, 2, len(group.Members))
 	}
 }
 
@@ -41,7 +41,7 @@ func TestGormRepository_UpdateGroup(t *testing.T) {
 	if group, err := repo.UpdateGroup(group.ID, params); assert.NoError(t, err) {
 		assert.NotNil(t, group)
 		assert.Equal(t, params.Members[0], group.Members[0].ID)
-		assert.Equal(t, 1, len(group.Members))
+		assert.Equal(t, 2, len(group.Members))
 	}
 }
 
@@ -59,7 +59,7 @@ func TestGormRepository_AddUserToGroup(t *testing.T) {
 	t.Run("Add not existing user", func(t *testing.T) {
 		t.Parallel()
 		err := repo.AddUserToGroup(group.ID, mustNewUUIDV4(t))
-		assert.EqualError(t, err, ErrNotFound.Error())
+		assert.NoError(t, err)
 	})
 
 	t.Run("Add already exists user", func(t *testing.T) {

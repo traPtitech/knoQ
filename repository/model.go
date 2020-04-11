@@ -69,7 +69,7 @@ type Group struct {
 	Name        string    `gorm:"type:varchar(32);not null"`
 	Description string    `gorm:"type:TEXT"`
 	JoinFreely  bool
-	Members     []User    `gorm:"many2many:group_users; association_autoupdate:false;association_autocreate:false"`
+	Members     []User    `gorm:"many2many:group_users; association_autoupdate:true;association_autocreate:true"`
 	CreatedBy   uuid.UUID `gorm:"type:char(36);"`
 	Model
 }
