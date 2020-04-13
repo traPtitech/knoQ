@@ -6,16 +6,6 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-// Dao DataAccess Object
-type Dao struct {
-	Repo                      repo.Repository
-	InitExternalUserGroupRepo func(token string, ver repo.TraQVersion) interface {
-		repo.GroupRepository
-		repo.UserRepository
-	}
-	ExternalRoomRepo repo.RoomRepository
-}
-
 func (d Dao) GetGroup(token string, groupID uuid.UUID) (*GroupRes, error) {
 	group, _ := d.Repo.GetGroup(groupID)
 	if group == nil {
