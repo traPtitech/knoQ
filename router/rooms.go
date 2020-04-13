@@ -30,7 +30,7 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, service.FormatRoomRes(room))
+	return c.JSON(http.StatusCreated, service.FormatRoomRes(room))
 }
 
 // HandleSetRooms Googleカレンダーから部屋情報を作成
@@ -88,7 +88,7 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	for i, r := range rooms {
 		res[i] = service.FormatRoomRes(r)
 	}
-	return c.JSON(http.StatusCreated, res)
+	return c.JSON(http.StatusOK, res)
 
 }
 
