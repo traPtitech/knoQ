@@ -185,7 +185,7 @@ func (h *Handlers) GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
 		token, _ := getRequestUserToken(c)
-		groupID, err := getRequestGroupID(c)
+		groupID, err := getPathGroupID(c)
 		if err != nil {
 			return notFound(err)
 		}
@@ -208,7 +208,7 @@ func (h *Handlers) GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
-		eventID, err := getRequestEventID(c)
+		eventID, err := getPathEventID(c)
 		if err != nil {
 			return notFound(err)
 		}
@@ -232,7 +232,7 @@ func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 func (h *Handlers) RoomCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
-		roomID, err := getRequestRoomID(c)
+		roomID, err := getPathRoomID(c)
 		if err != nil {
 			return notFound(err)
 		}
@@ -327,8 +327,8 @@ func deleteRequestUserToken(c echo.Context) error {
 	return err
 }
 
-// getRequestEventID :eventidを返します
-func getRequestEventID(c echo.Context) (uuid.UUID, error) {
+// getPathEventID :eventidを返します
+func getPathEventID(c echo.Context) (uuid.UUID, error) {
 
 	eventID, err := uuid.FromString(c.Param("eventid"))
 	if err != nil {
@@ -337,8 +337,8 @@ func getRequestEventID(c echo.Context) (uuid.UUID, error) {
 	return eventID, nil
 }
 
-// getRequestGroupID :groupidを返します
-func getRequestGroupID(c echo.Context) (uuid.UUID, error) {
+// getPathGroupID :groupidを返します
+func getPathGroupID(c echo.Context) (uuid.UUID, error) {
 	groupID, err := uuid.FromString(c.Param("groupid"))
 	if err != nil {
 		return uuid.Nil, errors.New("GroupID is not uuid")
@@ -346,11 +346,20 @@ func getRequestGroupID(c echo.Context) (uuid.UUID, error) {
 	return groupID, nil
 }
 
-// getRequestRoomID :roomidを返します
-func getRequestRoomID(c echo.Context) (uuid.UUID, error) {
+// getPathRoomID :roomidを返します
+func getPathRoomID(c echo.Context) (uuid.UUID, error) {
 	roomID, err := uuid.FromString(c.Param("roomid"))
 	if err != nil {
 		return uuid.Nil, errors.New("RoomID is not uuid")
 	}
 	return roomID, nil
+}
+
+// getPathUserID :useridを返します
+func getPathUserID(c echo.Context) (uuid.UUID, error) {
+	userID, err := uuid.FromString(c.Param("userid"))
+	if err != nil {
+		return uuid.Nil, errors.New("UserID is not uuid")
+	}
+	return userID, nil
 }

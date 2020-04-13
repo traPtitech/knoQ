@@ -48,7 +48,7 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 
 // HandleGetEvent get one event
 func (h *Handlers) HandleGetEvent(c echo.Context) error {
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -80,7 +80,7 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 
 // HandleGetEvents groupidの仕様宣言を取得
 func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
-	groupID, err := getRequestGroupID(c)
+	groupID, err := getPathGroupID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -94,7 +94,7 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 
 // HandleDeleteEvent 部屋の使用宣言を削除
 func (h *Handlers) HandleDeleteEvent(c echo.Context) error {
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -116,7 +116,7 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 	if err != nil {
 		return internalServerError(err)
 	}
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -153,7 +153,7 @@ func (h *Handlers) HandleAddEventTag(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return badRequest(err)
 	}
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err, message(err.Error()))
 	}
@@ -170,7 +170,7 @@ func (h *Handlers) HandleAddEventTag(c echo.Context) error {
 }
 
 func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err, message(err.Error()))
 	}
@@ -212,7 +212,7 @@ func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
 }
 
 func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
-	roomID, _ := getRequestRoomID(c)
+	roomID, _ := getPathRoomID(c)
 	events, err := h.Repo.GetEventsByRoomIDs([]uuid.UUID{roomID})
 	if err != nil {
 		return judgeErrorResponse(err)
