@@ -1,9 +1,10 @@
 on:
   push:
-    branches:
-      - develop
     tags:
       - v(\d+\.)*\d+-pre\d+
+    branches-ignore:
+      - ^(develop)
+ 
 
 env:
   IMAGE_NAME: room
