@@ -137,6 +137,22 @@ paths:
           description: Forbidden
         400:
           description: Bad Request
+  /rooms/{roomID}/events:
+    get:
+      tags:
+        - events
+      parameters:
+        - name: roomID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/eventArray"
+
+
   /rooms/all:
     post:
       tags:

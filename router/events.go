@@ -205,8 +205,17 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
 	events, err := h.Repo.GetEventActivities(7)
 	if err != nil {
-		judgeErrorResponse(err)
+		return judgeErrorResponse(err)
 	}
 
+	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
+}
+
+func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
+	roomID, _ := getRequestRoomID(c)
+	events, err := h.Repo.GetEventsByRoomIDs([]uuid.UUID{roomID})
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
 	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
 }
