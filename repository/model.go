@@ -55,8 +55,8 @@ type Room struct {
 	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
 	Place     string    `json:"place" gorm:"type:varchar(32);unique_index:idx_room_unique"`
 	Public    bool      `gorm:"unique_index:idx_room_unique"`
-	TimeStart time.Time `json:"timeStart" gorm:"type:DATETIME; unique_index:idx_room_unique"`
-	TimeEnd   time.Time `json:"timeEnd" gorm:"type:DATETIME; unique_index:idx_room_unique"`
+	TimeStart time.Time `json:"timeStart" gorm:"type:DATETIME; unique_index:idx_room_unique; index"`
+	TimeEnd   time.Time `json:"timeEnd" gorm:"type:DATETIME; unique_index:idx_room_unique; index"`
 	Events    []Event   `gorm:"foreignkey:RoomID"`
 	CreatedBy uuid.UUID `gorm:"type:char(36)"`
 	Model
@@ -79,12 +79,12 @@ type Event struct {
 	ID          uuid.UUID `json:"eventId" gorm:"type:char(36);primary_key"`
 	Name        string    `json:"name" gorm:"type:varchar(32); not null"`
 	Description string    `json:"description" gorm:"type:TEXT"`
-	GroupID     uuid.UUID `json:"groupId" gorm:"type:char(36);not null"`
+	GroupID     uuid.UUID `json:"groupId" gorm:"type:char(36);not null; index"`
 	//Group         Group     `json:"-" gorm:"foreignkey:group_id; save_associations:false"`
 	RoomID        uuid.UUID `json:"roomId" gorm:"type:char(36);not null"`
 	Room          Room      `json:"-" gorm:"foreignkey:room_id; save_associations:false"`
-	TimeStart     time.Time `json:"timeStart" gorm:"type:DATETIME"`
-	TimeEnd       time.Time `json:"timeEnd" gorm:"type:DATETIME"`
+	TimeStart     time.Time `json:"timeStart" gorm:"type:DATETIME; index"`
+	TimeEnd       time.Time `json:"timeEnd" gorm:"type:DATETIME; index"`
 	CreatedBy     uuid.UUID `json:"createdBy" gorm:"type:char(36);"`
 	AllowTogether bool      `json:"sharedRoom"`
 	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; association_autoupdate:false;association_autocreate:false"`
