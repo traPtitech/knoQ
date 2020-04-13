@@ -191,15 +191,26 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 	userID, _ := getRequestUserID(c)
 
 	token, _ := getRequestUserToken(c)
-	groupIDs, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
+	res, err := h.Dao.GetEventsByUserID(token, userID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	events, err := h.Repo.GetEventsByGroupIDs(groupIDs)
+	return c.JSON(http.StatusOK, res)
+
+}
+
+func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
+	userID, err := getPathUserID(c)
+	if err != nil {
+		return notFound(err)
+	}
+
+	token, _ := getRequestUserToken(c)
+	res, err := h.Dao.GetEventsByUserID(token, userID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
+	return c.JSON(http.StatusOK, res)
 }
 
 func (h *Handlers) HandleGetEventActivities(c echo.Context) error {

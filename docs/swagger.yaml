@@ -296,6 +296,21 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/eventArray"
+  /users/{userID}/events:
+    get:
+      tags:
+        - events
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/eventArray"
+
 
   /rooms/{roomID}/events:
     get:
