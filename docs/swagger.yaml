@@ -26,21 +26,6 @@ tags:
 
 paths:
   /rooms:
-    post:
-      tags:
-        - rooms
-      summary: traPで確保した部屋の情報追加
-      description: 管理者権限が必要
-      operationId: addrooms
-      requestBody:
-        $ref: "#/components/requestBodies/Room"
-      responses:
-        201:
-          $ref: "#/components/responses/PostRoom"
-        400:
-          description: Bad Request
-        403:
-          description: Forbidden
     get:
       tags:
         - rooms
@@ -64,13 +49,12 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/GetRoomArray"
-
-  /rooms/private:
     post:
       tags:
         - rooms
-      summary: 各自の部屋の情報追加
-      operationId: addprivaterooms
+      summary: traPで確保した部屋の情報追加
+      description: 管理者権限が必要
+      operationId: addrooms
       requestBody:
         $ref: "#/components/requestBodies/Room"
       responses:
@@ -78,26 +62,9 @@ paths:
           $ref: "#/components/responses/PostRoom"
         400:
           description: Bad Request
-  /rooms/private/{roomID}:
-    delete:
-      tags:
-        - rooms
-      summary: 各自の部屋の情報削除 作成者のみ
-      parameters:
-        - name: roomID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          description: successful operation
         403:
           description: Forbidden
-        400:
-          description: Bad Request
-
+ 
   /rooms/{roomID}:
     get:
       tags:
@@ -137,10 +104,24 @@ paths:
           description: Forbidden
         400:
           description: Bad Request
-  /rooms/{roomID}/events:
-    get:
+  /rooms/private:
+    post:
       tags:
-        - events
+        - rooms
+      summary: 各自の部屋の情報追加
+      operationId: addprivaterooms
+      requestBody:
+        $ref: "#/components/requestBodies/Room"
+      responses:
+        201:
+          $ref: "#/components/responses/PostRoom"
+        400:
+          description: Bad Request
+  /rooms/private/{roomID}:
+    delete:
+      tags:
+        - rooms
+      summary: 各自の部屋の情報削除 作成者のみ
       parameters:
         - name: roomID
           in: path
@@ -150,8 +131,11 @@ paths:
             format: uuid
       responses:
         200:
-          $ref: "#/components/responses/eventArray"
-
+          description: successful operation
+        403:
+          description: Forbidden
+        400:
+          description: Bad Request
 
   /rooms/all:
     post:
@@ -313,6 +297,37 @@ paths:
         200:
           $ref: "#/components/responses/eventArray"
 
+  /rooms/{roomID}/events:
+    get:
+      tags:
+        - events
+      parameters:
+        - name: roomID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/eventArray"
+  /groups/{groupID}/events:
+    get:
+      tags:
+        - events
+      description: groupIdのeventsを取得
+      parameters:
+        - name: groupID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          $ref: "#/components/responses/eventArray"
+ 
+
   /groups:
     get:
       tags:
@@ -399,22 +414,7 @@ paths:
           description: Forbidden
         404:
           description: Groupid not found
-  /groups/{groupID}/events:
-    get:
-      tags:
-        - events
-      description: groupIdのeventsを取得
-      parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        200:
-          $ref: "#/components/responses/eventArray"
-      
+     
   /groups/{groupID}/members/me:
     put:
       tags:
