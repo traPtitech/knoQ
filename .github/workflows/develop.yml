@@ -1,10 +1,7 @@
 on:
   push:
     tags:
-      - v(\d+\.)*\d+-pre\d+
-    branches-ignore:
-      - ^(develop)
- 
+      - v*-pre[0-9]+
 
 env:
   IMAGE_NAME: room
