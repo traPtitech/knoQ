@@ -21,9 +21,11 @@ tags:
     description: ユーザー
   - name: tags
     description: タグ
+  - name: activity
+    description: activity
   - name: authorization
     description: 認証
-
+ 
 paths:
   /rooms:
     get:
@@ -523,6 +525,18 @@ paths:
         201:
           $ref: "#/components/responses/tag"
 
+  /activity/events:
+    get:
+      tags:
+        - activity
+        - events
+      description: |
+       最近7日間に作成変更削除があったイベントを取得。
+       削除されたものを含んで返す。
+      responses:
+        200:
+          $ref: "#/components/responses/eventArray"
+
   /authParams:
     post:
       tags:
@@ -648,7 +662,11 @@ components:
             updatedAt:
               type: string
               example: "2019-11-02T15:24:42.5438806Z"
-
+            deletedAt:
+              type: string
+              format: omitempty
+              nullable: true
+ 
     group:
       type: object
       properties:
