@@ -95,6 +95,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			{
 				apiRoom.GET("", h.HandleGetRoom)
 				apiRoom.DELETE("", h.HandleDeleteRoom, adminMiddle)
+				apiRoom.GET("/events", h.HandleGetEventsByRoomID)
 			}
 			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom, h.RoomCreatedUserMiddleware)
 		}
@@ -102,10 +103,16 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		apiUsers := api.Group("/users")
 		{
 			apiUsers.GET("", h.HandleGetUsers)
-			apiUsers.GET("/me", h.HandleGetUserMe)
 
-			apiUsers.GET("/me/groups", h.HandleGetMeGroups)
+			apiUsers.GET("/me", h.HandleGetUserMe)
+			apiUsers.GET("/me/groups", h.HandleGetMeGroupIDs)
 			apiUsers.GET("/me/events", h.HandleGetMeEvents)
+
+			apiUser := apiUsers.Group("/:userid")
+			{
+				apiUser.GET("/events", h.HandleGetEventsByUserID)
+				apiUser.GET("/groups", h.HandleGetGroupIDsByUserID)
+			}
 		}
 
 		apiTags := api.Group("/tags")
@@ -114,7 +121,11 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiTags.GET("", h.HandleGetTags)
 		}
 
-		api.GET("/activities", h.HandleGetEventActivities)
+		apiActivity := api.Group("/activity")
+		{
+			apiActivity.GET("/events", h.HandleGetEventActivities)
+		}
+
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
 
