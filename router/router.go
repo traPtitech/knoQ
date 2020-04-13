@@ -103,10 +103,15 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		apiUsers := api.Group("/users")
 		{
 			apiUsers.GET("", h.HandleGetUsers)
-			apiUsers.GET("/me", h.HandleGetUserMe)
 
+			apiUsers.GET("/me", h.HandleGetUserMe)
 			apiUsers.GET("/me/groups", h.HandleGetMeGroups)
 			apiUsers.GET("/me/events", h.HandleGetMeEvents)
+
+			apiUser := apiUsers.Group("/:userid")
+			{
+				apiUser.GET("/events", h.HandleGetEventsByUserID)
+			}
 		}
 
 		apiTags := api.Group("/tags")

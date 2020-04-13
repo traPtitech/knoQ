@@ -78,7 +78,8 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// HandleGetEvents groupidの仕様宣言を取得
+// HandleGetEventsByGroupID get events by groupID
+// If groupID does not exist, this return []. Does not returns error.
 func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 	groupID, err := getPathGroupID(c)
 	if err != nil {
@@ -213,20 +214,22 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
-	events, err := h.Repo.GetEventActivities(7)
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-
-	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
-}
-
+// HandleGetEventsByRoomID get events by roomID
+// If roomID does not exist, this return []. Does not returns error.
 func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 	roomID, _ := getPathRoomID(c)
 	events, err := h.Repo.GetEventsByRoomIDs([]uuid.UUID{roomID})
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
+	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
+}
+
+func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
+	events, err := h.Repo.GetEventActivities(7)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+
 	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
 }
