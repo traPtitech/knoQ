@@ -137,7 +137,7 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *Handlers) HandleGetMeGroups(c echo.Context) error {
+func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 	userID, _ := getRequestUserID(c)
 
 	token, _ := getRequestUserToken(c)
@@ -146,4 +146,19 @@ func (h *Handlers) HandleGetMeGroups(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 	return c.JSON(http.StatusOK, groupIDs)
+}
+
+func (h *Handlers) HandleGetGroupIDsByUserID(c echo.Context) error {
+	userID, err := getPathUserID(c)
+	if err != nil {
+		return notFound(err, message(err.Error()))
+	}
+
+	token, _ := getRequestUserToken(c)
+	res, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
