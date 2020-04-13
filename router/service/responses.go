@@ -41,15 +41,14 @@ type UserRes struct {
 }
 
 type RoomRes struct {
-	ID            uuid.UUID `json:"roomId"`
-	Place         string    `json:"place"`
-	Public        bool      `json:"public"`
-	TimeStart     string    `json:"timeStart"`
-	TimeEnd       string    `json:"timeEnd"`
-	AvailableTime []repo.StartEndTime
-	CreatedBy     uuid.UUID `json:"createdBy"`
-	CreatedAt     time.Time `json:"createdAt"`
-	UpdatedAt     time.Time `json:"updatedAt"`
+	ID        uuid.UUID `json:"roomId"`
+	Place     string    `json:"place"`
+	Public    bool      `json:"public"`
+	TimeStart string    `json:"timeStart"`
+	TimeEnd   string    `json:"timeEnd"`
+	CreatedBy uuid.UUID `json:"createdBy"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }
 
 type TagRes struct {
@@ -146,15 +145,14 @@ func FormatUserRes(u *repo.User) *UserRes {
 
 func FormatRoomRes(r *repo.Room) *RoomRes {
 	return &RoomRes{
-		ID:            r.ID,
-		Place:         r.Place,
-		Public:        r.Public,
-		TimeStart:     r.TimeStart.Format(time.RFC3339),
-		TimeEnd:       r.TimeEnd.Format(time.RFC3339),
-		AvailableTime: r.CalcAvailableTime(true),
-		CreatedBy:     r.CreatedBy,
-		CreatedAt:     r.CreatedAt,
-		UpdatedAt:     r.UpdatedAt,
+		ID:        r.ID,
+		Place:     r.Place,
+		Public:    r.Public,
+		TimeStart: r.TimeStart.Format(time.RFC3339),
+		TimeEnd:   r.TimeEnd.Format(time.RFC3339),
+		CreatedBy: r.CreatedBy,
+		CreatedAt: r.CreatedAt,
+		UpdatedAt: r.UpdatedAt,
 	}
 }
 

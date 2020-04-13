@@ -538,19 +538,6 @@ components:
       properties:
         public:
           type: boolean
-        availableTime:
-          type: array
-          items:
-            type: object
-            properties:
-              timeStart:
-                type: string
-                format: time
-                example: "2004-04-01T12:00Z"
-              timeEnd:
-                type: string
-                format: time
-                example: "2004-04-01T12:00Z"
         createdBy:
           type: string
           format: uuid
