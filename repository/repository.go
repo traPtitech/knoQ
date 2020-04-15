@@ -48,13 +48,9 @@ const (
 	TraQv3
 )
 
-var traQEndPoints = [2]string{
-	"https://q.trap.jp/api/1.0",
-	"https://q.trap.jp/api/v3",
-}
-
 type TraQRepository struct {
 	Version TraQVersion
+	Host    string
 	Token   string
 }
 
@@ -79,7 +75,12 @@ func (repo *GoogleAPIRepository) Setup() {
 }
 
 func (repo *TraQRepository) getBaseURL() string {
-	return traQEndPoints[repo.Version]
+	var traQEndPointVersion = [2]string{
+		"/1.0",
+		"/v3",
+	}
+
+	return repo.Host + traQEndPointVersion[repo.Version]
 }
 
 func (repo *TraQRepository) getRequest(path string) ([]byte, error) {
