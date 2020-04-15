@@ -56,7 +56,8 @@ func main() {
 				traQRepo := new(repo.TraQRepository)
 				traQRepo.Token = token
 				traQRepo.Version = ver
-				traQRepo.Host = "https://q.trap.jp"
+				traQRepo.Host = "https://q.trap.jp/api"
+				traQRepo.NewRequest = repo.DefaultNewRequest
 				return traQRepo
 			},
 			ExternalRoomRepo: googleAPI,
