@@ -2,7 +2,11 @@
 package repository
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -23,6 +27,7 @@ const (
 
 var (
 	repositories = map[string]*GormRepository{}
+	authCookie   *http.Cookie
 )
 
 func TestMain(m *testing.M) {
@@ -60,6 +65,40 @@ func TestMain(m *testing.M) {
 			DB: db,
 		}
 		repositories[key] = &repo
+	}
+
+	// traQ
+	// 1. /login
+	authentication := struct {
+		Name     string `json:"name"`
+		Password string `json:"password"`
+	}{
+		Name:     "traq",
+		Password: "traq",
+	}
+	body, err := json.Marshal(authentication)
+	if err != nil {
+		panic(err)
+	}
+	req, err := http.NewRequest(http.MethodPost, "http://localhost:3000/api/v3/login", bytes.NewBuffer(body))
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	if res.StatusCode >= 300 {
+		panic("unexpected status code")
+	}
+	// 2. get Set-Cookie
+	cookies := res.Cookies()
+	for _, v := range cookies {
+		if v.Name == "r_session" {
+			authCookie = v
+			break
+		}
 	}
 
 	code := m.Run()
@@ -168,11 +207,16 @@ func setupTraQRepo(t *testing.T, version TraQVersion) (*TraQRepository, *assert.
 	t.Helper()
 	repo := &TraQRepository{
 		Version: version,
-		Token:   os.Getenv("TRAQ_AUTH"),
-		Host:    "https://q.trap.jp/api",
+		Host:    "http://localhost:3000/api",
 	}
-	repo.NewRequest = repo.DefaultNewRequest
+	repo.NewRequest = func(method, url string, body io.Reader) (*http.Request, error) {
+		req, err := http.NewRequest(method, url, body)
+		if err != nil {
+			return nil, err
+		}
+		req.AddCookie(authCookie)
+		return req, nil
+	}
 	assert, require := assertAndRequire(t)
 	return repo, assert, require
-
 }
