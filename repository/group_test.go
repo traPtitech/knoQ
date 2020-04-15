@@ -28,7 +28,7 @@ func TestGormRepository_CreateGroup(t *testing.T) {
 }
 
 func TestGormRepository_UpdateGroup(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	repo, _, _, user := setupGormRepoWithUser(t, common)
 	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
 

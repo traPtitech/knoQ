@@ -54,7 +54,7 @@ type TraQRepository struct {
 	Host    string
 	Token   string
 	// required
-	NewRequest func(method string, url string, body io.Reader, token string) (*http.Request, error)
+	NewRequest func(method string, url string, body io.Reader) (*http.Request, error)
 }
 type GoogleAPIRepository struct {
 	Config     *jwt.Config
@@ -86,21 +86,21 @@ func (repo *TraQRepository) getBaseURL() string {
 }
 
 // DefaultNewRequest set Authorization Header
-func DefaultNewRequest(method string, url string, body io.Reader, token string) (*http.Request, error) {
-	if token == "" {
+func (repo *TraQRepository) DefaultNewRequest(method string, url string, body io.Reader) (*http.Request, error) {
+	if repo.Token == "" {
 		return nil, ErrForbidden
 	}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Authorization", "Bearer "+repo.Token)
 
 	return req, nil
 }
 
 func (repo *TraQRepository) getRequest(path string) ([]byte, error) {
-	req, err := repo.NewRequest(http.MethodGet, repo.getBaseURL()+path, nil, repo.Token)
+	req, err := repo.NewRequest(http.MethodGet, repo.getBaseURL()+path, nil)
 	if err != nil {
 		return nil, err
 	}

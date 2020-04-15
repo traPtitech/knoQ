@@ -167,11 +167,11 @@ func mustMakeEvent(t *testing.T, repo Repository, name string, userID uuid.UUID)
 func setupTraQRepo(t *testing.T, version TraQVersion) (*TraQRepository, *assert.Assertions, *require.Assertions) {
 	t.Helper()
 	repo := &TraQRepository{
-		Version:    version,
-		Token:      os.Getenv("TRAQ_AUTH"),
-		Host:       "https://q.trap.jp/api",
-		NewRequest: DefaultNewRequest,
+		Version: version,
+		Token:   os.Getenv("TRAQ_AUTH"),
+		Host:    "https://q.trap.jp/api",
 	}
+	repo.NewRequest = repo.DefaultNewRequest
 	assert, require := assertAndRequire(t)
 	return repo, assert, require
 
