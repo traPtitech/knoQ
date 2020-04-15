@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -73,16 +72,6 @@ var (
 	logger, _ = zap.NewDevelopment()
 )
 
-// CRUD is create, read, update, delete
-// all need ID
-type CRUD interface {
-	Create() error
-	Read() error
-	// Update update omitempty
-	Update() error
-	Delete() error
-}
-
 func (repo *GoogleAPIRepository) Setup() {
 	repo.Client = repo.Config.Client(oauth2.NoContext)
 }
@@ -126,20 +115,4 @@ func initDB(db *gorm.DB) error {
 		return err
 	}
 	return nil
-}
-
-func dbErrorLog(err error) {
-	if gorm.IsRecordNotFoundError(err) {
-		return
-	}
-	me, ok := err.(*mysql.MySQLError)
-	if !ok {
-		logger.Warn("DB error " + err.Error())
-		return
-	}
-	if me.Number == 1062 {
-		return
-	}
-
-	logger.Warn("DB error " + err.Error())
 }
