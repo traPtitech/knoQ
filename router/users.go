@@ -12,7 +12,7 @@ import (
 // 認証状態を確認
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 	token, _ := getRequestUserToken(c)
-	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
+	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.TraQv3)
 
 	userID, _ := getRequestUserID(c)
 	user, err := UserGroupRepo.GetUser(userID)
@@ -35,7 +35,7 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 // HandleGetUsers ユーザーすべてを取得
 func (h *Handlers) HandleGetUsers(c echo.Context) error {
 	token, _ := getRequestUserToken(c)
-	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
+	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.TraQv3)
 
 	users, err := UserGroupRepo.GetAllUsers()
 	if err != nil {

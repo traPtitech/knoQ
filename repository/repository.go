@@ -2,7 +2,9 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -42,8 +44,8 @@ type GormRepository struct {
 type TraQVersion int64
 
 const (
-	V1 TraQVersion = iota
-	V3
+	TraQv1 TraQVersion = iota
+	TraQv3
 )
 
 var traQEndPoints = [2]string{
@@ -74,6 +76,40 @@ var (
 
 func (repo *GoogleAPIRepository) Setup() {
 	repo.Client = repo.Config.Client(oauth2.NoContext)
+}
+
+func (repo *TraQRepository) getBaseURL() string {
+	return traQEndPoints[repo.Version]
+}
+
+func (repo *TraQRepository) getRequest(path string) ([]byte, error) {
+	if repo.Token == "" {
+		return nil, ErrForbidden
+	}
+	req, err := http.NewRequest(http.MethodGet, repo.getBaseURL()+path, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+repo.Token)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode >= 300 {
+		// TODO consider 300
+		switch res.StatusCode {
+		case 401:
+			return nil, ErrForbidden
+		case 403:
+			return nil, ErrForbidden
+		case 404:
+			return nil, ErrNotFound
+		default:
+			return nil, errors.New(http.StatusText(res.StatusCode))
+		}
+	}
+	return ioutil.ReadAll(res.Body)
 }
 
 // SetupDatabase set up DB and crate tables

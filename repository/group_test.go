@@ -146,7 +146,7 @@ func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
 
 func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 	t.Parallel()
-	repo, _, _ := setupTraQRepo(t, V1)
+	repo, _, _ := setupTraQRepo(t, TraQv1)
 	userID, _ := uuid.FromString(os.Getenv("TRAQ_USERID"))
 
 	t.Run("Success", func(t *testing.T) {
@@ -158,7 +158,7 @@ func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 
 func TestTraQRepository_GetGroup(t *testing.T) {
 	t.Parallel()
-	repo, _, _ := setupTraQRepo(t, V3)
+	repo, _, _ := setupTraQRepo(t, TraQv3)
 	groupID, _ := uuid.FromString(os.Getenv("TRAQ_GROUPID"))
 
 	t.Run("Success", func(t *testing.T) {

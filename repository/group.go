@@ -2,10 +2,7 @@ package repository
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
@@ -191,41 +188,6 @@ func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 
 // TraQRepository
 
-func (repo *TraQRepository) getBaseURL() string {
-	return traQEndPoints[repo.Version]
-}
-
-func (repo *TraQRepository) getRequest(path string) ([]byte, error) {
-	if repo.Token == "" {
-		return nil, ErrForbidden
-	}
-	req, err := http.NewRequest(http.MethodGet, repo.getBaseURL()+path, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+repo.Token)
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode >= 300 {
-		// TODO consider 300
-		switch res.StatusCode {
-		case 401:
-			return nil, ErrForbidden
-		case 403:
-			return nil, ErrForbidden
-		case 404:
-			return nil, ErrNotFound
-		default:
-			return nil, errors.New(http.StatusText(res.StatusCode))
-		}
-	}
-	return ioutil.ReadAll(res.Body)
-
-}
-
 // CreateGroup always return error
 func (repo *TraQRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
 	return nil, ErrForbidden
@@ -252,7 +214,7 @@ func (repo *TraQRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUI
 }
 
 func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
-	if repo.Version != V3 {
+	if repo.Version != TraQv3 {
 		return nil, ErrForbidden
 	}
 	if groupID == uuid.Nil {
@@ -268,7 +230,7 @@ func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 }
 
 func (repo *TraQRepository) GetAllGroups() ([]*Group, error) {
-	if repo.Version != V3 {
+	if repo.Version != TraQv3 {
 		return nil, ErrForbidden
 	}
 
@@ -286,7 +248,7 @@ func (repo *TraQRepository) GetAllGroups() ([]*Group, error) {
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
-	if repo.Version != V1 {
+	if repo.Version != TraQv1 {
 		return nil, ErrForbidden
 	}
 	data, err := repo.getRequest(fmt.Sprintf("/users/%s/groups", userID))
