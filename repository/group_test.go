@@ -149,41 +149,40 @@ func TestTraQRepository_CreateGroup(t *testing.T) {
 
 	params := WriteGroupParams{
 		Name:      traQutils.RandAlphabetAndNumberString(20),
-		Members:   []uuid.UUID{user.ID, mustNewUUIDV4(t)},
+		Members:   []uuid.UUID{user.ID},
 		CreatedBy: user.ID,
 	}
 
 	if group, err := repo.CreateGroup(params); assert.NoError(t, err) {
 		assert.NotNil(t, group)
 		assert.Equal(t, params.Members[0], group.Members[0].ID)
-		assert.Equal(t, 2, len(group.Members))
+		assert.Equal(t, 1, len(group.Members))
 	}
 
 }
 
 func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 	t.Parallel()
-	//repo, _, _ := setupTraQRepo(t, TraQv1)
-	//userID, _ := uuid.FromString(os.Getenv("TRAQ_USERID"))
+	repo, _, _ := setupTraQRepo(t, TraQv1)
+	user := mustMakeUser(t, repo, false)
 
 	t.Run("Success", func(t *testing.T) {
-		// TODO fix
-		//if groupIDs, err := repo.GetUserBelongingGroupIDs(userID); assert.NoError(t, err) {
-		//assert.NotNil(t, groupIDs)
-		//}
+		if groupIDs, err := repo.GetUserBelongingGroupIDs(user.ID); assert.NoError(t, err) {
+			assert.NotNil(t, groupIDs)
+		}
 	})
 }
 
 func TestTraQRepository_GetGroup(t *testing.T) {
 	t.Parallel()
-	//repo, _, _ := setupTraQRepo(t, TraQv3)
-	//groupID, _ := uuid.FromString(os.Getenv("TRAQ_GROUPID"))
+	repo, _, _ := setupTraQRepo(t, TraQv3)
+	user := mustMakeUser(t, repo, false)
+	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(10), user.ID)
 
 	t.Run("Success", func(t *testing.T) {
-		// TODO fix
-		//if group, err := repo.GetGroup(groupID); assert.NoError(t, err) {
-		//assert.NotNil(t, group)
-		//}
+		if group, err := repo.GetGroup(group.ID); assert.NoError(t, err) {
+			assert.NotNil(t, group)
+		}
 	})
 
 }

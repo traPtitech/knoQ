@@ -60,7 +60,10 @@ func (repo *GormRepository) GetAllUsers() ([]*User, error) {
 // create random name and password
 func (repo *TraQRepository) CreateUser(isAdmin bool) (*User, error) {
 	if repo.Version != TraQv1 {
-		return nil, ErrForbidden
+		repo.Version = TraQv1
+		defer func() {
+			repo.Version = TraQv3
+		}()
 	}
 	reqUser := &traQrouterV1.PostUserRequest{
 		Name:     traQutils.RandAlphabetAndNumberString(20),
