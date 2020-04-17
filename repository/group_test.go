@@ -136,7 +136,7 @@ func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
 	group2 := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
 	mustAddGroupMember(t, repo, group2.ID, user.ID)
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
 		if groupIDs, err := repo.GetUserBelongingGroupIDs(user.ID); assert.NoError(t, err) {
 			assert.Len(t, groupIDs, 2)
 		}
@@ -166,7 +166,7 @@ func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 	repo, _, _ := setupTraQRepo(t, TraQv1)
 	user := mustMakeUser(t, repo, false)
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
 		if groupIDs, err := repo.GetUserBelongingGroupIDs(user.ID); assert.NoError(t, err) {
 			assert.NotNil(t, groupIDs)
 		}
@@ -179,7 +179,7 @@ func TestTraQRepository_GetGroup(t *testing.T) {
 	user := mustMakeUser(t, repo, false)
 	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(10), user.ID)
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
 		if group, err := repo.GetGroup(group.ID); assert.NoError(t, err) {
 			assert.NotNil(t, group)
 		}
