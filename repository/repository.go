@@ -2,11 +2,14 @@
 package repository
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -43,20 +46,17 @@ type GormRepository struct {
 type TraQVersion int64
 
 const (
-	V1 TraQVersion = iota
-	V3
+	TraQv1 TraQVersion = iota
+	TraQv3
 )
-
-var traQEndPoints = [2]string{
-	"https://q.trap.jp/api/1.0",
-	"https://q.trap.jp/api/v3",
-}
 
 type TraQRepository struct {
 	Version TraQVersion
+	Host    string
 	Token   string
+	// required
+	NewRequest func(method string, url string, body io.Reader) (*http.Request, error)
 }
-
 type GoogleAPIRepository struct {
 	Config     *jwt.Config
 	Client     *http.Client
@@ -73,18 +73,79 @@ var (
 	logger, _ = zap.NewDevelopment()
 )
 
-// CRUD is create, read, update, delete
-// all need ID
-type CRUD interface {
-	Create() error
-	Read() error
-	// Update update omitempty
-	Update() error
-	Delete() error
-}
-
 func (repo *GoogleAPIRepository) Setup() {
 	repo.Client = repo.Config.Client(oauth2.NoContext)
+}
+
+func (repo *TraQRepository) getBaseURL() string {
+	var traQEndPointVersion = [2]string{
+		"/1.0",
+		"/v3",
+	}
+
+	return repo.Host + traQEndPointVersion[repo.Version]
+}
+
+// DefaultNewRequest set Authorization Header
+func (repo *TraQRepository) DefaultNewRequest(method string, url string, body io.Reader) (*http.Request, error) {
+	if repo.Token == "" {
+		return nil, ErrForbidden
+	}
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+repo.Token)
+
+	return req, nil
+}
+
+func (repo *TraQRepository) getRequest(path string) ([]byte, error) {
+	req, err := repo.NewRequest(http.MethodGet, repo.getBaseURL()+path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if err := judgeStatusCode(res.StatusCode); err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(res.Body)
+}
+
+func (repo *TraQRepository) postRequest(path string, body []byte) ([]byte, error) {
+	req, err := repo.NewRequest(http.MethodPost, repo.getBaseURL()+path, bytes.NewBuffer(body))
+
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := judgeStatusCode(res.StatusCode); err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(res.Body)
+}
+
+func judgeStatusCode(code int) error {
+	if code >= 300 {
+		// TODO consider 300
+		switch code {
+		case 401:
+			return ErrForbidden
+		case 403:
+			return ErrForbidden
+		case 404:
+			return ErrNotFound
+		default:
+			return errors.New(http.StatusText(code))
+		}
+	}
+	return nil
 }
 
 // SetupDatabase set up DB and crate tables
@@ -126,20 +187,4 @@ func initDB(db *gorm.DB) error {
 		return err
 	}
 	return nil
-}
-
-func dbErrorLog(err error) {
-	if gorm.IsRecordNotFoundError(err) {
-		return
-	}
-	me, ok := err.(*mysql.MySQLError)
-	if !ok {
-		logger.Warn("DB error " + err.Error())
-		return
-	}
-	if me.Number == 1062 {
-		return
-	}
-
-	logger.Warn("DB error " + err.Error())
 }

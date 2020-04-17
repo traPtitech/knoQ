@@ -9,7 +9,7 @@ import (
 func (d Dao) GetGroup(token string, groupID uuid.UUID) (*GroupRes, error) {
 	group, _ := d.Repo.GetGroup(groupID)
 	if group == nil {
-		UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.V3)
+		UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
 		group, err := UserGroupRepo.GetGroup(groupID)
 		if err != nil {
 			return nil, err
@@ -25,7 +25,7 @@ func (d Dao) GetUserBelongingGroupIDs(token string, userID uuid.UUID) ([]uuid.UU
 		return nil, err
 	}
 
-	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.V1)
+	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv1)
 	externalGroupIDs, err := UserGroupRepo.GetUserBelongingGroupIDs(userID)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (d Dao) GetUserBelongingGroupIDs(token string, userID uuid.UUID) ([]uuid.UU
 }
 
 func (d Dao) CreateGroup(token string, groupParams repo.WriteGroupParams) (*GroupRes, error) {
-	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.V3)
+	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
 	allUsers, err := UserGroupRepo.GetAllUsers()
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (d Dao) CreateGroup(token string, groupParams repo.WriteGroupParams) (*Grou
 }
 
 func (d Dao) UpdateGroup(token string, groupID uuid.UUID, groupParams repo.WriteGroupParams) (*GroupRes, error) {
-	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.V3)
+	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
 	allUsers, err := UserGroupRepo.GetAllUsers()
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (d Dao) UpdateGroup(token string, groupID uuid.UUID, groupParams repo.Write
 }
 
 func (d Dao) AddUserToGroup(token string, groupID uuid.UUID, userID uuid.UUID) error {
-	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.V3)
+	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
 	allUsers, err := UserGroupRepo.GetAllUsers()
 	if err != nil {
 		return err

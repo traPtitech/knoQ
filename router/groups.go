@@ -59,7 +59,7 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 	res := service.FormatGroupsRes(groups, false)
 
 	token, _ := getRequestUserToken(c)
-	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
+	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.TraQv3)
 	traQgroups, err := UserGroupRepo.GetAllGroups()
 	if err != nil {
 		return judgeErrorResponse(err)
