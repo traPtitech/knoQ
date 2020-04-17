@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -109,20 +110,42 @@ func (repo *TraQRepository) getRequest(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if res.StatusCode >= 300 {
-		// TODO consider 300
-		switch res.StatusCode {
-		case 401:
-			return nil, ErrForbidden
-		case 403:
-			return nil, ErrForbidden
-		case 404:
-			return nil, ErrNotFound
-		default:
-			return nil, errors.New(http.StatusText(res.StatusCode))
-		}
+	if err := judgeStatusCode(res.StatusCode); err != nil {
+		return nil, err
 	}
 	return ioutil.ReadAll(res.Body)
+}
+
+func (repo *TraQRepository) postRequest(path string, body []byte) ([]byte, error) {
+	req, err := repo.NewRequest(http.MethodPost, repo.getBaseURL()+path, bytes.NewBuffer(body))
+
+	req.Header.Set("Content-Type", "application/json")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := judgeStatusCode(res.StatusCode); err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(res.Body)
+}
+
+func judgeStatusCode(code int) error {
+	if code >= 300 {
+		// TODO consider 300
+		switch code {
+		case 401:
+			return ErrForbidden
+		case 403:
+			return ErrForbidden
+		case 404:
+			return ErrNotFound
+		default:
+			return errors.New(http.StatusText(code))
+		}
+	}
+	return nil
 }
 
 // SetupDatabase set up DB and crate tables

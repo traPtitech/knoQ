@@ -14,7 +14,6 @@ import (
 type WriteGroupParams struct {
 	Name        string
 	Description string
-	ImageID     string
 	JoinFreely  bool
 	Members     []uuid.UUID
 	CreatedBy   uuid.UUID
@@ -190,7 +189,38 @@ func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 
 // CreateGroup always return error
 func (repo *TraQRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
-	return nil, ErrForbidden
+	if repo.Version != TraQv3 {
+		return nil, ErrForbidden
+	}
+	reqGroup := &traQrouterV3.PostUserGroupRequest{
+		Name:        groupParams.Name,
+		Description: groupParams.Description,
+		Type:        "room",
+	}
+	body, _ := json.Marshal(reqGroup)
+	resBody, err := repo.postRequest("/groups", body)
+	if err != nil {
+		return nil, err
+	}
+	traQgroup := new(traQrouterV3.UserGroup)
+	err = json.Unmarshal(resBody, &traQgroup)
+	if err != nil {
+		return nil, err
+	}
+	group := formatV3Group(traQgroup)
+	for _, userID := range groupParams.Members {
+		reqMember := &traQrouterV3.PostUserGroupMemberRequest{
+			ID: userID,
+		}
+		body, _ := json.Marshal(reqMember)
+		_, err := repo.postRequest(fmt.Sprintf("/groups/%s/members", group.ID), body)
+		if err != nil {
+			return nil, err
+		}
+		group.Members = append(group.Members, User{ID: userID})
+	}
+
+	return group, nil
 }
 
 // UpdateGroup always return error
@@ -200,7 +230,16 @@ func (repo *TraQRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 
 // AddUserToGroup always return error
 func (repo *TraQRepository) AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) error {
-	return ErrForbidden
+	if repo.Version != TraQv3 {
+		return ErrForbidden
+	}
+
+	reqMember := &traQrouterV3.PostUserGroupMemberRequest{
+		ID: userID,
+	}
+	body, _ := json.Marshal(reqMember)
+	_, err := repo.postRequest(fmt.Sprintf("/groups/%s/members", groupID), body)
+	return err
 }
 
 // DeleteGroup always return error
