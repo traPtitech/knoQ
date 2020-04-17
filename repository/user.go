@@ -6,7 +6,9 @@ import (
 
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
+	traQrouterV1 "github.com/traPtitech/traQ/router/v1"
 	traQrouterV3 "github.com/traPtitech/traQ/router/v3"
+	traQutils "github.com/traPtitech/traQ/utils"
 )
 
 var traQjson = jsoniter.Config{
@@ -17,14 +19,15 @@ var traQjson = jsoniter.Config{
 }.Froze()
 
 type UserRepository interface {
-	CreateUser(userID uuid.UUID, isAdmin bool) (*User, error)
+	CreateUser(isAdmin bool) (*User, error)
 	GetUser(userID uuid.UUID) (*User, error)
 	GetAllUsers() ([]*User, error)
 }
 
 // GormRepository implements UserRepository
 
-func (repo *GormRepository) CreateUser(userID uuid.UUID, isAdmin bool) (*User, error) {
+func (repo *GormRepository) CreateUser(isAdmin bool) (*User, error) {
+	userID, _ := uuid.NewV4()
 	user := User{
 		ID:    userID,
 		Admin: isAdmin,
@@ -53,9 +56,29 @@ func (repo *GormRepository) GetAllUsers() ([]*User, error) {
 
 // traQRepository implements UserRepository
 
-// CreateUser always return error
-func (repo *TraQRepository) CreateUser(userID uuid.UUID, isAdmin bool) (*User, error) {
-	return nil, ErrForbidden
+// CreateUser does not use isAdmin and
+// create random name and password
+func (repo *TraQRepository) CreateUser(isAdmin bool) (*User, error) {
+	if repo.Version != TraQv1 {
+		return nil, ErrForbidden
+	}
+	reqUser := &traQrouterV1.PostUserRequest{
+		Name:     traQutils.RandAlphabetAndNumberString(20),
+		Password: traQutils.RandAlphabetAndNumberString(20),
+	}
+	body, _ := json.Marshal(reqUser)
+	resBody, err := repo.postRequest("/users", body)
+	if err != nil {
+		return nil, err
+	}
+	traQuser := struct {
+		ID uuid.UUID `json:"id"`
+	}{}
+	err = json.Unmarshal(resBody, &traQuser)
+	if err != nil {
+		return nil, err
+	}
+	return &User{ID: traQuser.ID}, nil
 }
 
 // GetUser get from /users/{userID}

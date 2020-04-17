@@ -365,6 +365,7 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
+github.com/traPtitech/traQ v1.0.0-rc.2 h1:rGgMToUSpwgUBWHfJjcevO8ryuRFkL18jSGX0tmho+8=
 github.com/traPtitech/traQ v1.0.0-rc.2.0.20200309071637-82e15593b8c0 h1:0yUwMFrn2GO70UPC+j7FAU167M2i7OUyGM9OCV6Mtik=
 github.com/traPtitech/traQ v1.0.0-rc.2.0.20200309071637-82e15593b8c0/go.mod h1:odNqykjWZ/RyVnyXo/nXRFD8rsFY5uSdbDfRjnOzxUI=
 github.com/uber-go/atomic v1.4.0/go.mod h1:/Ct5t2lcmbJ4OSe/waGBoaVvVqtO0bmtfVNex1PFV8g=

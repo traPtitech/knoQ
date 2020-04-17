@@ -12,7 +12,7 @@ func TestGormRepository_CreateUser(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-		_, err := repo.CreateUser(mustNewUUIDV4(t), false)
+		_, err := repo.CreateUser(false)
 		assert.NoError(t, err)
 	})
 }
@@ -20,7 +20,7 @@ func TestGormRepository_CreateUser(t *testing.T) {
 func TestGormRepository_GetUser(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupGormRepo(t, common)
-	user := mustMakeUser(t, repo, mustNewUUIDV4(t), false)
+	user := mustMakeUser(t, repo, false)
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()

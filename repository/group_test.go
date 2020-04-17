@@ -11,7 +11,7 @@ import (
 func TestGormRepository_CreateGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupGormRepo(t, common)
-	user := mustMakeUser(t, repo, mustNewUUIDV4(t), false)
+	user := mustMakeUser(t, repo, false)
 
 	params := WriteGroupParams{
 		Name:      traQutils.RandAlphabetAndNumberString(20),
@@ -63,7 +63,7 @@ func TestGormRepository_AddUserToGroup(t *testing.T) {
 
 	t.Run("Add already exists user", func(t *testing.T) {
 		t.Parallel()
-		user := mustMakeUser(t, repo, mustNewUUIDV4(t), false)
+		user := mustMakeUser(t, repo, false)
 		err := repo.AddUserToGroup(group.ID, user.ID)
 		assert.NoError(t, err)
 		err = repo.AddUserToGroup(group.ID, user.ID)
@@ -102,7 +102,7 @@ func TestGormRepository_DeleteUserInGroup(t *testing.T) {
 	})
 
 	t.Run("Delete not existing member in group", func(t *testing.T) {
-		user := mustMakeUser(t, repo, mustNewUUIDV4(t), false)
+		user := mustMakeUser(t, repo, false)
 		err := repo.DeleteUserInGroup(group.ID, user.ID)
 		assert.EqualError(t, err, ErrNotFound.Error())
 	})
@@ -141,6 +141,24 @@ func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
 			assert.Len(t, groupIDs, 2)
 		}
 	})
+}
+func TestTraQRepository_CreateGroup(t *testing.T) {
+	t.Parallel()
+	repo, _, _ := setupTraQRepo(t, TraQv3)
+	user := mustMakeUser(t, repo, false)
+
+	params := WriteGroupParams{
+		Name:      traQutils.RandAlphabetAndNumberString(20),
+		Members:   []uuid.UUID{user.ID, mustNewUUIDV4(t)},
+		CreatedBy: user.ID,
+	}
+
+	if group, err := repo.CreateGroup(params); assert.NoError(t, err) {
+		assert.NotNil(t, group)
+		assert.Equal(t, params.Members[0], group.Members[0].ID)
+		assert.Equal(t, 2, len(group.Members))
+	}
+
 }
 
 func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {

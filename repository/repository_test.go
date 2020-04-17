@@ -131,13 +131,13 @@ func setupGormRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertio
 func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User) {
 	t.Helper()
 	r, assert, require := setupGormRepo(t, repo)
-	user := mustMakeUser(t, r, mustNewUUIDV4(t), false)
+	user := mustMakeUser(t, r, false)
 	return r, assert, require, user
 }
 
-func mustMakeUser(t *testing.T, repo UserRepository, userID uuid.UUID, admin bool) *User {
+func mustMakeUser(t *testing.T, repo UserRepository, admin bool) *User {
 	t.Helper()
-	user, err := repo.CreateUser(userID, admin)
+	user, err := repo.CreateUser(admin)
 	require.NoError(t, err)
 	return user
 }
