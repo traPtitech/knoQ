@@ -10,6 +10,8 @@ import (
 	traQrouterV3 "github.com/traPtitech/traQ/router/v3"
 )
 
+var traPGroupID = uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
+
 // WriteGroupParams is used create and update
 type WriteGroupParams struct {
 	Name        string
@@ -299,6 +301,51 @@ func (repo *TraQRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 	return groupIDs, err
 }
 
+func (repo *TraPGroupRepository) CreateGroup(groupParams WriteGroupParams) (*Group, error) {
+	return nil, ErrForbidden
+}
+
+func (repo *TraPGroupRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error) {
+	return nil, ErrForbidden
+}
+
+func (repo *TraPGroupRepository) AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) error {
+	return ErrForbidden
+}
+
+func (repo *TraPGroupRepository) DeleteGroup(groupID uuid.UUID) error {
+	return ErrForbidden
+}
+
+func (repo *TraPGroupRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUID) error {
+	return ErrForbidden
+}
+
+func (repo *TraPGroupRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
+	if groupID != traPGroupID {
+		return nil, ErrNotFound
+	}
+	return repo.getGroup()
+}
+
+func (repo *TraPGroupRepository) GetAllGroups() ([]*Group, error) {
+	groups := make([]*Group, 0)
+	group, err := repo.getGroup()
+	groups = append(groups, group)
+	return groups, err
+}
+
+func (repo *TraPGroupRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+	group, err := repo.getGroup()
+	if err != nil {
+		return nil, err
+	}
+	if !group.IsMember(&User{ID: userID}) {
+		return nil, ErrNotFound
+	}
+	return []uuid.UUID{traPGroupID}, nil
+}
+
 func formatV3Group(g *traQrouterV3.UserGroup) *Group {
 	return &Group{
 		ID:          g.ID,
@@ -341,6 +388,23 @@ func (g *Group) IsMember(user *User) bool {
 		}
 	}
 	return false
+}
+
+func (repo *TraPGroupRepository) getGroup() (*Group, error) {
+	users, err := repo.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+	group := &Group{
+		ID:          traPGroupID,
+		Description: "traP全体グループ",
+		JoinFreely:  false,
+	}
+	for _, user := range users {
+		user := user
+		group.Members = append(group.Members, *user)
+	}
+	return group, nil
 }
 
 // BeforeCreate is gorm hook

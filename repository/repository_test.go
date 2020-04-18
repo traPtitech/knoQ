@@ -220,3 +220,10 @@ func setupTraQRepo(t *testing.T, version TraQVersion) (*TraQRepository, *assert.
 	assert, require := assertAndRequire(t)
 	return repo, assert, require
 }
+
+func setupTraPGroupRepo(t *testing.T, version TraQVersion) (*TraPGroupRepository, *assert.Assertions, *require.Assertions) {
+	repo := new(TraPGroupRepository)
+	repoTraQ, assert, require := setupTraQRepo(t, version)
+	repo.TraQRepository = *repoTraQ
+	return repo, assert, require
+}
