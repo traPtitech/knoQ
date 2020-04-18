@@ -60,6 +60,16 @@ func main() {
 				traQRepo.NewRequest = traQRepo.DefaultNewRequest
 				return traQRepo
 			},
+			InitTraPGroupRepo: func(token string, ver repo.TraQVersion) interface {
+				repo.GroupRepository
+			} {
+				traPGroupRepo := new(repo.TraPGroupRepository)
+				traPGroupRepo.Token = token
+				traPGroupRepo.Version = ver
+				traPGroupRepo.Host = "https://q.trap.jp/api"
+				traPGroupRepo.NewRequest = traPGroupRepo.DefaultNewRequest
+				return traPGroupRepo
+			},
 			ExternalRoomRepo: googleAPI,
 		},
 		Logger:     logger,

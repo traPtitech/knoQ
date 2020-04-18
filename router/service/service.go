@@ -9,5 +9,8 @@ type Dao struct {
 		repo.GroupRepository
 		repo.UserRepository
 	}
+	InitTraPGroupRepo func(token string, ver repo.TraQVersion) interface {
+		repo.GroupRepository
+	}
 	ExternalRoomRepo repo.RoomRepository
 }
