@@ -57,6 +57,11 @@ type TraQRepository struct {
 	// required
 	NewRequest func(method string, url string, body io.Reader) (*http.Request, error)
 }
+
+// TraPGroupRepository traPメンバー全体をグループとして扱う
+type TraPGroupRepository struct {
+	TraQRepository
+}
 type GoogleAPIRepository struct {
 	Config     *jwt.Config
 	Client     *http.Client
