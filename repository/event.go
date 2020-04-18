@@ -46,6 +46,7 @@ type EventRepository interface {
 	GetEvent(eventID uuid.UUID) (*Event, error)
 	GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
 	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
+	GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, error)
 	GetEventActivities(day int) ([]*Event, error)
 }
 
@@ -230,6 +231,15 @@ func (repo *GormRepository) GetEventActivities(day int) ([]*Event, error) {
 
 	})
 	return events, nil
+}
+
+func (repo *GormRepository) GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, error) {
+	events := make([]*Event, 0)
+	cmd := repo.DB.Preload("Room").Preload("Tags")
+
+	err := cmd.Where("room_id IN (?)", roomIDs).Find(&events).Error
+	return events, err
+
 }
 
 func timeMax(a, b *time.Time) *time.Time {

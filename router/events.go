@@ -48,7 +48,7 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 
 // HandleGetEvent get one event
 func (h *Handlers) HandleGetEvent(c echo.Context) error {
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -78,9 +78,10 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-// HandleGetEvents groupidの仕様宣言を取得
+// HandleGetEventsByGroupID get events by groupID
+// If groupID does not exist, this return []. Does not returns error.
 func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
-	groupID, err := getRequestGroupID(c)
+	groupID, err := getPathGroupID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -94,7 +95,7 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 
 // HandleDeleteEvent 部屋の使用宣言を削除
 func (h *Handlers) HandleDeleteEvent(c echo.Context) error {
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -116,7 +117,7 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 	if err != nil {
 		return internalServerError(err)
 	}
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -153,7 +154,7 @@ func (h *Handlers) HandleAddEventTag(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return badRequest(err)
 	}
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err, message(err.Error()))
 	}
@@ -170,7 +171,7 @@ func (h *Handlers) HandleAddEventTag(c echo.Context) error {
 }
 
 func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
-	eventID, err := getRequestEventID(c)
+	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err, message(err.Error()))
 	}
@@ -191,11 +192,33 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 	userID, _ := getRequestUserID(c)
 
 	token, _ := getRequestUserToken(c)
-	groupIDs, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
+	res, err := h.Dao.GetEventsByUserID(token, userID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	events, err := h.Repo.GetEventsByGroupIDs(groupIDs)
+	return c.JSON(http.StatusOK, res)
+
+}
+
+func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
+	userID, err := getPathUserID(c)
+	if err != nil {
+		return notFound(err)
+	}
+
+	token, _ := getRequestUserToken(c)
+	res, err := h.Dao.GetEventsByUserID(token, userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	return c.JSON(http.StatusOK, res)
+}
+
+// HandleGetEventsByRoomID get events by roomID
+// If roomID does not exist, this return []. Does not returns error.
+func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
+	roomID, _ := getPathRoomID(c)
+	events, err := h.Repo.GetEventsByRoomIDs([]uuid.UUID{roomID})
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -205,7 +228,7 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
 	events, err := h.Repo.GetEventActivities(7)
 	if err != nil {
-		judgeErrorResponse(err)
+		return judgeErrorResponse(err)
 	}
 
 	return c.JSON(http.StatusOK, service.FormatEventsRes(events))

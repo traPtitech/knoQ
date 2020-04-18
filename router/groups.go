@@ -35,7 +35,7 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 // HandleGetGroup グループを一件取得
 // TODO fix
 func (h *Handlers) HandleGetGroup(c echo.Context) error {
-	groupID, err := getRequestGroupID(c)
+	groupID, err := getPathGroupID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -59,7 +59,7 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 	res := service.FormatGroupsRes(groups, false)
 
 	token, _ := getRequestUserToken(c)
-	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.V3)
+	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.TraQv3)
 	traQgroups, err := UserGroupRepo.GetAllGroups()
 	if err != nil {
 		return judgeErrorResponse(err)
@@ -71,7 +71,7 @@ func (h *Handlers) HandleGetGroups(c echo.Context) error {
 
 // HandleDeleteGroup グループを削除
 func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
-	groupID, err := getRequestGroupID(c)
+	groupID, err := getPathGroupID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -95,11 +95,12 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 		return internalServerError(err)
 	}
 
-	groupID, err := getRequestGroupID(c)
+	groupID, err := getPathGroupID(c)
 	if err != nil {
 		return notFound(err)
 	}
 	token, _ := getRequestUserToken(c)
+	groupParams.CreatedBy, _ = getRequestUserID(c)
 	res, err := h.Dao.UpdateGroup(token, groupID, *groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)
@@ -108,7 +109,7 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 }
 
 func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
-	groupID, err := getRequestGroupID(c)
+	groupID, err := getPathGroupID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -123,7 +124,7 @@ func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 }
 
 func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
-	groupID, err := getRequestGroupID(c)
+	groupID, err := getPathGroupID(c)
 	if err != nil {
 		return notFound(err)
 	}
@@ -136,7 +137,7 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *Handlers) HandleGetMeGroups(c echo.Context) error {
+func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 	userID, _ := getRequestUserID(c)
 
 	token, _ := getRequestUserToken(c)
@@ -145,4 +146,19 @@ func (h *Handlers) HandleGetMeGroups(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 	return c.JSON(http.StatusOK, groupIDs)
+}
+
+func (h *Handlers) HandleGetGroupIDsByUserID(c echo.Context) error {
+	userID, err := getPathUserID(c)
+	if err != nil {
+		return notFound(err, message(err.Error()))
+	}
+
+	token, _ := getRequestUserToken(c)
+	res, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
