@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	traQutils "github.com/traPtitech/traQ/utils"
 )
 
@@ -184,5 +185,22 @@ func TestTraQRepository_GetGroup(t *testing.T) {
 			assert.NotNil(t, group)
 		}
 	})
+}
 
+func TestTraPGroupRepository_GetGroup(t *testing.T) {
+	t.Parallel()
+	repo, _, _ := setupTraPGroupRepo(t, TraQv3)
+
+	t.Run("success", func(t *testing.T) {
+		groupID, err := uuid.FromString("11111111-1111-1111-1111-111111111111")
+		require.NoError(t, err)
+		if group, err := repo.GetGroup(groupID); assert.NoError(t, err) {
+			assert.NotNil(t, group)
+		}
+	})
+
+	t.Run("Get not existing groupID", func(t *testing.T) {
+		_, err := repo.GetGroup(mustNewUUIDV4(t))
+		assert.EqualError(t, err, ErrNotFound.Error())
+	})
 }

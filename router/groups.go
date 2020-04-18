@@ -33,7 +33,6 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 }
 
 // HandleGetGroup グループを一件取得
-// TODO fix
 func (h *Handlers) HandleGetGroup(c echo.Context) error {
 	groupID, err := getPathGroupID(c)
 	if err != nil {
@@ -51,21 +50,11 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 
 // HandleGetGroups グループを取得
 func (h *Handlers) HandleGetGroups(c echo.Context) error {
-
-	groups, err := h.Repo.GetAllGroups()
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-	res := service.FormatGroupsRes(groups, false)
-
 	token, _ := getRequestUserToken(c)
-	UserGroupRepo := h.InitExternalUserGroupRepo(token, repo.TraQv3)
-	traQgroups, err := UserGroupRepo.GetAllGroups()
+	res, err := h.Dao.GetAllGroups(token)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	res = append(res, service.FormatGroupsRes(traQgroups, true)...)
-
 	return c.JSON(http.StatusOK, res)
 }
 
