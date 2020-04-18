@@ -1,37 +1,101 @@
 package service
 
 import (
+	"fmt"
 	repo "room/repository"
 
 	"github.com/gofrs/uuid"
 )
 
 func (d Dao) GetGroup(token string, groupID uuid.UUID) (*GroupRes, error) {
-	group, _ := d.Repo.GetGroup(groupID)
-	if group == nil {
-		UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
+	ch := make(chan *GroupRes, 3) // 並列数と対応させること
+	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
+	TraPGroupRepo := d.InitTraPGroupRepo(token, repo.TraQv3)
+	go func(out chan *GroupRes) {
+		group, err := d.Repo.GetGroup(groupID)
+		if err != nil {
+			out <- nil
+			return
+		}
+		out <- FormatGroupRes(group, false)
+	}(ch)
+	go func(out chan *GroupRes) {
 		group, err := UserGroupRepo.GetGroup(groupID)
 		if err != nil {
-			return nil, err
+			out <- nil
+			return
 		}
-		return FormatGroupRes(group, true), nil
+		out <- FormatGroupRes(group, true)
+	}(ch)
+	go func(out chan *GroupRes) {
+		group, err := TraPGroupRepo.GetGroup(groupID)
+		if err != nil {
+			out <- nil
+			return
+		}
+		out <- FormatGroupRes(group, true)
+	}(ch)
+	for i := 0; i < cap(ch); i++ {
+		group := <-ch
+		if group != nil {
+			return group, nil
+		}
 	}
-	return FormatGroupRes(group, false), nil
+	return nil, repo.ErrNotFound
 }
 
 func (d Dao) GetUserBelongingGroupIDs(token string, userID uuid.UUID) ([]uuid.UUID, error) {
-	groupIDs, err := d.Repo.GetUserBelongingGroupIDs(userID)
-	if err != nil {
-		return nil, err
+	ch := make(chan []uuid.UUID, 3) // 並列数と対応させること
+	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv1)
+	TraPGroupRepo := d.InitTraPGroupRepo(token, repo.TraQv3)
+
+	go func(out chan []uuid.UUID) {
+		groupIDs, _ := d.Repo.GetUserBelongingGroupIDs(userID)
+		out <- groupIDs
+	}(ch)
+	go func(out chan []uuid.UUID) {
+		groupIDs, _ := UserGroupRepo.GetUserBelongingGroupIDs(userID)
+		fmt.Println(groupIDs)
+		out <- groupIDs
+	}(ch)
+	go func(out chan []uuid.UUID) {
+		groupIDs, _ := TraPGroupRepo.GetUserBelongingGroupIDs(userID)
+		out <- groupIDs
+	}(ch)
+
+	groupIDs := make([]uuid.UUID, 0)
+	for i := 0; i < cap(ch); i++ {
+		IDs := <-ch
+		groupIDs = append(groupIDs, IDs...)
 	}
 
-	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv1)
-	externalGroupIDs, err := UserGroupRepo.GetUserBelongingGroupIDs(userID)
-	if err != nil {
-		return nil, err
-	}
-	groupIDs = append(groupIDs, externalGroupIDs...)
 	return groupIDs, nil
+}
+
+func (d Dao) GetAllGroups(token string) ([]*GroupRes, error) {
+	ch := make(chan []*GroupRes, 3) // 並列数と対応させること
+	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
+	TraPGroupRepo := d.InitTraPGroupRepo(token, repo.TraQv3)
+
+	go func(out chan []*GroupRes) {
+		groups, _ := d.Repo.GetAllGroups()
+		out <- FormatGroupsRes(groups, false)
+	}(ch)
+	go func(out chan []*GroupRes) {
+		groups, _ := UserGroupRepo.GetAllGroups()
+		out <- FormatGroupsRes(groups, true)
+	}(ch)
+	go func(out chan []*GroupRes) {
+		groups, _ := TraPGroupRepo.GetAllGroups()
+		out <- FormatGroupsRes(groups, true)
+	}(ch)
+
+	groups := make([]*GroupRes, 0)
+	for i := 0; i < cap(ch); i++ {
+		gs := <-ch
+		groups = append(groups, gs...)
+	}
+	return groups, nil
 }
 
 func (d Dao) CreateGroup(token string, groupParams repo.WriteGroupParams) (*GroupRes, error) {
