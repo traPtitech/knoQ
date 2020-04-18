@@ -397,6 +397,7 @@ func (repo *TraPGroupRepository) getGroup() (*Group, error) {
 	}
 	group := &Group{
 		ID:          traPGroupID,
+		Name:        "traP",
 		Description: "traP全体グループ",
 		JoinFreely:  false,
 	}
