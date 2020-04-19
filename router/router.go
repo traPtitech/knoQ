@@ -22,6 +22,8 @@ type Handlers struct {
 	SessionKey    []byte
 	SessionOption sessions.Options
 	ClientID      string
+	WebhookID     string
+	WebhookSecret string
 }
 
 func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
@@ -31,7 +33,6 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.HTTPErrorHandler = HTTPErrorHandler
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
-
 	e.Use(AccessLoggingMiddleware(h.Logger))
 
 	e.Use(session.Middleware(gormstore.New(db, h.SessionKey)))
@@ -70,12 +71,12 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		apiEvents := api.Group("/events")
 		{
 			apiEvents.GET("", h.HandleGetEvents)
-			apiEvents.POST("", h.HandlePostEvent)
+			apiEvents.POST("", h.HandlePostEvent, middleware.BodyDump(h.WebhookEventHandler))
 
 			apiEvent := apiEvents.Group("/:eventid")
 			{
 				apiEvent.GET("", h.HandleGetEvent)
-				apiEvent.PUT("", h.HandleUpdateEvent, h.EventCreatedUserMiddleware)
+				apiEvent.PUT("", h.HandleUpdateEvent, h.EventCreatedUserMiddleware, middleware.BodyDump(h.WebhookEventHandler))
 				apiEvent.DELETE("", h.HandleDeleteEvent, h.EventCreatedUserMiddleware)
 
 				apiEvent.POST("/tags", h.HandleAddEventTag)

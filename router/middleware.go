@@ -1,13 +1,18 @@
 package router
 
 import (
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	log "room/logging"
 	repo "room/repository"
+	"room/router/service"
 	"room/utils"
 	"strconv"
 	"strings"
@@ -252,6 +257,28 @@ func (h *Handlers) RoomCreatedUserMiddleware(next echo.HandlerFunc) echo.Handler
 	}
 }
 
+// WebhookEventHandler is used with middleware.BodyDump
+func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) {
+	resEvent := new(service.EventRes)
+	err := json.Unmarshal(resBody, resEvent)
+	if err != nil {
+		return
+	}
+	fmt.Println(resEvent)
+	token, _ := getRequestUserToken(c)
+	group, err := h.Dao.GetGroup(token, resEvent.GroupID)
+	if err != nil {
+		return
+	}
+	room, err := h.Repo.GetRoom(resEvent.RoomID)
+	if err != nil {
+		return
+	}
+	content := fmt.Sprintf("%s, %s, %s", resEvent.Name, group.Name, room.Place)
+	err = requestWebhook(content, h.WebhookSecret, "", h.WebhookID, 0)
+	fmt.Println(err)
+}
+
 func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {
 	form := url.Values{}
 	form.Add("grant_type", "authorization_code")
@@ -280,6 +307,32 @@ func requestOAuth(clientID, code, codeVerifier string) (token string, err error)
 
 	token = oauthRes.AccessToken
 	return
+}
+
+func requestWebhook(message, secret, channelID, webhookID string, embed int) error {
+	req, err := http.NewRequest(http.MethodPost,
+		fmt.Sprintf("https://q.trap.jp/api/1.0/webhooks/%s", webhookID), strings.NewReader(message))
+	if err != nil {
+		return err
+	}
+	req.Header.Set(echo.HeaderContentType, echo.MIMETextPlain)
+	req.Header.Set("X-TRAQ-Signature", calcSignature(message, secret))
+	//req.Header.Set("X-TRAQ-Channel-Id", channelID)
+	// TODO embed
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode >= 400 {
+		return errors.New(http.StatusText(res.StatusCode))
+	}
+	return nil
+}
+
+func calcSignature(message, secret string) string {
+	mac := hmac.New(sha1.New, []byte(secret))
+	mac.Write([]byte(message))
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 func getRequestUserID(c echo.Context) (uuid.UUID, error) {
