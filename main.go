@@ -81,8 +81,8 @@ func main() {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		},
-		WebhookID:     os.Getenv(""),
-		WebhookSecret: os.Getenv(""),
+		WebhookID:     os.Getenv("WEBHOOK_ID"),
+		WebhookSecret: os.Getenv("WEBHOOK_SECRET"),
 	}
 
 	e := handler.SetupRoute(db)
