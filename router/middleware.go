@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
 	log "room/logging"
 	repo "room/repository"
 	"room/router/service"
@@ -274,8 +275,15 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	if err != nil {
 		return
 	}
-	content := fmt.Sprintf("%s, %s, %s", resEvent.Name, group.Name, room.Place)
-	err = requestWebhook(content, h.WebhookSecret, "", h.WebhookID, 0)
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	content := fmt.Sprintf(
+		`### [%s](localhost:4000/events/%s)
+- 主催: [%s](localhost:4000/groups/%s)
+- 日時: %s ~ %s
+- 場所: %s
+		
+%s`, resEvent.Name, resEvent.ID, group.Name, group.ID, resEvent.TimeStart.In(jst).Format(time.RFC822), resEvent.TimeEnd.In(jst).Format(time.RFC822), room.Place, resEvent.Description)
+	err = requestWebhook(content, h.WebhookSecret, "62c449b8-3794-4fae-a976-e5d35f1ca327", h.WebhookID, 1)
 	fmt.Println(err)
 }
 
@@ -310,15 +318,25 @@ func requestOAuth(clientID, code, codeVerifier string) (token string, err error)
 }
 
 func requestWebhook(message, secret, channelID, webhookID string, embed int) error {
-	req, err := http.NewRequest(http.MethodPost,
-		fmt.Sprintf("https://q.trap.jp/api/1.0/webhooks/%s", webhookID), strings.NewReader(message))
+	u, err := url.Parse("https://q.trap.jp/api/1.0/webhooks")
+	if err != nil {
+		return err
+	}
+	u.Path = path.Join(u.Path, webhookID)
+	query := u.Query()
+	query.Set("embed", strconv.Itoa(embed))
+	u.RawQuery = query.Encode()
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), strings.NewReader(message))
 	if err != nil {
 		return err
 	}
 	req.Header.Set(echo.HeaderContentType, echo.MIMETextPlain)
 	req.Header.Set("X-TRAQ-Signature", calcSignature(message, secret))
-	//req.Header.Set("X-TRAQ-Channel-Id", channelID)
-	// TODO embed
+	if channelID != "" {
+		req.Header.Set("X-TRAQ-Channel-Id", channelID)
+	}
+
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
