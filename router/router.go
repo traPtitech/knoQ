@@ -24,6 +24,7 @@ type Handlers struct {
 	ClientID      string
 	WebhookID     string
 	WebhookSecret string
+	Origin        string
 }
 
 func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {

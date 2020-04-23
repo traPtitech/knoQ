@@ -83,6 +83,7 @@ func main() {
 		},
 		WebhookID:     os.Getenv("WEBHOOK_ID"),
 		WebhookSecret: os.Getenv("WEBHOOK_SECRET"),
+		Origin:        os.Getenv("ROOM_ORIGIN"),
 	}
 
 	e := handler.SetupRoute(db)

@@ -276,15 +276,15 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 	jst, _ := time.LoadLocation("Asia/Tokyo")
-	content := fmt.Sprintf(
-		`### [%s](localhost:4000/events/%s)
-- 主催: [%s](localhost:4000/groups/%s)
-- 日時: %s ~ %s
-- 場所: %s
-		
-%s`, resEvent.Name, resEvent.ID, group.Name, group.ID, resEvent.TimeStart.In(jst).Format(time.RFC822), resEvent.TimeEnd.In(jst).Format(time.RFC822), room.Place, resEvent.Description)
-	err = requestWebhook(content, h.WebhookSecret, "62c449b8-3794-4fae-a976-e5d35f1ca327", h.WebhookID, 1)
-	fmt.Println(err)
+	timeFormat := "01/02(Mon) 15:04"
+	content := fmt.Sprintf("### [%s](%s/events/%s)", resEvent.Name, h.Origin, resEvent.ID) + "\n"
+	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", group.Name, h.Origin, group.ID) + "\n"
+	content += fmt.Sprintf("- 日時: %s ~ %s", resEvent.TimeStart.In(jst).Format(timeFormat), resEvent.TimeEnd.In(jst).Format(timeFormat)) + "\n"
+	content += fmt.Sprintf("- 場所: %s", room.Place) + "\n"
+	content += "\n"
+	content += resEvent.Description
+
+	_ = requestWebhook(content, h.WebhookSecret, "62c449b8-3794-4fae-a976-e5d35f1ca327", h.WebhookID, 1)
 }
 
 func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {
