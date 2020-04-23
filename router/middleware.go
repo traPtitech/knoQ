@@ -289,7 +289,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	content += "\n"
 	content += resEvent.Description
 
-	_ = requestWebhook(content, h.WebhookSecret, "62c449b8-3794-4fae-a976-e5d35f1ca327", h.WebhookID, 1)
+	_ = requestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }
 
 func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {

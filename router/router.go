@@ -18,13 +18,14 @@ import (
 
 type Handlers struct {
 	service.Dao
-	Logger        *zap.Logger
-	SessionKey    []byte
-	SessionOption sessions.Options
-	ClientID      string
-	WebhookID     string
-	WebhookSecret string
-	Origin        string
+	Logger            *zap.Logger
+	SessionKey        []byte
+	SessionOption     sessions.Options
+	ClientID          string
+	WebhookID         string
+	WebhookSecret     string
+	ActivityChannelID string
+	Origin            string
 }
 
 func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
