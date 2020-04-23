@@ -265,7 +265,6 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	if err != nil {
 		return
 	}
-	fmt.Println(resEvent)
 	token, _ := getRequestUserToken(c)
 	group, err := h.Dao.GetGroup(token, resEvent.GroupID)
 	if err != nil {
@@ -277,7 +276,13 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	}
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	timeFormat := "01/02(Mon) 15:04"
-	content := fmt.Sprintf("### [%s](%s/events/%s)", resEvent.Name, h.Origin, resEvent.ID) + "\n"
+	var content string
+	if c.Request().Method == http.MethodPost {
+		content = "## イベントが作成されました" + "\n"
+	} else if c.Request().Method == http.MethodPut {
+		content = "## イベントが更新されました" + "\n"
+	}
+	content += fmt.Sprintf("### [%s](%s/events/%s)", resEvent.Name, h.Origin, resEvent.ID) + "\n"
 	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", group.Name, h.Origin, group.ID) + "\n"
 	content += fmt.Sprintf("- 日時: %s ~ %s", resEvent.TimeStart.In(jst).Format(timeFormat), resEvent.TimeEnd.In(jst).Format(timeFormat)) + "\n"
 	content += fmt.Sprintf("- 場所: %s", room.Place) + "\n"
