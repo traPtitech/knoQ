@@ -7,6 +7,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
+	"github.com/lestrrat-go/ical"
 )
 
 // WriteEventParams is used create and update
@@ -274,4 +275,22 @@ func (e *Event) IsTimeConsistency(allowTogether bool) bool {
 		return false
 	}
 	return true
+}
+
+// ICal returns
+func (e *Event) ICal() *ical.Event {
+	timeLayout := "20060102T150405Z"
+	vevent := ical.NewEvent()
+	vevent.AddProperty("uid", e.ID.String())
+	vevent.AddProperty("dtstamp", time.Now().UTC().Format(timeLayout))
+	vevent.AddProperty("dtstart", e.TimeStart.UTC().Format(timeLayout))
+	vevent.AddProperty("dtend", e.TimeEnd.UTC().Format(timeLayout))
+	vevent.AddProperty("created", e.CreatedAt.UTC().Format(timeLayout))
+	vevent.AddProperty("last-modified", e.UpdatedAt.UTC().Format(timeLayout))
+	vevent.AddProperty("summary", e.Name)
+	vevent.AddProperty("description", e.Description)
+	vevent.AddProperty("location", e.Room.Place)
+	vevent.AddProperty("organizer", e.CreatedBy.String())
+
+	return vevent
 }
