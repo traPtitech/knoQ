@@ -1,7 +1,10 @@
 package repository
 
 import (
+	"bytes"
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -146,7 +149,12 @@ func ExampleEvent_ICal() {
 	vevent.AddProperty("dtstamp", t.Format("20060102T150405Z"))
 	c.AddEntry(vevent)
 
-	ical.NewEncoder(os.Stdout).Encode(c)
+	// ical.NewEncoder(os.Stdout).Encode(c)
+
+	var buffer bytes.Buffer
+	ical.NewEncoder(&buffer).Encode(c)
+	output := strings.Replace(buffer.String(), "\r\n", "\n", -1)
+	fmt.Fprintf(os.Stdout, "%s", output)
 
 	// Output:
 	// BEGIN:VCALENDAR
