@@ -20,6 +20,7 @@ var traQjson = jsoniter.Config{
 
 type UserRepository interface {
 	CreateUser(isAdmin bool) (*User, error)
+	UpdateiCalSecretUser(userID uuid.UUID, secret string) error
 	GetUser(userID uuid.UUID) (*User, error)
 	GetAllUsers() ([]*User, error)
 }
@@ -52,6 +53,16 @@ func (repo *GormRepository) GetAllUsers() ([]*User, error) {
 	users := make([]*User, 0)
 	err := repo.DB.Find(&users).Error
 	return users, err
+}
+
+func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string) error {
+	if userID == uuid.Nil {
+		return ErrNilID
+	}
+	if err := repo.DB.Model(&User{ID: userID}).Update("ical_secret", secret).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // traQRepository implements UserRepository
@@ -108,6 +119,9 @@ func (repo *TraQRepository) GetAllUsers() ([]*User, error) {
 		users[i] = formatV3User(u)
 	}
 	return users, err
+}
+func (repo *TraQRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string) error {
+	return ErrForbidden
 }
 
 func formatV3User(u *traQrouterV3.User) *User {

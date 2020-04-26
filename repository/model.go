@@ -25,6 +25,7 @@ type User struct {
 	ID uuid.UUID `gorm:"type:char(36); primary_key"`
 	// Admin アプリの管理者かどうか
 	Admin       bool   `gorm:"not null"`
+	ICalSecret  string `gorm:"not null"`
 	Name        string `gorm:"-"`
 	DisplayName string `gorm:"-"`
 }

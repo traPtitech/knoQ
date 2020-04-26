@@ -1,12 +1,14 @@
 package router
 
 import (
+	"bytes"
 	"net/http"
 	repo "room/repository"
 	"room/router/service"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
+	"github.com/lestrrat-go/ical"
 
 	"github.com/labstack/echo/v4"
 )
@@ -232,4 +234,28 @@ func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
+}
+
+func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
+	str := c.Param("secret")
+	userID, err := uuid.FromString(str[:36])
+	if err != nil {
+		return notFound(err)
+	}
+	secret := str[36:]
+	user, err := h.Dao.Repo.GetUser(userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	if user.ICalSecret != secret {
+		return notFound(err)
+	}
+	cal, err := h.Dao.GetiCalByUserID(userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	var buf bytes.Buffer
+	ical.NewEncoder(&buf).Encode(cal)
+
+	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())
 }

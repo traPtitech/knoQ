@@ -105,6 +105,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiUsers.GET("", h.HandleGetUsers)
 
 			apiUsers.GET("/me", h.HandleGetUserMe)
+			apiUsers.PUT("/me/iCal", h.HandleUpdateiCal)
 			apiUsers.GET("/me/groups", h.HandleGetMeGroupIDs)
 			apiUsers.GET("/me/events", h.HandleGetMeEvents)
 
@@ -128,6 +129,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
+	e.GET("/api/iCal/users/:secret", h.HandleGetiCalByPrivateID)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {

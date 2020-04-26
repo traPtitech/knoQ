@@ -6,6 +6,7 @@ import (
 	"room/router/service"
 
 	"github.com/labstack/echo/v4"
+	traQutils "github.com/traPtitech/traQ/utils"
 )
 
 // HandleGetUserMe ヘッダー情報からuser情報を取得
@@ -65,4 +66,13 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 		res[i] = service.FormatUserRes(u)
 	}
 	return c.JSON(http.StatusOK, res)
+}
+
+func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
+	userID, _ := getRequestUserID(c)
+	secret := traQutils.RandAlphabetAndNumberString(16)
+	if err := h.Dao.Repo.UpdateiCalSecretUser(userID, secret); err != nil {
+		return judgeErrorResponse(err)
+	}
+	return c.String(http.StatusOK, secret)
 }
