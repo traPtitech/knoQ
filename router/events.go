@@ -247,7 +247,7 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	if user.ICalSecret != secret {
+	if user.IcalSecret != secret {
 		return notFound(err)
 	}
 	cal, err := h.Dao.GetiCalByUserID(userID)
