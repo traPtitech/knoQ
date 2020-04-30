@@ -10,7 +10,7 @@ require (
 	github.com/jinzhu/gorm v1.9.12
 	github.com/json-iterator/go v1.1.9
 	github.com/labstack/echo-contrib v0.8.1-0.20200115200653-2d4a7f3c41d8
-	github.com/labstack/echo/v4 v4.1.14
+	github.com/labstack/echo/v4 v4.1.16
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.5.1
 	github.com/traPtitech/traQ v1.0.0-rc.2.0.20200309071637-82e15593b8c0
