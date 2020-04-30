@@ -81,6 +81,10 @@ func main() {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		},
+		WebhookID:         os.Getenv("WEBHOOK_ID"),
+		WebhookSecret:     os.Getenv("WEBHOOK_SECRET"),
+		ActivityChannelID: os.Getenv("CHANNEL_ID"),
+		Origin:            os.Getenv("ROOM_ORIGIN"),
 	}
 
 	e := handler.SetupRoute(db)
