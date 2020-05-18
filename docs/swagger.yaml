@@ -4,7 +4,7 @@ info:
   title: traP Room
   description: |
     This is a sample Room server.
-  version: 1.0.0
+  version: 1.1.0
 
 servers:
   - url: http://develop.room.sysad.trap.show/api/
@@ -290,6 +290,30 @@ paths:
       responses:
         204:
           $ref: "#/components/responses/Nocontent"
+  
+  /events/{eventID}/attendances/me/status:
+    put:
+      tags:
+        - events
+      summary: status更新
+      parameters:
+        - name: eventID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        200:
+          $ref: "#/components/responses/event"
 
   /users/me/events:
     get:
@@ -629,6 +653,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ReqTagNameAuth"
+        attendances:
+          type: array
+          items:
+            type: object
+            properties:
+              userId: 
+                type: string
+ 
     PostEvent:
       allOf:
         - $ref: "#/components/schemas/PutEvent"
@@ -653,6 +685,18 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/ResponseTag"
+            attendances:
+              type: array
+              items:
+                type: object
+                properties:
+                  userId: 
+                    type: string
+                  status:
+                    type: string
+                  attendAt:
+                    type: string
+                    format: ISO8601
             createdBy:
               type: string
               format: uuid
