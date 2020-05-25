@@ -191,14 +191,15 @@ func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 	return event, err
 }
 
+// GetAllEvents start <= time_start <= end なイベントを取得
 func (repo *GormRepository) GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error) {
 	events := make([]*Event, 0)
 	cmd := repo.DB.Preload("Room").Preload("Tags")
 	if start != nil && !start.IsZero() {
-		cmd = cmd.Where("time_end >= ?", start.UTC())
+		cmd = cmd.Where("time_start >= ?", start)
 	}
 	if end != nil && !end.IsZero() {
-		cmd = cmd.Where("time_start <= ?", end.String())
+		cmd = cmd.Where("time_start <= ?", end)
 	}
 	err := cmd.Order("time_start").Find(&events).Error
 	return events, err
