@@ -14,8 +14,8 @@ func Test_initPostEventToTraQ(t *testing.T) {
 		DB: db,
 	}
 
-	job := initPostEventToTraQ(gr)
+	job := InitPostEventToTraQ(gr, "", "", "", "localhost:4000")
 
 	scheduler.Every(2).Seconds().Run(job)
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 2)
 }

@@ -289,7 +289,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	content += "\n"
 	content += resEvent.Description
 
-	_ = requestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
+	_ = RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }
 
 func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {
@@ -322,7 +322,7 @@ func requestOAuth(clientID, code, codeVerifier string) (token string, err error)
 	return
 }
 
-func requestWebhook(message, secret, channelID, webhookID string, embed int) error {
+func RequestWebhook(message, secret, channelID, webhookID string, embed int) error {
 	u, err := url.Parse("https://q.trap.jp/api/1.0/webhooks")
 	if err != nil {
 		return err

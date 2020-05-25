@@ -45,12 +45,12 @@ func TestMain(m *testing.M) {
 		common,
 		ex,
 	}
-	if err := migration.CreateDatabasesIfNotExists("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?charset=utf8mb4&parseTime=true", user, password, host), "room-test-", dbs...); err != nil {
+	if err := migration.CreateDatabasesIfNotExists("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?charset=utf8mb4&parseTime=true&loc=Local", user, password, host), "room-test-", dbs...); err != nil {
 		panic(err)
 	}
 
 	for _, key := range dbs {
-		db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=true", user, password, host, "room-test-"+key))
+		db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=true&loc=Local", user, password, host, "room-test-"+key))
 		if err != nil {
 			panic(err)
 		}
