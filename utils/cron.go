@@ -17,8 +17,8 @@ func InitPostEventToTraQ(repo interface {
 		tomorrow := now.AddDate(0, 0, 1)
 		rooms, _ := repo.GetAllRooms(&now, &tomorrow)
 		message := createMessage(now, rooms, origin)
-		// RequestWebhook(message, secret, channelID, webhookID, 1)
-		fmt.Println(message)
+		RequestWebhook(message, secret, channelID, webhookID, 1)
+		//fmt.Println(message)
 	}
 
 	return job
