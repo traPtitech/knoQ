@@ -16,7 +16,8 @@ func InitPostEventToTraQ(repo interface {
 		now := time.Now().AddDate(0, 0, 0)
 		tomorrow := now.AddDate(0, 0, 1)
 		rooms, _ := repo.GetAllRooms(&now, &tomorrow)
-		message := createMessage(now, rooms, origin)
+		events, _ := repo.GetAllEvents(&now, &tomorrow)
+		message := createMessage(now, rooms, events, origin)
 		RequestWebhook(message, secret, channelID, webhookID, 1)
 		//fmt.Println(message)
 	}
@@ -24,28 +25,42 @@ func InitPostEventToTraQ(repo interface {
 	return job
 }
 
-func createMessage(t time.Time, rooms []*repo.Room, origin string) (message string) {
+func createMessage(t time.Time, rooms []*repo.Room, events []*repo.Event, origin string) string {
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	date := t.In(jst).Format("01/02(Mon)")
-	public := map[bool]string{
-		true:  "**(traP講義室)**",
+	combined := map[bool]string{
+		true:  "(併用可)",
 		false: "",
 	}
-	combined := map[bool]string{
-		true:  "併用可",
-		false: "併用不可",
-	}
-	if rooms == nil {
-		return fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
-	}
-	message = fmt.Sprintf("%sの進捗部屋は、\n", date)
-	for _, room := range rooms {
-		message += fmt.Sprintf("- %s %s %s ~ %s\n", public[room.Public], room.Place,
-			room.TimeStart.In(jst).Format("15:04"), room.TimeEnd.In(jst).Format("15:04"))
-		for _, event := range room.Events {
-			message += fmt.Sprintf("\t- %s ~ [%s](%s/events/%s) (%s)\n", event.TimeStart.In(jst).Format("15:04"),
-				event.Name, origin, event.ID, combined[event.AllowTogether])
+	roomMessage := ""
+	publicRoomN := 0
+	eventMessage := "本日開催されるイベントは、\n"
+
+	if len(rooms) == 0 {
+		roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
+	} else {
+		for _, room := range rooms {
+			if room.Public {
+				publicRoomN++
+				roomMessage += fmt.Sprintf("- %s %s ~ %s\n", room.Place,
+					room.TimeStart.In(jst).Format("15:04"), room.TimeEnd.In(jst).Format("15:04"))
+			}
+		}
+		if publicRoomN == 0 {
+			roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
 		}
 	}
-	return
+
+	if len(events) == 0 {
+		eventMessage = "本日開催予定のイベントはありません。\n"
+
+	} else {
+		for _, event := range events {
+			eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s ~ %s @%s %s\n", event.Name, origin, event.ID,
+				event.TimeStart.In(jst).Format("15:04"), event.TimeEnd.In(jst).Format("15:04"),
+				event.Room.Place, combined[event.AllowTogether])
+		}
+
+	}
+	return roomMessage + eventMessage
 }
