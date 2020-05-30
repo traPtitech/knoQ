@@ -4,7 +4,7 @@ on:
       - v[0-9]+.[0-9]+.[0-9]+
 
 env:
-  IMAGE_NAME: room
+  IMAGE_NAME: knoq
 
 jobs:
   image:
@@ -19,10 +19,10 @@ jobs:
       - name: Login GitHub Registry
         run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
       - name: Build Image
-        run: docker build -t docker.pkg.github.com/traptitech/room/${IMAGE_NAME}:${IMAGE_TAG} .
+        run: docker build -t docker.pkg.github.com/traptitech/knoq/${IMAGE_NAME}:${IMAGE_TAG} .
       - name: Push image to GitHub Registry
-        run: docker push docker.pkg.github.com/traptitech/room/${IMAGE_NAME}:${IMAGE_TAG}
+        run: docker push docker.pkg.github.com/traptitech/knoq/${IMAGE_NAME}:${IMAGE_TAG}
       - name: Push image to GitHub Registry (latest)
         run: |
-          docker tag docker.pkg.github.com/traptitech/room/${IMAGE_NAME}:$IMAGE_TAG docker.pkg.github.com/traptitech/room/${IMAGE_NAME}:latest
-          docker push docker.pkg.github.com/traptitech/room/${IMAGE_NAME}:latest
+          docker tag docker.pkg.github.com/traptitech/knoq/${IMAGE_NAME}:$IMAGE_TAG docker.pkg.github.com/traptitech/knoq/${IMAGE_NAME}:latest
+          docker push docker.pkg.github.com/traptitech/knoq/${IMAGE_NAME}:latest
