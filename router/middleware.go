@@ -1,13 +1,19 @@
 package router
 
 import (
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"path"
 	log "room/logging"
 	repo "room/repository"
+	"room/router/service"
 	"room/utils"
 	"strconv"
 	"strings"
@@ -252,6 +258,40 @@ func (h *Handlers) RoomCreatedUserMiddleware(next echo.HandlerFunc) echo.Handler
 	}
 }
 
+// WebhookEventHandler is used with middleware.BodyDump
+func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) {
+	resEvent := new(service.EventRes)
+	err := json.Unmarshal(resBody, resEvent)
+	if err != nil {
+		return
+	}
+	token, _ := getRequestUserToken(c)
+	group, err := h.Dao.GetGroup(token, resEvent.GroupID)
+	if err != nil {
+		return
+	}
+	room, err := h.Repo.GetRoom(resEvent.RoomID)
+	if err != nil {
+		return
+	}
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	timeFormat := "01/02(Mon) 15:04"
+	var content string
+	if c.Request().Method == http.MethodPost {
+		content = "## イベントが作成されました" + "\n"
+	} else if c.Request().Method == http.MethodPut {
+		content = "## イベントが更新されました" + "\n"
+	}
+	content += fmt.Sprintf("### [%s](%s/events/%s)", resEvent.Name, h.Origin, resEvent.ID) + "\n"
+	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", group.Name, h.Origin, group.ID) + "\n"
+	content += fmt.Sprintf("- 日時: %s ~ %s", resEvent.TimeStart.In(jst).Format(timeFormat), resEvent.TimeEnd.In(jst).Format(timeFormat)) + "\n"
+	content += fmt.Sprintf("- 場所: %s", room.Place) + "\n"
+	content += "\n"
+	content += resEvent.Description
+
+	_ = RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
+}
+
 func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {
 	form := url.Values{}
 	form.Add("grant_type", "authorization_code")
@@ -280,6 +320,42 @@ func requestOAuth(clientID, code, codeVerifier string) (token string, err error)
 
 	token = oauthRes.AccessToken
 	return
+}
+
+func RequestWebhook(message, secret, channelID, webhookID string, embed int) error {
+	u, err := url.Parse("https://q.trap.jp/api/1.0/webhooks")
+	if err != nil {
+		return err
+	}
+	u.Path = path.Join(u.Path, webhookID)
+	query := u.Query()
+	query.Set("embed", strconv.Itoa(embed))
+	u.RawQuery = query.Encode()
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), strings.NewReader(message))
+	if err != nil {
+		return err
+	}
+	req.Header.Set(echo.HeaderContentType, echo.MIMETextPlain)
+	req.Header.Set("X-TRAQ-Signature", calcSignature(message, secret))
+	if channelID != "" {
+		req.Header.Set("X-TRAQ-Channel-Id", channelID)
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode >= 400 {
+		return errors.New(http.StatusText(res.StatusCode))
+	}
+	return nil
+}
+
+func calcSignature(message, secret string) string {
+	mac := hmac.New(sha1.New, []byte(secret))
+	mac.Write([]byte(message))
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 func getRequestUserID(c echo.Context) (uuid.UUID, error) {

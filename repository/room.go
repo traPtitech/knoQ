@@ -113,10 +113,10 @@ func (repo *GormRepository) GetAllRooms(start *time.Time, end *time.Time) ([]*Ro
 	rooms := make([]*Room, 0)
 	cmd := repo.DB.Preload("Events")
 	if start != nil && !start.IsZero() {
-		cmd = cmd.Where("time_start >= ?", start.UTC())
+		cmd = cmd.Where("time_start >= ?", start)
 	}
 	if end != nil && !end.IsZero() {
-		cmd = cmd.Where("time_end <= ?", end.UTC())
+		cmd = cmd.Where("time_start <= ?", end)
 	}
 	err := cmd.Order("time_start").Find(&rooms).Error
 	return rooms, err
