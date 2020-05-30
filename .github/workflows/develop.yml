@@ -18,7 +18,5 @@ jobs:
         run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
       - name: Build Image
         run: docker build -t docker.pkg.github.com/traptitech/knoq/${IMAGE_NAME}:beta .
-      - name: Push image to GitHub Registry
-        run: docker push docker.pkg.github.com/traptitech/knoq/${IMAGE_NAME}:beta
       - name: Push image to GitHub Registry (beta)
         run: docker push docker.pkg.github.com/traptitech/knoq/${IMAGE_NAME}:beta
