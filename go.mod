@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/carlescere/scheduler v0.0.0-20170109141437-ee74d2f83d82
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gofrs/uuid v3.2.0+incompatible
+	github.com/gofrs/uuid v3.3.0+incompatible
 	github.com/gorilla/sessions v1.2.0
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.12
