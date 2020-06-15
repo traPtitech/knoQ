@@ -8,7 +8,7 @@ require (
 	github.com/gofrs/uuid v3.2.0+incompatible
 	github.com/gorilla/sessions v1.2.0
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
-	github.com/jinzhu/gorm v1.9.12
+	github.com/jinzhu/gorm v1.9.13
 	github.com/json-iterator/go v1.1.9
 	github.com/labstack/echo-contrib v0.8.1-0.20200115200653-2d4a7f3c41d8
 	github.com/labstack/echo/v4 v4.1.16
