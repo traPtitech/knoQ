@@ -1,4 +1,4 @@
-FROM node:13.12.0-alpine as web-build
+FROM node:14.4.0-alpine as web-build
 
 WORKDIR /github.com/traPtitech/knoq/web
 
