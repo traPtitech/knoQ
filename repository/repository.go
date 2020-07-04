@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 
+	"room/migration"
+
 	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -186,9 +188,8 @@ func SetupDatabase() (*gorm.DB, error) {
 func initDB(db *gorm.DB) error {
 	// gormのエラーの上書き
 	gorm.ErrRecordNotFound = ErrNotFound
-
-	// テーブルが無ければ作成
-	if err := db.AutoMigrate(tables...).Error; err != nil {
+	db.LogMode(true)
+	if err := migration.Migrate(db, tables); err != nil {
 		return err
 	}
 	return nil
