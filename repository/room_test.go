@@ -33,7 +33,7 @@ func TestGormRepository_CreateRoom(t *testing.T) {
 
 	t.Run("duplicate room", func(t *testing.T) {
 		if room2, err := repo.CreateRoom(params); assert.NoError(t, err) {
-			assert.Equal(t, room.ID, room2.ID)
+			assert.NotEqual(t, room.ID, room2.ID)
 		}
 	})
 }

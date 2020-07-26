@@ -41,7 +41,12 @@ func (h *Handlers) HandleSetRooms(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 	res := make([]*service.RoomRes, 0)
-	for _, room := range googleRooms {
+	currentRooms, err := h.Repo.GetAllRooms(&now, nil)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	filterdRooms := filterSameRooms(currentRooms, googleRooms)
+	for _, room := range filterdRooms {
 		roomParams := new(repo.WriteRoomParams)
 		err := copier.Copy(&roomParams, room)
 		if err != nil {
@@ -143,4 +148,23 @@ func (h *Handlers) HandleDeletePrivateRoom(c echo.Context) error {
 
 func setCreatedBytoRoom(c echo.Context, roomParams *repo.WriteRoomParams) {
 	roomParams.CreatedBy, _ = getRequestUserID(c)
+}
+
+// filterSameRooms currentRoomsにあるroomと
+// 同一なroom(Place, Public ,TimeStart, TimeEndが同一)を
+// targetRoomsから削除したものを返します。
+func filterSameRooms(currentRooms []*repo.Room, targetRooms []*repo.Room) []*repo.Room {
+	rooms := make([]*repo.Room, 0)
+	for _, t := range targetRooms {
+		alreadyExist := false
+		for _, c := range currentRooms {
+			if t.Place == c.Place && t.Public == c.Public && t.TimeStart.Equal(c.TimeStart) && t.TimeEnd.Equal(c.TimeEnd) {
+				alreadyExist = true
+			}
+		}
+		if !alreadyExist {
+			rooms = append(rooms, t)
+		}
+	}
+	return rooms
 }
