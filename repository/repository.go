@@ -188,7 +188,7 @@ func SetupDatabase() (*gorm.DB, error) {
 func initDB(db *gorm.DB) error {
 	// gormのエラーの上書き
 	gorm.ErrRecordNotFound = ErrNotFound
-	db.LogMode(true)
+	// db.LogMode(true)
 	if err := migration.Migrate(db, tables); err != nil {
 		return err
 	}
