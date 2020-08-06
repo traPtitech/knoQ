@@ -1,4 +1,4 @@
-FROM node:13.12.0-alpine as web-build
+FROM node:14.5.0-alpine as web-build
 
 WORKDIR /github.com/traPtitech/knoq/web
 
@@ -6,7 +6,7 @@ COPY ./web ./
 RUN yarn
 RUN yarn build
 
-FROM golang:1.13.8-alpine as server-build
+FROM golang:1.14.6-alpine as server-build
 
 WORKDIR /github.com/traPtitech/knoq
 
@@ -17,7 +17,7 @@ COPY ./ ./
 
 RUN go build -o knoq
 
-FROM alpine:3.9
+FROM alpine:3.12.0
 
 WORKDIR /app
 
