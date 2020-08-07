@@ -6,7 +6,7 @@ COPY ./web ./
 RUN yarn
 RUN yarn build
 
-FROM golang:1.14.6-alpine as server-build
+FROM golang:1.14.7-alpine as server-build
 
 WORKDIR /github.com/traPtitech/knoq
 
