@@ -6,13 +6,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGormRepository_CreateUser(t *testing.T) {
+func TestGormRepository_SaveUser(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupGormRepo(t, common)
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-		_, err := repo.CreateUser(false)
+		_, err := repo.SaveUser(false)
 		assert.NoError(t, err)
 	})
 }
@@ -20,7 +20,7 @@ func TestGormRepository_CreateUser(t *testing.T) {
 func TestGormRepository_GetUser(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupGormRepo(t, common)
-	user := mustMakeUser(t, repo, false)
+	user := mustMakeUserMeta(t, repo, false)
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()

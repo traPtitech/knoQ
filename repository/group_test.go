@@ -12,7 +12,7 @@ import (
 func TestGormRepository_CreateGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupGormRepo(t, common)
-	user := mustMakeUser(t, repo, false)
+	user := mustMakeUserMeta(t, repo, false)
 
 	params := WriteGroupParams{
 		Name:      traQutils.RandAlphabetAndNumberString(20),
@@ -22,7 +22,7 @@ func TestGormRepository_CreateGroup(t *testing.T) {
 
 	if group, err := repo.CreateGroup(params); assert.NoError(t, err) {
 		assert.NotNil(t, group)
-		assert.Equal(t, params.Members[0], group.Members[0].ID)
+		assert.Equal(t, params.Members[0], group.Members[0].UserID)
 		assert.Equal(t, 2, len(group.Members))
 	}
 }
@@ -40,13 +40,13 @@ func TestGormRepository_UpdateGroup(t *testing.T) {
 
 	if group, err := repo.UpdateGroup(group.ID, params); assert.NoError(t, err) {
 		assert.NotNil(t, group)
-		assert.Equal(t, params.Members[0], group.Members[0].ID)
+		assert.Equal(t, params.Members[0], group.Members[0].UserID)
 		assert.Equal(t, 2, len(group.Members))
 	}
 }
 
 func TestGormRepository_AddUserToGroup(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	repo, _, _, user := setupGormRepoWithUser(t, common)
 	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
 
@@ -64,7 +64,7 @@ func TestGormRepository_AddUserToGroup(t *testing.T) {
 
 	t.Run("Add already exists user", func(t *testing.T) {
 		t.Parallel()
-		user := mustMakeUser(t, repo, false)
+		user := mustMakeUserMeta(t, repo, false)
 		err := repo.AddUserToGroup(group.ID, user.ID)
 		assert.NoError(t, err)
 		err = repo.AddUserToGroup(group.ID, user.ID)
@@ -103,7 +103,7 @@ func TestGormRepository_DeleteUserInGroup(t *testing.T) {
 	})
 
 	t.Run("Delete not existing member in group", func(t *testing.T) {
-		user := mustMakeUser(t, repo, false)
+		user := mustMakeUserMeta(t, repo, false)
 		err := repo.DeleteUserInGroup(group.ID, user.ID)
 		assert.EqualError(t, err, ErrNotFound.Error())
 	})
@@ -119,7 +119,7 @@ func TestGormRepository_GetGroup(t *testing.T) {
 	t.Run("Get existing group", func(t *testing.T) {
 		if group, err := repo.GetGroup(group.ID); assert.NoError(t, err) {
 			assert.NotNil(t, group)
-			assert.Equal(t, user.ID, group.Members[0].ID)
+			assert.Equal(t, user.ID, group.Members[0].UserID)
 		}
 	})
 
@@ -146,7 +146,7 @@ func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
 func TestTraQRepository_CreateGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupTraQRepo(t, TraQv3)
-	user := mustMakeUser(t, repo, false)
+	user := mustMakeUserBody(t, repo, traQutils.RandAlphabetAndNumberString(10), traQutils.RandAlphabetAndNumberString(10))
 
 	params := WriteGroupParams{
 		Name:      traQutils.RandAlphabetAndNumberString(20),
@@ -156,7 +156,7 @@ func TestTraQRepository_CreateGroup(t *testing.T) {
 
 	if group, err := repo.CreateGroup(params); assert.NoError(t, err) {
 		assert.NotNil(t, group)
-		assert.Equal(t, params.Members[0], group.Members[0].ID)
+		assert.Equal(t, params.Members[0], group.Members[0].UserID)
 		assert.Equal(t, 1, len(group.Members))
 	}
 
@@ -165,7 +165,7 @@ func TestTraQRepository_CreateGroup(t *testing.T) {
 func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupTraQRepo(t, TraQv1)
-	user := mustMakeUser(t, repo, false)
+	user := mustMakeUserBody(t, repo, traQutils.RandAlphabetAndNumberString(10), traQutils.RandAlphabetAndNumberString(10))
 
 	t.Run("success", func(t *testing.T) {
 		if groupIDs, err := repo.GetUserBelongingGroupIDs(user.ID); assert.NoError(t, err) {
@@ -177,7 +177,7 @@ func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 func TestTraQRepository_GetGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupTraQRepo(t, TraQv3)
-	user := mustMakeUser(t, repo, false)
+	user := mustMakeUserBody(t, repo, traQutils.RandAlphabetAndNumberString(10), traQutils.RandAlphabetAndNumberString(10))
 	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(10), user.ID)
 
 	t.Run("success", func(t *testing.T) {

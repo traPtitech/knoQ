@@ -23,7 +23,7 @@ import (
 
 // 新たにモデル(テーブル)を定義した場合はここに追加する事
 var tables = []interface{}{
-	User{},
+	UserMeta{},
 	Room{},
 	Group{},
 	Event{},
@@ -33,7 +33,7 @@ var tables = []interface{}{
 }
 
 type Repository interface {
-	UserRepository
+	UserMetaRepositiory
 	GroupRepository
 	RoomRepository
 	EventRepository
