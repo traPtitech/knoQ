@@ -22,6 +22,7 @@ type UserMetaRepository interface {
 	GetUser(userID uuid.UUID) (*UserMeta, error)
 	GetAllUsers() ([]*UserMeta, error)
 	ReplaceToken(token string) error
+	GetToken(userID uuid.UUID) (string, error)
 }
 
 type UserBodyRepository interface {
@@ -65,6 +66,13 @@ func (repo *GormRepository) ReplaceToken(token string) error {
 	user := UserMeta{}
 	err := repo.DB.Model(&user).Update("token", token).Error
 	return err
+}
+func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
+	user := UserMeta{
+		ID: userID,
+	}
+	err := repo.DB.First(&user).Error
+	return user.Token, err
 }
 
 // traQRepository implements UserRepository
