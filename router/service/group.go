@@ -148,7 +148,7 @@ func (d Dao) AddUserToGroup(token string, groupID uuid.UUID, userID uuid.UUID) e
 	return d.Repo.AddUserToGroup(groupID, userID)
 }
 
-func groupMembersValidation(groupParams repo.WriteGroupParams, allUsers []*repo.User) error {
+func groupMembersValidation(groupParams repo.WriteGroupParams, allUsers []*repo.UserBody) error {
 	// member validation
 	for _, paramUserID := range groupParams.Members {
 		exist := false
