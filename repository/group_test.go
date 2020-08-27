@@ -146,7 +146,7 @@ func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
 func TestTraQRepository_CreateGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupTraQRepo(t, TraQv3)
-	user := mustMakeUserBody(t, repo, traQutils.RandAlphabetAndNumberString(10), traQutils.RandAlphabetAndNumberString(10))
+	user := mustMakeUserBody(t, repo, traQutils.RandAlphabetAndNumberString(20), traQutils.RandAlphabetAndNumberString(20))
 
 	params := WriteGroupParams{
 		Name:      traQutils.RandAlphabetAndNumberString(20),

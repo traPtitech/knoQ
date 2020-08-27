@@ -70,7 +70,7 @@ func (repo *GormRepository) ReplaceToken(token string) error {
 // traQRepository implements UserRepository
 
 // CreateUser 新たにユーザーを作成する
-func (repo *TraQRepository) CreateUser(name, displayName, password string) (*UserBody, error) {
+func (repo *TraQRepository) CreateUser(name, password, displayName string) (*UserBody, error) {
 	if repo.Version != TraQv1 {
 		repo.Version = TraQv1
 		defer func() {
