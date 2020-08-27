@@ -21,7 +21,7 @@ type UserMetaRepository interface {
 	SaveUser(isAdmin bool) (*UserMeta, error)
 	GetUser(userID uuid.UUID) (*UserMeta, error)
 	GetAllUsers() ([]*UserMeta, error)
-	ReplaceToken(token string) error
+	ReplaceToken(userID uuid.UUID, token string) error
 	GetToken(userID uuid.UUID) (string, error)
 }
 
@@ -61,9 +61,11 @@ func (repo *GormRepository) GetAllUsers() ([]*UserMeta, error) {
 	return users, err
 }
 
-func (repo *GormRepository) ReplaceToken(token string) error {
+func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
 	// TODO 暗号化
-	user := UserMeta{}
+	user := UserMeta{
+		ID: userID,
+	}
 	err := repo.DB.Model(&user).Update("token", token).Error
 	return err
 }

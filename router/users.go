@@ -15,6 +15,10 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 
 	user, err := h.Dao.GetUser(token, userID)
 	if err != nil {
+		if err.Error() == http.StatusText(http.StatusUnauthorized) {
+			h.Repo.ReplaceToken(userID, "")
+			return forbidden(err, message("token is invalid."))
+		}
 		return judgeErrorResponse(err)
 	}
 	return c.JSON(http.StatusOK, service.FormatUserRes(user))
@@ -23,9 +27,14 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 // HandleGetUsers ユーザーすべてを取得
 func (h *Handlers) HandleGetUsers(c echo.Context) error {
 	token, _ := getRequestUserToken(c)
+	userID, _ := getRequestUserID(c)
 
 	users, err := h.Dao.GetAllUsers(token)
 	if err != nil {
+		if err.Error() == http.StatusText(http.StatusUnauthorized) {
+			h.Repo.ReplaceToken(userID, "")
+			return forbidden(err, message("token is invalid."))
+		}
 		return judgeErrorResponse(err)
 	}
 

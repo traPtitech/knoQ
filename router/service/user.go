@@ -1,7 +1,6 @@
 package service
 
 import (
-	"net/http"
 	repo "room/repository"
 
 	"github.com/gofrs/uuid"
@@ -43,10 +42,10 @@ func (d Dao) GetUser(token string, userID uuid.UUID) (*User, error) {
 
 	userBody, err := UserGroupRepo.GetUser(userID)
 	if err != nil {
-		if err.Error() == http.StatusText(http.StatusUnauthorized) {
-			// 認証が切れている
-			d.Repo.ReplaceToken("")
-		}
+		//if err.Error() == http.StatusText(http.StatusUnauthorized) {
+		//// 認証が切れている
+		//return nil, repo.ErrForbidden
+		//}
 		return nil, err
 	}
 	userMeta, _ := d.Repo.GetUser(userID)
@@ -59,10 +58,10 @@ func (d Dao) GetAllUsers(token string) ([]*User, error) {
 
 	body, err := UserGroupRepo.GetAllUsers()
 	if err != nil {
-		if err.Error() == http.StatusText(http.StatusUnauthorized) {
-			// 認証が切れている
-			d.Repo.ReplaceToken("")
-		}
+		//if err.Error() == http.StatusText(http.StatusUnauthorized) {
+		//// 認証が切れている
+		//return nil, repo.ErrForbidden
+		//}
 		return nil, err
 	}
 	meta, err := d.Repo.GetAllUsers()
