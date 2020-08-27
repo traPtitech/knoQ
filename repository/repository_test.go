@@ -135,7 +135,7 @@ func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.
 	return r, assert, require, user
 }
 
-func mustMakeUserMeta(t *testing.T, repo UserMetaRepositiory, admin bool) *UserMeta {
+func mustMakeUserMeta(t *testing.T, repo UserMetaRepository, admin bool) *UserMeta {
 	t.Helper()
 	user, err := repo.SaveUser(admin)
 	require.NoError(t, err)

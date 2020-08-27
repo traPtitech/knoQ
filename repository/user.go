@@ -17,7 +17,7 @@ var traQjson = jsoniter.Config{
 	TagKey:                 "traq",
 }.Froze()
 
-type UserMetaRepositiory interface {
+type UserMetaRepository interface {
 	SaveUser(isAdmin bool) (*UserMeta, error)
 	GetUser(userID uuid.UUID) (*UserMeta, error)
 	GetAllUsers() ([]*UserMeta, error)

@@ -366,7 +366,7 @@ func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	return uuid.FromString(sess.Values["userID"].(string))
 }
 
-func setRequestUserIsAdmin(c echo.Context, repo repo.UserRepository) error {
+func setRequestUserIsAdmin(c echo.Context, repo repo.UserMetaRepository) error {
 	userID, _ := getRequestUserID(c)
 	user, err := repo.GetUser(userID)
 	if err != nil {

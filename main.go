@@ -52,7 +52,7 @@ func main() {
 				DB: db,
 			},
 			InitExternalUserGroupRepo: func(token string, ver repo.TraQVersion) interface {
-				repo.UserRepository
+				repo.UserBodyRepository
 				repo.GroupRepository
 			} {
 				traQRepo := new(repo.TraQRepository)

@@ -33,7 +33,7 @@ var tables = []interface{}{
 }
 
 type Repository interface {
-	UserMetaRepositiory
+	UserMetaRepository
 	GroupRepository
 	RoomRepository
 	EventRepository
