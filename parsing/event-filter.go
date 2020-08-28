@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"regexp"
+
+	"github.com/gofrs/uuid"
 )
 
 /*---------------------------------------------------------------------------*/
@@ -18,7 +20,7 @@ func NewTokenStream(tokens ...Token) TokenStream {
 }
 
 func (ts *TokenStream) HasNext() bool {
-	return ts.pos > len(ts.tokens)
+	return ts.pos < len(ts.tokens)-1
 }
 
 func (ts *TokenStream) Next() Token {
@@ -49,10 +51,10 @@ const (
 
 var (
 	SupportedAttributes = []string{"user", "group", "tag", "event"}
-	ReAttrOrUUIDLike    = regexp.MustCompile(`^[a-z0-9\-:{}]*`)
+	ReAttrOrUUIDLike    = regexp.MustCompile(`^[a-z0-9\-:{}]+`)
 )
 
-func CheckAttrOrUUIDLike(lexeme string) TokenKind {
+func checkAttrOrUUIDLike(lexeme string) TokenKind {
 	for _, attr := range SupportedAttributes {
 		if attr == lexeme {
 			return Attr
@@ -82,31 +84,49 @@ func advanceToken(b *[]byte) (Token, error) {
 	// skip whitespaces
 	*b = bytes.TrimSpace(*b)
 
+	loc := ReAttrOrUUIDLike.FindIndex(*b)
+
+	var token Token
 	switch {
+	case loc != nil:
+		match := string((*b)[:loc[1]])
+		kind := checkAttrOrUUIDLike(match)
+		if kind == Attr {
+			token = Token{kind, match}
+		} else if uuid, err := uuid.FromString(match); err == nil {
+			token = Token{UUID, uuid.String()}
+		} else {
+			return Token{Unknown, ""}, err
+		}
+		*b = (*b)[loc[1]:]
+
 	case bytes.HasPrefix(*b, []byte("||")):
+		token = Token{Or, ""}
 		*b = (*b)[2:]
-		return Token{Or, ""}, nil
 
 	case bytes.HasPrefix(*b, []byte("&&")):
+		token = Token{And, ""}
 		*b = (*b)[2:]
-		return Token{And, ""}, nil
 
 	case bytes.HasPrefix(*b, []byte("==")):
+		token = Token{Eq, ""}
 		*b = (*b)[2:]
-		return Token{Eq, ""}, nil
 
 	case bytes.HasPrefix(*b, []byte("!=")):
+		token = Token{Neq, ""}
 		*b = (*b)[2:]
-		return Token{Neq, ""}, nil
 
 	case (*b)[0] == '(':
+		token = Token{LParen, ""}
 		*b = (*b)[1:]
-		return Token{LParen, ""}, nil
 
 	case (*b)[0] == ')':
+		token = Token{RParen, ""}
 		*b = (*b)[1:]
-		return Token{RParen, ""}, nil
+
+	default:
+		return Token{Unknown, ""}, errors.New("Unknown token")
 	}
 
-	return Token{Unknown, ""}, errors.New("Unknown token")
+	return token, nil
 }

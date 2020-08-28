@@ -19,7 +19,7 @@ var casesSuccess = []struct {
 		Token{And, ""}, Token{Or, ""}, Token{Eq, ""}, Token{Neq, ""})},
 	{"user==user&&tag==tag", NewTokenStream(Token{Attr, "user"}, Token{Eq, ""},
 		Token{Attr, "user"}, Token{And, ""}, Token{Attr, "tag"},
-		Token{And, ""}, Token{Attr, "tag"})},
+		Token{Eq, ""}, Token{Attr, "tag"})},
 }
 
 func TestLex_Success(t *testing.T) {
