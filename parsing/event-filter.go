@@ -51,7 +51,7 @@ const (
 
 var (
 	SupportedAttributes = []string{"user", "group", "tag", "event"}
-	ReAttrOrUUIDLike    = regexp.MustCompile(`^[a-z0-9\-:{}]+`)
+	reAttrOrUUIDLike    = regexp.MustCompile(`^[a-z0-9\-:{}]+`)
 )
 
 func checkAttrOrUUIDLike(lexeme string) TokenKind {
@@ -84,7 +84,7 @@ func advanceToken(b *[]byte) (Token, error) {
 	// skip whitespaces
 	*b = bytes.TrimSpace(*b)
 
-	loc := ReAttrOrUUIDLike.FindIndex(*b)
+	loc := reAttrOrUUIDLike.FindIndex(*b)
 
 	var token Token
 	switch {
