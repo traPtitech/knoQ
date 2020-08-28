@@ -11,9 +11,7 @@ type TokenStream struct {
 	pos    int
 }
 
-var EmptyTokenStream = TokenStream{nil, -1}
-
-func NewTokenStream(tokens []Token) TokenStream {
+func NewTokenStream(tokens ...Token) TokenStream {
 	return TokenStream{tokens, 0}
 }
 
@@ -28,7 +26,7 @@ func (ts *TokenStream) Next() Token {
 
 type Token struct {
 	Kind  TokenKind
-	Value *string // for Attr, UUID
+	Value string // for Attr, UUID
 }
 
 type TokenKind int
@@ -63,5 +61,5 @@ func CheckAttrOrUUIDLike(lexeme string) TokenKind {
 /*---------------------------------------------------------------------------*/
 
 func Lex(input string) (TokenStream, error) {
-	return EmptyTokenStream, nil
+	return NewTokenStream(), nil
 }
