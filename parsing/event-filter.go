@@ -1,6 +1,8 @@
 package parsing
 
 import (
+	"bytes"
+	"errors"
 	"regexp"
 )
 
@@ -32,7 +34,8 @@ type Token struct {
 type TokenKind int
 
 const (
-	Or TokenKind = iota
+	Unknown TokenKind = iota
+	Or
 	And
 	Eq
 	Neq
@@ -61,5 +64,49 @@ func CheckAttrOrUUIDLike(lexeme string) TokenKind {
 /*---------------------------------------------------------------------------*/
 
 func Lex(input string) (TokenStream, error) {
-	return NewTokenStream(), nil
+	bytes := []byte(input)
+	var tokens []Token
+
+	for len(bytes) > 0 {
+		token, err := advanceToken(&bytes)
+		if err != nil {
+			return NewTokenStream(), err
+		}
+		tokens = append(tokens, token)
+	}
+
+	return NewTokenStream(tokens...), nil
+}
+
+func advanceToken(b *[]byte) (Token, error) {
+	// skip whitespaces
+	*b = bytes.TrimSpace(*b)
+
+	switch {
+	case bytes.HasPrefix(*b, []byte("||")):
+		*b = (*b)[2:]
+		return Token{Or, ""}, nil
+
+	case bytes.HasPrefix(*b, []byte("&&")):
+		*b = (*b)[2:]
+		return Token{And, ""}, nil
+
+	case bytes.HasPrefix(*b, []byte("==")):
+		*b = (*b)[2:]
+		return Token{Eq, ""}, nil
+
+	case bytes.HasPrefix(*b, []byte("!=")):
+		*b = (*b)[2:]
+		return Token{Neq, ""}, nil
+
+	case (*b)[0] == '(':
+		*b = (*b)[1:]
+		return Token{LParen, ""}, nil
+
+	case (*b)[0] == ')':
+		*b = (*b)[1:]
+		return Token{RParen, ""}, nil
+	}
+
+	return Token{Unknown, ""}, errors.New("Unknown token")
 }
