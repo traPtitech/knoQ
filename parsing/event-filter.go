@@ -11,36 +11,45 @@ import (
 
 /*---------------------------------------------------------------------------*/
 
+// TokenStream is peekable and restorable stream of Tokens
 type TokenStream struct {
 	tokens []Token
 	pos    int
 }
 
+// NewTokenStream creates new TokenStream of given tokens
 func NewTokenStream(tokens ...Token) TokenStream {
 	tokens = append(tokens, Token{EOF, ""})
 	return TokenStream{tokens, 0}
 }
 
+// HasNext checks if ts has next token
 func (ts *TokenStream) HasNext() bool {
-	return ts.Peek().Kind != EOF
+	return ts.tokens[ts.pos].Kind != EOF
 }
 
+// Next returns next token and proceeds
 func (ts *TokenStream) Next() Token {
+	t := ts.tokens[ts.pos]
 	ts.pos++
-	return ts.tokens[ts.pos]
+	return t
 }
 
+// Peek returns next token without proceeding
 func (ts *TokenStream) Peek() Token {
 	return ts.tokens[ts.pos]
 }
 
+// Restore restores all the tokens consumed so far
 func (ts *TokenStream) Restore() {
 	ts.pos = 0
 }
 
+// Token has two fields: Kind and Value
+// Value is used for holding attributes or UUID
 type Token struct {
 	Kind  tokenKind
-	Value string // for Attr, UUID
+	Value string
 }
 
 type tokenKind int
@@ -58,32 +67,30 @@ const (
 	EOF
 )
 
-func (k tokenKind) String() string {
+func (k tokenKind) String() (s string) {
 	switch k {
 	case Unknown:
-		return "unknown"
+		s = "unknown"
 	case Or:
-		return "||"
+		s = "||"
 	case And:
-		return "&&"
+		s = "&&"
 	case Eq:
-		return "=="
+		s = "=="
 	case Neq:
-		return "!="
+		s = "!="
 	case LParen:
-		return "("
+		s = "("
 	case RParen:
-		return ")"
+		s = ")"
 	case Attr:
-		return "attribute"
+		s = "attribute"
 	case UUID:
-		return "uuid"
+		s = "uuid"
 	case EOF:
-		return "EOF"
+		s = "EOF"
 	}
-
-	// Unreachable
-	return ""
+	return
 }
 
 /*---------------------------------------------------------------------------*/
@@ -104,6 +111,7 @@ func checkAttrOrUUIDLike(lexeme string) tokenKind {
 
 /*---------------------------------------------------------------------------*/
 
+// Lex tokenizes input and returns TokenStream and error
 func Lex(input string) (TokenStream, error) {
 	bytes := []byte(input)
 	var tokens []Token
@@ -189,13 +197,16 @@ func consumeToken(ts *TokenStream, expected ...tokenKind) error {
 
 /*
 
-top  : ε | expr
-expr : term ( ( "||" | "&&" ) term)*
-term : cmp | "(" expr ")"
-cmp  : Attr ( "==" | "!=" ) UUID
+Syntax:
+	top  : ε | expr
+	expr : term ( ( "||" | "&&" ) term)*
+	term : cmp | "(" expr ")"
+	cmp  : Attr ( "==" | "!=" ) UUID
 
 */
 
+// CheckSyntax checks if given TokenStream satisfies the syntax
+// mentioned above
 func CheckSyntax(ts *TokenStream) (err error) {
 	if ts.HasNext() {
 		err = checkSyntaxExpr(ts)
