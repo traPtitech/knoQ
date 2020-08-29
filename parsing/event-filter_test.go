@@ -6,15 +6,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var casesSuccess = []struct {
+/*---------------------------------------------------------------------------*/
+
+var lexCasesSuccess = []struct {
 	in  string
 	out TokenStream
 }{
 	{"", NewTokenStream()},
-	{"user", NewTokenStream(Token{Attr, "user"})},
-	{"group", NewTokenStream(Token{Attr, "group"})},
-	{"tag", NewTokenStream(Token{Attr, "tag"})},
-	{"event", NewTokenStream(Token{Attr, "event"})},
+	{"user group tag event", NewTokenStream(Token{Attr, "user"},
+		Token{Attr, "group"}, Token{Attr, "tag"}, Token{Attr, "event"})},
 	{"()&&||==!=", NewTokenStream(Token{LParen, ""}, Token{RParen, ""},
 		Token{And, ""}, Token{Or, ""}, Token{Eq, ""}, Token{Neq, ""})},
 	{"user==user&&tag==tag", NewTokenStream(Token{Attr, "user"}, Token{Eq, ""},
@@ -27,14 +27,14 @@ var casesSuccess = []struct {
 func TestLex_Success(t *testing.T) {
 	t.Parallel()
 
-	for _, c := range casesSuccess {
+	for _, c := range lexCasesSuccess {
 		ts, err := Lex(c.in)
 		assert.NoError(t, err)
 		assert.Equal(t, c.out.tokens, ts.tokens)
 	}
 }
 
-var casesFailure = []struct {
+var lexCasesFailure = []struct {
 	in string
 }{
 	{"#"},
@@ -47,8 +47,53 @@ var casesFailure = []struct {
 func TestLex_Failure(t *testing.T) {
 	t.Parallel()
 
-	for _, c := range casesFailure {
+	for _, c := range lexCasesFailure {
 		_, err := Lex(c.in)
+		assert.Error(t, err)
+	}
+}
+
+/*---------------------------------------------------------------------------*/
+
+var chkSynCasesSuccess = []struct {
+	in TokenStream
+}{
+	{tsOf()},
+	{tsOf(Attr, Eq, UUID)},
+	{tsOf(LParen, Attr, Eq, UUID, RParen)},
+	{tsOf(Attr, Eq, UUID, And, Attr, Neq, UUID, Or, Attr, Eq, UUID)},
+}
+
+func tsOf(in ...tokenKind) TokenStream {
+	var ts []Token
+	for _, k := range in {
+		ts = append(ts, Token{k, ""})
+	}
+	return NewTokenStream(ts...)
+}
+
+func TestChkSyn_Success(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range chkSynCasesSuccess {
+		err := CheckSyntax(&c.in)
+		assert.NoError(t, err)
+	}
+}
+
+var chkSynCasesFailure = []struct {
+	in TokenStream
+}{
+	{tsOf(Attr)},
+	{tsOf(UUID)},
+	{tsOf(And)},
+}
+
+func TestChkSyn_Failure(t *testing.T) {
+	t.Parallel()
+
+	for _, c := range chkSynCasesFailure {
+		err := CheckSyntax(&c.in)
 		assert.Error(t, err)
 	}
 }
