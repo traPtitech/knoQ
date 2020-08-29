@@ -222,14 +222,19 @@ func checkSyntaxExpr(ts *TokenStream) error {
 	}
 
 	for ts.HasNext() {
-		if err := consumeToken(ts, Or, And); err != nil {
-			return err
-		}
-		if err := checkSyntaxTerm(ts); err != nil {
-			return err
+		switch ts.Peek().Kind {
+		case Or, And:
+			ts.Next()
+			if err := checkSyntaxTerm(ts); err != nil {
+				return err
+			}
+
+		default:
+			return nil
 		}
 	}
 
+	// unreachable
 	return nil
 }
 
@@ -253,7 +258,7 @@ func checkSyntaxTerm(ts *TokenStream) error {
 		return createParseError(k, Attr, LParen)
 	}
 
-	// Unreachable
+	// unreachable
 	return nil
 }
 
