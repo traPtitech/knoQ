@@ -208,7 +208,7 @@ Syntax:
 */
 
 // CheckSyntax checks if given TokenStream satisfies the syntax
-// mentioned above
+// shown above
 func CheckSyntax(ts *TokenStream) (err error) {
 	if ts.HasNext() {
 		err = checkSyntaxExpr(ts)

@@ -55,6 +55,14 @@ func TestLex_Failure(t *testing.T) {
 
 /*---------------------------------------------------------------------------*/
 
+func tsOf(in ...tokenKind) TokenStream {
+	var ts []Token
+	for _, k := range in {
+		ts = append(ts, Token{k, ""})
+	}
+	return NewTokenStream(ts...)
+}
+
 var chkSynCasesSuccess = []struct {
 	in TokenStream
 }{
@@ -62,14 +70,8 @@ var chkSynCasesSuccess = []struct {
 	{tsOf(Attr, Eq, UUID)},
 	{tsOf(LParen, Attr, Eq, UUID, RParen)},
 	{tsOf(Attr, Eq, UUID, And, Attr, Neq, UUID, Or, Attr, Eq, UUID)},
-}
-
-func tsOf(in ...tokenKind) TokenStream {
-	var ts []Token
-	for _, k := range in {
-		ts = append(ts, Token{k, ""})
-	}
-	return NewTokenStream(ts...)
+	{tsOf(LParen, LParen, Attr, Eq, UUID, Or, Attr, Eq, UUID, RParen, And,
+		Attr, Neq, UUID, RParen, Or, Attr, Neq, UUID)},
 }
 
 func TestChkSyn_Success(t *testing.T) {
@@ -87,6 +89,8 @@ var chkSynCasesFailure = []struct {
 	{tsOf(Attr)},
 	{tsOf(UUID)},
 	{tsOf(And)},
+	{tsOf(LParen, RParen)},
+	{tsOf(LParen, Attr, Eq, UUID)},
 }
 
 func TestChkSyn_Failure(t *testing.T) {
