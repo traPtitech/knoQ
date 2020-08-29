@@ -47,6 +47,8 @@ func (ts *TokenStream) Restore() {
 
 // Token has two fields: Kind and Value
 // Value is used for holding attributes or UUID
+// UUID Value has a canonical RFC-4122 string representation:
+//     xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 type Token struct {
 	Kind  tokenKind
 	Value string
