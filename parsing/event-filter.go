@@ -222,14 +222,16 @@ Syntax:
 
 // CheckSyntax checks if given TokenStream satisfies the syntax
 // shown above
-func CheckSyntax(ts *TokenStream) (err error) {
+func CheckSyntax(ts *TokenStream) error {
 	if ts.HasNext() {
-		err = checkSyntaxExpr(ts)
+		if err := checkSyntaxExpr(ts); err != nil {
+			return err
+		}
 	}
 	if ts.HasNext() {
-		err = createParseError(ts.Peek().Kind, EOF)
+		return createParseError(ts.Peek().Kind, EOF)
 	}
-	return
+	return nil
 }
 
 func checkSyntaxExpr(ts *TokenStream) error {
@@ -238,15 +240,18 @@ func checkSyntaxExpr(ts *TokenStream) error {
 	}
 
 	for ts.HasNext() {
-		switch ts.Peek().Kind {
+		switch k := ts.Peek().Kind; k {
 		case Or, And:
 			ts.Next()
 			if err := checkSyntaxTerm(ts); err != nil {
 				return err
 			}
 
-		default:
+		case RParen:
 			return nil
+
+		default:
+			return createParseError(k, Or, And, RParen)
 		}
 	}
 
