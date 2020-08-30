@@ -226,6 +226,9 @@ func CheckSyntax(ts *TokenStream) (err error) {
 	if ts.HasNext() {
 		err = checkSyntaxExpr(ts)
 	}
+	if ts.HasNext() {
+		err = createParseError(ts.Peek().Kind, EOF)
+	}
 	return
 }
 
@@ -247,7 +250,6 @@ func checkSyntaxExpr(ts *TokenStream) error {
 		}
 	}
 
-	// unreachable
 	return nil
 }
 
@@ -271,7 +273,6 @@ func checkSyntaxTerm(ts *TokenStream) error {
 		return createParseError(k, Attr, LParen)
 	}
 
-	// unreachable
 	return nil
 }
 
