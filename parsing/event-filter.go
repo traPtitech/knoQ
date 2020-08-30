@@ -11,6 +11,19 @@ import (
 
 /*---------------------------------------------------------------------------*/
 
+func LexAndCheckSyntax(input string) (TokenStream, error) {
+	ts, err := Lex(input)
+	if err != nil {
+		return NewTokenStream(), err
+	}
+	if err = CheckSyntax(&ts); err != nil {
+		return NewTokenStream(), err
+	}
+	return ts, nil
+}
+
+/*---------------------------------------------------------------------------*/
+
 // TokenStream is peekable and restorable stream of Tokens
 type TokenStream struct {
 	tokens []Token
