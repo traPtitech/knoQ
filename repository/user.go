@@ -17,26 +17,19 @@ var traQjson = jsoniter.Config{
 	TagKey:                 "traq",
 }.Froze()
 
-<<<<<<< HEAD
-type UserRepository interface {
-	CreateUser(isAdmin bool) (*User, error)
-	UpdateiCalSecretUser(userID uuid.UUID, secret string) error
-	GetUser(userID uuid.UUID) (*User, error)
-	GetAllUsers() ([]*User, error)
-=======
 type UserMetaRepository interface {
 	SaveUser(isAdmin bool) (*UserMeta, error)
 	GetUser(userID uuid.UUID) (*UserMeta, error)
 	GetAllUsers() ([]*UserMeta, error)
 	ReplaceToken(userID uuid.UUID, token string) error
 	GetToken(userID uuid.UUID) (string, error)
+	UpdateiCalSecretUser(userID uuid.UUID, secret string) error
 }
 
 type UserBodyRepository interface {
 	CreateUser(name, displayName, password string) (*UserBody, error)
 	GetUser(userID uuid.UUID) (*UserBody, error)
 	GetAllUsers() ([]*UserBody, error)
->>>>>>> develop
 }
 
 // GormRepository implements UserRepository
@@ -73,7 +66,7 @@ func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string
 	if userID == uuid.Nil {
 		return ErrNilID
 	}
-	if err := repo.DB.Model(&User{ID: userID}).Update("ical_secret", secret).Error; err != nil {
+	if err := repo.DB.Model(&UserMeta{ID: userID}).Update("ical_secret", secret).Error; err != nil {
 		return err
 	}
 	return nil

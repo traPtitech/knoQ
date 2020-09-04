@@ -1,11 +1,10 @@
 package service
 
 import (
-	"github.com/gofrs/uuid"
-	"github.com/lestrrat-go/ical"
 	"room/parsing"
 
 	"github.com/gofrs/uuid"
+	"github.com/lestrrat-go/ical"
 )
 
 // GetEventsByUserID get events by userID
