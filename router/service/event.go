@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"room/parsing"
 
 	"github.com/gofrs/uuid"
@@ -30,7 +29,6 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*EventRes, error) {
 	var preAttr string
 	for ts.HasNext() {
 		t := ts.Next()
-		fmt.Println("t", t.Kind, t.Value)
 		switch t.Kind {
 		case parsing.Attr:
 			switch t.Value {
@@ -84,7 +82,6 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*EventRes, error) {
 		}
 		filter += " "
 	}
-	fmt.Println(filter, filterArgs)
 	events, err := d.Repo.GetEventsByFilter(filter, filterArgs)
 	if err != nil {
 		return nil, err
