@@ -2,6 +2,7 @@ package service
 
 import (
 	"room/parsing"
+	repo "room/repository"
 
 	"github.com/gofrs/uuid"
 	"github.com/lestrrat-go/ical"
@@ -17,14 +18,12 @@ func (d Dao) GetEventsByUserID(token string, userID uuid.UUID) ([]*EventRes, err
 	return FormatEventsRes(events), err
 }
 
-// GetiCalByUserID get iCal calendar by user
-func (d Dao) GetiCalByUserID(userID uuid.UUID) (*ical.Calendar, error) {
-	// TODO include traQ group
-	groupIDs, err := d.Repo.GetUserBelongingGroupIDs(userID)
+// GetiCalByFilter get iCal calendar by specific query
+func (d Dao) GetiCalByFilter(token, query, origin string) (*ical.Calendar, error) {
+	events, err := d.GetEventsByFilter(token, query)
 	if err != nil {
 		return nil, err
 	}
-	events, err := d.Repo.GetEventsByGroupIDs(groupIDs)
 	c := ical.New()
 	ical.NewEvent()
 	tz := ical.NewTimezone()
@@ -38,14 +37,14 @@ func (d Dao) GetiCalByUserID(userID uuid.UUID) (*ical.Calendar, error) {
 	c.AddEntry(tz)
 
 	for _, e := range events {
-		vevent := e.ICal()
+		vevent := e.ICal(origin)
 		c.AddEntry(vevent)
 	}
 	return c, nil
 }
 
 // GetEventsByFilter get events by specific filter query.
-func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*EventRes, error) {
+func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error) {
 	ts, err := parsing.LexAndCheckSyntax(filterQuery)
 	if err != nil {
 		return nil, err
@@ -114,5 +113,5 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*EventRes, error) {
 	if err != nil {
 		return nil, err
 	}
-	return FormatEventsRes(events), err
+	return events, err
 }

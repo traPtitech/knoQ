@@ -144,7 +144,7 @@ func ExampleEvent_ICal() {
 	c.AddEntry(tz)
 
 	// event
-	vevent := e.ICal()
+	vevent := e.ICal("")
 	// override for test
 	vevent.AddProperty("dtstamp", t.Format("20060102T150405Z"))
 	c.AddEntry(vevent)

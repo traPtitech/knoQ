@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -291,7 +292,7 @@ func (e *Event) IsTimeConsistency(allowTogether bool) bool {
 }
 
 // ICal returns
-func (e *Event) ICal() *ical.Event {
+func (e *Event) ICal(host string) *ical.Event {
 	timeLayout := "20060102T150405Z"
 	vevent := ical.NewEvent()
 	vevent.AddProperty("uid", e.ID.String())
@@ -301,6 +302,10 @@ func (e *Event) ICal() *ical.Event {
 	vevent.AddProperty("created", e.CreatedAt.UTC().Format(timeLayout))
 	vevent.AddProperty("last-modified", e.UpdatedAt.UTC().Format(timeLayout))
 	vevent.AddProperty("summary", e.Name)
+	e.Description += "\n\n"
+	e.Description += "-----------------------------------\n"
+	e.Description += "イベント詳細ページ\n"
+	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
 	vevent.AddProperty("description", e.Description)
 	vevent.AddProperty("location", e.Room.Place)
 	vevent.AddProperty("organizer", e.CreatedBy.String())
