@@ -1,7 +1,6 @@
 package service
 
 import (
-	repo "room/repository"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -39,18 +38,4 @@ type EventReq struct {
 	RoomID        uuid.UUID        `json:"roomId"`
 	GroupID       uuid.UUID        `json:"groupId"`
 	Tags          []TagRelationReq `json:"tags"`
-}
-
-func FormatGroup(req *GroupReq) (g *repo.Group, err error) {
-	g = &repo.Group{
-		Name:        req.Name,
-		Description: req.Description,
-		JoinFreely:  req.JoinFreely,
-	}
-
-	g.Members = make([]repo.User, 0, len(req.Members))
-	for _, v := range req.Members {
-		g.Members = append(g.Members, repo.User{ID: v})
-	}
-	return
 }

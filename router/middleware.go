@@ -133,7 +133,14 @@ func (h *Handlers) WatchCallbackMiddleware() echo.MiddlewareFunc {
 			userID := new(UserID)
 			json.Unmarshal(bytes, userID)
 
-			sess.Values["authorization"] = token
+			// sess.Values["authorization"] = token
+			_, err = h.Repo.GetUser(userID.Value)
+			if err != nil {
+				return internalServerError(err)
+			}
+			if err := h.Dao.Repo.ReplaceToken(userID.Value, token); err != nil {
+				return internalServerError(err)
+			}
 			sess.Values["userID"] = userID.Value.String()
 			// sess.Options = &h.SessionOption
 			err = sess.Save(c.Request(), c.Response())
@@ -153,17 +160,23 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil {
 			return unauthorized(err)
 		}
-		auth, ok := sess.Values["authorization"].(string)
+		_, ok := sess.Values["ID"].(string)
 		if !ok {
 			sess.Options = &h.SessionOption
 			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
 			sess.Save(c.Request(), c.Response())
 			return unauthorized(err)
 		}
-		if auth == "" {
+		userID, err := getRequestUserID(c)
+		if err != nil {
 			return unauthorized(err)
 		}
+		auth, err := h.Dao.Repo.GetToken(userID)
+		if auth == "" || err != nil {
+			return judgeErrorResponse(err)
+		}
 		setRequestUserIsAdmin(c, h.Repo)
+		c.Set("token", auth)
 		return next(c)
 	}
 }
@@ -366,7 +379,7 @@ func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	return uuid.FromString(sess.Values["userID"].(string))
 }
 
-func setRequestUserIsAdmin(c echo.Context, repo repo.UserRepository) error {
+func setRequestUserIsAdmin(c echo.Context, repo repo.UserMetaRepository) error {
 	userID, _ := getRequestUserID(c)
 	user, err := repo.GetUser(userID)
 	if err != nil {
@@ -381,26 +394,11 @@ func getRequestUserIsAdmin(c echo.Context) bool {
 }
 
 func getRequestUserToken(c echo.Context) (string, error) {
-	sess, err := session.Get("session", c)
-	if err != nil {
-		return "", err
-	}
-	token, ok := sess.Values["authorization"].(string)
+	token, ok := c.Get("token").(string)
 	if !ok {
 		return "", errors.New("error")
 	}
-
 	return token, nil
-}
-
-func deleteRequestUserToken(c echo.Context) error {
-	sess, err := session.Get("session", c)
-	if err != nil {
-		return err
-	}
-	sess.Values["authorization"] = ""
-	err = sess.Save(c.Request(), c.Response())
-	return err
 }
 
 // getPathEventID :eventidを返します

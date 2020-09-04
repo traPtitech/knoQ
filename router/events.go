@@ -64,6 +64,15 @@ func (h *Handlers) HandleGetEvent(c echo.Context) error {
 // HandleGetEvents 部屋の使用宣言情報を取得
 func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	values := c.QueryParams()
+	filterQuery := values.Get("q")
+	if filterQuery != "" {
+		token, _ := getRequestUserToken(c)
+		res, err := h.GetEventsByFilter(token, filterQuery)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+		return c.JSON(http.StatusOK, res)
+	}
 
 	start, end, err := getTiemRange(values)
 	if err != nil {
