@@ -75,10 +75,10 @@ func FormatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 	return res
 }
 
-func formatGroupMembersRes(ms []repo.User) []uuid.UUID {
+func formatGroupMembersRes(ms []repo.GroupUsers) []uuid.UUID {
 	ids := make([]uuid.UUID, len(ms))
 	for i, m := range ms {
-		ids[i] = m.ID
+		ids[i] = m.UserID
 	}
 	return ids
 }
@@ -134,13 +134,21 @@ func FormatEventsRes(es []*repo.Event) []*EventRes {
 	return res
 }
 
-func FormatUserRes(u *repo.User) *UserRes {
+func FormatUserRes(u *User) *UserRes {
 	return &UserRes{
 		ID:          u.ID,
 		Admin:       u.Admin,
 		Name:        u.Name,
 		DisplayName: u.DisplayName,
 	}
+}
+
+func FormatUsersRes(us []*User) []*UserRes {
+	res := make([]*UserRes, len(us))
+	for i, u := range us {
+		res[i] = FormatUserRes(u)
+	}
+	return res
 }
 
 func FormatRoomRes(r *repo.Room) *RoomRes {

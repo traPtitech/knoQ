@@ -10,8 +10,10 @@ import (
 	repo "room/repository"
 	"room/router"
 	"room/router/service"
+	"room/utils"
 	"time"
 
+	"github.com/carlescere/scheduler"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2/google"
@@ -47,10 +49,11 @@ func main() {
 	handler := &router.Handlers{
 		Dao: service.Dao{
 			Repo: &repo.GormRepository{
-				DB: db,
+				DB:       db,
+				TokenKey: SESSION_KEY,
 			},
 			InitExternalUserGroupRepo: func(token string, ver repo.TraQVersion) interface {
-				repo.UserRepository
+				repo.UserBodyRepository
 				repo.GroupRepository
 			} {
 				traQRepo := new(repo.TraQRepository)
@@ -81,9 +84,18 @@ func main() {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		},
+		WebhookID:         os.Getenv("WEBHOOK_ID"),
+		WebhookSecret:     os.Getenv("WEBHOOK_SECRET"),
+		ActivityChannelID: os.Getenv("CHANNEL_ID"),
+		Origin:            os.Getenv("ORIGIN"),
 	}
 
 	e := handler.SetupRoute(db)
+
+	// webhook
+	job := utils.InitPostEventToTraQ(handler.Repo, handler.WebhookSecret,
+		handler.ActivityChannelID, handler.WebhookID, handler.Origin)
+	scheduler.Every().Day().At("08:00").Run(job)
 
 	// サーバースタート
 	go func() {

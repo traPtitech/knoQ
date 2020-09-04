@@ -8,7 +8,6 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	traQrouterV1 "github.com/traPtitech/traQ/router/v1"
 	traQrouterV3 "github.com/traPtitech/traQ/router/v3"
-	traQutils "github.com/traPtitech/traQ/utils"
 )
 
 var traQjson = jsoniter.Config{
@@ -18,18 +17,33 @@ var traQjson = jsoniter.Config{
 	TagKey:                 "traq",
 }.Froze()
 
+<<<<<<< HEAD
 type UserRepository interface {
 	CreateUser(isAdmin bool) (*User, error)
 	UpdateiCalSecretUser(userID uuid.UUID, secret string) error
 	GetUser(userID uuid.UUID) (*User, error)
 	GetAllUsers() ([]*User, error)
+=======
+type UserMetaRepository interface {
+	SaveUser(isAdmin bool) (*UserMeta, error)
+	GetUser(userID uuid.UUID) (*UserMeta, error)
+	GetAllUsers() ([]*UserMeta, error)
+	ReplaceToken(userID uuid.UUID, token string) error
+	GetToken(userID uuid.UUID) (string, error)
+}
+
+type UserBodyRepository interface {
+	CreateUser(name, displayName, password string) (*UserBody, error)
+	GetUser(userID uuid.UUID) (*UserBody, error)
+	GetAllUsers() ([]*UserBody, error)
+>>>>>>> develop
 }
 
 // GormRepository implements UserRepository
 
-func (repo *GormRepository) CreateUser(isAdmin bool) (*User, error) {
+func (repo *GormRepository) SaveUser(isAdmin bool) (*UserMeta, error) {
 	userID, _ := uuid.NewV4()
-	user := User{
+	user := UserMeta{
 		ID:    userID,
 		Admin: isAdmin,
 	}
@@ -40,17 +54,17 @@ func (repo *GormRepository) CreateUser(isAdmin bool) (*User, error) {
 }
 
 // GetUser ユーザー情報を取得します(なければ作成)
-func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
-	user := new(User)
-	if err := repo.DB.FirstOrCreate(&user, &User{ID: userID}).Error; err != nil {
+func (repo *GormRepository) GetUser(userID uuid.UUID) (*UserMeta, error) {
+	user := new(UserMeta)
+	if err := repo.DB.FirstOrCreate(&user, &UserMeta{ID: userID}).Error; err != nil {
 		return nil, err
 	}
 	return user, nil
 
 }
 
-func (repo *GormRepository) GetAllUsers() ([]*User, error) {
-	users := make([]*User, 0)
+func (repo *GormRepository) GetAllUsers() ([]*UserMeta, error) {
+	users := make([]*UserMeta, 0)
 	err := repo.DB.Find(&users).Error
 	return users, err
 }
@@ -65,11 +79,29 @@ func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string
 	return nil
 }
 
+func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
+	user := UserMeta{
+		ID: userID,
+	}
+	return repo.DB.Model(&user).Update("token", token).Error
+}
+
+func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
+	user := UserMeta{
+		ID: userID,
+	}
+	err := repo.DB.First(&user).Error
+	if err != nil {
+		return "", err
+	}
+
+	return user.Token, nil
+}
+
 // traQRepository implements UserRepository
 
-// CreateUser does not use isAdmin and
-// create random name and password
-func (repo *TraQRepository) CreateUser(isAdmin bool) (*User, error) {
+// CreateUser 新たにユーザーを作成する
+func (repo *TraQRepository) CreateUser(name, password, displayName string) (*UserBody, error) {
 	if repo.Version != TraQv1 {
 		repo.Version = TraQv1
 		defer func() {
@@ -77,8 +109,8 @@ func (repo *TraQRepository) CreateUser(isAdmin bool) (*User, error) {
 		}()
 	}
 	reqUser := &traQrouterV1.PostUserRequest{
-		Name:     traQutils.RandAlphabetAndNumberString(20),
-		Password: traQutils.RandAlphabetAndNumberString(20),
+		Name:     name,
+		Password: password,
 	}
 	body, _ := json.Marshal(reqUser)
 	resBody, err := repo.postRequest("/users", body)
@@ -92,11 +124,11 @@ func (repo *TraQRepository) CreateUser(isAdmin bool) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &User{ID: traQuser.ID}, nil
+	return &UserBody{ID: traQuser.ID}, nil
 }
 
 // GetUser get from /users/{userID}
-func (repo *TraQRepository) GetUser(userID uuid.UUID) (*User, error) {
+func (repo *TraQRepository) GetUser(userID uuid.UUID) (*UserBody, error) {
 	data, err := repo.getRequest(fmt.Sprintf("/users/%s", userID))
 	if err != nil {
 		return nil, err
@@ -107,14 +139,14 @@ func (repo *TraQRepository) GetUser(userID uuid.UUID) (*User, error) {
 }
 
 // GetAllUsers get from /users
-func (repo *TraQRepository) GetAllUsers() ([]*User, error) {
+func (repo *TraQRepository) GetAllUsers() ([]*UserBody, error) {
 	data, err := repo.getRequest("/users")
 	if err != nil {
 		return nil, err
 	}
 	traQusers := make([]*traQrouterV3.User, 0)
 	err = traQjson.Unmarshal(data, &traQusers)
-	users := make([]*User, len(traQusers))
+	users := make([]*UserBody, len(traQusers))
 	for i, u := range traQusers {
 		users[i] = formatV3User(u)
 	}
@@ -124,37 +156,10 @@ func (repo *TraQRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string
 	return ErrForbidden
 }
 
-func formatV3User(u *traQrouterV3.User) *User {
-	return &User{
+func formatV3User(u *traQrouterV3.User) *UserBody {
+	return &UserBody{
 		ID:          u.ID,
-		Admin:       false,
 		Name:        u.Name,
 		DisplayName: u.DisplayName,
 	}
-}
-
-// GetUser ユーザー情報を取得します(なければ作成)
-func GetUser(id uuid.UUID) (User, error) {
-	user := User{}
-
-	// DBに登録されていない場合(初めてアクセスした場合)はDBにレコードを作成する
-	if err := DB.FirstOrCreate(&user, &User{ID: id}).Error; err != nil {
-		return User{}, err
-	}
-	return user, nil
-}
-
-// changeUserToAdmin ユーザーの管理者権限の有無を変更します
-func changeUserToAdmin(id uuid.UUID, isAdmin bool) error {
-	// ユーザー取得
-	user, err := GetUser(id)
-	if err != nil {
-		return err
-	}
-
-	// 変更
-	if err := DB.Model(user).Update("admin", isAdmin).Error; err != nil {
-		return err
-	}
-	return nil
 }

@@ -1,23 +1,23 @@
-FROM node:13.12.0-alpine as web-build
+FROM node:14.5.0-alpine as web-build
 
-WORKDIR /github.com/traPtitech/room/web
+WORKDIR /github.com/traPtitech/knoq/web
 
 COPY ./web ./
 RUN yarn
 RUN yarn build
 
-FROM golang:1.13.8-alpine as server-build
+FROM golang:1.14.6-alpine as server-build
 
-WORKDIR /github.com/traPtitech/room
+WORKDIR /github.com/traPtitech/knoq
 
 COPY go.mod go.sum ./
 ENV GO111MODULE=on
 RUN go mod download
 COPY ./ ./
 
-RUN go build -o room
+RUN go build -o knoq
 
-FROM alpine:3.9
+FROM alpine:3.12.0
 
 WORKDIR /app
 
@@ -32,7 +32,7 @@ RUN apk --update add tzdata \
   && update-ca-certificates \
   && rm -rf /var/cache/apk/*
 
-COPY --from=server-build /github.com/traPtitech/room/room ./
-COPY --from=web-build /github.com/traPtitech/room/web/dist ./web/dist
+COPY --from=server-build /github.com/traPtitech/knoq/knoq ./
+COPY --from=web-build /github.com/traPtitech/knoq/web/dist ./web/dist
 
-ENTRYPOINT ./room
+ENTRYPOINT ./knoq

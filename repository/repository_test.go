@@ -45,24 +45,25 @@ func TestMain(m *testing.M) {
 		common,
 		ex,
 	}
-	if err := migration.CreateDatabasesIfNotExists("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?charset=utf8mb4&parseTime=true", user, password, host), "room-test-", dbs...); err != nil {
+	if err := migration.CreateDatabasesIfNotExists("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?charset=utf8mb4&parseTime=true&loc=Local", user, password, host), "room-test-", dbs...); err != nil {
 		panic(err)
 	}
 
 	for _, key := range dbs {
-		db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=true", user, password, host, "room-test-"+key))
+		db, err := gorm.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=true&loc=Local", user, password, host, "room-test-"+key))
 		if err != nil {
 			panic(err)
 		}
 		db.DB().SetMaxOpenConns(20)
-		if err := db.DropTableIfExists(tables...).Error; err != nil {
+		if err := db.DropTableIfExists(tables...).DropTableIfExists("migrations").Error; err != nil {
 			panic(err)
 		}
 		if err := initDB(db); err != nil {
 			panic(err)
 		}
 		repo := GormRepository{
-			DB: db,
+			DB:       db,
+			TokenKey: []byte("ZuGySN9rgiL86m8EpJ3169DEN3iybP4a"),
 		}
 		repositories[key] = &repo
 	}
@@ -128,18 +129,26 @@ func setupGormRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertio
 	return r, assert, require
 }
 
-func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User) {
+func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *UserMeta) {
 	t.Helper()
 	r, assert, require := setupGormRepo(t, repo)
-	user := mustMakeUser(t, r, false)
+	user := mustMakeUserMeta(t, r, false)
 	return r, assert, require, user
 }
 
-func mustMakeUser(t *testing.T, repo UserRepository, admin bool) *User {
+func mustMakeUserMeta(t *testing.T, repo UserMetaRepository, admin bool) *UserMeta {
 	t.Helper()
-	user, err := repo.CreateUser(admin)
+	user, err := repo.SaveUser(admin)
 	require.NoError(t, err)
 	return user
+}
+
+func mustMakeUserBody(t *testing.T, repo UserBodyRepository, name, password string) *UserBody {
+	t.Helper()
+	user, err := repo.CreateUser(name, password, "")
+	require.NoError(t, err)
+	return user
+
 }
 
 // mustMakeGroup make group has no members

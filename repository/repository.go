@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 
+	"room/migration"
+
 	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -21,7 +23,7 @@ import (
 
 // 新たにモデル(テーブル)を定義した場合はここに追加する事
 var tables = []interface{}{
-	User{},
+	UserMeta{},
 	Room{},
 	Group{},
 	Event{},
@@ -31,7 +33,7 @@ var tables = []interface{}{
 }
 
 type Repository interface {
-	UserRepository
+	UserMetaRepository
 	GroupRepository
 	RoomRepository
 	EventRepository
@@ -40,7 +42,8 @@ type Repository interface {
 
 // GormRepository implements Repository interface
 type GormRepository struct {
-	DB *gorm.DB
+	DB       *gorm.DB
+	TokenKey []byte
 }
 
 type TraQVersion int64
@@ -186,9 +189,8 @@ func SetupDatabase() (*gorm.DB, error) {
 func initDB(db *gorm.DB) error {
 	// gormのエラーの上書き
 	gorm.ErrRecordNotFound = ErrNotFound
-
-	// テーブルが無ければ作成
-	if err := db.AutoMigrate(tables...).Error; err != nil {
+	// db.LogMode(true)
+	if err := migration.Migrate(db, tables); err != nil {
 		return err
 	}
 	return nil

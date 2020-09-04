@@ -7,7 +7,7 @@ type Dao struct {
 	Repo                      repo.Repository
 	InitExternalUserGroupRepo func(token string, ver repo.TraQVersion) interface {
 		repo.GroupRepository
-		repo.UserRepository
+		repo.UserBodyRepository
 	}
 	InitTraPGroupRepo func(token string, ver repo.TraQVersion) interface {
 		repo.GroupRepository

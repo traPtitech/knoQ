@@ -44,13 +44,17 @@ func (repo *GormRepository) CreateGroup(groupParams WriteGroupParams) (*Group, e
 	if err != nil {
 		return nil, err
 	}
-	group.Members = formatGroupMembers(groupParams.Members)
+	if err = repo.DB.Create(group).Error; err != nil {
+		return nil, err
+	}
+	group.Members = formatGroupMembers(group.ID, groupParams.Members)
 	if err != nil {
 		return nil, err
 	}
-
-	if err = repo.DB.Create(group).Error; err != nil {
-		return nil, err
+	for _, m := range group.Members {
+		if err = repo.DB.Create(m).Error; err != nil {
+			return nil, err
+		}
 	}
 	return group, nil
 }
@@ -65,7 +69,7 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 	if err != nil {
 		return nil, err
 	}
-	group.Members = formatGroupMembers(groupParams.Members)
+	group.Members = formatGroupMembers(groupID, groupParams.Members)
 	if err != nil {
 		return nil, err
 	}
@@ -91,11 +95,11 @@ func (repo *GormRepository) AddUserToGroup(groupID uuid.UUID, userID uuid.UUID) 
 		if !group.JoinFreely {
 			return ErrForbidden
 		}
-		member := &User{ID: userID}
+		member := &GroupUsers{GroupID: groupID, UserID: userID}
 		if group.IsMember(member) {
 			return ErrAlreadyExists
 		}
-		if err := tx.Model(&Group{ID: groupID}).Association("Members").Append(member).Error; err != nil {
+		if err := tx.Create(member).Error; err != nil {
 			return err
 		}
 
@@ -132,7 +136,7 @@ func (repo *GormRepository) DeleteUserInGroup(groupID uuid.UUID, userID uuid.UUI
 		if !group.JoinFreely {
 			return ErrForbidden
 		}
-		member := &User{ID: userID}
+		member := &GroupUsers{UserID: userID}
 		if !group.IsMember(member) {
 			return ErrNotFound
 		}
@@ -219,7 +223,7 @@ func (repo *TraQRepository) CreateGroup(groupParams WriteGroupParams) (*Group, e
 		if err != nil {
 			return nil, err
 		}
-		group.Members = append(group.Members, User{ID: userID})
+		group.Members = append(group.Members, GroupUsers{UserID: userID})
 	}
 
 	return group, nil
@@ -340,7 +344,7 @@ func (repo *TraPGroupRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]u
 	if err != nil {
 		return nil, err
 	}
-	if !group.IsMember(&User{ID: userID}) {
+	if !group.IsMember(&GroupUsers{UserID: userID}) {
 		return nil, ErrNotFound
 	}
 	return []uuid.UUID{traPGroupID}, nil
@@ -361,29 +365,30 @@ func formatV3Group(g *traQrouterV3.UserGroup) *Group {
 	}
 }
 
-func formatV3GroupMemebers(ms []traQrouterV3.UserGroupMember) []User {
-	users := make([]User, len(ms))
+func formatV3GroupMemebers(ms []traQrouterV3.UserGroupMember) []GroupUsers {
+	users := make([]GroupUsers, len(ms))
 	for i, m := range ms {
-		users[i] = User{
-			ID: m.ID,
+		users[i] = GroupUsers{
+			UserID: m.ID,
 		}
 	}
 	return users
 }
 
-func formatGroupMembers(userIDs []uuid.UUID) []User {
-	users := make([]User, len(userIDs))
+func formatGroupMembers(groupID uuid.UUID, userIDs []uuid.UUID) []GroupUsers {
+	users := make([]GroupUsers, len(userIDs))
 	for i, v := range userIDs {
-		users[i] = User{
-			ID: v,
+		users[i] = GroupUsers{
+			GroupID: groupID,
+			UserID:  v,
 		}
 	}
 	return users
 }
 
-func (g *Group) IsMember(user *User) bool {
+func (g *Group) IsMember(user *GroupUsers) bool {
 	for _, member := range g.Members {
-		if member.ID == user.ID {
+		if member.UserID == user.UserID {
 			return true
 		}
 	}
@@ -403,7 +408,7 @@ func (repo *TraPGroupRepository) getGroup() (*Group, error) {
 	}
 	for _, user := range users {
 		user := user
-		group.Members = append(group.Members, *user)
+		group.Members = append(group.Members, GroupUsers{GroupID: group.ID, UserID: user.ID})
 	}
 	return group, nil
 }

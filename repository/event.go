@@ -49,6 +49,7 @@ type EventRepository interface {
 	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
 	GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, error)
 	GetEventActivities(day int) ([]*Event, error)
+	GetEventsByFilter(query string, args []interface{}) ([]*Event, error)
 }
 
 // CreateEvent roomが正当かは見る
@@ -192,14 +193,15 @@ func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 	return event, err
 }
 
+// GetAllEvents start <= time_start <= end なイベントを取得
 func (repo *GormRepository) GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error) {
 	events := make([]*Event, 0)
 	cmd := repo.DB.Preload("Room").Preload("Tags")
 	if start != nil && !start.IsZero() {
-		cmd = cmd.Where("time_end >= ?", start.UTC())
+		cmd = cmd.Where("time_start >= ?", start)
 	}
 	if end != nil && !end.IsZero() {
-		cmd = cmd.Where("time_start <= ?", end.String())
+		cmd = cmd.Where("time_start <= ?", end)
 	}
 	err := cmd.Order("time_start").Find(&events).Error
 	return events, err
@@ -241,6 +243,17 @@ func (repo *GormRepository) GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, e
 	err := cmd.Where("room_id IN (?)", roomIDs).Find(&events).Error
 	return events, err
 
+}
+
+func (repo *GormRepository) GetEventsByFilter(query string, args []interface{}) ([]*Event, error) {
+	events := make([]*Event, 0)
+	cmd := repo.DB.Preload("Room").Preload("Tags")
+
+	err := cmd.
+		Joins("INNER JOIN event_tags ON id = event_tags.event_id").
+		Where(query, args...).Find(&events).Error
+
+	return events, err
 }
 
 func timeMax(a, b *time.Time) *time.Time {

@@ -19,15 +19,22 @@ type StartEndTime struct {
 	TimeEnd   time.Time `json:"timeEnd" gorm:"type:TIME;"`
 }
 
-// User traQユーザー情報構造体
-type User struct {
-	// ID traQID
+// UserMeta knoQユーザー情報構造体
+// 当サービスの中で意味があるユーザー情報
+type UserMeta struct {
 	ID uuid.UUID `gorm:"type:char(36); primary_key"`
 	// Admin アプリの管理者かどうか
-	Admin       bool   `gorm:"not null"`
-	IcalSecret  string `gorm:"not null"`
-	Name        string `gorm:"-"`
-	DisplayName string `gorm:"-"`
+	Admin      bool   `gorm:"not null"`
+	IcalSecret string `gorm:"not null"`
+	Token      string
+}
+
+// UserBody ユーザー情報
+// 現在、DBには存在しない
+type UserBody struct {
+	ID          uuid.UUID
+	Name        string
+	DisplayName string
 }
 
 // Tag Room Group Event have tags
@@ -47,17 +54,17 @@ type EventTag struct {
 
 // GroupUsers is many to many table
 type GroupUsers struct {
-	GroupID uuid.UUID `gorm:"type:char(36); primary_key"`
-	UserID  uuid.UUID `gorm:"type:char(36); primary_key"`
+	GroupID uuid.UUID `gorm:"type:char(36); primary_key;not null"`
+	UserID  uuid.UUID `gorm:"type:char(36); primary_key;not null"`
 }
 
 // Room 部屋情報
 type Room struct {
 	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
-	Place     string    `json:"place" gorm:"type:varchar(32);unique_index:idx_room_unique"`
-	Public    bool      `gorm:"unique_index:idx_room_unique"`
-	TimeStart time.Time `json:"timeStart" gorm:"type:DATETIME; unique_index:idx_room_unique; index"`
-	TimeEnd   time.Time `json:"timeEnd" gorm:"type:DATETIME; unique_index:idx_room_unique; index"`
+	Place     string    `json:"place" gorm:"type:varchar(32);"`
+	Public    bool
+	TimeStart time.Time `json:"timeStart" gorm:"type:DATETIME; index"`
+	TimeEnd   time.Time `json:"timeEnd" gorm:"type:DATETIME; index"`
 	Events    []Event   `gorm:"foreignkey:RoomID"`
 	CreatedBy uuid.UUID `gorm:"type:char(36)"`
 	Model
@@ -70,8 +77,8 @@ type Group struct {
 	Name        string    `gorm:"type:varchar(32);not null"`
 	Description string    `gorm:"type:TEXT"`
 	JoinFreely  bool
-	Members     []User    `gorm:"many2many:group_users; association_autoupdate:true;association_autocreate:true"`
-	CreatedBy   uuid.UUID `gorm:"type:char(36);"`
+	Members     []GroupUsers `gorm:"association_autoupdate:false;association_autocreate:false;foreignkey:GroupID"`
+	CreatedBy   uuid.UUID    `gorm:"type:char(36);"`
 	Model
 }
 
