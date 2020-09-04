@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"crypto/aes"
 	"encoding/json"
 	"fmt"
 
@@ -63,38 +62,21 @@ func (repo *GormRepository) GetAllUsers() ([]*UserMeta, error) {
 }
 
 func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
-	// TODO 暗号化
-	c, err := aes.NewCipher(repo.TokenKey)
-	if err != nil { // NewCipherで暗号オブジェクトを作る。
-		fmt.Println(err)
-		return err
-	}
-	cipherText := make([]byte, len(token))
-
-	c.Encrypt(cipherText, []byte(token))
-
 	user := UserMeta{
 		ID: userID,
 	}
-	return repo.DB.Model(&user).Update("token", cipherText).Error
+	return repo.DB.Model(&user).Update("token", token).Error
 }
 func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
-	c, err := aes.NewCipher(repo.TokenKey)
-	if err != nil { // NewCipherで暗号オブジェクトを作る。
-		return "", err
-	}
 	user := UserMeta{
 		ID: userID,
 	}
-	err = repo.DB.First(&user).Error
+	err := repo.DB.First(&user).Error
 	if err != nil {
 		return "", err
 	}
 
-	token := make([]byte, len(user.Token))
-	c.Decrypt(token, []byte(user.Token))
-
-	return string(token), nil
+	return user.Token, nil
 }
 
 // traQRepository implements UserRepository

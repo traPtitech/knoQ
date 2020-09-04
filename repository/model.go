@@ -24,8 +24,8 @@ type StartEndTime struct {
 type UserMeta struct {
 	ID uuid.UUID `gorm:"type:char(36); primary_key"`
 	// Admin アプリの管理者かどうか
-	Admin bool   `gorm:"not null"`
-	Token string `gorm:"type:binary(16)"`
+	Admin bool `gorm:"not null"`
+	Token string
 }
 
 // UserBody ユーザー情報
