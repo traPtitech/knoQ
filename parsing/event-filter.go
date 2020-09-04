@@ -21,6 +21,7 @@ func LexAndCheckSyntax(input string) (TokenStream, error) {
 	if err = CheckSyntax(&ts); err != nil {
 		return NewTokenStream(), err
 	}
+	ts.Restore()
 	return ts, nil
 }
 
