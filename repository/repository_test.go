@@ -62,7 +62,8 @@ func TestMain(m *testing.M) {
 			panic(err)
 		}
 		repo := GormRepository{
-			DB: db,
+			DB:       db,
+			TokenKey: []byte("ZuGySN9rgiL86m8EpJ3169DEN3iybP4a"),
 		}
 		repositories[key] = &repo
 	}

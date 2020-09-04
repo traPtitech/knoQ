@@ -30,6 +30,20 @@ func TestGormRepository_GetUser(t *testing.T) {
 
 }
 
+func TestGormRepository_ReplaceToken(t *testing.T) {
+	t.Parallel()
+	repo, _, _, user := setupGormRepoWithUser(t, common)
+
+	t.Run("Normal", func(t *testing.T) {
+		err := repo.ReplaceToken(user.ID, "0123456789abcdefghijklmn")
+		assert.NoError(t, err)
+		token, err := repo.GetToken(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, "0123456789abcdefghijklmn", token)
+	})
+
+}
+
 func TestTraQRepository_GetAllUsers(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupTraQRepo(t, TraQv3)

@@ -49,7 +49,8 @@ func main() {
 	handler := &router.Handlers{
 		Dao: service.Dao{
 			Repo: &repo.GormRepository{
-				DB: db,
+				DB:       db,
+				TokenKey: SESSION_KEY,
 			},
 			InitExternalUserGroupRepo: func(token string, ver repo.TraQVersion) interface {
 				repo.UserBodyRepository

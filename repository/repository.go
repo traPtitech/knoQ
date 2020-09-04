@@ -42,7 +42,8 @@ type Repository interface {
 
 // GormRepository implements Repository interface
 type GormRepository struct {
-	DB *gorm.DB
+	DB       *gorm.DB
+	TokenKey []byte
 }
 
 type TraQVersion int64
