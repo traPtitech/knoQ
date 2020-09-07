@@ -26,6 +26,7 @@ type UserMeta struct {
 	// Admin アプリの管理者かどうか
 	Admin bool   `gorm:"not null"`
 	Token string `gorm:"type:varbinary(64)"`
+	IcalSecret string `gorm:"not null"`
 }
 
 // UserBody ユーザー情報

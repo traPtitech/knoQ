@@ -26,6 +26,7 @@ type UserMetaRepository interface {
 	GetAllUsers() ([]*UserMeta, error)
 	ReplaceToken(userID uuid.UUID, token string) error
 	GetToken(userID uuid.UUID) (string, error)
+	UpdateiCalSecretUser(userID uuid.UUID, secret string) error
 }
 
 type UserBodyRepository interface {
@@ -108,12 +109,18 @@ func decryptByGCM(key []byte, cipherText []byte) (string, error) {
 	return string(plainByte), nil
 }
 
-func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
-	cipherText, err := encryptByGCM(repo.TokenKey, token)
-	if err != nil {
+func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string) error {
+	if userID == uuid.Nil {
+		return ErrNilID
+	}
+	if err := repo.DB.Model(&UserMeta{ID: userID}).Update("ical_secret", secret).Error; err != nil {
 		return err
 	}
+	return nil
+}
 
+
+func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
 	user := UserMeta{
 		ID: userID,
 	}
@@ -130,9 +137,6 @@ func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
 		return "", err
 	}
 	token, err := decryptByGCM(repo.TokenKey, []byte(user.Token))
-	if err != nil {
-		return "", err
-	}
 
 	return string(token), nil
 }
@@ -190,6 +194,9 @@ func (repo *TraQRepository) GetAllUsers() ([]*UserBody, error) {
 		users[i] = formatV3User(u)
 	}
 	return users, err
+}
+func (repo *TraQRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string) error {
+	return ErrForbidden
 }
 
 func formatV3User(u *traQrouterV3.User) *UserBody {
