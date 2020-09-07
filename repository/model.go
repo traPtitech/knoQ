@@ -25,7 +25,7 @@ type UserMeta struct {
 	ID uuid.UUID `gorm:"type:char(36); primary_key"`
 	// Admin アプリの管理者かどうか
 	Admin bool   `gorm:"not null"`
-	Token string `gorm:"type:binary(16)"`
+	Token string `gorm:"type:varbinary(64)"`
 }
 
 // UserBody ユーザー情報

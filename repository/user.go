@@ -2,6 +2,8 @@ package repository
 
 import (
 	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 
@@ -62,37 +64,75 @@ func (repo *GormRepository) GetAllUsers() ([]*UserMeta, error) {
 	return users, err
 }
 
-func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
-	// TODO 暗号化
-	c, err := aes.NewCipher(repo.TokenKey)
-	if err != nil { // NewCipherで暗号オブジェクトを作る。
-		fmt.Println(err)
-		return err
+// GCM encryption
+func encryptByGCM(key []byte, plainText string) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
 	}
-	cipherText := make([]byte, len(token))
 
-	c.Encrypt(cipherText, []byte(token))
-
-	user := UserMeta{
-		ID: userID,
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
 	}
-	return repo.DB.Model(&user).Update("token", cipherText).Error
+
+	nonce := make([]byte, gcm.NonceSize()) // Unique nonce is required(NonceSize 12byte)
+	_, err = rand.Read(nonce)
+	if err != nil {
+		return nil, err
+	}
+
+	cipherText := gcm.Seal(nil, nonce, []byte(plainText), nil)
+	cipherText = append(nonce, cipherText...)
+
+	return cipherText, nil
 }
-func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
-	c, err := aes.NewCipher(repo.TokenKey)
-	if err != nil { // NewCipherで暗号オブジェクトを作る。
+
+// Decrypt by GCM
+func decryptByGCM(key []byte, cipherText []byte) (string, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
 		return "", err
 	}
-	user := UserMeta{
-		ID: userID,
-	}
-	err = repo.DB.First(&user).Error
+	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		return "", err
 	}
 
-	token := make([]byte, len(user.Token))
-	c.Decrypt(token, []byte(user.Token))
+	nonce := cipherText[:gcm.NonceSize()]
+	plainByte, err := gcm.Open(nil, nonce, cipherText[gcm.NonceSize():], nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plainByte), nil
+}
+
+func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
+	cipherText, err := encryptByGCM(repo.TokenKey, token)
+	if err != nil {
+		return err
+	}
+
+	user := UserMeta{
+		ID: userID,
+	}
+	fmt.Println(len(cipherText))
+	return repo.DB.Model(&user).Update("token", cipherText).Error
+}
+
+func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
+	user := UserMeta{
+		ID: userID,
+	}
+	err := repo.DB.First(&user).Error
+	if err != nil {
+		return "", err
+	}
+	token, err := decryptByGCM(repo.TokenKey, []byte(user.Token))
+	if err != nil {
+		return "", err
+	}
 
 	return string(token), nil
 }
