@@ -16,9 +16,10 @@ type ErrorResponse struct {
 	ErrorBody `json:"errors"`
 }
 type ErrorBody struct {
-	Message       string `json:"message,omitempty"`
-	Specification string `json:"specification,omitempty"`
-	errorRuntime  RuntimeCallerStruct
+	Message           string `json:"message,omitempty"`
+	Specification     string `json:"specification,omitempty"`
+	needAuthorization bool
+	errorRuntime      RuntimeCallerStruct
 }
 
 // Error interfaceに含めたい
@@ -53,6 +54,12 @@ func message(msg string) option {
 func specification(spec string) option {
 	return func(er *ErrorResponse) {
 		er.Specification = spec
+	}
+}
+
+func needAuthorization(na bool) option {
+	return func(er *ErrorResponse) {
+		er.needAuthorization = na
 	}
 }
 
@@ -150,6 +157,12 @@ func HTTPErrorHandler(err error, c echo.Context) {
 		if c.Request().Method == http.MethodHead { // Issue #608
 			err = c.NoContent(he.Code)
 		} else {
+			fmt.Printf("%T", message)
+			er, ok := message.(*ErrorResponse)
+			if ok && er.needAuthorization {
+				c.Response().Header().Set("X-KNOQ-Need-Authorization", "1")
+				fmt.Println("need auth")
+			}
 			err = c.JSON(code, message)
 		}
 		if err != nil {

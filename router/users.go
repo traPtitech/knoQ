@@ -18,7 +18,7 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 	if err != nil {
 		if err.Error() == http.StatusText(http.StatusUnauthorized) {
 			h.Repo.ReplaceToken(userID, "")
-			return forbidden(err, message("token is invalid."))
+			return forbidden(err, message("token is invalid."), needAuthorization(true))
 		}
 		return judgeErrorResponse(err)
 	}
@@ -34,7 +34,7 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 	if err != nil {
 		if err.Error() == http.StatusText(http.StatusUnauthorized) {
 			h.Repo.ReplaceToken(userID, "")
-			return forbidden(err, message("token is invalid."))
+			return forbidden(err, message("token is invalid."), needAuthorization(true))
 		}
 		return judgeErrorResponse(err)
 	}

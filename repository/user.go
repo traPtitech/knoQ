@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 
@@ -62,6 +65,50 @@ func (repo *GormRepository) GetAllUsers() ([]*UserMeta, error) {
 	return users, err
 }
 
+// GCM encryption
+func encryptByGCM(key []byte, plainText string) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize()) // Unique nonce is required(NonceSize 12byte)
+	_, err = rand.Read(nonce)
+	if err != nil {
+		return nil, err
+	}
+
+	cipherText := gcm.Seal(nil, nonce, []byte(plainText), nil)
+	cipherText = append(nonce, cipherText...)
+
+	return cipherText, nil
+}
+
+// Decrypt by GCM
+func decryptByGCM(key []byte, cipherText []byte) (string, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	nonce := cipherText[:gcm.NonceSize()]
+	plainByte, err := gcm.Open(nil, nonce, cipherText[gcm.NonceSize():], nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plainByte), nil
+}
+
 func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string) error {
 	if userID == uuid.Nil {
 		return ErrNilID
@@ -72,11 +119,13 @@ func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string
 	return nil
 }
 
+
 func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
 	user := UserMeta{
 		ID: userID,
 	}
-	return repo.DB.Model(&user).Update("token", token).Error
+	fmt.Println(len(cipherText))
+	return repo.DB.Model(&user).Update("token", cipherText).Error
 }
 
 func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
@@ -87,8 +136,9 @@ func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	token, err := decryptByGCM(repo.TokenKey, []byte(user.Token))
 
-	return user.Token, nil
+	return string(token), nil
 }
 
 // traQRepository implements UserRepository

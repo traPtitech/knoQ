@@ -63,7 +63,7 @@ func TestMain(m *testing.M) {
 		}
 		repo := GormRepository{
 			DB:       db,
-			TokenKey: []byte("ZuGySN9rgiL86m8EpJ3169DEN3iybP4a"),
+			TokenKey: []byte(traQutils.RandAlphabetAndNumberString(32)),
 		}
 		repositories[key] = &repo
 	}

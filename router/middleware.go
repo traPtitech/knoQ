@@ -165,15 +165,18 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			sess.Options = &h.SessionOption
 			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
 			sess.Save(c.Request(), c.Response())
-			return unauthorized(err)
+			return unauthorized(err, needAuthorization(true))
 		}
 		userID, err := getRequestUserID(c)
-		if err != nil {
-			return unauthorized(err)
+		if err != nil || userID == uuid.Nil {
+			return unauthorized(err, needAuthorization(true))
 		}
 		auth, err := h.Dao.Repo.GetToken(userID)
-		if auth == "" || err != nil {
+		if err != nil {
 			return judgeErrorResponse(err)
+		}
+		if auth == "" {
+			return forbidden(err, needAuthorization(true))
 		}
 		setRequestUserIsAdmin(c, h.Repo)
 		c.Set("token", auth)
@@ -376,7 +379,8 @@ func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	if err != nil {
 		return uuid.Nil, err
 	}
-	return uuid.FromString(sess.Values["userID"].(string))
+	userID, _ := sess.Values["userID"].(string)
+	return uuid.FromString(userID)
 }
 
 func setRequestUserIsAdmin(c echo.Context, repo repo.UserMetaRepository) error {
