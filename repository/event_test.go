@@ -171,7 +171,8 @@ func ExampleEvent_ICal() {
 	// END:VTIMEZONE
 	// BEGIN:VEVENT
 	// CREATED:20060102T150405Z
-	// DESCRIPTION:aiueo\naa\n[aa](aa)
+	// DESCRIPTION:aiueo\naa\n[aa](aa)\n\n-----------------------------------\nイベン
+	//  ト詳細ページ\n/events/00000000-0000-0000-0000-000000000000
 	// DTEND:20060102T180405Z
 	// DTSTAMP:20060102T150405Z
 	// DTSTART:20060102T150405Z
