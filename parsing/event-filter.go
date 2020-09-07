@@ -70,7 +70,6 @@ type Token struct {
 	Value string
 }
 
-//go:generate stringer -type=tokenKind
 type tokenKind int
 
 const (

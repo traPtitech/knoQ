@@ -1,12 +1,14 @@
 package router
 
 import (
+	"bytes"
 	"net/http"
 	repo "room/repository"
 	"room/router/service"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
+	"github.com/lestrrat-go/ical"
 
 	"github.com/labstack/echo/v4"
 )
@@ -67,11 +69,11 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	filterQuery := values.Get("q")
 	if filterQuery != "" {
 		token, _ := getRequestUserToken(c)
-		res, err := h.GetEventsByFilter(token, filterQuery)
+		events, err := h.GetEventsByFilter(token, filterQuery)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
-		return c.JSON(http.StatusOK, res)
+		return c.JSON(http.StatusOK, service.FormatEventsRes(events))
 	}
 
 	start, end, err := getTiemRange(values)
@@ -241,4 +243,34 @@ func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
+}
+
+// HandleGetiCalByPrivateID sessionを持たないリクエストが想定されている
+func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
+	str := c.Param("secret")
+	filter := c.Param("q")
+	userID, err := uuid.FromString(str[:36])
+	if err != nil {
+		return notFound(err)
+	}
+	secret := str[36:]
+	user, err := h.Dao.Repo.GetUser(userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	if user.IcalSecret != secret {
+		return notFound(err)
+	}
+	token, err := h.Dao.Repo.GetToken(userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	cal, err := h.Dao.GetiCalByFilter(token, filter, h.Origin)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	var buf bytes.Buffer
+	ical.NewEncoder(&buf).Encode(cal)
+
+	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())
 }

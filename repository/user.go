@@ -23,6 +23,7 @@ type UserMetaRepository interface {
 	GetAllUsers() ([]*UserMeta, error)
 	ReplaceToken(userID uuid.UUID, token string) error
 	GetToken(userID uuid.UUID) (string, error)
+	UpdateiCalSecretUser(userID uuid.UUID, secret string) error
 }
 
 type UserBodyRepository interface {
@@ -61,12 +62,23 @@ func (repo *GormRepository) GetAllUsers() ([]*UserMeta, error) {
 	return users, err
 }
 
+func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string) error {
+	if userID == uuid.Nil {
+		return ErrNilID
+	}
+	if err := repo.DB.Model(&UserMeta{ID: userID}).Update("ical_secret", secret).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
 	user := UserMeta{
 		ID: userID,
 	}
 	return repo.DB.Model(&user).Update("token", token).Error
 }
+
 func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
 	user := UserMeta{
 		ID: userID,
@@ -132,6 +144,9 @@ func (repo *TraQRepository) GetAllUsers() ([]*UserBody, error) {
 		users[i] = formatV3User(u)
 	}
 	return users, err
+}
+func (repo *TraQRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string) error {
+	return ErrForbidden
 }
 
 func formatV3User(u *traQrouterV3.User) *UserBody {
