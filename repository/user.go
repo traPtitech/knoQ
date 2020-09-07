@@ -119,12 +119,14 @@ func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string
 	return nil
 }
 
-
 func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
 	user := UserMeta{
 		ID: userID,
 	}
-	fmt.Println(len(cipherText))
+	cipherText, err := encryptByGCM(repo.TokenKey, token)
+	if err != nil {
+		return err
+	}
 	return repo.DB.Model(&user).Update("token", cipherText).Error
 }
 
