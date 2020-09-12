@@ -7,7 +7,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://develop.room.sysad.trap.show/api/
+  - url: http://ec2-54-238-146-214.ap-northeast-1.compute.amazonaws.com/api
     description: Development server
 
 tags:
@@ -23,8 +23,10 @@ tags:
     description: タグ
   - name: activity
     description: activity
-  - name: authorization
+  - name: authentication
     description: 認証
+  - name: iCal
+    description: ics出力
  
 paths:
   /rooms:
@@ -162,18 +164,19 @@ paths:
       parameters:
         - name: dateBegin
           in: query
-          description: 特定の日からのみにする。(iso8601)
+          description: 特定の日からのみにする。(iso8601)<br>qが優先される
           required: false
           schema:
             type: string
             format: datetime
         - name: dateEnd
           in: query
-          description: 特定の日までのみにする。(iso8601)
+          description: 特定の日までのみにする。(iso8601)<br>qが優先される
           required: false
           schema:
             type: string
             format: datetime
+        - $ref: "#/components/parameters/eventFilter"
       responses:
         200:
           $ref: "#/components/responses/eventArray"
@@ -502,6 +505,37 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/user"
+  /users/me/ical:
+    get:
+      tags:
+        - users
+        - iCal
+      responses:
+        200:
+          description: /ical で使う`secret`を取得
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+    put:
+      tags:
+        - users
+        - iCal
+      description: /ical で使う`secret`を再生成
+      responses:
+        200:
+          description: 新たに生成したものを返す
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  secret:
+                    type: string
+ 
   /tags:
     get:
       tags:
@@ -527,6 +561,7 @@ paths:
 
   /activity/events:
     get:
+      deprecated: true
       tags:
         - activity
         - events
@@ -540,7 +575,7 @@ paths:
   /authParams:
     post:
       tags:
-        - authorization
+        - authentication
       responses:
         201:
           description: "リクエストに必要な情報を返す"
@@ -548,6 +583,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/authParams"
+
+  /ical/{userID}{secret}:
+    get:
+      tags:
+        - iCal
+      parameters:
+        - name: userID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: secret
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/eventFilter"
+      responses:
+        200:
+          description: | 
+            iCal形式でイベントを出力
+            外部カレンダーを想定
+          content:
+            text/calendar:
+              schema:
+                type: string
+              example:
+                "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:github.com/lestrrat-go/ical\nBEGIN:VTIMEZONE\nTZID:Asia/Tokyo\nBEGIN:STANDARD\nDTSTART:19700101T000000\nTZNAME:JST\nTZOFFSETFROM:+9000\nTZOFFSETTO:+9000\nEND:STANDARD\nEND:VTIMEZONE\nBEGIN:VEVENT\nCREATED:20200827T094008Z\nDESCRIPTION:asd¥n-----------------------------------¥nイベント詳細ページ¥nhttp://loc\nalhost:4000/events/855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nDTEND:20200828T140000Z\nDTSTAMP:20200904T145144Z\nDTSTART:20200828T050000Z\nLAST-MODIFIED:20200827T094008Z\nLOCATION:dfaaa\nORGANIZER:18984a38-4dc7-41ab-9c8d-f5469a8e30a9\nSUMMARY:sadfwe\nUID:855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nEND:VEVENT\nBEGIN:VEVENT\nCREATED:20200827T094008Z\nDESCRIPTION:asd¥n-----------------------------------¥nイベント詳細ページ¥nhttp://loc\nalhost:4000/events/855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nDTEND:20200828T140000Z\nDTSTAMP:20200904T145144Z\nDTSTART:20200828T050000Z\nLAST-MODIFIED:20200827T094008Z\nLOCATION:dfaaa\nORGANIZER:18984a38-4dc7-41ab-9c8d-f5469a8e30a9\nSUMMARY:sadfwe\nUID:855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nEND:VEVENT\nEND:VCALENDAR"
 
 components:
   schemas:
@@ -943,6 +1007,22 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/ResTag"
+
+  parameters:
+    eventFilter:
+      name: q
+      in: query
+      schema:
+        type: string
+      description: 
+        "Syntax: <br>
+          top  : ε | expr,
+          expr : term ( ( \"||\" | \"&&\" ) term)*<br>
+          term : cmp | \"(\" expr \")\"<br>
+          cmp  : Attr ( \"==\" | \"!=\" ) UUID<br>
+          Attr : \"event\" | \"user\" | \"group\" | \"tag\" 
+        "
+      
 
 externalDocs:
   description: Find out more about Swagger
