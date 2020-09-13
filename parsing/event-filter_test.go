@@ -1,6 +1,7 @@
 package parsing
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -99,5 +100,38 @@ func TestChkSyn_Failure(t *testing.T) {
 	for _, c := range chkSynCasesFailure {
 		err := CheckSyntax(&c.in)
 		assert.Error(t, err)
+	}
+}
+
+func TestLexAndCheckSyntax(t *testing.T) {
+	type args struct {
+		input string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    TokenStream
+		wantErr bool
+	}{
+		{
+			name: "illegal input",
+			args: args{
+				input: "aabbb===b",
+			},
+			want:    NewTokenStream(),
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := LexAndCheckSyntax(tt.args.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("LexAndCheckSyntax() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("LexAndCheckSyntax() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
