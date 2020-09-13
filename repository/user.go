@@ -26,7 +26,8 @@ type UserMetaRepository interface {
 	GetAllUsers() ([]*UserMeta, error)
 	ReplaceToken(userID uuid.UUID, token string) error
 	GetToken(userID uuid.UUID) (string, error)
-	UpdateiCalSecretUser(userID uuid.UUID, secret string) error
+	ReplaceiCalSecret(userID uuid.UUID, secret string) error
+	GetiCalSecret(userID uuid.UUID) (string, error)
 }
 
 type UserBodyRepository interface {
@@ -109,7 +110,7 @@ func decryptByGCM(key []byte, cipherText []byte) (string, error) {
 	return string(plainByte), nil
 }
 
-func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string) error {
+func (repo *GormRepository) ReplaceiCalSecret(userID uuid.UUID, secret string) error {
 	if userID == uuid.Nil {
 		return ErrNilID
 	}
@@ -117,6 +118,13 @@ func (repo *GormRepository) UpdateiCalSecretUser(userID uuid.UUID, secret string
 		return err
 	}
 	return nil
+}
+func (repo *GormRepository) GetiCalSecret(userID uuid.UUID) (string, error) {
+	user := UserMeta{
+		ID: userID,
+	}
+	err := repo.DB.First(&user).Error
+	return user.IcalSecret, err
 }
 
 func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {

@@ -108,7 +108,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiUsers.GET("", h.HandleGetUsers)
 
 			apiUsers.GET("/me", h.HandleGetUserMe)
-			apiUsers.PUT("/me/iCal", h.HandleUpdateiCal)
+			apiUsers.GET("/me/ical", h.HandleGetiCal)
+			apiUsers.PUT("/me/ical", h.HandleUpdateiCal)
 			apiUsers.GET("/me/groups", h.HandleGetMeGroupIDs)
 			apiUsers.GET("/me/events", h.HandleGetMeEvents)
 
@@ -132,7 +133,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
-	e.GET("/api/iCal/:secret", h.HandleGetiCalByPrivateID)
+	e.GET("/api/ical/:userIDsecret", h.HandleGetiCalByPrivateID)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {

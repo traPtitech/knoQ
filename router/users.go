@@ -41,12 +41,28 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, service.FormatUsersRes(users))
 }
+func (h *Handlers) HandleGetiCal(c echo.Context) error {
+	userID, _ := getRequestUserID(c)
+	secret, err := h.Dao.Repo.GetiCalSecret(userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	return c.JSON(http.StatusOK, struct {
+		Secret string `json:"secret"`
+	}{
+		Secret: secret,
+	})
+}
 
 func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 	userID, _ := getRequestUserID(c)
 	secret := traQutils.RandAlphabetAndNumberString(16)
-	if err := h.Dao.Repo.UpdateiCalSecretUser(userID, secret); err != nil {
+	if err := h.Dao.Repo.ReplaceiCalSecret(userID, secret); err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.String(http.StatusOK, secret)
+	return c.JSON(http.StatusOK, struct {
+		Secret string `json:"secret"`
+	}{
+		Secret: secret,
+	})
 }
