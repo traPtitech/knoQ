@@ -248,7 +248,7 @@ func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
 // HandleGetiCalByPrivateID sessionを持たないリクエストが想定されている
 func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	str := c.Param("userIDsecret")
-	filter := c.Param("q")
+	filter := c.QueryParam("q")
 	userID, err := uuid.FromString(str[:36])
 	if err != nil {
 		return notFound(err)
