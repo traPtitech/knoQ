@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime"
@@ -112,18 +113,18 @@ func internalServerError(err error, responses ...option) *echo.HTTPError {
 }
 
 func judgeErrorResponse(err error) *echo.HTTPError {
-	switch err {
-	case repo.ErrNilID:
+	if errors.Is(err, repo.ErrNilID) {
 		return internalServerError(err, message("ID is nil"), errorRuntime(1))
-	case repo.ErrNotFound:
+	} else if errors.Is(err, repo.ErrNotFound) {
 		return notFound(err, errorRuntime(1))
-	case repo.ErrForbidden:
+	} else if errors.Is(err, repo.ErrForbidden) {
 		return forbidden(err, errorRuntime(1))
-	case repo.ErrAlreadyExists:
+	} else if errors.Is(err, repo.ErrAlreadyExists) {
 		return badRequest(err, message("already exists"), errorRuntime(1))
-	case repo.ErrInvalidArg:
-		return badRequest(err, message("invalid arguments"), errorRuntime(1))
+	} else if errors.Is(err, repo.ErrInvalidArg) {
+		return badRequest(err, message(err.Error()), errorRuntime(1))
 	}
+
 	me, ok := err.(*mysql.MySQLError)
 	if !ok {
 		return internalServerError(err, errorRuntime(1))

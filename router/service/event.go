@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"room/parsing"
 	repo "room/repository"
 
@@ -47,7 +48,7 @@ func (d Dao) GetiCalByFilter(token, query, origin string) (*ical.Calendar, error
 func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error) {
 	ts, err := parsing.LexAndCheckSyntax(filterQuery)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w, %s has '%v'", repo.ErrInvalidArg, filterQuery, err)
 	}
 
 	// syntax checkは既にされている。
