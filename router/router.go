@@ -4,6 +4,7 @@ package router
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"room/router/service"
 
@@ -37,7 +38,14 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.Use(middleware.Secure())
 	e.Use(AccessLoggingMiddleware(h.Logger))
 
-	e.Use(session.Middleware(gormstore.New(db, h.SessionKey)))
+	store := gormstore.New(db, h.SessionKey)
+	e.Use(session.Middleware(store))
+	// db cleanup every hour
+	// close quit channel to stop cleanup
+	quit := make(chan struct{})
+	// defer close(quit)
+	go store.PeriodicCleanup(1*time.Hour, quit)
+
 	e.Use(h.WatchCallbackMiddleware())
 
 	// TODO fix "portal origin"
