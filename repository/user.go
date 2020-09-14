@@ -42,8 +42,9 @@ type UserBodyRepository interface {
 
 func (repo *GormRepository) SaveUser(userID uuid.UUID, isAdmin, istraQ bool) (*UserMeta, error) {
 	user := UserMeta{
-		ID:    userID,
-		Admin: isAdmin,
+		ID:     userID,
+		Admin:  isAdmin,
+		IsTraq: istraQ,
 	}
 	if err := repo.DB.Create(&user).Error; err != nil {
 		var me *mysql.MySQLError
