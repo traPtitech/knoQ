@@ -91,7 +91,7 @@ func (h *Handlers) HandleSyncUser(c echo.Context) error {
 			h.Repo.SaveUser(user.ID, false, true)
 		}
 	}
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusCreated)
 }
 
 func getTraQAllUsers(token string) ([]traQv3.User, error) {
