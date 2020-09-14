@@ -114,6 +114,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		apiUsers := api.Group("/users")
 		{
 			apiUsers.GET("", h.HandleGetUsers)
+			apiUsers.POST("/sync", h.HandleSyncUser, h.AdminUserMiddleware)
 
 			apiUsers.GET("/me", h.HandleGetUserMe)
 			apiUsers.GET("/me/ical", h.HandleGetiCal)
