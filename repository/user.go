@@ -5,8 +5,10 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
 	traQrouterV1 "github.com/traPtitech/traQ/router/v1"
@@ -21,7 +23,7 @@ var traQjson = jsoniter.Config{
 }.Froze()
 
 type UserMetaRepository interface {
-	SaveUser(isAdmin bool) (*UserMeta, error)
+	SaveUser(userID uuid.UUID, isAdmin, istraQ bool) (*UserMeta, error)
 	GetUser(userID uuid.UUID) (*UserMeta, error)
 	GetAllUsers() ([]*UserMeta, error)
 	ReplaceToken(userID uuid.UUID, token string) error
@@ -38,22 +40,25 @@ type UserBodyRepository interface {
 
 // GormRepository implements UserRepository
 
-func (repo *GormRepository) SaveUser(isAdmin bool) (*UserMeta, error) {
-	userID, _ := uuid.NewV4()
+func (repo *GormRepository) SaveUser(userID uuid.UUID, isAdmin, istraQ bool) (*UserMeta, error) {
 	user := UserMeta{
 		ID:    userID,
 		Admin: isAdmin,
 	}
 	if err := repo.DB.Create(&user).Error; err != nil {
+		var me *mysql.MySQLError
+		if errors.As(err, &me) && me.Number == 1062 {
+			return nil, ErrAlreadyExists
+		}
 		return nil, err
 	}
 	return &user, nil
 }
 
-// GetUser ユーザー情報を取得します(なければ作成)
+// GetUser ユーザー情報を取得します
 func (repo *GormRepository) GetUser(userID uuid.UUID) (*UserMeta, error) {
-	user := new(UserMeta)
-	if err := repo.DB.FirstOrCreate(&user, &UserMeta{ID: userID}).Error; err != nil {
+	user := &UserMeta{}
+	if err := repo.DB.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return user, nil

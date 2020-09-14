@@ -138,7 +138,9 @@ func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.
 
 func mustMakeUserMeta(t *testing.T, repo UserMetaRepository, admin bool) *UserMeta {
 	t.Helper()
-	user, err := repo.SaveUser(admin)
+	userID := mustNewUUIDV4(t)
+	// TODO fix consider not traQ user.
+	user, err := repo.SaveUser(userID, admin, true)
 	require.NoError(t, err)
 	return user
 }

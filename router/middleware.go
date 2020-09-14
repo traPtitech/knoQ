@@ -134,8 +134,8 @@ func (h *Handlers) WatchCallbackMiddleware() echo.MiddlewareFunc {
 			json.Unmarshal(bytes, userID)
 
 			// sess.Values["authorization"] = token
-			_, err = h.Repo.GetUser(userID.Value)
-			if err != nil {
+			_, err = h.Repo.SaveUser(userID.Value, false, true)
+			if err != nil && !errors.Is(err, repo.ErrAlreadyExists) {
 				return internalServerError(err)
 			}
 			if err := h.Dao.Repo.ReplaceToken(userID.Value, token); err != nil {
