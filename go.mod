@@ -17,7 +17,7 @@ require (
 	github.com/traPtitech/traQ v1.0.0-rc.2.0.20200309071637-82e15593b8c0
 	github.com/wader/gormstore v0.0.0-20190904144442-d36772af4310
 	go.uber.org/zap v1.15.0
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	google.golang.org/api v0.29.0
+	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
+	google.golang.org/api v0.32.0
 	gopkg.in/gormigrate.v1 v1.6.0
 )
