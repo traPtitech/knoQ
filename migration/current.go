@@ -8,5 +8,6 @@ import (
 func Migrations() []*gormigrate.Migration {
 	return []*gormigrate.Migration{
 		v1(),
+		v2(),
 	}
 }
