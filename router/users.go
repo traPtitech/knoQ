@@ -1,10 +1,16 @@
 package router
 
 import (
+	"encoding/json"
+	"errors"
+	"io/ioutil"
 	"net/http"
+	"net/url"
+	"path"
 	"room/router/service"
 
 	"github.com/labstack/echo/v4"
+	traQv3 "github.com/traPtitech/traQ/router/v3"
 	traQutils "github.com/traPtitech/traQ/utils"
 )
 
@@ -65,4 +71,58 @@ func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 	}{
 		Secret: secret,
 	})
+}
+
+// HandleSyncUser traQのユーザーとの同期をする
+// 停止されているユーザーの`token`を削除して、
+// 活動中のユーザーを追加する(userIDをDBに保存)
+func (h *Handlers) HandleSyncUser(c echo.Context) error {
+	token, _ := getRequestUserToken(c)
+
+	// TODO fix with repository v4
+	allUsers, err := getTraQAllUsers(token)
+	if err != nil {
+		return internalServerError(err)
+	}
+	for _, user := range allUsers {
+		if user.State == 0 {
+			h.Repo.ReplaceToken(user.ID, "")
+		} else if user.State == 1 {
+			h.Repo.SaveUser(user.ID, false, true)
+		}
+	}
+	return c.NoContent(http.StatusCreated)
+}
+
+func getTraQAllUsers(token string) ([]traQv3.User, error) {
+	u, err := url.Parse("https://q.trap.jp/api/v3")
+	if err != nil {
+		return nil, err
+	}
+	u.Path = path.Join(u.Path, "users")
+	query := u.Query()
+	query.Set("include-suspended", "1")
+	u.RawQuery = query.Encode()
+
+	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode >= 400 {
+		return nil, errors.New(http.StatusText(res.StatusCode))
+	}
+
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	users := make([]traQv3.User, 0)
+	err = json.Unmarshal(data, &users)
+	return users, err
 }

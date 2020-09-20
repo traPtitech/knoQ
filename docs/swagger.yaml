@@ -495,6 +495,18 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/userArray"
+  /users/sync:
+    post:
+      tags:
+        - users
+      description: 管理者権限が必要。
+        traQのuserと同期します。 
+        state=1については、ユーザーを作成。
+        state=0については、存在している場合に限り、`token`を無効化します。(ユーザー削除はしません)
+      responses:
+        "201":
+          description: OK
+            
 
   /users/me:
     get:

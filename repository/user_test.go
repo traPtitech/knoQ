@@ -3,6 +3,7 @@ package repository
 import (
 	"testing"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	traQutils "github.com/traPtitech/traQ/utils"
 )
@@ -12,9 +13,25 @@ func TestGormRepository_SaveUser(t *testing.T) {
 	repo, _, _ := setupGormRepo(t, common)
 
 	t.Run("success", func(t *testing.T) {
-		t.Parallel()
-		_, err := repo.SaveUser(false)
+		userID := mustNewUUIDV4(t)
+		_, err := repo.SaveUser(userID, false, true)
 		assert.NoError(t, err)
+	})
+
+	t.Run("nil id", func(t *testing.T) {
+		userID := uuid.Nil
+		_, err := repo.SaveUser(userID, false, true)
+		// mysql Error number 1364
+		// Field 'id' doesn't have a default value
+		assert.Error(t, err)
+	})
+
+	t.Run("already exists", func(t *testing.T) {
+		userID := mustNewUUIDV4(t)
+		_, err := repo.SaveUser(userID, false, true)
+		assert.NoError(t, err)
+		_, err = repo.SaveUser(userID, false, true)
+		assert.EqualError(t, err, ErrAlreadyExists.Error())
 	})
 }
 
