@@ -137,9 +137,13 @@ func (repo *GormRepository) ReplaceToken(userID uuid.UUID, token string) error {
 	user := UserMeta{
 		ID: userID,
 	}
-	cipherText, err := encryptByGCM(repo.TokenKey, token)
-	if err != nil {
-		return err
+	var cipherText []byte
+	var err error
+	if token != "" {
+		cipherText, err = encryptByGCM(repo.TokenKey, token)
+		if err != nil {
+			return err
+		}
 	}
 	return repo.DB.Model(&user).Update("token", cipherText).Error
 }
@@ -152,9 +156,12 @@ func (repo *GormRepository) GetToken(userID uuid.UUID) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	token, err := decryptByGCM(repo.TokenKey, []byte(user.Token))
+	var token string
+	if user.Token != "" {
+		token, err = decryptByGCM(repo.TokenKey, []byte(user.Token))
+	}
 
-	return string(token), nil
+	return token, err
 }
 
 // traQRepository implements UserRepository
