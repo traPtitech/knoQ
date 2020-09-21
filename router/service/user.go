@@ -32,7 +32,11 @@ func formatUsers(meta []*repo.UserMeta, body []*repo.UserBody) []*User {
 	}
 	users := make([]*User, 0, len(meta))
 	for _, m := range meta {
-		users = append(users, formatUser(m, bodyMap[m.ID]))
+		// TODO consider state=0 users
+		b := bodyMap[m.ID]
+		if b != nil {
+			users = append(users, formatUser(m, b))
+		}
 	}
 	return users
 }
