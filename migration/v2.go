@@ -51,7 +51,7 @@ func v2() *gormigrate.Migration {
 					return err
 				}
 			}
-			return db.DropTable("users").Error
+			return db.DropTableIfExists("users").Error
 		},
 	}
 }
