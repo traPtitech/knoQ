@@ -92,15 +92,16 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 		case parsing.LParen, parsing.RParen:
 			filter += t.Kind.String()
 		case parsing.UUID:
-			filter += "?"
 
 			id, err := uuid.FromString(t.Value)
 			if err != nil {
 				return nil, err
 			}
 			if preAttr != "user" {
+				filter += "?"
 				filterArgs = append(filterArgs, id)
 			} else if preAttr == "user" {
+				filter += "(?)"
 				ids, err := d.GetUserBelongingGroupIDs(token, id)
 				if err != nil {
 					return nil, err
