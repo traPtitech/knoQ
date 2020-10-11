@@ -11,9 +11,9 @@ import (
 
 /*---------------------------------------------------------------------------*/
 
-// LexAndCheckSyntax tokenizes input and check syntax
+// LexAndOpCheckSyntax tokenizes input and check syntax
 // if input is illegal, this function returns error
-func LexAndCheckSyntax(input string) (TokenStream, error) {
+func LexAndOpCheckSyntax(input string) (TokenStream, error) {
 	ts, err := Lex(input)
 	if err != nil {
 		return NewTokenStream(), err
@@ -74,10 +74,10 @@ type tokenKind int
 
 const (
 	Unknown tokenKind = iota
-	Or
-	And
-	Eq
-	Neq
+	OrOp
+	AndOp
+	EqOp
+	NeqOp
 	LParen
 	RParen
 	Attr
@@ -89,13 +89,13 @@ func (k tokenKind) String() (s string) {
 	switch k {
 	case Unknown:
 		s = "unknown"
-	case Or:
+	case OrOp:
 		s = "||"
-	case And:
+	case AndOp:
 		s = "&&"
-	case Eq:
+	case EqOp:
 		s = "=="
-	case Neq:
+	case NeqOp:
 		s = "!="
 	case LParen:
 		s = "("
@@ -115,10 +115,10 @@ func (k tokenKind) String() (s string) {
 
 var (
 	SupportedAttributes = []string{"user", "group", "tag", "event"}
-	reAttrOrUUIDLike    = regexp.MustCompile(`^[a-z0-9\-:{}]+`)
+	reAttrOrOpUUIDLike  = regexp.MustCompile(`^[a-z0-9\-:{}]+`)
 )
 
-func checkAttrOrUUIDLike(lexeme string) tokenKind {
+func checkAttrOrOpUUIDLike(lexeme string) tokenKind {
 	for _, attr := range SupportedAttributes {
 		if attr == lexeme {
 			return Attr
@@ -149,13 +149,13 @@ func advanceToken(b *[]byte) (Token, error) {
 	// skip whitespaces
 	*b = bytes.TrimSpace(*b)
 
-	loc := reAttrOrUUIDLike.FindIndex(*b)
+	loc := reAttrOrOpUUIDLike.FindIndex(*b)
 
 	var token Token
 	switch {
 	case loc != nil:
 		match := string((*b)[:loc[1]])
-		kind := checkAttrOrUUIDLike(match)
+		kind := checkAttrOrOpUUIDLike(match)
 		if kind == Attr {
 			token = Token{kind, match}
 		} else if uuid, err := uuid.FromString(match); err == nil {
@@ -166,19 +166,19 @@ func advanceToken(b *[]byte) (Token, error) {
 		*b = (*b)[loc[1]:]
 
 	case bytes.HasPrefix(*b, []byte("||")):
-		token = Token{Or, ""}
+		token = Token{OrOp, ""}
 		*b = (*b)[2:]
 
 	case bytes.HasPrefix(*b, []byte("&&")):
-		token = Token{And, ""}
+		token = Token{AndOp, ""}
 		*b = (*b)[2:]
 
 	case bytes.HasPrefix(*b, []byte("==")):
-		token = Token{Eq, ""}
+		token = Token{EqOp, ""}
 		*b = (*b)[2:]
 
 	case bytes.HasPrefix(*b, []byte("!=")):
-		token = Token{Neq, ""}
+		token = Token{NeqOp, ""}
 		*b = (*b)[2:]
 
 	case (*b)[0] == '(':
@@ -244,7 +244,7 @@ func checkSyntaxExpr(ts *TokenStream) error {
 
 	for ts.HasNext() {
 		switch k := ts.Peek().Kind; k {
-		case Or, And:
+		case OrOp, AndOp:
 			ts.Next()
 			if err := checkSyntaxTerm(ts); err != nil {
 				return err
@@ -254,7 +254,7 @@ func checkSyntaxExpr(ts *TokenStream) error {
 			return nil
 
 		default:
-			return createParseError(k, Or, And, RParen)
+			return createParseError(k, OrOp, AndOp, RParen)
 		}
 	}
 
@@ -288,7 +288,7 @@ func checkSyntaxCmp(ts *TokenStream) error {
 	if err := consumeToken(ts, Attr); err != nil {
 		return err
 	}
-	if err := consumeToken(ts, Eq, Neq); err != nil {
+	if err := consumeToken(ts, EqOp, NeqOp); err != nil {
 		return err
 	}
 	if err := consumeToken(ts, UUID); err != nil {

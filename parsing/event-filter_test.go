@@ -17,10 +17,10 @@ var lexCasesSuccess = []struct {
 	{"user group tag event", NewTokenStream(Token{Attr, "user"},
 		Token{Attr, "group"}, Token{Attr, "tag"}, Token{Attr, "event"})},
 	{"()&&||==!=", NewTokenStream(Token{LParen, ""}, Token{RParen, ""},
-		Token{And, ""}, Token{Or, ""}, Token{Eq, ""}, Token{Neq, ""})},
-	{"user==user&&tag==tag", NewTokenStream(Token{Attr, "user"}, Token{Eq, ""},
-		Token{Attr, "user"}, Token{And, ""}, Token{Attr, "tag"},
-		Token{Eq, ""}, Token{Attr, "tag"})},
+		Token{AndOp, ""}, Token{OrOp, ""}, Token{EqOp, ""}, Token{NeqOp, ""})},
+	{"user==user&&tag==tag", NewTokenStream(Token{Attr, "user"}, Token{EqOp, ""},
+		Token{Attr, "user"}, Token{AndOp, ""}, Token{Attr, "tag"},
+		Token{EqOp, ""}, Token{Attr, "tag"})},
 	{"123e4567-e89b-12d3-a456-426652340000",
 		NewTokenStream(Token{UUID, "123e4567-e89b-12d3-a456-426652340000"})},
 }
@@ -68,11 +68,11 @@ var chkSynCasesSuccess = []struct {
 	in TokenStream
 }{
 	{tsOf()},
-	{tsOf(Attr, Eq, UUID)},
-	{tsOf(LParen, Attr, Eq, UUID, RParen)},
-	{tsOf(Attr, Eq, UUID, And, Attr, Neq, UUID, Or, Attr, Eq, UUID)},
-	{tsOf(LParen, LParen, Attr, Eq, UUID, Or, Attr, Eq, UUID, RParen, And,
-		Attr, Neq, UUID, RParen, Or, Attr, Neq, UUID)},
+	{tsOf(Attr, EqOp, UUID)},
+	{tsOf(LParen, Attr, EqOp, UUID, RParen)},
+	{tsOf(Attr, EqOp, UUID, AndOp, Attr, NeqOp, UUID, OrOp, Attr, EqOp, UUID)},
+	{tsOf(LParen, LParen, Attr, EqOp, UUID, OrOp, Attr, EqOp, UUID, RParen, AndOp,
+		Attr, NeqOp, UUID, RParen, OrOp, Attr, NeqOp, UUID)},
 }
 
 func TestChkSyn_Success(t *testing.T) {
@@ -89,9 +89,9 @@ var chkSynCasesFailure = []struct {
 }{
 	{tsOf(Attr)},
 	{tsOf(UUID)},
-	{tsOf(And)},
+	{tsOf(AndOp)},
 	{tsOf(LParen, RParen)},
-	{tsOf(LParen, Attr, Eq, UUID)},
+	{tsOf(LParen, Attr, EqOp, UUID)},
 }
 
 func TestChkSyn_Failure(t *testing.T) {
@@ -103,7 +103,7 @@ func TestChkSyn_Failure(t *testing.T) {
 	}
 }
 
-func TestLexAndCheckSyntax(t *testing.T) {
+func TestLexAndOpCheckSyntax(t *testing.T) {
 	type args struct {
 		input string
 	}
@@ -124,13 +124,13 @@ func TestLexAndCheckSyntax(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := LexAndCheckSyntax(tt.args.input)
+			got, err := LexAndOpCheckSyntax(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("LexAndCheckSyntax() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LexAndOpCheckSyntax() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("LexAndCheckSyntax() = %v, want %v", got, tt.want)
+				t.Errorf("LexAndOpCheckSyntax() = %v, want %v", got, tt.want)
 			}
 		})
 	}
