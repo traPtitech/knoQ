@@ -208,7 +208,7 @@ const (
 type LogicOp int
 
 const (
-	And = iota
+	And LogicOp = iota
 	Or
 )
 
