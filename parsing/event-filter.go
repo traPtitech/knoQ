@@ -11,9 +11,9 @@ import (
 
 /*---------------------------------------------------------------------------*/
 
-// LexAndOpCheckSyntax tokenizes input and check syntax
+// LexAndCheckSyntax tokenizes input and check syntax
 // if input is illegal, this function returns error
-func LexAndOpCheckSyntax(input string) (TokenStream, error) {
+func LexAndCheckSyntax(input string) (TokenStream, error) {
 	ts, err := Lex(input)
 	if err != nil {
 		return NewTokenStream(), err
