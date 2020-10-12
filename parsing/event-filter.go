@@ -233,10 +233,9 @@ func createParseError(found tokenKind, expected ...tokenKind) error {
 }
 
 func consumeToken(ts *TokenStream, expected ...tokenKind) error {
-	k := ts.Peek().Kind
+	k := ts.Next().Kind
 	for _, e := range expected {
 		if k == e {
-			ts.Next()
 			return nil
 		}
 	}
