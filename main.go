@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	SESSION_KEY = []byte(os.Getenv("SESSION_KEY"))
+	SESSION_KEY = []byte(os.Getenv("SESSION_KEY")[:32])
 )
 
 func main() {
