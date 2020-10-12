@@ -41,7 +41,7 @@ func NewTokenStream(tokens ...Token) TokenStream {
 
 // HasNext checks if ts has next token
 func (ts *TokenStream) HasNext() bool {
-	return ts.tokens[ts.pos].Kind != EOF
+	return ts.pos <= len(ts.tokens)-1
 }
 
 // Next returns next token and proceeds
@@ -212,12 +212,12 @@ const (
 	Or
 )
 
-type Expr interface{} // expects LogicOpExpr, CmpExpr
+type Expr interface{} // expects *LogicOpExpr, *CmpExpr
 
 type LogicOpExpr struct {
 	LogicOp LogicOp
-	Lhs     *Expr
-	Rhs     *Expr
+	Lhs     Expr
+	Rhs     Expr
 }
 
 type CmpExpr struct {
@@ -251,6 +251,110 @@ Syntax:
 	cmp  : Attr ( "==" | "!=" ) UUID
 
 */
+
+func ParseTop(ts *TokenStream) (Expr, error) {
+	var expr Expr
+	var err error
+
+	if ts.Peek().Kind != EOF {
+		if expr, err = ParseExpr(ts); err != nil {
+			return nil, err
+		}
+	}
+
+	if err = consumeToken(ts, EOF); err != nil {
+		return nil, err
+	}
+
+	return expr, nil
+}
+
+func ParseExpr(ts *TokenStream) (Expr, error) {
+	var expr Expr
+	var err error
+
+	if expr, err = ParseTerm(ts); err != nil {
+		return nil, err
+	}
+
+Loop:
+	for {
+		switch k := ts.Peek().Kind; k {
+		case AndOp, OrOp:
+			ts.Next()
+			lhs := expr
+			op := map[tokenKind]LogicOp{
+				AndOp: And,
+				OrOp:  Or,
+			}[k]
+			rhs, err := ParseTerm(ts)
+			if err != nil {
+				return nil, err
+			}
+			expr = &LogicOpExpr{op, lhs, rhs}
+
+		default:
+			break Loop
+		}
+	}
+
+	return expr, nil
+}
+
+func ParseTerm(ts *TokenStream) (Expr, error) {
+	var expr Expr
+	var err error
+
+	switch k := ts.Peek().Kind; k {
+	case Attr:
+		if expr, err = ParseCmp(ts); err != nil {
+			return nil, err
+		}
+
+	case LParen:
+		ts.Next()
+		if expr, err = ParseExpr(ts); err != nil {
+			return nil, err
+		}
+		if err = consumeToken(ts, RParen); err != nil {
+			return nil, err
+		}
+
+	default:
+		return nil, createParseError(k, Attr, LParen)
+	}
+
+	return expr, nil
+}
+
+func ParseCmp(ts *TokenStream) (Expr, error) {
+	var attr string
+	var rel Relation
+	var uuid string
+
+	tok := ts.Next()
+	if tok.Kind != Attr {
+		return nil, createParseError(tok.Kind, Attr)
+	}
+	attr = tok.Value
+
+	tok = ts.Next()
+	if tok.Kind != EqOp && tok.Kind != NeqOp {
+		return nil, createParseError(tok.Kind, EqOp, NeqOp)
+	}
+	rel = map[tokenKind]Relation{
+		EqOp:  Eq,
+		NeqOp: Neq,
+	}[tok.Kind]
+
+	tok = ts.Next()
+	if tok.Kind != UUID {
+		return nil, createParseError(tok.Kind, UUID)
+	}
+	uuid = tok.Value
+
+	return &CmpExpr{attr, rel, uuid}, nil
+}
 
 // CheckSyntax checks if given TokenStream satisfies the syntax
 // shown above
