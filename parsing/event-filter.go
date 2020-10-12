@@ -115,10 +115,10 @@ func (k tokenKind) String() (s string) {
 
 var (
 	SupportedAttributes = []string{"user", "group", "tag", "event"}
-	reAttrOrOpUUIDLike  = regexp.MustCompile(`^[a-z0-9\-:{}]+`)
+	reAttrOrUUIDLike    = regexp.MustCompile(`^[a-z0-9\-:{}]+`)
 )
 
-func checkAttrOrOpUUIDLike(lexeme string) tokenKind {
+func checkAttrOrUUIDLike(lexeme string) tokenKind {
 	for _, attr := range SupportedAttributes {
 		if attr == lexeme {
 			return Attr
@@ -149,13 +149,13 @@ func advanceToken(b *[]byte) (Token, error) {
 	// skip whitespaces
 	*b = bytes.TrimSpace(*b)
 
-	loc := reAttrOrOpUUIDLike.FindIndex(*b)
+	loc := reAttrOrUUIDLike.FindIndex(*b)
 
 	var token Token
 	switch {
 	case loc != nil:
 		match := string((*b)[:loc[1]])
-		kind := checkAttrOrOpUUIDLike(match)
+		kind := checkAttrOrUUIDLike(match)
 		if kind == Attr {
 			token = Token{kind, match}
 		} else if uuid, err := uuid.FromString(match); err == nil {
