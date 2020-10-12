@@ -11,18 +11,18 @@ import (
 
 /*---------------------------------------------------------------------------*/
 
-// LexAndCheckSyntax tokenizes input and check syntax
-// if input is illegal, this function returns error
-func LexAndCheckSyntax(input string) (TokenStream, error) {
+func Parse(input string) (Expr, error) {
 	ts, err := Lex(input)
 	if err != nil {
-		return NewTokenStream(), err
+		return nil, err
 	}
-	if err = CheckSyntax(&ts); err != nil {
-		return NewTokenStream(), err
+
+	expr, err := ParseTop(ts)
+	if err != nil {
+		return nil, err
 	}
-	ts.Restore()
-	return ts, nil
+
+	return expr, nil
 }
 
 /*---------------------------------------------------------------------------*/
@@ -34,9 +34,9 @@ type TokenStream struct {
 }
 
 // NewTokenStream creates new TokenStream of given tokens
-func NewTokenStream(tokens ...Token) TokenStream {
+func NewTokenStream(tokens ...Token) *TokenStream {
 	tokens = append(tokens, Token{EOF, ""})
-	return TokenStream{tokens, 0}
+	return &TokenStream{tokens, 0}
 }
 
 // HasNext checks if ts has next token
@@ -130,14 +130,14 @@ func checkAttrOrUUIDLike(lexeme string) tokenKind {
 /*---------------------------------------------------------------------------*/
 
 // Lex tokenizes input and returns TokenStream and error
-func Lex(input string) (TokenStream, error) {
+func Lex(input string) (*TokenStream, error) {
 	bytes := []byte(input)
 	var tokens []Token
 
 	for len(bytes) > 0 {
 		token, err := advanceToken(&bytes)
 		if err != nil {
-			return NewTokenStream(), err
+			return nil, err
 		}
 		tokens = append(tokens, token)
 	}
@@ -354,78 +354,4 @@ func ParseCmp(ts *TokenStream) (Expr, error) {
 	uuid = tok.Value
 
 	return &CmpExpr{attr, rel, uuid}, nil
-}
-
-// CheckSyntax checks if given TokenStream satisfies the syntax
-// shown above
-func CheckSyntax(ts *TokenStream) error {
-	if ts.HasNext() {
-		if err := checkSyntaxExpr(ts); err != nil {
-			return err
-		}
-	}
-	if ts.HasNext() {
-		return createParseError(ts.Peek().Kind, EOF)
-	}
-	return nil
-}
-
-func checkSyntaxExpr(ts *TokenStream) error {
-	if err := checkSyntaxTerm(ts); err != nil {
-		return err
-	}
-
-	for ts.HasNext() {
-		switch k := ts.Peek().Kind; k {
-		case OrOp, AndOp:
-			ts.Next()
-			if err := checkSyntaxTerm(ts); err != nil {
-				return err
-			}
-
-		case RParen:
-			return nil
-
-		default:
-			return createParseError(k, OrOp, AndOp, RParen)
-		}
-	}
-
-	return nil
-}
-
-func checkSyntaxTerm(ts *TokenStream) error {
-	switch k := ts.Peek().Kind; k {
-	case Attr:
-		if err := checkSyntaxCmp(ts); err != nil {
-			return err
-		}
-
-	case LParen:
-		ts.Next()
-		if err := checkSyntaxExpr(ts); err != nil {
-			return err
-		}
-		if err := consumeToken(ts, RParen); err != nil {
-			return err
-		}
-
-	default:
-		return createParseError(k, Attr, LParen)
-	}
-
-	return nil
-}
-
-func checkSyntaxCmp(ts *TokenStream) error {
-	if err := consumeToken(ts, Attr); err != nil {
-		return err
-	}
-	if err := consumeToken(ts, EqOp, NeqOp); err != nil {
-		return err
-	}
-	if err := consumeToken(ts, UUID); err != nil {
-		return err
-	}
-	return nil
 }
