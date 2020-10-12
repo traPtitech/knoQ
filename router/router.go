@@ -142,7 +142,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
-	e.GET("/api/ical/:userIDsecret", h.HandleGetiCalByPrivateID)
+	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {

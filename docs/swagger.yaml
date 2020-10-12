@@ -596,7 +596,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/authParams"
 
-  /ical/{userID}{secret}:
+  /ical/v1/{userID}{secret}:
     get:
       tags:
         - iCal
