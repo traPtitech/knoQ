@@ -4,6 +4,7 @@ package router
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"room/router/service"
 
@@ -37,7 +38,14 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.Use(middleware.Secure())
 	e.Use(AccessLoggingMiddleware(h.Logger))
 
-	e.Use(session.Middleware(gormstore.New(db, h.SessionKey)))
+	store := gormstore.New(db, h.SessionKey)
+	e.Use(session.Middleware(store))
+	// db cleanup every hour
+	// close quit channel to stop cleanup
+	quit := make(chan struct{})
+	// defer close(quit)
+	go store.PeriodicCleanup(1*time.Hour, quit)
+
 	e.Use(h.WatchCallbackMiddleware())
 
 	// TODO fix "portal origin"
@@ -106,8 +114,11 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		apiUsers := api.Group("/users")
 		{
 			apiUsers.GET("", h.HandleGetUsers)
+			apiUsers.POST("/sync", h.HandleSyncUser, h.AdminUserMiddleware)
 
 			apiUsers.GET("/me", h.HandleGetUserMe)
+			apiUsers.GET("/me/ical", h.HandleGetiCal)
+			apiUsers.PUT("/me/ical", h.HandleUpdateiCal)
 			apiUsers.GET("/me/groups", h.HandleGetMeGroupIDs)
 			apiUsers.GET("/me/events", h.HandleGetMeEvents)
 
@@ -131,6 +142,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
+	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {

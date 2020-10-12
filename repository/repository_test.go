@@ -55,14 +55,15 @@ func TestMain(m *testing.M) {
 			panic(err)
 		}
 		db.DB().SetMaxOpenConns(20)
-		if err := db.DropTableIfExists(tables...).Error; err != nil {
+		if err := db.DropTableIfExists(tables...).DropTableIfExists("migrations").Error; err != nil {
 			panic(err)
 		}
 		if err := initDB(db); err != nil {
 			panic(err)
 		}
 		repo := GormRepository{
-			DB: db,
+			DB:       db,
+			TokenKey: []byte(traQutils.RandAlphabetAndNumberString(32)),
 		}
 		repositories[key] = &repo
 	}
@@ -128,18 +129,28 @@ func setupGormRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertio
 	return r, assert, require
 }
 
-func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User) {
+func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *UserMeta) {
 	t.Helper()
 	r, assert, require := setupGormRepo(t, repo)
-	user := mustMakeUser(t, r, false)
+	user := mustMakeUserMeta(t, r, false)
 	return r, assert, require, user
 }
 
-func mustMakeUser(t *testing.T, repo UserRepository, admin bool) *User {
+func mustMakeUserMeta(t *testing.T, repo UserMetaRepository, admin bool) *UserMeta {
 	t.Helper()
-	user, err := repo.CreateUser(admin)
+	userID := mustNewUUIDV4(t)
+	// TODO fix consider not traQ user.
+	user, err := repo.SaveUser(userID, admin, true)
 	require.NoError(t, err)
 	return user
+}
+
+func mustMakeUserBody(t *testing.T, repo UserBodyRepository, name, password string) *UserBody {
+	t.Helper()
+	user, err := repo.CreateUser(name, password, "")
+	require.NoError(t, err)
+	return user
+
 }
 
 // mustMakeGroup make group has no members

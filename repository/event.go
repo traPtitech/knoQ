@@ -1,12 +1,14 @@
 package repository
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/jinzhu/gorm"
+	"github.com/lestrrat-go/ical"
 )
 
 // WriteEventParams is used create and update
@@ -48,6 +50,7 @@ type EventRepository interface {
 	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
 	GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, error)
 	GetEventActivities(day int) ([]*Event, error)
+	GetEventsByFilter(query string, args []interface{}) ([]*Event, error)
 }
 
 // CreateEvent roomが正当かは見る
@@ -243,6 +246,17 @@ func (repo *GormRepository) GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, e
 
 }
 
+func (repo *GormRepository) GetEventsByFilter(query string, args []interface{}) ([]*Event, error) {
+	events := make([]*Event, 0)
+	cmd := repo.DB.Preload("Room").Preload("Tags")
+
+	err := cmd.Debug().
+		Joins("LEFT JOIN event_tags ON id = event_tags.event_id").
+		Where(query, args...).Group("id").Find(&events).Error
+
+	return events, err
+}
+
 func timeMax(a, b *time.Time) *time.Time {
 	if a == nil {
 		a = new(time.Time)
@@ -275,4 +289,26 @@ func (e *Event) IsTimeConsistency(allowTogether bool) bool {
 		return false
 	}
 	return true
+}
+
+// ICal returns
+func (e *Event) ICal(host string) *ical.Event {
+	timeLayout := "20060102T150405Z"
+	vevent := ical.NewEvent()
+	vevent.AddProperty("uid", e.ID.String())
+	vevent.AddProperty("dtstamp", time.Now().UTC().Format(timeLayout))
+	vevent.AddProperty("dtstart", e.TimeStart.UTC().Format(timeLayout))
+	vevent.AddProperty("dtend", e.TimeEnd.UTC().Format(timeLayout))
+	vevent.AddProperty("created", e.CreatedAt.UTC().Format(timeLayout))
+	vevent.AddProperty("last-modified", e.UpdatedAt.UTC().Format(timeLayout))
+	vevent.AddProperty("summary", e.Name)
+	e.Description += "\n\n"
+	e.Description += "-----------------------------------\n"
+	e.Description += "イベント詳細ページ\n"
+	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
+	vevent.AddProperty("description", e.Description)
+	vevent.AddProperty("location", e.Room.Place)
+	vevent.AddProperty("organizer", e.CreatedBy.String())
+
+	return vevent
 }

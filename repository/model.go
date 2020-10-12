@@ -19,14 +19,23 @@ type StartEndTime struct {
 	TimeEnd   time.Time `json:"timeEnd" gorm:"type:TIME;"`
 }
 
-// User traQユーザー情報構造体
-type User struct {
-	// ID traQID
+// UserMeta knoQユーザー情報構造体
+// 当サービスの中で意味があるユーザー情報
+type UserMeta struct {
 	ID uuid.UUID `gorm:"type:char(36); primary_key"`
 	// Admin アプリの管理者かどうか
-	Admin       bool   `gorm:"not null"`
-	Name        string `gorm:"-"`
-	DisplayName string `gorm:"-"`
+	Admin      bool   `gorm:"not null"`
+	IsTraq     bool   `gorm:"not null"`
+	Token      string `gorm:"type:varbinary(64)"`
+	IcalSecret string `gorm:"not null"`
+}
+
+// UserBody ユーザー情報
+// 現在、DBには存在しない
+type UserBody struct {
+	ID          uuid.UUID
+	Name        string
+	DisplayName string
 }
 
 // Tag Room Group Event have tags
@@ -46,8 +55,8 @@ type EventTag struct {
 
 // GroupUsers is many to many table
 type GroupUsers struct {
-	GroupID uuid.UUID `gorm:"type:char(36); primary_key"`
-	UserID  uuid.UUID `gorm:"type:char(36); primary_key"`
+	GroupID uuid.UUID `gorm:"type:char(36); primary_key;not null"`
+	UserID  uuid.UUID `gorm:"type:char(36); primary_key;not null"`
 }
 
 // Room 部屋情報
@@ -69,8 +78,8 @@ type Group struct {
 	Name        string    `gorm:"type:varchar(32);not null"`
 	Description string    `gorm:"type:TEXT"`
 	JoinFreely  bool
-	Members     []User    `gorm:"many2many:group_users; association_autoupdate:true;association_autocreate:true"`
-	CreatedBy   uuid.UUID `gorm:"type:char(36);"`
+	Members     []GroupUsers `gorm:"association_autoupdate:false;association_autocreate:false;foreignkey:GroupID"`
+	CreatedBy   uuid.UUID    `gorm:"type:char(36);"`
 	Model
 }
 
