@@ -198,6 +198,36 @@ func advanceToken(b *[]byte) (Token, error) {
 
 /*---------------------------------------------------------------------------*/
 
+type Relation int
+
+const (
+	Eq Relation = iota
+	Neq
+)
+
+type LogicOp int
+
+const (
+	And = iota
+	Or
+)
+
+type Expr interface{} // expects LogicOpExpr, CmpExpr
+
+type LogicOpExpr struct {
+	LogicOp LogicOp
+	Lhs     *Expr
+	Rhs     *Expr
+}
+
+type CmpExpr struct {
+	Attr     string
+	Relation Relation
+	UUID     string
+}
+
+/*---------------------------------------------------------------------------*/
+
 func createParseError(found tokenKind, expected ...tokenKind) error {
 	return fmt.Errorf("expected %v, found %v", expected, found)
 }
