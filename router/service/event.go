@@ -46,70 +46,76 @@ func (d Dao) GetiCalByFilter(token, query, origin string) (*ical.Calendar, error
 
 // GetEventsByFilter get events by specific filter query.
 func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error) {
-	ts, err := parsing.LexAndCheckSyntax(filterQuery)
+	expr, err := parsing.Parse(filterQuery)
 	if err != nil {
 		return nil, fmt.Errorf("%w, %s has '%v'", repo.ErrInvalidArg, filterQuery, err)
 	}
 
-	// syntax checkは既にされている。
-	filter := ""
-	filterArgs := []interface{}{}
-	var preAttr string
-	for ts.HasNext() {
-		t := ts.Next()
-		switch t.Kind {
-		case parsing.Attr:
-			switch t.Value {
-			case "user":
-				preAttr = "user"
-				filter += "group_id"
-			case "group":
-				preAttr = "group"
-				filter += "group_id"
-			case "tag":
-				preAttr = "tag"
-				filter += "event_tags.tag_id"
-			case "event":
-				preAttr = "event"
-				filter += "id"
-			}
-		case parsing.Or:
-			filter += "OR"
-		case parsing.And:
-			filter += "AND"
-		case parsing.Eq:
-			if preAttr != "user" {
-				filter += "="
-			} else if preAttr == "user" {
-				filter += "IN"
-			}
-		case parsing.Neq:
-			if preAttr != "user" {
-				filter += "!="
-			} else if preAttr == "user" {
-				filter += "NOT IN"
-			}
-		case parsing.LParen, parsing.RParen:
-			filter += t.Kind.String()
-		case parsing.UUID:
+	var createFilter func(parsing.Expr) (string, []interface{}, error)
+	createFilter = func(expr parsing.Expr) (string, []interface{}, error) {
+		var filter string
+		var filterArgs []interface{}
 
-			id, err := uuid.FromString(t.Value)
-			if err != nil {
-				return nil, err
-			}
-			if preAttr != "user" {
-				filter += "?"
-				filterArgs = append(filterArgs, id)
-			} else if preAttr == "user" {
-				filter += "(?)"
+		switch e := expr.(type) {
+		case nil:
+			filter = ""
+			filterArgs = []interface{}{}
+
+		case *parsing.CmpExpr:
+			id := uuid.Must(uuid.FromString(e.UUID))
+			switch e.Attr {
+			case "user":
+				rel := map[parsing.Relation]string{
+					parsing.Eq:  "IN",
+					parsing.Neq: "NOT IN",
+				}[e.Relation]
 				ids, err := d.GetUserBelongingGroupIDs(token, id)
 				if err != nil {
-					return nil, err
+					return "", nil, err
 				}
-				filterArgs = append(filterArgs, ids)
+				filter = fmt.Sprintf("group_id %v (?)", rel)
+				filterArgs = []interface{}{ids}
+
+			default:
+				column := map[string]string{
+					"group": "group_id",
+					"tag":   "event_tags.tag_id",
+					"event": "id",
+				}
+				rel := map[parsing.Relation]string{
+					parsing.Eq:  "=",
+					parsing.Neq: "!=",
+				}[e.Relation]
+				filter = fmt.Sprintf("%v %v ?", column, rel)
+				filterArgs = []interface{}{id}
 			}
+
+		case *parsing.LogicOpExpr:
+			op := map[parsing.LogicOp]string{
+				parsing.And: "AND",
+				parsing.Or:  "OR",
+			}
+			lFilter, lFilterArgs, err := createFilter(e.Lhs)
+			if err != nil {
+				return "", nil, err
+			}
+			rFilter, rFilterArgs, err := createFilter(e.Rhs)
+			if err != nil {
+				return "", nil, err
+			}
+			filter = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
+			filterArgs = append(lFilterArgs, rFilterArgs...)
+
+		default:
+			return "", nil, fmt.Errorf("Unknown expression type")
 		}
-		filter += " "
+
+		return filter, filterArgs, nil
+	}
+
+	filter, filterArgs, err := createFilter(expr)
+	if err != nil {
+		return nil, err
 	}
 	events, err := d.Repo.GetEventsByFilter(filter, filterArgs)
 	if err != nil {
