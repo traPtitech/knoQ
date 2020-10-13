@@ -81,7 +81,7 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 					"group": "group_id",
 					"tag":   "event_tags.tag_id",
 					"event": "id",
-				}
+				}[e.Attr]
 				rel := map[parsing.Relation]string{
 					parsing.Eq:  "=",
 					parsing.Neq: "!=",
