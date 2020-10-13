@@ -94,7 +94,7 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 			op := map[parsing.LogicOp]string{
 				parsing.And: "AND",
 				parsing.Or:  "OR",
-			}
+			}[e.LogicOp]
 			lFilter, lFilterArgs, err := createFilter(e.Lhs)
 			if err != nil {
 				return "", nil, err
