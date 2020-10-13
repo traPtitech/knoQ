@@ -250,7 +250,7 @@ func (repo *GormRepository) GetEventsByFilter(query string, args []interface{}) 
 	events := make([]*Event, 0)
 	cmd := repo.DB.Preload("Room").Preload("Tags")
 
-	err := cmd.Debug().
+	err := cmd.
 		Joins("LEFT JOIN event_tags ON id = event_tags.event_id").
 		Where(query, args...).Group("id").Find(&events).Error
 
