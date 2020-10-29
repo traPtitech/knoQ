@@ -14,8 +14,6 @@ jobs:
       - name: Set IMAGE_TAG env
         run: echo ::set-env name=IMAGE_TAG::$(echo ${GITHUB_REF:11})
       - uses: actions/checkout@v2
-        with:
-          submodules: true
       - name: Login GitHub Registry
         run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
       - name: Build Image
