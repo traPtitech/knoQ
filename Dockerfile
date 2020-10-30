@@ -1,11 +1,3 @@
-FROM node:14.5.0-alpine as web-build
-
-WORKDIR /github.com/traPtitech/knoq/web
-
-COPY ./web ./
-RUN yarn
-RUN yarn build
-
 FROM golang:1.15.2-alpine as server-build
 
 WORKDIR /github.com/traPtitech/knoq
@@ -33,6 +25,5 @@ RUN apk --update add tzdata \
   && rm -rf /var/cache/apk/*
 
 COPY --from=server-build /github.com/traPtitech/knoq/knoq ./
-COPY --from=web-build /github.com/traPtitech/knoq/web/dist ./web/dist
 
 ENTRYPOINT ./knoq
