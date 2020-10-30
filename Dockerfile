@@ -9,7 +9,7 @@ COPY ./ ./
 
 RUN go build -o knoq
 
-FROM alpine:3.12.0
+FROM alpine:3.12.1
 
 WORKDIR /app
 
