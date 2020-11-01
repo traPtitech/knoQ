@@ -4,7 +4,7 @@ info:
   title: traP Room
   description: |
     This is a sample Room server.
-  version: 1.1.0
+  version: 1.2.0
 
 servers:
   - url: http://ec2-54-238-146-214.ap-northeast-1.compute.amazonaws.com/api
@@ -214,7 +214,7 @@ paths:
       tags:
         - events
       summary: 部屋の使用宣言を更新
-      description: 作成者のみ
+      description: adminsのみ
       operationId: updateevents
       parameters:
         - name: eventID
@@ -237,7 +237,7 @@ paths:
       tags:
         - events
       summary: 使用宣言を削除
-      description: 作成者のみ
+      description: adminsのみ
       operationId: deleteRevents
       parameters:
         - name: eventID
@@ -392,7 +392,7 @@ paths:
     put:
       tags:
         - groups
-      description: 作成者のみ変更可能
+      description: adminsのみ変更可能
       operationId: updateGroup
       parameters:
         - name: groupID
@@ -697,6 +697,9 @@ components:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        admins:
+          $ref: "#/components/schemas/UUIDs"
+ 
     PutEvent:
       allOf:
         - $ref: "#/components/schemas/event"
@@ -755,6 +758,8 @@ components:
         open:
           type: boolean
         members:
+          $ref: "#/components/schemas/UUIDs"
+        admins:
           $ref: "#/components/schemas/UUIDs"
     RequestGroup:
       $ref: "#/components/schemas/group"
