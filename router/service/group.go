@@ -108,6 +108,9 @@ func (d Dao) CreateGroup(token string, groupParams repo.WriteGroupParams) (*Grou
 	if err := groupMembersValidation(groupParams, allUsers); err != nil {
 		return nil, err
 	}
+	if len(groupParams.Admins) == 0 {
+		return nil, repo.ErrInvalidArg
+	}
 
 	group, err := d.Repo.CreateGroup(groupParams)
 	return FormatGroupRes(group, false), err

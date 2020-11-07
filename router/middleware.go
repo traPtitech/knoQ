@@ -202,8 +202,8 @@ func (h *Handlers) AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// GroupCreatedUserMiddleware グループ作成ユーザーか判定するミドルウェア
-func (h *Handlers) GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// GroupAdminsMiddleware グループ管理ユーザーか判定するミドルウェア
+func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
 		token, _ := getRequestUserToken(c)
@@ -215,7 +215,7 @@ func (h *Handlers) GroupCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
-		if group.CreatedBy != requestUserID || group.IsTraQGroup {
+		if utils.UuidUUIDIn(requestUserID, group.Admins) || group.IsTraQGroup {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
