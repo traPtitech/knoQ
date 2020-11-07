@@ -12,6 +12,7 @@ type GroupReq struct {
 	Description string      `json:"description"`
 	JoinFreely  bool        `json:"open"`
 	Members     []uuid.UUID `json:"members"`
+	Admins      []uuid.UUID `json:"admins"`
 }
 
 // RoomReq is room request model
