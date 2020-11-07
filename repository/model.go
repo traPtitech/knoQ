@@ -59,6 +59,18 @@ type GroupUsers struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primary_key;not null"`
 }
 
+// GroupAdmins is many to many table
+type GroupAdmins struct {
+	GroupID uuid.UUID `gorm:"type:char(36); primary_key;not null"`
+	UserID  uuid.UUID `gorm:"type:char(36); primary_key;not null"`
+}
+
+// EventAdmins is many to many table
+type EventAdmins struct {
+	EventID uuid.UUID `gorm:"type:char(36); primary_key;not null"`
+	UserID  uuid.UUID `gorm:"type:char(36); primary_key;not null"`
+}
+
 // Room 部屋情報
 type Room struct {
 	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
@@ -78,8 +90,9 @@ type Group struct {
 	Name        string    `gorm:"type:varchar(32);not null"`
 	Description string    `gorm:"type:TEXT"`
 	JoinFreely  bool
-	Members     []GroupUsers `gorm:"association_autoupdate:false;association_autocreate:false;foreignkey:GroupID"`
-	CreatedBy   uuid.UUID    `gorm:"type:char(36);"`
+	Members     []GroupUsers  `gorm:"association_autoupdate:false;association_autocreate:false;foreignkey:GroupID"`
+	Admins      []GroupAdmins `gorm:"association_autoupdate:false;association_autocreate:false;foreignkey:GroupID"`
+	CreatedBy   uuid.UUID     `gorm:"type:char(36);"`
 	Model
 }
 
@@ -90,12 +103,13 @@ type Event struct {
 	Description string    `json:"description" gorm:"type:TEXT"`
 	GroupID     uuid.UUID `json:"groupId" gorm:"type:char(36);not null; index"`
 	//Group         Group     `json:"-" gorm:"foreignkey:group_id; save_associations:false"`
-	RoomID        uuid.UUID `json:"roomId" gorm:"type:char(36);not null"`
-	Room          Room      `json:"-" gorm:"foreignkey:room_id; save_associations:false"`
-	TimeStart     time.Time `json:"timeStart" gorm:"type:DATETIME; index"`
-	TimeEnd       time.Time `json:"timeEnd" gorm:"type:DATETIME; index"`
-	CreatedBy     uuid.UUID `json:"createdBy" gorm:"type:char(36);"`
-	AllowTogether bool      `json:"sharedRoom"`
-	Tags          []Tag     `json:"tags" gorm:"many2many:event_tags; association_autoupdate:false;association_autocreate:false"`
+	RoomID        uuid.UUID     `json:"roomId" gorm:"type:char(36);not null"`
+	Room          Room          `json:"-" gorm:"foreignkey:room_id; save_associations:false"`
+	TimeStart     time.Time     `json:"timeStart" gorm:"type:DATETIME; index"`
+	TimeEnd       time.Time     `json:"timeEnd" gorm:"type:DATETIME; index"`
+	Admins        []EventAdmins `gorm:"association_autoupdate:false;association_autocreate:false;foreignkey:GroupID"`
+	CreatedBy     uuid.UUID     `json:"createdBy" gorm:"type:char(36);"`
+	AllowTogether bool          `json:"sharedRoom"`
+	Tags          []Tag         `json:"tags" gorm:"many2many:event_tags; association_autoupdate:false;association_autocreate:false"`
 	Model
 }
