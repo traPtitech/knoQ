@@ -66,6 +66,7 @@ func FormatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 			Description: g.Description,
 			JoinFreely:  g.JoinFreely,
 			Members:     formatGroupMembersRes(g.Members),
+			Admins:      formatGroupAdminsRes(g.Admins),
 		},
 		IsTraQGroup: IsTraQgroup,
 		CreatedBy:   g.CreatedBy,
@@ -76,6 +77,14 @@ func FormatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 }
 
 func formatGroupMembersRes(ms []repo.GroupUsers) []uuid.UUID {
+	ids := make([]uuid.UUID, len(ms))
+	for i, m := range ms {
+		ids[i] = m.UserID
+	}
+	return ids
+}
+
+func formatGroupAdminsRes(ms []repo.GroupAdmins) []uuid.UUID {
 	ids := make([]uuid.UUID, len(ms))
 	for i, m := range ms {
 		ids[i] = m.UserID

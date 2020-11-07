@@ -375,6 +375,7 @@ func formatV3Group(g *traQrouterV3.UserGroup) *Group {
 		Description: g.Description,
 		JoinFreely:  false,
 		Members:     formatV3GroupMemebers(g.Members),
+		Admins:      formatV3GroupAdmins(g.Admins),
 		CreatedBy:   g.Admins[0],
 		Model: Model{
 			CreatedAt: g.CreatedAt,
@@ -388,6 +389,16 @@ func formatV3GroupMemebers(ms []traQrouterV3.UserGroupMember) []GroupUsers {
 	for i, m := range ms {
 		users[i] = GroupUsers{
 			UserID: m.ID,
+		}
+	}
+	return users
+}
+
+func formatV3GroupAdmins(ms []uuid.UUID) []GroupAdmins {
+	users := make([]GroupAdmins, len(ms))
+	for i, m := range ms {
+		users[i] = GroupAdmins{
+			UserID: m,
 		}
 	}
 	return users
