@@ -30,6 +30,7 @@ var tables = []interface{}{
 	Tag{},
 	EventTag{},
 	GroupUsers{},
+	GroupAdmins{},
 }
 
 type Repository interface {

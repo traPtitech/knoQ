@@ -18,6 +18,7 @@ type WriteGroupParams struct {
 	Description string
 	JoinFreely  bool
 	Members     []uuid.UUID
+	Admins      []uuid.UUID
 	CreatedBy   uuid.UUID
 }
 
@@ -48,11 +49,17 @@ func (repo *GormRepository) CreateGroup(groupParams WriteGroupParams) (*Group, e
 		return nil, err
 	}
 	group.Members = formatGroupMembers(group.ID, groupParams.Members)
+	group.Admins = formatGroupAdmins(group.ID, groupParams.Admins)
 	if err != nil {
 		return nil, err
 	}
 	for _, m := range group.Members {
 		if err = repo.DB.Create(m).Error; err != nil {
+			return nil, err
+		}
+	}
+	for _, a := range group.Admins {
+		if err = repo.DB.Create(a).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -70,6 +77,7 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 		return nil, err
 	}
 	group.Members = formatGroupMembers(groupID, groupParams.Members)
+	group.Admins = formatGroupAdmins(group.ID, groupParams.Admins)
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +86,16 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 
 	if err = repo.DB.Save(group).Error; err != nil {
 		return nil, err
+	}
+	for _, m := range group.Members {
+		if err = repo.DB.Save(m).Error; err != nil {
+			return nil, err
+		}
+	}
+	for _, a := range group.Admins {
+		if err = repo.DB.Save(a).Error; err != nil {
+			return nil, err
+		}
 	}
 	return group, nil
 }
@@ -154,7 +172,7 @@ func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 		return nil, ErrNilID
 	}
 
-	cmd := repo.DB.Preload("Members")
+	cmd := repo.DB.Preload("Members").Preload("Admins")
 	group := new(Group)
 	if err := cmd.Where("id = ?", groupID).Take(&group).Error; err != nil {
 		return nil, err
@@ -165,7 +183,7 @@ func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 // GetAllGroups gets all groups with members
 func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
 	groups := make([]*Group, 0)
-	cmd := repo.DB.Preload("Members")
+	cmd := repo.DB.Preload("Members").Preload("Admins")
 
 	if err := cmd.Find(&groups).Error; err != nil {
 		return nil, err
@@ -379,6 +397,17 @@ func formatGroupMembers(groupID uuid.UUID, userIDs []uuid.UUID) []GroupUsers {
 	users := make([]GroupUsers, len(userIDs))
 	for i, v := range userIDs {
 		users[i] = GroupUsers{
+			GroupID: groupID,
+			UserID:  v,
+		}
+	}
+	return users
+}
+
+func formatGroupAdmins(groupID uuid.UUID, userIDs []uuid.UUID) []GroupAdmins {
+	users := make([]GroupAdmins, len(userIDs))
+	for i, v := range userIDs {
+		users[i] = GroupAdmins{
 			GroupID: groupID,
 			UserID:  v,
 		}

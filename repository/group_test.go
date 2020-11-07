@@ -17,13 +17,16 @@ func TestGormRepository_CreateGroup(t *testing.T) {
 	params := WriteGroupParams{
 		Name:      traQutils.RandAlphabetAndNumberString(20),
 		Members:   []uuid.UUID{user.ID, mustNewUUIDV4(t)},
+		Admins:    []uuid.UUID{user.ID},
 		CreatedBy: user.ID,
 	}
 
-	if group, err := repo.CreateGroup(params); assert.NoError(t, err) {
-		assert.NotNil(t, group)
-		assert.Equal(t, params.Members[0], group.Members[0].UserID)
-		assert.Equal(t, 2, len(group.Members))
+	if g, err := repo.CreateGroup(params); assert.NoError(t, err) {
+		if group, err := repo.GetGroup(g.ID); assert.NoError(t, err) {
+			assert.NotNil(t, group)
+			assert.Equal(t, 2, len(group.Members))
+			assert.Equal(t, 1, len(group.Admins))
+		}
 	}
 }
 
@@ -35,13 +38,16 @@ func TestGormRepository_UpdateGroup(t *testing.T) {
 	params := WriteGroupParams{
 		Name:      group.Name,
 		Members:   []uuid.UUID{user.ID, mustNewUUIDV4(t)},
+		Admins:    []uuid.UUID{user.ID},
 		CreatedBy: user.ID,
 	}
 
-	if group, err := repo.UpdateGroup(group.ID, params); assert.NoError(t, err) {
-		assert.NotNil(t, group)
-		assert.Equal(t, params.Members[0], group.Members[0].UserID)
-		assert.Equal(t, 2, len(group.Members))
+	if g, err := repo.UpdateGroup(group.ID, params); assert.NoError(t, err) {
+		if group, err := repo.GetGroup(g.ID); assert.NoError(t, err) {
+			assert.NotNil(t, group)
+			assert.Equal(t, 2, len(group.Members))
+			assert.Equal(t, 1, len(group.Admins))
+		}
 	}
 }
 
