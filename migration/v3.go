@@ -23,6 +23,10 @@ type currentGroup struct {
 	CreatedBy   uuid.UUID `gorm:"type:char(36);"`
 }
 
+func (*currentGroup) TableName() string {
+	return "groups"
+}
+
 func v3() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "3",
