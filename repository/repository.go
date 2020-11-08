@@ -29,6 +29,7 @@ var tables = []interface{}{
 	Event{},
 	Tag{},
 	EventTag{},
+	EventAdmins{},
 	GroupUsers{},
 	GroupAdmins{},
 }
