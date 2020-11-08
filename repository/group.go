@@ -87,13 +87,24 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, groupParams WriteGrou
 	if err = repo.DB.Save(group).Error; err != nil {
 		return nil, err
 	}
+
+	err = repo.DB.Where("group_id = ?", groupID).Delete(&GroupUsers{}).Error
+	if err != nil {
+		return nil, err
+	}
+
+	err = repo.DB.Where("group_id= ?", groupID).Delete(&GroupAdmins{}).Error
+	if err != nil {
+		return nil, err
+	}
+
 	for _, m := range group.Members {
-		if err = repo.DB.Save(m).Error; err != nil {
+		if err = repo.DB.Create(m).Error; err != nil {
 			return nil, err
 		}
 	}
 	for _, a := range group.Admins {
-		if err = repo.DB.Save(a).Error; err != nil {
+		if err = repo.DB.Create(a).Error; err != nil {
 			return nil, err
 		}
 	}
