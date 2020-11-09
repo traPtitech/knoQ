@@ -135,6 +135,15 @@ func FormatEventRes(e *repo.Event) *EventRes {
 	}
 }
 
+func FormatEventAdmins(ea []repo.EventAdmins) []uuid.UUID {
+	ids := make([]uuid.UUID, len(ea))
+	for i, m := range ea {
+		ids[i] = m.UserID
+	}
+	return ids
+
+}
+
 func FormatEventsRes(es []*repo.Event) []*EventRes {
 	res := make([]*EventRes, len(es))
 	for i, e := range es {

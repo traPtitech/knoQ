@@ -156,6 +156,7 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
+	// TODO fix
 	eventParams.CreatedBy, _ = getRequestUserID(c)
 	eventParams.Admins, err = eventAdminsValidation(eventParams.Admins, h.Repo)
 	if err != nil {

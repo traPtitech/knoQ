@@ -215,7 +215,7 @@ func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
-		if utils.UuidUUIDIn(requestUserID, group.Admins) || group.IsTraQGroup {
+		if !utils.UuidUUIDIn(requestUserID, group.Admins) || group.IsTraQGroup {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
@@ -226,8 +226,8 @@ func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 	}
 }
 
-// EventCreatedUserMiddleware イベント作成ユーザーか判定するミドルウェア
-func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// EventAdminsMiddleware イベント管理ユーザーか判定するミドルウェア
+func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		requestUserID, _ := getRequestUserID(c)
 		eventID, err := getPathEventID(c)
@@ -238,7 +238,7 @@ func (h *Handlers) EventCreatedUserMiddleware(next echo.HandlerFunc) echo.Handle
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
-		if event.CreatedBy != requestUserID {
+		if !utils.UuidUUIDIn(requestUserID, service.FormatEventAdmins(event.Admins)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
