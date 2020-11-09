@@ -39,4 +39,5 @@ type EventReq struct {
 	RoomID        uuid.UUID        `json:"roomId"`
 	GroupID       uuid.UUID        `json:"groupId"`
 	Tags          []TagRelationReq `json:"tags"`
+	Admins        []uuid.UUID      `json:"admins"`
 }

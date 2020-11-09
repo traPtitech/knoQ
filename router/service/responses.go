@@ -126,6 +126,7 @@ func FormatEventRes(e *repo.Event) *EventRes {
 			TimeEnd:       e.TimeEnd,
 			RoomID:        e.RoomID,
 			GroupID:       e.GroupID,
+			Admins:        FormatEventAdmins(e.Admins),
 		},
 		Tags:      FormatTagsRes(e.Tags),
 		CreatedBy: e.CreatedBy,
