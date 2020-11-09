@@ -156,8 +156,12 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	// TODO fix
-	eventParams.CreatedBy, _ = getRequestUserID(c)
+
+	event, err := h.Repo.GetEvent(eventID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	eventParams.CreatedBy = event.CreatedBy
 	eventParams.Admins, err = eventAdminsValidation(eventParams.Admins, h.Repo)
 	if err != nil {
 		return internalServerError(err)
@@ -166,7 +170,7 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	event, err := h.Repo.UpdateEvent(eventID, *eventParams)
+	event, err = h.Repo.UpdateEvent(eventID, *eventParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
