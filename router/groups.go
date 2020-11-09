@@ -89,7 +89,11 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 		return notFound(err)
 	}
 	token, _ := getRequestUserToken(c)
-	groupParams.CreatedBy, _ = getRequestUserID(c)
+	group, err := h.Repo.GetGroup(groupID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	groupParams.CreatedBy = group.CreatedBy
 	res, err := h.Dao.UpdateGroup(token, groupID, *groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)
