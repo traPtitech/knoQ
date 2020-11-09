@@ -107,7 +107,7 @@ type Event struct {
 	Room          Room          `json:"-" gorm:"foreignkey:room_id; save_associations:false"`
 	TimeStart     time.Time     `json:"timeStart" gorm:"type:DATETIME; index"`
 	TimeEnd       time.Time     `json:"timeEnd" gorm:"type:DATETIME; index"`
-	Admins        []EventAdmins `gorm:"association_autoupdate:false;association_autocreate:false;foreignkey:GroupID"`
+	Admins        []EventAdmins `gorm:"association_autoupdate:false;association_autocreate:false;foreignkey:EventID"`
 	CreatedBy     uuid.UUID     `json:"createdBy" gorm:"type:char(36);"`
 	AllowTogether bool          `json:"sharedRoom"`
 	Tags          []Tag         `json:"tags" gorm:"many2many:event_tags; association_autoupdate:false;association_autocreate:false"`

@@ -74,8 +74,9 @@ func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, e
 	if err != nil {
 		return nil, err
 	}
-	for _, a := range event.Admins {
-		if err := repo.DB.Create(a).Error; err != nil {
+	fmt.Println(eventParams.Admins)
+	for _, a := range eventParams.Admins {
+		if err := repo.DB.Create(&EventAdmins{EventID: event.ID, UserID: a}).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -127,8 +128,8 @@ func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, eventParams WriteEven
 		return nil, err
 	}
 	// add admins
-	for _, a := range event.Admins {
-		if err := repo.DB.Create(a).Error; err != nil {
+	for _, a := range eventParams.Admins {
+		if err := repo.DB.Create(&EventAdmins{EventID: event.ID, UserID: a}).Error; err != nil {
 			return nil, err
 		}
 	}
