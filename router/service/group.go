@@ -108,6 +108,9 @@ func (d Dao) CreateGroup(token string, groupParams repo.WriteGroupParams) (*Grou
 	if err := groupMembersValidation(groupParams, allUsers); err != nil {
 		return nil, err
 	}
+	if len(groupParams.Admins) == 0 {
+		return nil, repo.ErrInvalidArg
+	}
 
 	group, err := d.Repo.CreateGroup(groupParams)
 	return FormatGroupRes(group, false), err
@@ -150,16 +153,22 @@ func (d Dao) AddUserToGroup(token string, groupID uuid.UUID, userID uuid.UUID) e
 
 func groupMembersValidation(groupParams repo.WriteGroupParams, allUsers []*repo.UserBody) error {
 	// member validation
-	for _, paramUserID := range groupParams.Members {
-		exist := false
-		for _, user := range allUsers {
-			if paramUserID == user.ID {
-				exist = true
+	existUserID := func(ids []uuid.UUID) error {
+		for _, paramUserID := range ids {
+			exist := false
+			for _, user := range allUsers {
+				if paramUserID == user.ID {
+					exist = true
+				}
+			}
+			if !exist {
+				return repo.ErrInvalidArg
 			}
 		}
-		if !exist {
-			return repo.ErrInvalidArg
-		}
+		return nil
+	}
+	if existUserID(groupParams.Members) != nil || existUserID(groupParams.Admins) != nil {
+		return repo.ErrInvalidArg
 	}
 	return nil
 }

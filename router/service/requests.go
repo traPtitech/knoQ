@@ -12,6 +12,7 @@ type GroupReq struct {
 	Description string      `json:"description"`
 	JoinFreely  bool        `json:"open"`
 	Members     []uuid.UUID `json:"members"`
+	Admins      []uuid.UUID `json:"admins"`
 }
 
 // RoomReq is room request model
@@ -38,4 +39,5 @@ type EventReq struct {
 	RoomID        uuid.UUID        `json:"roomId"`
 	GroupID       uuid.UUID        `json:"groupId"`
 	Tags          []TagRelationReq `json:"tags"`
+	Admins        []uuid.UUID      `json:"admins"`
 }
