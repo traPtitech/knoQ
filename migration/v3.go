@@ -35,6 +35,7 @@ func v3() *gormigrate.Migration {
 			if err != nil {
 				return err
 			}
+			// 作成者を管理ユーザーにする
 			groups := make([]*currentGroup, 0)
 			err = db.Find(&groups).Error
 			if err != nil {
