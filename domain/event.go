@@ -31,6 +31,14 @@ type EventTag struct {
 	Locked bool
 }
 
+// for repository
+
+// ConInfo is Connection infomation
+type ConInfo struct {
+	Token     string
+	ReqUserID uuid.UUID
+}
+
 // WriteEventParams is used create and update
 type WriteEventParams struct {
 	Name          string
@@ -39,7 +47,6 @@ type WriteEventParams struct {
 	RoomID        uuid.UUID
 	TimeStart     time.Time
 	TimeEnd       time.Time
-	CreatedBy     uuid.UUID
 	AllowTogether bool
 	Tags          []struct {
 		Name   string
@@ -55,7 +62,7 @@ type WriteTagRelationParams struct {
 
 // EventRepository is implemented by ...
 type EventRepository interface {
-	CreateEvent(eventParams WriteEventParams) (*Event, error)
+	CreateEvent(eventParams WriteEventParams, info *ConInfo) (*Event, error)
 
 	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
 	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error
