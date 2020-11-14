@@ -25,9 +25,7 @@ type EventReqWrite struct {
 
 // EventResOne is experimental
 type EventResOne struct {
-	EventResMulti
-	Place     string
-	GroupName string
+	domain.Event
 }
 
 type EventResMulti struct {
@@ -39,6 +37,8 @@ type EventResMulti struct {
 	TimeEnd       time.Time         `json:"timeEnd"`
 	RoomID        uuid.UUID         `json:"roomId"`
 	GroupID       uuid.UUID         `json:"groupId"`
+	Place         string            `json:"place"`
+	GroupName     string            `json:"groupName"`
 	Tags          []domain.EventTag `json:"tags"`
 	CreatedBy     uuid.UUID         `json:"createdBy"`
 	CreatedAt     time.Time         `json:"createdAt"`
