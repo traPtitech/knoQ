@@ -52,7 +52,7 @@ type Room struct {
 	Verified  bool
 	TimeStart time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd   time.Time `gorm:"type:DATETIME; index"`
-	Events    []Event   `gorm:"->;"` // readOnly
+	Events    []Event   `gorm:"->; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"` // readOnly
 	CreatedBy uuid.UUID `gorm:"type:char(36)"`
 	gorm.Model
 }
