@@ -11,8 +11,13 @@ import (
 )
 
 var tables = []interface{}{
+	UserMeta{},
+	UserBody{},
+	Group{},
+	Tag{},
 	Room{},
 	Event{},
+	EventTag{},
 }
 
 type GormRepository struct {
@@ -43,7 +48,11 @@ func (repo *GormRepository) Setup() error {
 		return err
 	}
 
-	return repo.db.AutoMigrate(tables...)
+	err = repo.db.AutoMigrate(tables...)
+	if err != nil {
+		return err
+	}
+	return repo.db.SetupJoinTable(&Event{}, "Tags", &EventTag{})
 }
 
 type UserMeta struct {
@@ -55,35 +64,38 @@ type UserMeta struct {
 	IcalSecret string `gorm:"not null"`
 }
 type UserBody struct {
-	ID          uuid.UUID `gorm:"type:char(36); primaryKey"`
+	ID          uuid.UUID `gorm:"type:char(36); primaryKey;"`
 	Name        string    `gorm:"type:varchar(32);"`
 	DisplayName string    `gorm:"type:varchar(32);"`
+	UserMeta    UserMeta  `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;"`
 }
 
 type Room struct {
-	ID        uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Place     string    `gorm:"type:varchar(32);"`
-	Verified  bool
-	TimeStart time.Time `gorm:"type:DATETIME; index"`
-	TimeEnd   time.Time `gorm:"type:DATETIME; index"`
-	Events    []Event   `gorm:"->; constraint:-"` // readOnly
-	CreatedBy UserMeta  `gorm:"->"`
+	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Place          string    `gorm:"type:varchar(32);"`
+	Verified       bool
+	TimeStart      time.Time `gorm:"type:DATETIME; index"`
+	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
+	Events         []Event   `gorm:"->; constraint:-"` // readOnly
+	CreatedByRefer uuid.UUID `gorm:"type:char(36);"`
+	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
 	gorm.Model
 }
 
 type Group struct {
-	ID          uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Name        string    `gorm:"type:varchar(32);not null"`
-	Description string    `gorm:"type:TEXT"`
-	JoinFreely  bool
-	Members     []UserMeta `gorm:"->; many2many:group_members"`
-	CreatedBy   UserMeta   `gorm:"->"`
+	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Name           string    `gorm:"type:varchar(32);not null"`
+	Description    string    `gorm:"type:TEXT"`
+	JoinFreely     bool
+	Members        []UserMeta `gorm:"->; many2many:group_members"`
+	CreatedByRefer uuid.UUID  `gorm:"type:char(36);"`
+	CreatedBy      UserMeta   `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
 	gorm.Model
 }
 
 type Tag struct {
-	ID     uuid.UUID `json:"id" gorm:"type:char(36);primary_key"`
-	Name   string    `json:"name" gorm:"unique; type:varchar(16)"`
+	ID     uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Name   string    `gorm:"unique; type:varchar(16)"`
 	Locked bool      `gorm:"-"` // for Event.Tags
 	gorm.Model
 }
@@ -91,21 +103,24 @@ type Tag struct {
 type EventTag struct {
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	TagID   uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Event   Event     `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
+	Tag     Tag       `gorm:"->; foreignKey:TagID; constraint:OnDelete:CASCADE;"`
 	Locked  bool
 }
 
 type Event struct {
-	ID            uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Name          string    `gorm:"type:varchar(32); not null"`
-	Description   string    `gorm:"type:TEXT"`
-	GroupID       uuid.UUID `gorm:"type:char(36); not null; index"`
-	Group         Group     `gorm:"->; foreignKey:group_id;"`
-	RoomID        uuid.UUID `gorm:"type:char(36); not null; "`
-	Room          Room      `gorm:"->; foreignKey:RoomID; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	TimeStart     time.Time `gorm:"type:DATETIME; index"`
-	TimeEnd       time.Time `gorm:"type:DATETIME; index"`
-	CreatedBy     UserMeta  `gorm:"->"`
-	AllowTogether bool
-	Tags          []Tag `gorm:"many2many:event_tags;"`
+	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Name           string    `gorm:"type:varchar(32); not null"`
+	Description    string    `gorm:"type:TEXT"`
+	GroupID        uuid.UUID `gorm:"type:char(36); not null; index"`
+	Group          Group     `gorm:"->; foreignKey:group_id; constraint:-"`
+	RoomID         uuid.UUID `gorm:"type:char(36); not null; "`
+	Room           Room      `gorm:"->; foreignKey:RoomID; constraint:OnDelete:CASCADE;"`
+	TimeStart      time.Time `gorm:"type:DATETIME; index"`
+	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
+	CreatedByRefer uuid.UUID `gorm:"type:char(36);"`
+	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
+	AllowTogether  bool
+	Tags           []Tag `gorm:"many2many:event_tags;"`
 	gorm.Model
 }
