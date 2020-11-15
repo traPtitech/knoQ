@@ -1,4 +1,4 @@
-package dao
+package infra
 
 import (
 	"fmt"
@@ -63,7 +63,7 @@ type Event struct {
 	Description string    `gorm:"type:TEXT"`
 	GroupID     uuid.UUID `gorm:"type:char(36);not null; index"`
 	// Group         Group     `gorm:"foreignkey:group_id; save_associations:false"`
-	RoomID        uuid.UUID `gorm:"type:char(36);not null"`
+	RoomID        uuid.UUID `gorm:"type:char(36); not null; "`
 	Room          Room      `gorm:"foreignkey:room_id; save_associations:false"`
 	TimeStart     time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd       time.Time `gorm:"type:DATETIME; index"`
