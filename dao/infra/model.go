@@ -47,24 +47,24 @@ func (repo *GormRepository) Setup() error {
 }
 
 type Room struct {
-	ID        uuid.UUID `gorm:"type:char(36);primary_key"`
+	ID        uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Place     string    `gorm:"type:varchar(32);"`
-	Public    bool
+	Verified  bool
 	TimeStart time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd   time.Time `gorm:"type:DATETIME; index"`
-	Events    []Event   `gorm:"foreignkey:RoomID"`
+	Events    []Event   `gorm:"->; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	CreatedBy uuid.UUID `gorm:"type:char(36)"`
 	gorm.Model
 }
 
 type Event struct {
-	ID          uuid.UUID `gorm:"type:char(36);primary_key"`
+	ID          uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Name        string    `gorm:"type:varchar(32); not null"`
 	Description string    `gorm:"type:TEXT"`
-	GroupID     uuid.UUID `gorm:"type:char(36);not null; index"`
-	// Group         Group     `gorm:"foreignkey:group_id; save_associations:false"`
-	RoomID        uuid.UUID `gorm:"type:char(36); not null; "`
-	Room          Room      `gorm:"foreignkey:room_id; save_associations:false"`
+	GroupID     uuid.UUID `gorm:"type:char(36); not null; index"`
+	// Group         Group     `gorm:"foreignKey:group_id;"`
+	// RoomID        uuid.UUID `gorm:"type:char(36); not null; "`
+	Room          Room      `gorm:"->; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	TimeStart     time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd       time.Time `gorm:"type:DATETIME; index"`
 	CreatedBy     uuid.UUID `gorm:"type:char(36);"`
