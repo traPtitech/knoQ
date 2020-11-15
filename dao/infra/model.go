@@ -17,7 +17,7 @@ var tables = []interface{}{
 	Tag{},
 	Room{},
 	Event{},
-	EventTag{},
+	EventTag{}, // Eventより下にないと、overrideされる
 }
 
 type GormRepository struct {
