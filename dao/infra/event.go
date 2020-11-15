@@ -13,5 +13,5 @@ func (repo *GormRepository) CreateEvent(eventParams domain.WriteEventParams,
 	if err != nil {
 		return nil, err
 	}
-
+	return nil, nil
 }

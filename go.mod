@@ -22,5 +22,6 @@ require (
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	google.golang.org/api v0.29.0
 	gopkg.in/gormigrate.v1 v1.6.0
-	gorm.io/gorm v1.20.6 // indirect
+	gorm.io/driver/mysql v1.0.3
+	gorm.io/gorm v1.20.6
 )
