@@ -52,7 +52,7 @@ type Room struct {
 	Verified  bool
 	TimeStart time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd   time.Time `gorm:"type:DATETIME; index"`
-	Events    []Event   `gorm:"->; constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Events    []Event   `gorm:"->;"` // readOnly
 	CreatedBy uuid.UUID `gorm:"type:char(36)"`
 	gorm.Model
 }
@@ -61,14 +61,14 @@ type Event struct {
 	ID          uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Name        string    `gorm:"type:varchar(32); not null"`
 	Description string    `gorm:"type:TEXT"`
-	GroupID     uuid.UUID `gorm:"type:char(36); not null; index"`
+	// GroupID     uuid.UUID `gorm:"type:char(36); not null; index"`
 	// Group         Group     `gorm:"foreignKey:group_id;"`
-	// RoomID        uuid.UUID `gorm:"type:char(36); not null; "`
-	Room          Room      `gorm:"->; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	TimeStart     time.Time `gorm:"type:DATETIME; index"`
-	TimeEnd       time.Time `gorm:"type:DATETIME; index"`
-	CreatedBy     uuid.UUID `gorm:"type:char(36);"`
-	AllowTogether bool
+	RoomID uuid.UUID `gorm:"type:char(36); not null; "`
+	Room   Room      `gorm:"->; foreignKey:RoomID; constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	// TimeStart     time.Time `gorm:"type:DATETIME; index"`
+	// TimeEnd       time.Time `gorm:"type:DATETIME; index"`
+	// CreatedBy     uuid.UUID `gorm:"type:char(36);"`
+	// AllowTogether bool
 	// Tags          []Tag `gorm:"many2many:event_tag; association_autoupdate:false;association_autocreate:false"`
 	gorm.Model
 }
