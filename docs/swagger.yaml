@@ -1,9 +1,9 @@
 openapi: "3.0.2"
 
 info:
-  title: traP Room
+  title: traP knoQ
   description: |
-    This is a sample Room server.
+    This is a sample knoQ server.
   version: 1.1.0
 
 servers:
@@ -27,7 +27,7 @@ tags:
     description: 認証
   - name: iCal
     description: ics出力
- 
+
 paths:
   /rooms:
     get:
@@ -68,7 +68,7 @@ paths:
           description: Bad Request
         403:
           description: Forbidden
- 
+
   /rooms/{roomID}:
     get:
       tags:
@@ -254,7 +254,7 @@ paths:
           description: Forbidden
         404:
           description: Not Found
-    
+
   /events/{eventID}/tags:
     post:
       tags:
@@ -346,7 +346,6 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/eventArray"
- 
 
   /groups:
     get:
@@ -434,7 +433,7 @@ paths:
           description: Forbidden
         404:
           description: Groupid not found
-     
+
   /groups/{groupID}/members/me:
     put:
       tags:
@@ -500,13 +499,13 @@ paths:
       tags:
         - users
       description: 管理者権限が必要。
-        traQのuserと同期します。 
+        traQのuserと同期します。
         state=1については、ユーザーを作成。
         state=0については、存在している場合に限り、`token`を無効化します。(ユーザー削除はしません)
       responses:
         "201":
           description: OK
-            
+
 
   /users/me:
     get:
@@ -547,7 +546,7 @@ paths:
                 properties:
                   secret:
                     type: string
- 
+
   /tags:
     get:
       tags:
@@ -615,7 +614,7 @@ paths:
         - $ref: "#/components/parameters/eventFilter"
       responses:
         200:
-          description: | 
+          description: |
             iCal形式でイベントを出力
             外部カレンダーを想定
           content:
@@ -742,7 +741,7 @@ components:
               type: string
               format: omitempty
               nullable: true
- 
+
     group:
       type: object
       properties:
@@ -833,7 +832,7 @@ components:
         locked:
           type: boolean
           example: true
- 
+
     ResTag:
       type: object
       properties:
@@ -1026,15 +1025,15 @@ components:
       in: query
       schema:
         type: string
-      description: 
+      description:
         "Syntax: <br>
           top  : ε | expr,
           expr : term ( ( \"||\" | \"&&\" ) term)*<br>
           term : cmp | \"(\" expr \")\"<br>
           cmp  : Attr ( \"==\" | \"!=\" ) UUID<br>
-          Attr : \"event\" | \"user\" | \"group\" | \"tag\" 
+          Attr : \"event\" | \"user\" | \"group\" | \"tag\"
         "
-      
+
 
 externalDocs:
   description: Find out more about Swagger
