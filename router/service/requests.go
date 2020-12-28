@@ -37,6 +37,7 @@ type EventReq struct {
 	TimeStart     time.Time        `json:"timeStart"`
 	TimeEnd       time.Time        `json:"timeEnd"`
 	RoomID        uuid.UUID        `json:"roomId"`
+	Place         string           `json:"place"`
 	GroupID       uuid.UUID        `json:"groupId"`
 	Tags          []TagRelationReq `json:"tags"`
 	Admins        []uuid.UUID      `json:"admins"`
