@@ -48,7 +48,7 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 		return internalServerError(err)
 	}
 	if len(eventParams.Admins) == 0 {
-		return badRequest(err)
+		return badRequest(err, message("at least one admin is required"))
 	}
 
 	// 部屋を作成
