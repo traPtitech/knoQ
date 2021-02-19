@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func eventAdminsValidation(userIDs []uuid.UUID, r repo.UserMetaRepository) ([]uuid.UUID, error) {
+func adminsValidation(userIDs []uuid.UUID, r repo.UserMetaRepository) ([]uuid.UUID, error) {
 	users, err := r.GetAllUsers()
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 	}
 
 	eventParams.CreatedBy, _ = getRequestUserID(c)
-	eventParams.Admins, err = eventAdminsValidation(eventParams.Admins, h.Repo)
+	eventParams.Admins, err = adminsValidation(eventParams.Admins, h.Repo)
 	if err != nil {
 		return internalServerError(err)
 	}
@@ -179,7 +179,7 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 	eventParams.CreatedBy = event.CreatedBy
-	eventParams.Admins, err = eventAdminsValidation(eventParams.Admins, h.Repo)
+	eventParams.Admins, err = adminsValidation(eventParams.Admins, h.Repo)
 	if err != nil {
 		return internalServerError(err)
 	}
