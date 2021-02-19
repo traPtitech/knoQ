@@ -728,6 +728,8 @@ components:
         - $ref: "#/components/schemas/event"
         - type: object
           properties:
+            place:
+              type: string
             tags:
               type: array
               items:
@@ -887,7 +889,33 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PutEvent"
+            oneOf:
+            - $ref: "#/components/schemas/PutEvent"
+            - type: object
+              properties:
+                name:
+                  type: string
+                descirption:
+                  type: string
+                sharedRoom:
+                  type: boolean
+                timeStart:
+                  type: string
+                timeEnd:
+                  type: string
+                place:
+                  type: string
+                groupId:
+                  type: string
+                  format: uuid
+                admins:
+                  $ref: "#/components/schemas/UUIDs"
+                tags:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReqTagNameAuth"
+
+
     PostEvent:
       description: 予約の追加
       required: true
