@@ -187,6 +187,23 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 		return badRequest(err)
 	}
 
+	// 部屋を作成
+	if req.RoomID == uuid.Nil {
+		roomParams := &repo.WriteRoomParams{
+			Place:     req.Place,
+			Public:    false,
+			TimeStart: req.TimeStart,
+			TimeEnd:   req.TimeEnd,
+		}
+		setCreatedBytoRoom(c, roomParams)
+
+		room, err := h.Repo.CreateRoom(*roomParams)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+		eventParams.RoomID = room.ID
+	}
+
 	event, err = h.Repo.UpdateEvent(eventID, *eventParams)
 	if err != nil {
 		return judgeErrorResponse(err)
