@@ -298,6 +298,7 @@ paths:
     get:
       tags:
         - events
+      description: 所属しているイベントを返す
       responses:
         200:
           $ref: "#/components/responses/eventArray"
@@ -305,6 +306,7 @@ paths:
     get:
       tags:
         - events
+      description: 所属しているイベントを返す
       parameters:
         - name: userID
           in: path
