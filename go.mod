@@ -16,7 +16,7 @@ require (
 	github.com/lestrrat-go/bufferpool v0.0.0-20180220091733-e7784e1b3e37 // indirect
 	github.com/lestrrat-go/ical v0.0.0-20190317233631-91af071bafbc
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/traPtitech/traQ v1.0.0-rc.2.0.20200309071637-82e15593b8c0
 	github.com/wader/gormstore v0.0.0-20190904144442-d36772af4310
 	go.uber.org/zap v1.15.0
