@@ -20,6 +20,7 @@ type WriteEventParams struct {
 	TimeStart     time.Time
 	TimeEnd       time.Time
 	CreatedBy     uuid.UUID
+	Admins        []uuid.UUID
 	AllowTogether bool
 	//Tags          struct {
 	//ID     uuid.UUID
@@ -70,7 +71,16 @@ func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, e
 		return nil, ErrInvalidArg
 	}
 	err = repo.DB.Create(&event).Error
-	return event, err
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(eventParams.Admins)
+	for _, a := range eventParams.Admins {
+		if err := repo.DB.Create(&EventAdmins{EventID: event.ID, UserID: a}).Error; err != nil {
+			return nil, err
+		}
+	}
+	return event, nil
 }
 
 func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error) {
@@ -109,7 +119,21 @@ func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, eventParams WriteEven
 	// update event
 	event.ID = eventID
 	err = repo.DB.Save(&event).Error
-	return event, err
+	if err != nil {
+		return nil, err
+	}
+	// delete current admins
+	err = repo.DB.Where("event_id = ?", eventID).Delete(&EventAdmins{}).Error
+	if err != nil {
+		return nil, err
+	}
+	// add admins
+	for _, a := range eventParams.Admins {
+		if err := repo.DB.Create(&EventAdmins{EventID: event.ID, UserID: a}).Error; err != nil {
+			return nil, err
+		}
+	}
+	return event, nil
 }
 
 func (repo *GormRepository) UpdateTagsInEvent(eventID uuid.UUID, tagsParams []WriteTagRelationParams) error {
@@ -189,7 +213,7 @@ func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 
 	event := new(Event)
 	event.ID = eventID
-	cmd := repo.DB.Preload("Room").Preload("Tags")
+	cmd := repo.DB.Preload("Room").Preload("Tags").Preload("Admins")
 	err := cmd.First(&event).Error
 	return event, err
 }
@@ -197,7 +221,7 @@ func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 // GetAllEvents start <= time_start <= end なイベントを取得
 func (repo *GormRepository) GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error) {
 	events := make([]*Event, 0)
-	cmd := repo.DB.Preload("Room").Preload("Tags")
+	cmd := repo.DB.Preload("Room").Preload("Tags").Preload("Admins")
 	if start != nil && !start.IsZero() {
 		cmd = cmd.Where("time_start >= ?", start)
 	}
@@ -211,7 +235,7 @@ func (repo *GormRepository) GetAllEvents(start *time.Time, end *time.Time) ([]*E
 
 func (repo *GormRepository) GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error) {
 	events := make([]*Event, 0)
-	cmd := repo.DB.Preload("Room").Preload("Tags")
+	cmd := repo.DB.Preload("Room").Preload("Tags").Preload("Admins")
 
 	err := cmd.Where("group_id IN (?)", groupIDs).Find(&events).Error
 	return events, err
@@ -221,7 +245,7 @@ func (repo *GormRepository) GetEventActivities(day int) ([]*Event, error) {
 	events := make([]*Event, 0)
 	now := time.Now()
 	period := now.AddDate(0, 0, -1*day)
-	cmd := repo.DB.Preload("Room").Preload("Tags")
+	cmd := repo.DB.Preload("Room").Preload("Tags").Preload("Admins")
 
 	err := cmd.Unscoped().Where("created_at > ? ", period).Or("updated_at > ?", period).
 		Or("deleted_at > ?", period).Find(&events).Error
@@ -239,7 +263,7 @@ func (repo *GormRepository) GetEventActivities(day int) ([]*Event, error) {
 
 func (repo *GormRepository) GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, error) {
 	events := make([]*Event, 0)
-	cmd := repo.DB.Preload("Room").Preload("Tags")
+	cmd := repo.DB.Preload("Room").Preload("Tags").Preload("Admins")
 
 	err := cmd.Where("room_id IN (?)", roomIDs).Find(&events).Error
 	return events, err
@@ -248,7 +272,7 @@ func (repo *GormRepository) GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, e
 
 func (repo *GormRepository) GetEventsByFilter(query string, args []interface{}) ([]*Event, error) {
 	events := make([]*Event, 0)
-	cmd := repo.DB.Preload("Room").Preload("Tags")
+	cmd := repo.DB.Preload("Room").Preload("Tags").Preload("Admins")
 
 	err := cmd.
 		Joins("LEFT JOIN event_tags ON id = event_tags.event_id").

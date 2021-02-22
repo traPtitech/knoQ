@@ -29,7 +29,9 @@ var tables = []interface{}{
 	Event{},
 	Tag{},
 	EventTag{},
+	EventAdmins{},
 	GroupUsers{},
+	GroupAdmins{},
 }
 
 type Repository interface {
@@ -164,7 +166,7 @@ func SetupDatabase() (*gorm.DB, error) {
 		MARIADB_HOSTNAME = ""
 	}
 	if MARIADB_DATABASE == "" {
-		MARIADB_DATABASE = "room"
+		MARIADB_DATABASE = "knoQ"
 	}
 	if MARIADB_USERNAME == "" {
 		MARIADB_USERNAME = "root"

@@ -22,6 +22,13 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 		return internalServerError(err)
 	}
 	groupParams.CreatedBy, _ = getRequestUserID(c)
+	groupParams.Admins, err = adminsValidation(groupParams.Admins, h.Repo)
+	if err != nil {
+		return internalServerError(err)
+	}
+	if len(groupParams.Admins) == 0 {
+		return badRequest(err, message("at least one admin is required"))
+	}
 
 	token, _ := getRequestUserToken(c)
 
@@ -89,7 +96,19 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 		return notFound(err)
 	}
 	token, _ := getRequestUserToken(c)
-	groupParams.CreatedBy, _ = getRequestUserID(c)
+	group, err := h.Repo.GetGroup(groupID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	groupParams.CreatedBy = group.CreatedBy
+	groupParams.Admins, err = adminsValidation(groupParams.Admins, h.Repo)
+	if err != nil {
+		return internalServerError(err)
+	}
+	if len(groupParams.Admins) == 0 {
+		return badRequest(err, message("at least one admin is required"))
+	}
+
 	res, err := h.Dao.UpdateGroup(token, groupID, *groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)

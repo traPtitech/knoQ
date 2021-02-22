@@ -214,7 +214,7 @@ paths:
       tags:
         - events
       summary: 部屋の使用宣言を更新
-      description: 作成者のみ
+      description: adminsのみ
       operationId: updateevents
       parameters:
         - name: eventID
@@ -237,7 +237,7 @@ paths:
       tags:
         - events
       summary: 使用宣言を削除
-      description: 作成者のみ
+      description: adminsのみ
       operationId: deleteRevents
       parameters:
         - name: eventID
@@ -298,6 +298,7 @@ paths:
     get:
       tags:
         - events
+      description: 所属しているイベントを返す
       responses:
         200:
           $ref: "#/components/responses/eventArray"
@@ -305,6 +306,7 @@ paths:
     get:
       tags:
         - events
+      description: 所属しているイベントを返す
       parameters:
         - name: userID
           in: path
@@ -391,7 +393,7 @@ paths:
     put:
       tags:
         - groups
-      description: 作成者のみ変更可能
+      description: adminsのみ変更可能
       operationId: updateGroup
       parameters:
         - name: groupID
@@ -696,6 +698,9 @@ components:
           type: string
           format: uuid
           example: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+        admins:
+          $ref: "#/components/schemas/UUIDs"
+ 
     PutEvent:
       allOf:
         - $ref: "#/components/schemas/event"
@@ -724,6 +729,8 @@ components:
         - $ref: "#/components/schemas/event"
         - type: object
           properties:
+            place:
+              type: string
             tags:
               type: array
               items:
@@ -754,6 +761,8 @@ components:
         open:
           type: boolean
         members:
+          $ref: "#/components/schemas/UUIDs"
+        admins:
           $ref: "#/components/schemas/UUIDs"
     RequestGroup:
       $ref: "#/components/schemas/group"
@@ -881,14 +890,68 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PutEvent"
+            oneOf:
+            - $ref: "#/components/schemas/PutEvent"
+            - type: object
+              properties:
+                name:
+                  type: string
+                descirption:
+                  type: string
+                sharedRoom:
+                  type: boolean
+                timeStart:
+                  type: string
+                timeEnd:
+                  type: string
+                place:
+                  type: string
+                groupId:
+                  type: string
+                  format: uuid
+                admins:
+                  $ref: "#/components/schemas/UUIDs"
+                tags:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReqTagNameAuth"
+
+
     PostEvent:
       description: 予約の追加
       required: true
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/PostEvent"
+            oneOf:
+            - $ref: "#/components/schemas/PostEvent"
+            - type: object
+              properties:
+                name:
+                  type: string
+                descirption:
+                  type: string
+                sharedRoom:
+                  type: boolean
+                timeStart:
+                  type: string
+                timeEnd:
+                  type: string
+                place:
+                  type: string
+                groupId:
+                  type: string
+                  format: uuid
+                admins:
+                  $ref: "#/components/schemas/UUIDs"
+                tags:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/ReqTagNameAuth"
+
+
+ 
+              
     group:
       required: true
       content:
