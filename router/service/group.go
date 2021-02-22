@@ -99,7 +99,7 @@ func (d Dao) GetAllGroups(token string) ([]*GroupRes, error) {
 }
 
 func (d Dao) CreateGroup(token string, groupParams repo.WriteGroupParams) (*GroupRes, error) {
-	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
+	UserGroupRepo := d.Repo
 	allUsers, err := UserGroupRepo.GetAllUsers()
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (d Dao) CreateGroup(token string, groupParams repo.WriteGroupParams) (*Grou
 }
 
 func (d Dao) UpdateGroup(token string, groupID uuid.UUID, groupParams repo.WriteGroupParams) (*GroupRes, error) {
-	UserGroupRepo := d.InitExternalUserGroupRepo(token, repo.TraQv3)
+	UserGroupRepo := d.Repo
 	allUsers, err := UserGroupRepo.GetAllUsers()
 	if err != nil {
 		return nil, err
@@ -151,7 +151,7 @@ func (d Dao) AddUserToGroup(token string, groupID uuid.UUID, userID uuid.UUID) e
 	return d.Repo.AddUserToGroup(groupID, userID)
 }
 
-func groupMembersValidation(groupParams repo.WriteGroupParams, allUsers []*repo.UserBody) error {
+func groupMembersValidation(groupParams repo.WriteGroupParams, allUsers []*repo.UserMeta) error {
 	// member validation
 	existUserID := func(ids []uuid.UUID) error {
 		for _, paramUserID := range ids {
