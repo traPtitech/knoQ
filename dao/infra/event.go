@@ -1,7 +1,7 @@
 package infra
 
 import (
-	"room/domain"
+	"github.com/traPtitech/knoQ/domain"
 
 	"github.com/jinzhu/copier"
 )

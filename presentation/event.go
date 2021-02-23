@@ -2,8 +2,9 @@ package presentation
 
 import (
 	"fmt"
-	"room/domain"
 	"time"
+
+	"github.com/traPtitech/knoQ/domain"
 
 	"github.com/gofrs/uuid"
 	"github.com/lestrrat-go/ical"
