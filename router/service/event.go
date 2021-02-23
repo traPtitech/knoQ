@@ -2,8 +2,10 @@ package service
 
 import (
 	"fmt"
-	"room/parsing"
-	repo "room/repository"
+
+	"github.com/traPtitech/knoQ/parsing"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/gofrs/uuid"
 	"github.com/lestrrat-go/ical"

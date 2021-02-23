@@ -2,8 +2,10 @@ package router
 
 import (
 	"net/http"
-	repo "room/repository"
-	"room/router/service"
+
+	"github.com/traPtitech/knoQ/router/service"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"

@@ -2,9 +2,11 @@ package router
 
 import (
 	"net/http"
-	repo "room/repository"
-	"room/router/service"
 	"time"
+
+	"github.com/traPtitech/knoQ/router/service"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"

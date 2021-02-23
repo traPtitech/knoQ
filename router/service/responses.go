@@ -1,8 +1,9 @@
 package service
 
 import (
-	repo "room/repository"
 	"time"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/gofrs/uuid"
 )

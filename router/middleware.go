@@ -11,13 +11,17 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	log "room/logging"
-	repo "room/repository"
-	"room/router/service"
-	"room/utils"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/traPtitech/knoQ/utils"
+
+	log "github.com/traPtitech/knoQ/logging"
+
+	"github.com/traPtitech/knoQ/router/service"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	traQutils "github.com/traPtitech/traQ/utils"
 
