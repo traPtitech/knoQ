@@ -12,7 +12,7 @@ require (
 	github.com/jinzhu/gorm v1.9.16
 	github.com/json-iterator/go v1.1.10
 	github.com/labstack/echo-contrib v0.8.1-0.20200115200653-2d4a7f3c41d8
-	github.com/labstack/echo/v4 v4.1.16
+	github.com/labstack/echo/v4 v4.2.0
 	github.com/lestrrat-go/bufferpool v0.0.0-20180220091733-e7784e1b3e37 // indirect
 	github.com/lestrrat-go/ical v0.0.0-20190317233631-91af071bafbc
 	github.com/patrickmn/go-cache v2.1.0+incompatible
