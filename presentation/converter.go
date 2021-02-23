@@ -9,6 +9,8 @@ import (
 func ConvertEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain.WriteEventParams) {
 	dst.Name = src.Name
 	dst.Description = src.Description
+	dst.GroupID = src.GroupID
+	dst.RoomID = src.RoomID
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.AllowTogether = src.AllowTogether
@@ -35,6 +37,7 @@ func ConvertdomainEventToEventResMulti(src domain.Event) (dst EventResMulti) {
 	dst.TimeEnd = src.TimeEnd
 	dst.RoomID = ConvertdomainRoomTouuidUUID(src.Room)
 	dst.GroupID = ConvertdomainGroupTouuidUUID(src.Group)
+	dst.GroupName = src.Group.Name
 	dst.Tags = src.Tags
 	dst.CreatedBy = ConvertdomainUserTouuidUUID(src.CreatedBy)
 	return

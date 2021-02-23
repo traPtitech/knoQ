@@ -18,8 +18,8 @@ type EventReqWrite struct {
 	AllowTogether bool      `json:"sharedRoom"`
 	TimeStart     time.Time `json:"timeStart"`
 	TimeEnd       time.Time `json:"timeEnd"`
-	RoomID        uuid.UUID `json:"roomId" cvt:"Room"`
-	GroupID       uuid.UUID `json:"groupId" cvt:"Group"`
+	RoomID        uuid.UUID `json:"roomId"`
+	GroupID       uuid.UUID `json:"groupId"`
 	Tags          []struct {
 		Name   string `json:"name"`
 		Locked bool   `json:"locked"`
@@ -44,7 +44,7 @@ type EventResMulti struct {
 	RoomID        uuid.UUID         `json:"roomId" cvt:"Room"`
 	GroupID       uuid.UUID         `json:"groupId" cvt:"Group"`
 	Place         string            `json:"place"`
-	GroupName     string            `json:"groupName"`
+	GroupName     string            `json:"groupName" cvt:"Group"`
 	Tags          []domain.EventTag `json:"tags"`
 	CreatedBy     uuid.UUID         `json:"createdBy"`
 	CreatedAt     time.Time         `json:"createdAt"`
