@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	repo "room/repository"
-	"room/router"
-	"room/router/service"
-	"room/utils"
 	"time"
+
+	"github.com/traPtitech/knoQ/utils"
+
+	"github.com/traPtitech/knoQ/router"
+	"github.com/traPtitech/knoQ/router/service"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/carlescere/scheduler"
 	"github.com/gorilla/sessions"

@@ -2,7 +2,8 @@ package service
 
 import (
 	"fmt"
-	repo "room/repository"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/gofrs/uuid"
 )

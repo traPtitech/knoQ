@@ -2,7 +2,8 @@ package router
 
 import (
 	"net/http"
-	"room/router/service"
+
+	"github.com/traPtitech/knoQ/router/service"
 
 	"github.com/gofrs/uuid"
 	"github.com/labstack/echo/v4"

@@ -1,6 +1,6 @@
 package service
 
-import repo "room/repository"
+import repo "github.com/traPtitech/knoQ/repository"
 
 // Dao DataAccess Object
 type Dao struct {

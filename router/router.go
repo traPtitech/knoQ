@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"room/router/service"
+	"github.com/traPtitech/knoQ/router/service"
 
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"

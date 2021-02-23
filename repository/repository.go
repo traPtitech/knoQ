@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"os"
 
-	"room/migration"
+	"github.com/traPtitech/knoQ/migration"
 
 	"github.com/jinzhu/gorm"
 	"go.uber.org/zap"

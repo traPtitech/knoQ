@@ -1,4 +1,4 @@
-module room
+module github.com/traPtitech/knoQ
 
 go 1.15
 
