@@ -10,14 +10,16 @@ import (
 	"github.com/lestrrat-go/ical"
 )
 
+// EventReqWrite is
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s EventReqWrite -d domain.WriteEventParams -o converter.go .
 type EventReqWrite struct {
 	Name          string    `json:"name"`
 	Description   string    `json:"description"`
 	AllowTogether bool      `json:"sharedRoom"`
 	TimeStart     time.Time `json:"timeStart"`
 	TimeEnd       time.Time `json:"timeEnd"`
-	RoomID        uuid.UUID `json:"roomId"`
-	GroupID       uuid.UUID `json:"groupId"`
+	RoomID        uuid.UUID `json:"roomId" cvt:"Room"`
+	GroupID       uuid.UUID `json:"groupId" cvt:"Group"`
 	Tags          []struct {
 		Name   string `json:"name"`
 		Locked bool   `json:"locked"`
@@ -25,10 +27,13 @@ type EventReqWrite struct {
 }
 
 // EventResOne is experimental
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s domain.Event -d EventResOne -o converter.go .
 type EventResOne struct {
 	domain.Event
 }
 
+// EventResMulti is for multiple response
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s domain.Event -d EventResMulti -o converter.go .
 type EventResMulti struct {
 	ID            uuid.UUID         `json:"eventId"`
 	Name          string            `json:"name"`
@@ -36,8 +41,8 @@ type EventResMulti struct {
 	AllowTogether bool              `json:"sharedRoom"`
 	TimeStart     time.Time         `json:"timeStart"`
 	TimeEnd       time.Time         `json:"timeEnd"`
-	RoomID        uuid.UUID         `json:"roomId"`
-	GroupID       uuid.UUID         `json:"groupId"`
+	RoomID        uuid.UUID         `json:"roomId" cvt:"Room"`
+	GroupID       uuid.UUID         `json:"groupId" cvt:"Group"`
 	Place         string            `json:"place"`
 	GroupName     string            `json:"groupName"`
 	Tags          []domain.EventTag `json:"tags"`

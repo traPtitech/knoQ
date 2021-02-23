@@ -108,6 +108,8 @@ type EventTag struct {
 	Locked  bool
 }
 
+// Event is
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s Event -d domain.Event -o converter.go .
 type Event struct {
 	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Name           string    `gorm:"type:varchar(32); not null"`

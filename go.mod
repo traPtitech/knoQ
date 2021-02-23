@@ -5,8 +5,10 @@ go 1.15
 require (
 	github.com/carlescere/scheduler v0.0.0-20170109141437-ee74d2f83d82
 	github.com/cheekybits/genny v1.0.0
+	github.com/fuji8/gotypeconverter v0.0.0-20210223075905-c8c9b50abc80 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofrs/uuid v3.4.0+incompatible
+	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/gorilla/sessions v1.2.1
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.16
@@ -21,6 +23,7 @@ require (
 	github.com/wader/gormstore v0.0.0-20190904144442-d36772af4310
 	go.uber.org/zap v1.16.0
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/tools v0.0.0-20210106214847-113979e3529a // indirect
 	google.golang.org/api v0.29.0
 	gopkg.in/gormigrate.v1 v1.6.0
 	gorm.io/driver/mysql v1.0.3
