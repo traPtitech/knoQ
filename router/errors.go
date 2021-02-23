@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"runtime"
 
-	repo "room/repository"
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/go-sql-driver/mysql"
 

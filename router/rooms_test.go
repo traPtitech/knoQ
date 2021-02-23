@@ -2,9 +2,10 @@ package router
 
 import (
 	"reflect"
-	repo "room/repository"
 	"testing"
 	"time"
+
+	repo "github.com/traPtitech/knoQ/repository"
 )
 
 func Test_filterSameRooms(t *testing.T) {

@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"room/router/service"
+
+	"github.com/traPtitech/knoQ/router/service"
 
 	"github.com/labstack/echo/v4"
 	traQv3 "github.com/traPtitech/traQ/router/v3"
