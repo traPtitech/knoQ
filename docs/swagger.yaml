@@ -630,24 +630,18 @@ paths:
               schema:
                 $ref: "#/components/schemas/authParams"
 
-  /ical/v1/{userID}{secret}:
+  /ical/v1/{userIdSecret}:
     get:
       tags:
         - iCal
       operationId: getIcal
       description: Icalを取得
       parameters:
-        - name: userID
+        - name: userIdSecret
           in: path
           required: true
           schema:
-            type: string
-            format: uuid
-        - name: secret
-          in: path
-          required: true
-          schema:
-            type: string
+            $ref: "#/components/schemas/userIdSecret"
         - $ref: "#/components/parameters/eventFilter"
       responses:
         '200':
@@ -909,6 +903,10 @@ components:
           type: string
         codeChallenge:
           type: string
+
+    userIdSecret:
+      description: userIdとicalのsecretをつなげたもの
+      type: string
 
   requestBodies:
     Room:
