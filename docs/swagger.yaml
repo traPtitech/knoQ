@@ -33,8 +33,8 @@ paths:
     get:
       tags:
         - rooms
+      operationId: getRooms
       summary: traPで確保した進捗部屋の情報を取得
-      operationId: getrooms
       parameters:
         - name: dateBegin
           in: query
@@ -113,7 +113,7 @@ paths:
       tags:
         - rooms
       summary: 各自の部屋の情報追加
-      operationId: addprivaterooms
+      operationId: addPrivateRoom
       requestBody:
         $ref: "#/components/requestBodies/Room"
       responses:
@@ -125,6 +125,7 @@ paths:
     delete:
       tags:
         - rooms
+      operationId: deletePrivateRoom
       summary: 各自の部屋の情報削除 作成者のみ
       parameters:
         - name: roomID
@@ -259,6 +260,7 @@ paths:
     post:
       tags:
         - events
+      operationId: addEventTag
       summary: タグを追加
       parameters:
         - name: eventID
@@ -276,6 +278,7 @@ paths:
     delete:
       tags:
         - events
+      operationId: deleteEventTag
       summary: タグを削除
       description: locked=falseだけ
       parameters:
@@ -298,6 +301,7 @@ paths:
     get:
       tags:
         - events
+      operationId: getMyEvents
       description: 所属しているイベントを返す
       responses:
         '200':
@@ -306,6 +310,7 @@ paths:
     get:
       tags:
         - events
+      operationId: getUserEvents
       description: 所属しているイベントを返す
       parameters:
         - name: userID
@@ -322,6 +327,7 @@ paths:
     get:
       tags:
         - events
+      operationId: getEventsOfRoom
       parameters:
         - name: roomID
           in: path
@@ -336,6 +342,7 @@ paths:
     get:
       tags:
         - events
+      operationId: getEventsOfGroup
       description: groupIdのeventsを取得
       parameters:
         - name: groupID
@@ -439,6 +446,7 @@ paths:
     put:
       tags:
         - groups
+      operationId: addMeToGroup
       summary: 自分を追加。open=true
       description: Headerを見て、メンバーを追加する
       parameters:
@@ -454,6 +462,7 @@ paths:
     delete:
       tags:
         - groups
+      operationId: deleteMeFromGroup
       summary: 自分しか削除出来ない。open=true
       parameters:
         - name: groupID
@@ -470,11 +479,15 @@ paths:
     get:
       tags:
         - groups
+      operationId: getMyGroups
       responses:
         '200':
           $ref: "#/components/responses/UUIDArray"
   /users/{userID}/groups:
     get:
+      tags:
+        - groups
+      operationId: getUserGroups
       parameters:
         - name: userID
           in: path
@@ -482,8 +495,6 @@ paths:
           schema:
             type: string
             format: uuid
-      tags:
-        - groups
       responses:
         '200':
           $ref: "#/components/responses/UUIDArray"
@@ -492,6 +503,7 @@ paths:
     get:
       tags:
         - users
+      operationId: getUsers
       responses:
         '200':
           $ref: "#/components/responses/userArray"
@@ -499,6 +511,7 @@ paths:
     post:
       tags:
         - users
+      operationId: syncUsers
       description: 管理者権限が必要。
         traQのuserと同期します。
         state=1については、ユーザーを作成。
@@ -511,6 +524,7 @@ paths:
     get:
       tags:
         - users
+      operationId: getMe
       summary: クライアントの権限を取得
       description: クライアントを識別するために最初に呼ばれる
       responses:
@@ -521,6 +535,7 @@ paths:
       tags:
         - users
         - iCal
+      operationId: getIcalSecret
       responses:
         '200':
           description: /ical で使う`secret`を取得
@@ -535,6 +550,7 @@ paths:
       tags:
         - users
         - iCal
+      operationId: resetIcalSecret
       description: /ical で使う`secret`を再生成
       responses:
         '200':
@@ -576,6 +592,7 @@ paths:
       tags:
         - activity
         - events
+      operationId: getEventActivities
       description: |
        最近7日間に作成変更削除があったイベントを取得。
        削除されたものを含んで返す。
@@ -587,6 +604,7 @@ paths:
     post:
       tags:
         - authentication
+      operationId: getAuthParams
       responses:
         '201':
           description: "リクエストに必要な情報を返す"
@@ -599,6 +617,7 @@ paths:
     get:
       tags:
         - iCal
+      operationId: getIcal
       parameters:
         - name: userID
           in: path
