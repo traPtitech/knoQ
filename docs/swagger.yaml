@@ -35,6 +35,7 @@ paths:
         - rooms
       operationId: getRooms
       summary: traPで確保した進捗部屋の情報を取得
+      description: traPで確保した進捗部屋の情報を取得
       parameters:
         - name: dateBegin
           in: query
@@ -113,6 +114,7 @@ paths:
       tags:
         - rooms
       summary: 各自の部屋の情報追加
+      description: 各自の部屋の情報追加
       operationId: addPrivateRoom
       requestBody:
         $ref: "#/components/requestBodies/Room"
@@ -127,6 +129,7 @@ paths:
         - rooms
       operationId: deletePrivateRoom
       summary: 各自の部屋の情報削除 作成者のみ
+      description: 各自の部屋の情報削除 作成者のみ
       parameters:
         - name: roomID
           in: path
@@ -161,6 +164,7 @@ paths:
       tags:
         - events
       summary: 使用宣言の情報を取得
+      description: 使用宣言の情報を取得
       operationId: getevents
       parameters:
         - name: dateBegin
@@ -185,6 +189,7 @@ paths:
       tags:
         - events
       summary: 部屋の使用宣言を行う
+      description: 部屋の使用宣言を行う
       operationId: addevents
       requestBody:
         $ref: "#/components/requestBodies/PostEvent"
@@ -200,6 +205,7 @@ paths:
       tags:
         - events
       summary: 一件取得
+      description: 一件取得
       operationId: getevent
       parameters:
         - name: eventID
@@ -262,6 +268,7 @@ paths:
         - events
       operationId: addEventTag
       summary: タグを追加
+      description: タグを追加
       parameters:
         - name: eventID
           in: path
@@ -328,6 +335,7 @@ paths:
       tags:
         - events
       operationId: getEventsOfRoom
+      description: 指定した部屋で行われるイベントを返す
       parameters:
         - name: roomID
           in: path
@@ -371,6 +379,7 @@ paths:
       tags:
         - groups
       summary: Create group
+      description: Create group
       operationId: createGroup
       requestBody:
         $ref: "#/components/requestBodies/group"
@@ -385,6 +394,7 @@ paths:
       tags:
         - groups
       summary: 一件取得
+      description: 一件取得
       operationId: getgroup
       parameters:
         - name: groupID
@@ -464,6 +474,7 @@ paths:
         - groups
       operationId: deleteMeFromGroup
       summary: 自分しか削除出来ない。open=true
+      description: 自分しか削除出来ない。open=true
       parameters:
         - name: groupID
           in: path
@@ -480,6 +491,7 @@ paths:
       tags:
         - groups
       operationId: getMyGroups
+      description: 自分の所属しているグループのIDを返す
       responses:
         '200':
           $ref: "#/components/responses/UUIDArray"
@@ -488,6 +500,7 @@ paths:
       tags:
         - groups
       operationId: getUserGroups
+      description: ユーザーが所属しているグループのIDを返す
       parameters:
         - name: userID
           in: path
@@ -504,6 +517,7 @@ paths:
       tags:
         - users
       operationId: getUsers
+      description: ユーザー一覧を返す
       responses:
         '200':
           $ref: "#/components/responses/userArray"
@@ -536,6 +550,7 @@ paths:
         - users
         - iCal
       operationId: getIcalSecret
+      description: /ical で使う`secret`を取得
       responses:
         '200':
           description: /ical で使う`secret`を取得
@@ -568,6 +583,7 @@ paths:
       tags:
         - tags
       summary: タグを全て取得
+      description: タグを全て取得
       operationId: getTag
       responses:
         '200':
@@ -605,9 +621,10 @@ paths:
       tags:
         - authentication
       operationId: getAuthParams
+      description: リクエストに必要な情報を返す
       responses:
         '201':
-          description: "リクエストに必要な情報を返す"
+          description: リクエストに必要な情報を返す
           content:
             application/json:
               schema:
@@ -618,6 +635,7 @@ paths:
       tags:
         - iCal
       operationId: getIcal
+      description: Icalを取得
       parameters:
         - name: userID
           in: path
