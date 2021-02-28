@@ -907,8 +907,8 @@ components:
           type: string
 
     userIdSecret:
-      description: userIdとicalのsecretをつなげたもの
       type: string
+      description: userIdとicalのsecretをつなげたもの
 
   requestBodies:
     Room:
