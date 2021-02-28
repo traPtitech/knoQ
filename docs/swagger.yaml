@@ -59,9 +59,9 @@ paths:
     post:
       tags:
         - rooms
+      operationId: addRooms
       summary: traPで確保した部屋の情報追加
       description: 管理者権限が必要
-      operationId: addrooms
       requestBody:
         $ref: "#/components/requestBodies/Room"
       responses:
@@ -76,8 +76,9 @@ paths:
     get:
       tags:
         - rooms
+      operationId: getRoom
+      summary: 一件取得する
       description: 一件取得する
-      operationId: getroom
       parameters:
         - name: roomID
           in: path
@@ -632,18 +633,18 @@ paths:
               schema:
                 $ref: "#/components/schemas/authParams"
 
-  /ical/v1/{userIdSecret}:
+  /ical/v1/{icalToken}:
     get:
       tags:
         - iCal
       operationId: getIcal
       description: Icalを取得
       parameters:
-        - name: userIdSecret
+        - name: icalToken
           in: path
           required: true
           schema:
-            $ref: "#/components/schemas/userIdSecret"
+            $ref: "#/components/schemas/icalToken"
         - $ref: "#/components/parameters/eventFilter"
       responses:
         '200':
@@ -906,7 +907,7 @@ components:
         codeChallenge:
           type: string
 
-    userIdSecret:
+    icalToken:
       type: string
       description: userIdとicalのsecretをつなげたもの
 
