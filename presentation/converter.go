@@ -37,6 +37,7 @@ func ConvertdomainEventToEventResMulti(src domain.Event) (dst EventResMulti) {
 	dst.TimeEnd = src.TimeEnd
 	dst.RoomID = ConvertdomainRoomTouuidUUID(src.Room)
 	dst.GroupID = ConvertdomainGroupTouuidUUID(src.Group)
+	dst.Place = src.Room.Place
 	dst.GroupName = src.Group.Name
 	dst.Tags = src.Tags
 	dst.CreatedBy = ConvertdomainUserTouuidUUID(src.CreatedBy)

@@ -43,7 +43,7 @@ type EventResMulti struct {
 	TimeEnd       time.Time         `json:"timeEnd"`
 	RoomID        uuid.UUID         `json:"roomId" cvt:"Room"`
 	GroupID       uuid.UUID         `json:"groupId" cvt:"Group"`
-	Place         string            `json:"place"`
+	Place         string            `json:"place" cvt:"Room"`
 	GroupName     string            `json:"groupName" cvt:"Group"`
 	Tags          []domain.EventTag `json:"tags"`
 	CreatedBy     uuid.UUID         `json:"createdBy"`
