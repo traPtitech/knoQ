@@ -16,7 +16,7 @@ services:
       MARIADB_HOSTNAME: mysql
       MARIADB_DATABASE: knoQ
       SESSION_KEY: "random32wordsXXXXXXXXXXXXXXXXXXX"
-      ORIGIN: "http://localhost:4000"
+      ORIGIN: "http://localhost:6006"
     volumes:
       - ../main.go:/srv/knoq/main.go
       - ../logging:/srv/knoq/logging
@@ -28,7 +28,7 @@ services:
       - ./dist:/srv/knoq/web/dist/:ro
       - ./service.json:/srv/knoq/service.json
     ports:
-      - "4000:3000"
+      - "6006:3000"
     entrypoint:
       - dockerize
       - -timeout
