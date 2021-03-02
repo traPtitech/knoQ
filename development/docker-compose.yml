@@ -25,7 +25,8 @@ services:
       - ../utils:/srv/knoq/utils
       - ../migration:/srv/knoq/migration
       - ../parsing:/srv/knoq/parsing
-      - ./dist/:/srv/knoq/web/dist/:ro
+      - ./dist:/srv/knoq/web/dist/:ro
+      - ./service.json:/srv/knoq/service.json
     ports:
       - "4000:3000"
     entrypoint:
