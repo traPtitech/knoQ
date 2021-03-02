@@ -74,7 +74,6 @@ func (repo *GormRepository) CreateEvent(eventParams WriteEventParams) (*Event, e
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(eventParams.Admins)
 	for _, a := range eventParams.Admins {
 		if err := repo.DB.Create(&EventAdmins{EventID: event.ID, UserID: a}).Error; err != nil {
 			return nil, err
