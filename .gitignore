@@ -5,11 +5,14 @@
 .DS_Store
 debug
 
+# for development
 development/*
+!development/Makefile
 !development/fresh.conf
 !development/Dockerfile
 !development/docker-compose.yml
 !development/test
+
 development/test/*
 !development/test/Caddyfile
 !development/test/docker-compose.yml
