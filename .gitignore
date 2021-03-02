@@ -3,14 +3,16 @@
 /vendor
 *.iml
 .DS_Store
-room
-room.exe
 debug
 
-development
-phpmyadmin
-mariadb
-service.json
+development/*
+!development/fresh.conf
+!development/Dockerfile
+!development/docker-compose.yml
+!development/test
+development/test/*
+!development/test/Caddyfile
+!development/test/docker-compose.yml
 
 /tmp/
 node_modules

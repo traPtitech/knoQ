@@ -1,0 +1,72 @@
+version: "2"
+
+networks:
+  default:
+
+services:
+  knoq:
+    build:
+      context: ..
+      dockerfile: development/Dockerfile
+    container_name: knoq_development_app
+    environment:
+      TZ: Asia/Tokyo
+      MARIADB_USERNAME: root
+      MARIADB_PASSWORD: password
+      MARIADB_HOSTNAME: mysql
+      MARIADB_DATABASE: knoQ
+      SESSION_KEY: "random32wordsXXXXXXXXXXXXXXXXXXX"
+      ORIGIN: "http://localhost:4000"
+    volumes:
+      - ../main.go:/srv/knoq/main.go
+      - ../logging:/srv/knoq/logging
+      - ../repository:/srv/knoq/repository
+      - ../router:/srv/knoq/router
+      - ../utils:/srv/knoq/utils
+      - ../migration:/srv/knoq/migration
+      - ../parsing:/srv/knoq/parsing
+      - ./dist/:/srv/knoq/web/dist/:ro
+    ports:
+      - "4000:3000"
+    entrypoint:
+      - dockerize
+      - -timeout
+      - 60s
+      - -wait
+      - tcp://mysql:3306
+    command: fresh -c development/fresh.conf
+    depends_on:
+      - mysql
+    networks:
+      - default
+
+  mysql:
+    image: mariadb:10.3.9
+    container_name: knoq_development_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: knoQ
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    volumes:
+      - "./mariadb:/var/lib/mysql"
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    networks:
+      - default
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: knoq_development_phpmyadmin
+    volumes:
+      - "./phpmyadmin:/sessions"
+    ports:
+      - 8000:80
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+    networks:
+      - default
