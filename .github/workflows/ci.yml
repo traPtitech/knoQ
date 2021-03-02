@@ -36,7 +36,10 @@ jobs:
       - name: Login GitHub Registry
         run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
       - name: build traQ and DB environment
-        run: docker-compose up -d
+        run: |
+          cd development/test
+          docker-compose up -d
+          cd
 
       - uses: actions/setup-go@v1
         with:
