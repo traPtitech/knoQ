@@ -1,3 +1,2 @@
-# 1. service.jsonを作る
+# 1. service.jsonを作る　中身は空
 # 2. dist
-# 3. env file

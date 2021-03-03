@@ -37,16 +37,11 @@ func main() {
 	googleAPI := &repo.GoogleAPIRepository{
 		CalendarID: os.Getenv("TRAQ_CALENDARID"),
 	}
-	bytes, err := ioutil.ReadFile("service.json")
-	if err != nil {
-		panic("service.json does not exist.")
-	}
+	bytes, _ := ioutil.ReadFile("service.json")
 	googleAPI.Config, err = google.JWTConfigFromJSON(bytes, calendar.CalendarReadonlyScope)
-	if err != nil {
-		panic(err)
+	if err == nil {
+		googleAPI.Setup()
 	}
-
-	googleAPI.Setup()
 
 	logger, _ := zap.NewDevelopment()
 	handler := &router.Handlers{
