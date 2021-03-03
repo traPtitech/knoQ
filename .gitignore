@@ -11,6 +11,7 @@ development/*
 !development/fresh.conf
 !development/Dockerfile
 !development/docker-compose.yml
+!development/.env.example
 !development/test
 
 development/test/*
