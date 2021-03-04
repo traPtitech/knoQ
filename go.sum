@@ -115,6 +115,10 @@ github.com/fuji8/gotypeconverter v0.1.1-0.20210301142508-a7e9ba48885b h1:igiriOn
 github.com/fuji8/gotypeconverter v0.1.1-0.20210301142508-a7e9ba48885b/go.mod h1:IF3oOXLtJ9lsg+bAF5UElUhaB5CM6gM70EToN0MJ4Lo=
 github.com/fuji8/gotypeconverter v0.1.1 h1:OhWHUngC7i6Yc945i2P41L0l7gxqQM9Qxeglet5KDcc=
 github.com/fuji8/gotypeconverter v0.1.1/go.mod h1:IF3oOXLtJ9lsg+bAF5UElUhaB5CM6gM70EToN0MJ4Lo=
+github.com/fuji8/gotypeconverter v0.1.2-0.20210304135724-67dc43cdf1c0 h1:hTXfFysyd0iBDx25quo159kbVupmKVTzwJUCkxkdzLE=
+github.com/fuji8/gotypeconverter v0.1.2-0.20210304135724-67dc43cdf1c0/go.mod h1:IF3oOXLtJ9lsg+bAF5UElUhaB5CM6gM70EToN0MJ4Lo=
+github.com/fuji8/gotypeconverter v0.1.2-0.20210304143053-5f0197368f8d h1:Gf8YeFrDaM2mXe+q+Cz5JqCF6+p9aVpfhx9QVWsuISc=
+github.com/fuji8/gotypeconverter v0.1.2-0.20210304143053-5f0197368f8d/go.mod h1:IF3oOXLtJ9lsg+bAF5UElUhaB5CM6gM70EToN0MJ4Lo=
 github.com/gavv/httpexpect/v2 v2.0.2 h1:ipn0rcmB2Ffd/rVpG6gvKJUY9TbJHtYZ4HIy9lOSI0M=
 github.com/gavv/httpexpect/v2 v2.0.2/go.mod h1:LAoDcy8I/EXEtKJV6wMEJvOMAZVo0MfEk5u4NfiNQa4=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
