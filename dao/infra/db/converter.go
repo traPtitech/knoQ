@@ -74,8 +74,9 @@ func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst UserMeta) {
 	dst.ID = src
 	return
 }
+
 func ConvertwriteEventParamsToEvent(src writeEventParams) (dst Event) {
-	dst.CreatedBy = ConvertuuidUUIDToUserMeta(src.CreatedBy)
+	dst.CreatedByRefer = src.CreatedBy
 	dst.Name = src.WriteEventParams.Name
 	dst.Description = src.WriteEventParams.Description
 	dst.GroupID = src.WriteEventParams.GroupID
@@ -88,5 +89,13 @@ func ConvertwriteEventParamsToEvent(src writeEventParams) (dst Event) {
 		dst.Tags[i].Name = src.WriteEventParams.Tags[i].Name
 		dst.Tags[i].Locked = src.WriteEventParams.Tags[i].Locked
 	}
+	return
+}
+func ConvertwriteRoomParamsToRoom(src writeRoomParams) (dst Room) {
+	dst.Verified = src.Verified
+	dst.CreatedByRefer = src.CreatedBy
+	dst.Place = src.WriteRoomParams.Place
+	dst.TimeStart = src.WriteRoomParams.TimeStart
+	dst.TimeEnd = src.WriteRoomParams.TimeEnd
 	return
 }

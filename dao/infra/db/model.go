@@ -29,9 +29,11 @@ type UserBody struct {
 	ID          uuid.UUID `gorm:"type:char(36); primaryKey;"`
 	Name        string    `gorm:"type:varchar(32);"`
 	DisplayName string    `gorm:"type:varchar(32);"`
-	UserMeta    UserMeta  `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;"`
+	UserMeta    UserMeta  `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
+// Room is
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s writeRoomParams -d Room -o converter.go .
 type Room struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Place          string    `gorm:"type:varchar(32);"`
@@ -39,8 +41,8 @@ type Room struct {
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
 	Events         []Event   `gorm:"->; constraint:-"` // readOnly
-	CreatedByRefer uuid.UUID `gorm:"type:char(36);"`
-	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
+	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy"`
+	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
 }
 
@@ -50,8 +52,8 @@ type Group struct {
 	Description    string    `gorm:"type:TEXT"`
 	JoinFreely     bool
 	Members        []UserMeta `gorm:"->; many2many:group_members"`
-	CreatedByRefer uuid.UUID  `gorm:"type:char(36);"`
-	CreatedBy      UserMeta   `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
+	CreatedByRefer uuid.UUID  `gorm:"type:char(36);" cvt:"CreatedBy"`
+	CreatedBy      UserMeta   `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
 }
 
@@ -83,8 +85,8 @@ type Event struct {
 	Room           Room      `gorm:"->; foreignKey:RoomID; constraint:OnDelete:CASCADE;"`
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
-	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null"`
-	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
+	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`
+	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	AllowTogether  bool
 	Tags           []Tag `gorm:"many2many:event_tags;"`
 	gorm.Model     `cvt:"->"`

@@ -54,7 +54,7 @@ func TestMain(m *testing.M) {
 		sqlDB, _ := db.DB()
 		sqlDB.SetMaxOpenConns(20)
 
-		if err := db.Migrator().DropTable(append(tables, "migrations")); err != nil {
+		if err := db.Migrator().DropTable(tables...); err != nil {
 			panic(err)
 		}
 		if err := db.Migrator().AutoMigrate(tables...); err != nil {

@@ -3,7 +3,10 @@ package db
 import (
 	"fmt"
 	"os"
+	"testing"
 
+	"github.com/gofrs/uuid"
+	"github.com/stretchr/testify/require"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -41,4 +44,10 @@ func (repo *GormRepository) Setup() error {
 		return err
 	}
 	return repo.db.SetupJoinTable(&Event{}, "Tags", &EventTag{})
+}
+
+func mustNewUUIDV4(t *testing.T) uuid.UUID {
+	id, err := uuid.NewV4()
+	require.NoError(t, err)
+	return id
 }

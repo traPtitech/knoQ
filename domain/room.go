@@ -21,12 +21,11 @@ type WriteRoomParams struct {
 	Place string
 
 	// Verifeid indicates if the room has been verified by privileged users.
-	Verified  bool
 	TimeStart time.Time
 	TimeEnd   time.Time
-	CreatedBy uuid.UUID
 }
 
+// tmp
 type RoomRepository interface {
 	CreateRoom(roomParams WriteRoomParams) (*Room, error)
 	UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error)
