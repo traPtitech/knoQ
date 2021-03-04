@@ -6,12 +6,6 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-type Model struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt *time.Time
-}
-
 type Event struct {
 	ID            uuid.UUID
 	Name          string
@@ -32,12 +26,6 @@ type EventTag struct {
 }
 
 // for repository
-
-// ConInfo is Connection infomation
-type ConInfo struct {
-	Token     string
-	ReqUserID uuid.UUID
-}
 
 // WriteEventParams is used create and update
 type WriteEventParams struct {
