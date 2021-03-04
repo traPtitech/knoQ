@@ -41,7 +41,7 @@ type Room struct {
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
 	Events         []Event   `gorm:"->; constraint:-"` // readOnly
-	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy"`
+	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
 }
@@ -52,7 +52,7 @@ type Group struct {
 	Description    string    `gorm:"type:TEXT"`
 	JoinFreely     bool
 	Members        []UserMeta `gorm:"->; many2many:group_members"`
-	CreatedByRefer uuid.UUID  `gorm:"type:char(36);" cvt:"CreatedBy"`
+	CreatedByRefer uuid.UUID  `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      UserMeta   `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
 }
