@@ -27,9 +27,6 @@ func ConvertEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain
 
 func ConvertdomainEventToEventResMulti(src domain.Event) (dst EventResMulti) {
 	dst.ID = src.ID
-	dst.CreatedAt = src.Model.CreatedAt
-	dst.UpdatedAt = src.Model.UpdatedAt
-	dst.DeletedAt = src.Model.DeletedAt
 	dst.Name = src.Name
 	dst.Description = src.Description
 	dst.AllowTogether = src.AllowTogether
@@ -41,6 +38,9 @@ func ConvertdomainEventToEventResMulti(src domain.Event) (dst EventResMulti) {
 	dst.GroupName = src.Group.Name
 	dst.Tags = src.Tags
 	dst.CreatedBy = ConvertdomainUserTouuidUUID(src.CreatedBy)
+	dst.CreatedAt = src.Model.CreatedAt
+	dst.UpdatedAt = src.Model.UpdatedAt
+	dst.DeletedAt = src.Model.DeletedAt
 	return
 }
 func ConvertdomainEventToEventResOne(src domain.Event) (dst EventResOne) {
