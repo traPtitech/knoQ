@@ -41,7 +41,7 @@ type Room struct {
 	Events         []Event   `gorm:"->; constraint:-"` // readOnly
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);"`
 	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
-	gorm.Model
+	gorm.Model     `cvt:"->"`
 }
 
 type Group struct {
@@ -52,14 +52,14 @@ type Group struct {
 	Members        []UserMeta `gorm:"->; many2many:group_members"`
 	CreatedByRefer uuid.UUID  `gorm:"type:char(36);"`
 	CreatedBy      UserMeta   `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
-	gorm.Model
+	gorm.Model     `cvt:"->"`
 }
 
 type Tag struct {
-	ID     uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Name   string    `gorm:"unique; type:varchar(16)"`
-	Locked bool      `gorm:"-"` // for Event.Tags
-	gorm.Model
+	ID         uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Name       string    `gorm:"unique; type:varchar(16)"`
+	Locked     bool      `gorm:"-"` // for Event.Tags
+	gorm.Model `cvt:"->"`
 }
 
 type EventTag struct {
@@ -87,5 +87,5 @@ type Event struct {
 	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
 	AllowTogether  bool
 	Tags           []Tag `gorm:"many2many:event_tags;"`
-	gorm.Model
+	gorm.Model     `cvt:"->"`
 }

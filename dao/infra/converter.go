@@ -77,9 +77,7 @@ func ConvertdomainWriteEventParamsToEvent(src domain.WriteEventParams) (dst Even
 	for i := range src.Tags {
 		dst.Tags[i].Name = src.Tags[i].Name
 		dst.Tags[i].Locked = src.Tags[i].Locked
-		dst.Tags[i].Model.DeletedAt.Valid = src.Tags[i].Locked // bug
 	}
-	dst.Model.CreatedAt = src.TimeStart // bug
 	return
 }
 func ConvertgormDeletedAtTotimeTime(src gorm.DeletedAt) (dst time.Time) {
