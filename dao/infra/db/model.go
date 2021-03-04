@@ -1,4 +1,4 @@
-package infra
+package db
 
 import (
 	"time"
@@ -71,7 +71,7 @@ type EventTag struct {
 }
 
 // Event is event for gorm
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s domain.WriteEventParams -d Event -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s writeEventParams -d Event -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s Event -d domain.Event -o converter.go .
 type Event struct {
 	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -83,7 +83,7 @@ type Event struct {
 	Room           Room      `gorm:"->; foreignKey:RoomID; constraint:OnDelete:CASCADE;"`
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
-	CreatedByRefer uuid.UUID `gorm:"type:char(36);"`
+	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null"`
 	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
 	AllowTogether  bool
 	Tags           []Tag `gorm:"many2many:event_tags;"`
