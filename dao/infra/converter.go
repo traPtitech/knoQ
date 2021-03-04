@@ -10,9 +10,6 @@ import (
 
 func ConvertEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	(*dst.Model.DeletedAt) = ConvertgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	dst.Name = src.Name
 	dst.Description = src.Description
 	dst.Room = ConvertRoomTodomainRoom(src.Room)
@@ -25,6 +22,9 @@ func ConvertEventTodomainEvent(src Event) (dst domain.Event) {
 		dst.Tags[i] = ConvertTagTodomainEventTag(src.Tags[i])
 	}
 	dst.AllowTogether = src.AllowTogether
+	dst.Model.CreatedAt = src.Model.CreatedAt
+	dst.Model.UpdatedAt = src.Model.UpdatedAt
+	(*dst.Model.DeletedAt) = ConvertgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
 
@@ -62,6 +62,24 @@ func ConvertTagTodomainEventTag(src Tag) (dst domain.EventTag) {
 }
 func ConvertUserMetaTodomainUser(src UserMeta) (dst domain.User) {
 	dst.ID = src.ID
+	return
+}
+
+func ConvertdomainWriteEventParamsToEvent(src domain.WriteEventParams) (dst Event) {
+	dst.Name = src.Name
+	dst.Description = src.Description
+	dst.GroupID = src.GroupID
+	dst.RoomID = src.RoomID
+	dst.TimeStart = src.TimeStart
+	dst.TimeEnd = src.TimeEnd
+	dst.AllowTogether = src.AllowTogether
+	dst.Tags = make([]Tag, len(src.Tags))
+	for i := range src.Tags {
+		dst.Tags[i].Name = src.Tags[i].Name
+		dst.Tags[i].Locked = src.Tags[i].Locked
+		dst.Tags[i].Model.DeletedAt.Valid = src.Tags[i].Locked // bug
+	}
+	dst.Model.CreatedAt = src.TimeStart // bug
 	return
 }
 func ConvertgormDeletedAtTotimeTime(src gorm.DeletedAt) (dst time.Time) {
