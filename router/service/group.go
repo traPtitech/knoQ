@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-
 	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/gofrs/uuid"
@@ -56,7 +54,6 @@ func (d Dao) GetUserBelongingGroupIDs(token string, userID uuid.UUID) ([]uuid.UU
 	}(ch)
 	go func(out chan []uuid.UUID) {
 		groupIDs, _ := UserGroupRepo.GetUserBelongingGroupIDs(userID)
-		fmt.Println(groupIDs)
 		out <- groupIDs
 	}(ch)
 	go func(out chan []uuid.UUID) {
