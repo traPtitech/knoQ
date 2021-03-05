@@ -28,7 +28,7 @@ services:
     depends_on:
       - traQ-backend
     volumes:
-      - ./dev/Caddyfile:/etc/Caddyfile:ro
+      - ./Caddyfile:/etc/Caddyfile:ro
     
   mysql:
     image: mariadb:10.3.9
@@ -42,5 +42,12 @@ services:
     ports:
       - "3306:3306"
   
-  
-  
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - 8001:80
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=password
