@@ -10,6 +10,8 @@ import (
 var tables = []interface{}{
 	UserMeta{},
 	UserBody{},
+	GroupMember{},
+	GroupAdmins{},
 	Group{},
 	Tag{},
 	Room{},
@@ -47,15 +49,30 @@ type Room struct {
 	gorm.Model     `cvt:"->"`
 }
 
+type GroupMember struct {
+	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
+	GroupID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	UserMeta UserMeta  `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+}
+
+type GroupAdmins struct {
+	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
+	GroupID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	UserMeta UserMeta  `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+}
+
+// Group is user group
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s writeGroupParams -d Group -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s Group -d domain.Group -o converter.go .
 type Group struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name           string    `gorm:"type:varchar(32);not null"`
 	Description    string    `gorm:"type:TEXT"`
 	JoinFreely     bool
-	Members        []UserMeta `gorm:"->; many2many:group_members"`
-	Admins         []UserMeta `gorm:"->; many2many:group_admins"`
-	CreatedByRefer uuid.UUID  `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
-	CreatedBy      UserMeta   `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Members        []GroupMember
+	Admins         []GroupAdmins
+	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
+	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
 }
 

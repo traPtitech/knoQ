@@ -22,6 +22,7 @@ func Test_createEvent(t *testing.T) {
 			TimeEnd:   time.Now().Add(1 * time.Hour),
 		},
 	})
+
 	event, err := createEvent(r.db, writeEventParams{
 		CreatedBy: user.ID,
 		WriteEventParams: domain.WriteEventParams{

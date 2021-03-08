@@ -43,6 +43,14 @@ func ConvertEventTodomainEvent(src Event) (dst domain.Event) {
 	return
 }
 
+func ConvertGroupAdminsTodomainUser(src GroupAdmins) (dst domain.User) {
+	dst.ID = src.UserID
+	return
+}
+func ConvertGroupMemberTodomainUser(src GroupMember) (dst domain.User) {
+	dst.ID = src.UserID
+	return
+}
 func ConvertGroupTodomainGroup(src Group) (dst domain.Group) {
 	dst.ID = src.ID
 	dst.Name = src.Name
@@ -50,11 +58,11 @@ func ConvertGroupTodomainGroup(src Group) (dst domain.Group) {
 	dst.JoinFreely = src.JoinFreely
 	dst.Members = make([]domain.User, len(src.Members))
 	for i := range src.Members {
-		dst.Members[i] = ConvertUserMetaTodomainUser(src.Members[i])
+		dst.Members[i] = ConvertGroupMemberTodomainUser(src.Members[i])
 	}
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = ConvertUserMetaTodomainUser(src.Admins[i])
+		dst.Admins[i] = ConvertGroupAdminsTodomainUser(src.Admins[i])
 	}
 	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
 	return
@@ -97,6 +105,14 @@ func ConvertuuidUUIDToEventAdmin(src uuid.UUID) (dst EventAdmin) {
 	dst.UserID = src
 	return
 }
+func ConvertuuidUUIDToGroupAdmins(src uuid.UUID) (dst GroupAdmins) {
+	dst.UserID = src
+	return
+}
+func ConvertuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
+	dst.UserID = src
+	return
+}
 func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst UserMeta) {
 	dst.ID = src
 	return
@@ -118,6 +134,21 @@ func ConvertwriteEventParamsToEvent(src writeEventParams) (dst Event) {
 	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
 	for i := range src.WriteEventParams.Tags {
 		dst.Tags[i] = ConvertdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
+	}
+	return
+}
+func ConvertwriteGroupParamsToGroup(src writeGroupParams) (dst Group) {
+	dst.CreatedByRefer = src.CreatedBy
+	dst.Name = src.WriteGroupParams.Name
+	dst.Description = src.WriteGroupParams.Description
+	dst.JoinFreely = src.WriteGroupParams.JoinFreely
+	dst.Members = make([]GroupMember, len(src.WriteGroupParams.Members))
+	for i := range src.WriteGroupParams.Members {
+		dst.Members[i] = ConvertuuidUUIDToGroupMember(src.WriteGroupParams.Members[i])
+	}
+	dst.Admins = make([]GroupAdmins, len(src.WriteGroupParams.Admins))
+	for i := range src.WriteGroupParams.Admins {
+		dst.Admins[i] = ConvertuuidUUIDToGroupAdmins(src.WriteGroupParams.Admins[i])
 	}
 	return
 }
