@@ -28,3 +28,11 @@ func createEvent(db *gorm.DB, eventParams writeEventParams) (*Event, error) {
 	}
 	return &event, nil
 }
+
+func getAllEvents(db *gorm.DB) ([]*Event, error) {
+	events := make([]*Event, 0)
+	cmd := db.Preload("Group").Preload("Room").Preload("CreatedBy").
+		Preload("Admins").Preload("Admins.UserMeta").Preload("Tags").Preload("Tags.Tag")
+	err := cmd.Debug().Find(&events).Error
+	return events, err
+}

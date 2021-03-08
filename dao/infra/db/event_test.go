@@ -40,5 +40,9 @@ func Test_createEvent(t *testing.T) {
 
 	if assert.NoError(t, err) {
 		assert.NotNil(t, event.ID)
+		events, err := getAllEvents(r.db)
+		if assert.NoError(t, err) {
+			assert.NotNil(t, events[0].Tags[0].Tag.Name)
+		}
 	}
 }
