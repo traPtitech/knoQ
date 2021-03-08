@@ -40,9 +40,17 @@ func Test_createEvent(t *testing.T) {
 
 	if assert.NoError(t, err) {
 		assert.NotNil(t, event.ID)
+		// TODO wip
 		events, err := getAllEvents(r.db)
 		if assert.NoError(t, err) {
 			assert.NotNil(t, events[0].Tags[0].Tag.Name)
 		}
+
+		tag, _ := createTag(r.db, "Go")
+		err = addEventTag(r.db, event.ID, domain.WriteTagRelationParams{
+			ID:     tag.ID,
+			Locked: true,
+		})
+		assert.NoError(t, err)
 	}
 }

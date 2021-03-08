@@ -15,6 +15,7 @@ func ConvertEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
 }
 
 func ConvertEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
+	dst.Tag.ID = src.TagID
 	dst.Tag.Name = src.Tag.Name
 	dst.Locked = src.Locked
 	return
@@ -93,6 +94,11 @@ func ConvertUserMetaTodomainUser(src UserMeta) (dst domain.User) {
 }
 func ConvertdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst EventTag) {
 	dst.Tag.Name = src.Name
+	dst.Locked = src.Locked
+	return
+}
+func ConvertdomainWriteTagRelationParamsToEventTag(src domain.WriteTagRelationParams) (dst EventTag) {
+	dst.TagID = src.ID
 	dst.Locked = src.Locked
 	return
 }

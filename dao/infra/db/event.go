@@ -33,6 +33,12 @@ func getAllEvents(db *gorm.DB) ([]*Event, error) {
 	events := make([]*Event, 0)
 	cmd := db.Preload("Group").Preload("Room").Preload("CreatedBy").
 		Preload("Admins").Preload("Admins.UserMeta").Preload("Tags").Preload("Tags.Tag")
-	err := cmd.Debug().Find(&events).Error
+	err := cmd.Find(&events).Error
 	return events, err
+}
+
+func addEventTag(db *gorm.DB, eventID uuid.UUID, tagParams domain.WriteTagRelationParams) error {
+	event := Event{ID: eventID}
+	tag := ConvertdomainWriteTagRelationParamsToEventTag(tagParams)
+	return db.Model(&event).Association("Tags").Append(&tag)
 }
