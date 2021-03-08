@@ -8,5 +8,6 @@ type Group struct {
 	Description string
 	JoinFreely  bool
 	Members     []User
+	Admins      []User
 	CreatedBy   User
 }

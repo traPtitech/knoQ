@@ -9,6 +9,16 @@ import (
 	"gorm.io/gorm"
 )
 
+func ConvertEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
+	dst.ID = src.UserID
+	return
+}
+
+func ConvertEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
+	dst.Tag.Name = src.Tag.Name
+	dst.Locked = src.Locked
+	return
+}
 func ConvertEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
 	dst.Name = src.Name
@@ -18,9 +28,13 @@ func ConvertEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
+	dst.Admins = make([]domain.User, len(src.Admins))
+	for i := range src.Admins {
+		dst.Admins[i] = ConvertEventAdminTodomainUser(src.Admins[i])
+	}
 	dst.Tags = make([]domain.EventTag, len(src.Tags))
 	for i := range src.Tags {
-		dst.Tags[i] = ConvertTagTodomainEventTag(src.Tags[i])
+		dst.Tags[i] = ConvertEventTagTodomainEventTag(src.Tags[i])
 	}
 	dst.AllowTogether = src.AllowTogether
 	dst.Model.CreatedAt = src.Model.CreatedAt
@@ -38,6 +52,10 @@ func ConvertGroupTodomainGroup(src Group) (dst domain.Group) {
 	for i := range src.Members {
 		dst.Members[i] = ConvertUserMetaTodomainUser(src.Members[i])
 	}
+	dst.Admins = make([]domain.User, len(src.Admins))
+	for i := range src.Admins {
+		dst.Admins[i] = ConvertUserMetaTodomainUser(src.Admins[i])
+	}
 	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
 	return
 }
@@ -54,20 +72,29 @@ func ConvertRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
 	return
 }
-
 func ConvertTagTodomainEventTag(src Tag) (dst domain.EventTag) {
 	dst.Tag.ID = src.ID
 	dst.Tag.Name = src.Name
 	dst.Locked = src.Locked
 	return
 }
+
 func ConvertUserMetaTodomainUser(src UserMeta) (dst domain.User) {
 	dst.ID = src.ID
+	return
+}
+func ConvertdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst EventTag) {
+	dst.Tag.Name = src.Name
+	dst.Locked = src.Locked
 	return
 }
 
 func ConvertgormDeletedAtTotimeTime(src gorm.DeletedAt) (dst time.Time) {
 	dst = src.Time
+	return
+}
+func ConvertuuidUUIDToEventAdmin(src uuid.UUID) (dst EventAdmin) {
+	dst.UserID = src
 	return
 }
 func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst UserMeta) {
@@ -83,11 +110,14 @@ func ConvertwriteEventParamsToEvent(src writeEventParams) (dst Event) {
 	dst.RoomID = src.WriteEventParams.RoomID
 	dst.TimeStart = src.WriteEventParams.TimeStart
 	dst.TimeEnd = src.WriteEventParams.TimeEnd
+	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
+	for i := range src.WriteEventParams.Admins {
+		dst.Admins[i] = ConvertuuidUUIDToEventAdmin(src.WriteEventParams.Admins[i])
+	}
 	dst.AllowTogether = src.WriteEventParams.AllowTogether
-	dst.Tags = make([]Tag, len(src.WriteEventParams.Tags))
+	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
 	for i := range src.WriteEventParams.Tags {
-		dst.Tags[i].Name = src.WriteEventParams.Tags[i].Name
-		dst.Tags[i].Locked = src.WriteEventParams.Tags[i].Locked
+		dst.Tags[i] = ConvertdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
 	}
 	return
 }

@@ -15,6 +15,7 @@ type Event struct {
 	TimeStart     time.Time
 	TimeEnd       time.Time
 	CreatedBy     User
+	Admins        []User
 	Tags          []EventTag
 	AllowTogether bool
 	Model
@@ -35,11 +36,14 @@ type WriteEventParams struct {
 	RoomID        uuid.UUID
 	TimeStart     time.Time
 	TimeEnd       time.Time
+	Admins        []uuid.UUID
 	AllowTogether bool
-	Tags          []struct {
-		Name   string
-		Locked bool
-	}
+	Tags          []EventTagParams
+}
+
+type EventTagParams struct {
+	Name   string
+	Locked bool
 }
 
 // WriteTagRelationParams is used create and update

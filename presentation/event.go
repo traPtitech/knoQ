@@ -13,13 +13,14 @@ import (
 // EventReqWrite is
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s EventReqWrite -d domain.WriteEventParams -o converter.go .
 type EventReqWrite struct {
-	Name          string    `json:"name"`
-	Description   string    `json:"description"`
-	AllowTogether bool      `json:"sharedRoom"`
-	TimeStart     time.Time `json:"timeStart"`
-	TimeEnd       time.Time `json:"timeEnd"`
-	RoomID        uuid.UUID `json:"roomId"`
-	GroupID       uuid.UUID `json:"groupId"`
+	Name          string      `json:"name"`
+	Description   string      `json:"description"`
+	AllowTogether bool        `json:"sharedRoom"`
+	TimeStart     time.Time   `json:"timeStart"`
+	TimeEnd       time.Time   `json:"timeEnd"`
+	RoomID        uuid.UUID   `json:"roomId"`
+	GroupID       uuid.UUID   `json:"groupId"`
+	Admins        []uuid.UUID `json:"admins"`
 	Tags          []struct {
 		Name   string `json:"name"`
 		Locked bool   `json:"locked"`
@@ -45,6 +46,7 @@ type EventResMulti struct {
 	GroupID       uuid.UUID         `json:"groupId" cvt:"Group"`
 	Place         string            `json:"place" cvt:"Room"`
 	GroupName     string            `json:"groupName" cvt:"Group"`
+	Admins        []uuid.UUID       `json:"admins"`
 	Tags          []domain.EventTag `json:"tags"`
 	CreatedBy     uuid.UUID         `json:"createdBy"`
 	CreatedAt     time.Time         `json:"createdAt"`

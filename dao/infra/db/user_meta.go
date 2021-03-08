@@ -14,11 +14,11 @@ func (um *UserMeta) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func saveUser(db *gorm.DB, userID uuid.UUID, isAdmin, istraQ bool) (*UserMeta, error) {
+func saveUser(db *gorm.DB, userID uuid.UUID, privilege, istraQ bool) (*UserMeta, error) {
 	user := UserMeta{
-		ID:     userID,
-		Admin:  isAdmin,
-		IsTraq: istraQ,
+		ID:        userID,
+		Privilege: privilege,
+		IsTraq:    istraQ,
 	}
 	err := db.Create(&user).Error
 	if err != nil {

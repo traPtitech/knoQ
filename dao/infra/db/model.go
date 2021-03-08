@@ -15,12 +15,13 @@ var tables = []interface{}{
 	Room{},
 	Event{},
 	EventTag{}, // Eventより下にないと、overrideされる
+	EventAdmin{},
 }
 
 type UserMeta struct {
 	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	// Admin アプリの管理者かどうか
-	Admin      bool   `gorm:"not null"`
+	Privilege  bool   `gorm:"not null"`
 	IsTraq     bool   `gorm:"not null"`
 	Token      string `gorm:"type:varbinary(64)"`
 	IcalSecret string `gorm:"not null"`
@@ -52,6 +53,7 @@ type Group struct {
 	Description    string    `gorm:"type:TEXT"`
 	JoinFreely     bool
 	Members        []UserMeta `gorm:"->; many2many:group_members"`
+	Admins         []UserMeta `gorm:"->; many2many:group_admins"`
 	CreatedByRefer uuid.UUID  `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      UserMeta   `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
@@ -65,11 +67,17 @@ type Tag struct {
 }
 
 type EventTag struct {
-	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	TagID   uuid.UUID `gorm:"type:char(36); primaryKey"`
+	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Event   Event     `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
-	Tag     Tag       `gorm:"->; foreignKey:TagID; constraint:OnDelete:CASCADE;"`
+	Tag     Tag       `gorm:"foreignKey:TagID; constraint:OnDelete:CASCADE;" cvt:"Name"`
 	Locked  bool
+}
+
+type EventAdmin struct {
+	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
+	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	UserMeta UserMeta  `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
 // Event is event for gorm
@@ -87,7 +95,8 @@ type Event struct {
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
 	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`
 	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Admins         []EventAdmin
 	AllowTogether  bool
-	Tags           []Tag `gorm:"many2many:event_tags;"`
+	Tags           []EventTag
 	gorm.Model     `cvt:"->"`
 }

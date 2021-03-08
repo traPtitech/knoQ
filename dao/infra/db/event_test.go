@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/traPtitech/knoQ/domain"
 )
@@ -29,10 +30,10 @@ func Test_createEvent(t *testing.T) {
 			RoomID:    room.ID,
 			TimeStart: time.Now(),
 			TimeEnd:   time.Now().Add(1 * time.Hour),
-			Tags: []struct {
-				Name   string
-				Locked bool
-			}{{Name: "go"}, {Name: "golang"}},
+			Admins:    []uuid.UUID{user.ID},
+			Tags: []domain.EventTagParams{
+				{Name: "go", Locked: true}, {Name: "golang"},
+			},
 		},
 	})
 

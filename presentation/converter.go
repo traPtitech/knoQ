@@ -13,11 +13,9 @@ func ConvertEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain
 	dst.RoomID = src.RoomID
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
+	dst.Admins = src.Admins
 	dst.AllowTogether = src.AllowTogether
-	dst.Tags = make([]struct {
-		Name   string
-		Locked bool
-	}, len(src.Tags))
+	dst.Tags = make([]domain.EventTagParams, len(src.Tags))
 	for i := range src.Tags {
 		dst.Tags[i].Name = src.Tags[i].Name
 		dst.Tags[i].Locked = src.Tags[i].Locked
@@ -36,6 +34,10 @@ func ConvertdomainEventToEventResMulti(src domain.Event) (dst EventResMulti) {
 	dst.GroupID = ConvertdomainGroupTouuidUUID(src.Group)
 	dst.Place = src.Room.Place
 	dst.GroupName = src.Group.Name
+	dst.Admins = make([]uuid.UUID, len(src.Admins))
+	for i := range src.Admins {
+		dst.Admins[i] = ConvertdomainUserTouuidUUID(src.Admins[i])
+	}
 	dst.Tags = src.Tags
 	dst.CreatedBy = ConvertdomainUserTouuidUUID(src.CreatedBy)
 	dst.CreatedAt = src.Model.CreatedAt
