@@ -4,12 +4,14 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )
 
 var tables = []interface{}{
 	UserMeta{},
 	UserBody{},
+	Token{},
 	GroupMember{},
 	GroupAdmins{},
 	Group{},
@@ -20,12 +22,17 @@ var tables = []interface{}{
 	EventAdmin{},
 }
 
+type Token struct {
+	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	oauth2.Token
+	UserMeta UserMeta `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
+}
+
 type UserMeta struct {
 	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	// Admin アプリの管理者かどうか
 	Privilege  bool   `gorm:"not null"`
 	IsTraq     bool   `gorm:"not null"`
-	Token      string `gorm:"type:varbinary(64)"`
 	IcalSecret string `gorm:"not null"`
 }
 type UserBody struct {
