@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/traPtitech/knoQ/parsing"
 )
 
 type Event struct {
@@ -52,6 +53,10 @@ type WriteTagRelationParams struct {
 	Locked bool
 }
 
+func UserEq(id uuid.UUID) parsing.Expr {
+	return parsing.CmpExpr{"user", parsing.Eq, id.String()}
+}
+
 // EventRepository is implemented by ...
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams, info *ConInfo) (*Event, error)
@@ -66,12 +71,7 @@ type EventRepository interface {
 	GetEvent(eventID uuid.UUID) (*Event, error)
 
 	// TODO 一つにまとめる
-	GetAllEvents(start *time.Time, end *time.Time) ([]*Event, error)
-	GetEventsByGroupIDs(groupIDs []uuid.UUID) ([]*Event, error)
-	GetEventsByRoomIDs(roomIDs []uuid.UUID) ([]*Event, error)
+	GetEvents(parsing.Expr) ([]*Event, error)
 
 	GetEventActivities(day int) ([]*Event, error)
-	// GetEventsByFilter allows you to filter the events under any condition.
-	// However, you may get an error at runtime.
-	GetEventsByFilter(query string, args []interface{}) ([]*Event, error)
 }
