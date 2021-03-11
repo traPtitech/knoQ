@@ -14,6 +14,6 @@ type Model struct {
 
 // ConInfo is Connection infomation
 type ConInfo struct {
-	Token     string
+	// Token     string
 	ReqUserID uuid.UUID
 }
