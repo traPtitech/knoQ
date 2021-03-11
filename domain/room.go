@@ -25,11 +25,10 @@ type WriteRoomParams struct {
 	TimeEnd   time.Time
 }
 
-// tmp
 type RoomRepository interface {
-	CreateRoom(roomParams WriteRoomParams) (*Room, error)
-	UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams) (*Room, error)
-	DeleteRoom(roomID uuid.UUID, deletePublic bool) error
+	CreateRoom(roomParams WriteRoomParams, info *ConInfo) (*Room, error)
+	UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams, info *ConInfo) (*Room, error)
+	DeleteRoom(roomID uuid.UUID, info *ConInfo) error
 	GetRoom(roomID uuid.UUID) (*Room, error)
 	GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error)
 }

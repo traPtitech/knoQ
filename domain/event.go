@@ -56,12 +56,12 @@ type WriteTagRelationParams struct {
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams, info *ConInfo) (*Event, error)
 
-	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
-	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool) error
+	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams, info *ConInfo) (*Event, error)
+	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool, info *ConInfo) error
 
-	DeleteEvent(eventID uuid.UUID) error
+	DeleteEvent(eventID uuid.UUID, info *ConInfo) error
 	// DeleteTagInEvent delete a tag in that Event
-	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, deleteLocked bool) error
+	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, info *ConInfo) error
 
 	GetEvent(eventID uuid.UUID) (*Event, error)
 
