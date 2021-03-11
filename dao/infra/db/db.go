@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// implements domain
 type GormRepository struct {
 	db *gorm.DB
 }

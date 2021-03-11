@@ -9,3 +9,5 @@ type Dao struct {
 	gormRepo db.GormRepository
 	traQRepo traq.TraQRepository
 }
+
+// implements domain
