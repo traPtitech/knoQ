@@ -15,6 +15,7 @@ type Room struct {
 	TimeEnd   time.Time
 	Events    []Event
 	CreatedBy User
+	Model
 }
 
 type WriteRoomParams struct {

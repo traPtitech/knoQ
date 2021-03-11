@@ -10,6 +10,7 @@ type Group struct {
 	Members     []User
 	Admins      []User
 	CreatedBy   User
+	Model
 }
 
 type WriteGroupParams struct {
