@@ -13,15 +13,6 @@ type writeRoomParams struct {
 	CreatedBy uuid.UUID
 }
 
-// BeforeCreate is hook
-func (r *Room) BeforeCreate(tx *gorm.DB) (err error) {
-	r.ID, err = uuid.NewV4()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func createRoom(db *gorm.DB, roomParams writeRoomParams) (*Room, error) {
 	room := ConvertwriteRoomParamsToRoom(roomParams)
 	err := db.Create(&room).Error
