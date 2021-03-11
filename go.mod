@@ -5,10 +5,8 @@ go 1.15
 require (
 	github.com/carlescere/scheduler v0.0.0-20170109141437-ee74d2f83d82
 	github.com/cheekybits/genny v1.0.0
-	github.com/fuji8/gotypeconverter v0.1.2-0.20210304175122-03baa246f266
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofrs/uuid v3.4.0+incompatible
-	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/gorilla/sessions v1.2.1
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/jinzhu/gorm v1.9.16
@@ -19,12 +17,11 @@ require (
 	github.com/lestrrat-go/ical v0.0.0-20190317233631-91af071bafbc
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.7.0
-	github.com/traPtitech/traQ v1.0.0-rc.2.0.20200309071637-82e15593b8c0
+	github.com/traPtitech/traQ v1.0.0-rc.2.0.20210303003208-f712c5cb8389
 	github.com/wader/gormstore v0.0.0-20190904144442-d36772af4310
 	go.uber.org/zap v1.16.0
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/tools v0.0.0-20210106214847-113979e3529a // indirect
-	google.golang.org/api v0.29.0
+	golang.org/x/oauth2 v0.0.0-20210113205817-d3ed898aa8a3
+	google.golang.org/api v0.39.0
 	gopkg.in/gormigrate.v1 v1.6.0
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/gorm v1.20.6

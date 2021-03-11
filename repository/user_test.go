@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
-	traQutils "github.com/traPtitech/traQ/utils"
+	traQrandom "github.com/traPtitech/traQ/utils/random"
 )
 
 func TestGormRepository_SaveUser(t *testing.T) {
@@ -53,7 +53,7 @@ func TestGormRepository_GetToken(t *testing.T) {
 	repo, _, _, user := setupGormRepoWithUser(t, common)
 
 	t.Run("Normal", func(t *testing.T) {
-		tmp := traQutils.RandAlphabetAndNumberString(36)
+		tmp := traQrandom.AlphaNumeric(36)
 		err := repo.ReplaceToken(user.ID, tmp)
 		assert.NoError(t, err)
 		token, err := repo.GetToken(user.ID)
