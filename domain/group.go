@@ -9,6 +9,7 @@ type Group struct {
 	JoinFreely  bool
 	Members     []User
 	Admins      []User
+	IsTraQGroup bool
 	CreatedBy   User
 	Model
 }

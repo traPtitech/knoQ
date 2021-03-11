@@ -30,7 +30,23 @@ type EventReqWrite struct {
 // EventResOne is experimental
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s domain.Event -d EventResOne -o converter.go .
 type EventResOne struct {
-	domain.Event
+	ID            uuid.UUID
+	Name          string
+	Description   string
+	Room          RoomRes
+	Group         GroupResOne
+	TimeStart     time.Time
+	TimeEnd       time.Time
+	CreatedBy     UserRes
+	Admins        []UserRes
+	Tags          []EventTagRes
+	AllowTogether bool
+	Model
+}
+
+type EventTagRes struct {
+	TagRes
+	Locked bool
 }
 
 // EventResMulti is for multiple response
@@ -49,9 +65,7 @@ type EventResMulti struct {
 	Admins        []uuid.UUID       `json:"admins"`
 	Tags          []domain.EventTag `json:"tags"`
 	CreatedBy     uuid.UUID         `json:"createdBy"`
-	CreatedAt     time.Time         `json:"createdAt"`
-	UpdatedAt     time.Time         `json:"updatedAt"`
-	DeletedAt     *time.Time        `json:"deletedAt,omitempty"`
+	Model
 }
 
 func iCalVeventFormat(e *domain.Event, host string) *ical.Event {

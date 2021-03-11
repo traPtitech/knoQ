@@ -10,7 +10,7 @@ type User struct {
 	IsTrap      bool
 }
 
-type writeUserParams struct {
+type WriteUserParams struct {
 	Name        string
 	DisplayName string
 	Privileged  bool
@@ -18,7 +18,7 @@ type writeUserParams struct {
 }
 
 type UserRepository interface {
-	CreateUser(writeUserParams, *ConInfo) (*User, error)
+	CreateUser(WriteUserParams, *ConInfo) (*User, error)
 	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)
 	GetAllUsers(*ConInfo) ([]*User, error)
 	ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error
