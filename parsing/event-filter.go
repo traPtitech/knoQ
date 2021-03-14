@@ -7,12 +7,12 @@ import (
 	"regexp"
 
 	"github.com/gofrs/uuid"
-	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/knoQ/domain/filter"
 )
 
 /*---------------------------------------------------------------------------*/
 
-func Parse(input string) (domain.Expr, error) {
+func Parse(input string) (filter.Expr, error) {
 	ts, err := Lex(input)
 	if err != nil {
 		return nil, err
@@ -201,6 +201,13 @@ func advanceToken(b *[]byte) (Token, error) {
 
 /*---------------------------------------------------------------------------*/
 
+var MapSupportedAttributes = map[string]filter.Attr{
+	"user":  filter.User,
+	"group": filter.Group,
+	"tag":   filter.Tag,
+	"event": filter.Event,
+}
+
 func createParseError(found tokenKind, expected ...tokenKind) error {
 	return fmt.Errorf("expected %v, found %v", expected, found)
 }
@@ -225,8 +232,8 @@ Syntax:
 
 */
 
-func ParseTop(ts *TokenStream) (domain.Expr, error) {
-	var expr domain.Expr
+func ParseTop(ts *TokenStream) (filter.Expr, error) {
+	var expr filter.Expr
 	var err error
 
 	if ts.Peek().Kind != EOF {
@@ -242,8 +249,8 @@ func ParseTop(ts *TokenStream) (domain.Expr, error) {
 	return expr, nil
 }
 
-func ParseExpr(ts *TokenStream) (domain.Expr, error) {
-	var expr domain.Expr
+func ParseExpr(ts *TokenStream) (filter.Expr, error) {
+	var expr filter.Expr
 	var err error
 
 	if expr, err = ParseTerm(ts); err != nil {
@@ -256,15 +263,15 @@ Loop:
 		case AndOp, OrOp:
 			ts.Next()
 			lhs := expr
-			op := map[tokenKind]domain.LogicOp{
-				AndOp: domain.And,
-				OrOp:  domain.Or,
+			op := map[tokenKind]filter.LogicOp{
+				AndOp: filter.And,
+				OrOp:  filter.Or,
 			}[k]
 			rhs, err := ParseTerm(ts)
 			if err != nil {
 				return nil, err
 			}
-			expr = &domain.LogicOpExpr{op, lhs, rhs}
+			expr = &filter.LogicOpExpr{op, lhs, rhs}
 
 		default:
 			break Loop
@@ -274,8 +281,8 @@ Loop:
 	return expr, nil
 }
 
-func ParseTerm(ts *TokenStream) (domain.Expr, error) {
-	var expr domain.Expr
+func ParseTerm(ts *TokenStream) (filter.Expr, error) {
+	var expr filter.Expr
 	var err error
 
 	switch k := ts.Peek().Kind; k {
@@ -300,9 +307,9 @@ func ParseTerm(ts *TokenStream) (domain.Expr, error) {
 	return expr, nil
 }
 
-func ParseCmp(ts *TokenStream) (domain.Expr, error) {
+func ParseCmp(ts *TokenStream) (filter.Expr, error) {
 	var attr string
-	var rel domain.Relation
+	var rel filter.Relation
 	var uid uuid.UUID
 
 	tok := ts.Next()
@@ -315,9 +322,9 @@ func ParseCmp(ts *TokenStream) (domain.Expr, error) {
 	if tok.Kind != EqOp && tok.Kind != NeqOp {
 		return nil, createParseError(tok.Kind, EqOp, NeqOp)
 	}
-	rel = map[tokenKind]domain.Relation{
-		EqOp:  domain.Eq,
-		NeqOp: domain.Neq,
+	rel = map[tokenKind]filter.Relation{
+		EqOp:  filter.Eq,
+		NeqOp: filter.Neq,
 	}[tok.Kind]
 
 	tok = ts.Next()
@@ -326,5 +333,5 @@ func ParseCmp(ts *TokenStream) (domain.Expr, error) {
 	}
 	uid = uuid.Must(uuid.FromString(tok.Value))
 
-	return &domain.CmpExpr{attr, rel, uid}, nil
+	return &filter.CmpExpr{MapSupportedAttributes[attr], rel, uid}, nil
 }
