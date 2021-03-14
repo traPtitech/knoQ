@@ -71,6 +71,28 @@ type EventRepository interface {
 
 // Expression
 
+func FilterRoomIDs(roomIDs []uuid.UUID) Expr {
+	if len(roomIDs) == 0 {
+		return nil
+	}
+
+	var expr Expr
+	expr = RoomExpr{
+		Relation: Eq,
+		Value:    roomIDs[0],
+	}
+	for _, id := range roomIDs[1:] {
+		lhs := expr
+		rhs := RoomExpr{
+			Relation: Eq,
+			Value:    id,
+		}
+		expr = LogicOpExpr{Or, lhs, rhs}
+	}
+
+	return expr
+}
+
 type Relation int
 
 const (
@@ -89,7 +111,9 @@ const (
 	Or
 )
 
-type Expr interface{} // expects *LogicOpExpr, *CmpExpr
+type Expr interface {
+	isExpr()
+}
 
 type LogicOpExpr struct {
 	LogicOp LogicOp
@@ -100,12 +124,47 @@ type LogicOpExpr struct {
 type CmpExpr struct {
 	Attr     string
 	Relation Relation
-	UUID     string
+	Value    interface{}
 }
 
 type UserExpr struct {
 	Relation Relation
 	Value    uuid.UUID
+}
+
+type GroupExpr struct {
+	Relation Relation
+	Value    uuid.UUID
+}
+
+type RoomExpr struct {
+	Relation Relation
+	Value    uuid.UUID
+}
+
+type TagExpr struct {
+	Relation Relation
+	Value    uuid.UUID
+}
+
+type EventIDExpr struct {
+	Relation Relation
+	Value    uuid.UUID
+}
+
+type EventNameExpr struct {
+	Relation Relation
+	Value    string
+}
+
+type TimeStartExpr struct {
+	Relation Relation
+	Value    time.Time
+}
+
+type TimeEndExpr struct {
+	Relation Relation
+	Value    time.Time
 }
 
 type CmpInterface interface {
@@ -116,10 +175,66 @@ func (cmp *CmpExpr) Underlying() CmpExpr {
 	return *cmp
 }
 
-func (user *UserExpr) Underlying() CmpExpr {
+func (e *UserExpr) Underlying() CmpExpr {
 	return CmpExpr{
 		Attr:     "user",
-		Relation: user.Relation,
-		UUID:     user.Value.String(),
+		Relation: e.Relation,
+		Value:    e.Value,
 	}
 }
+
+func (e *GroupExpr) Underlying() CmpExpr {
+	return CmpExpr{
+		Attr:     "group",
+		Relation: e.Relation,
+		Value:    e.Value,
+	}
+}
+func (e *RoomExpr) Underlying() CmpExpr {
+	return CmpExpr{
+		Attr:     "room",
+		Relation: e.Relation,
+		Value:    e.Value,
+	}
+}
+func (e *TagExpr) Underlying() CmpExpr {
+	return CmpExpr{
+		Attr:     "tag",
+		Relation: e.Relation,
+		Value:    e.Value,
+	}
+}
+func (e *EventIDExpr) Underlying() CmpExpr {
+	return CmpExpr{
+		Attr:     "event",
+		Relation: e.Relation,
+		Value:    e.Value,
+	}
+}
+func (e *EventNameExpr) Underlying() CmpExpr {
+	return CmpExpr{
+		Attr:     "eventName",
+		Relation: e.Relation,
+		Value:    e.Value,
+	}
+}
+func (e *TimeStartExpr) Underlying() CmpExpr {
+	return CmpExpr{
+		Attr:     "start",
+		Relation: e.Relation,
+		Value:    e.Value,
+	}
+}
+func (e *TimeEndExpr) Underlying() CmpExpr {
+	return CmpExpr{
+		Attr:     "end",
+		Relation: e.Relation,
+		Value:    e.Value,
+	}
+}
+
+func (LogicOpExpr) isExpr() {}
+func (CmpExpr) isExpr()     {}
+func (UserExpr) isExpr()    {}
+func (GroupExpr) isExpr()   {}
+func (RoomExpr) isExpr()    {}

@@ -65,7 +65,7 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 			filterArgs = []interface{}{}
 
 		case *domain.CmpExpr:
-			id := uuid.Must(uuid.FromString(e.UUID))
+			id := e.Value.(uuid.UUID)
 			switch e.Attr {
 			case "user":
 				rel := map[domain.Relation]string{

@@ -303,7 +303,7 @@ func ParseTerm(ts *TokenStream) (domain.Expr, error) {
 func ParseCmp(ts *TokenStream) (domain.Expr, error) {
 	var attr string
 	var rel domain.Relation
-	var uuid string
+	var uid uuid.UUID
 
 	tok := ts.Next()
 	if tok.Kind != Attr {
@@ -324,7 +324,7 @@ func ParseCmp(ts *TokenStream) (domain.Expr, error) {
 	if tok.Kind != UUID {
 		return nil, createParseError(tok.Kind, UUID)
 	}
-	uuid = tok.Value
+	uid = uuid.Must(uuid.FromString(tok.Value))
 
-	return &domain.CmpExpr{attr, rel, uuid}, nil
+	return &domain.CmpExpr{attr, rel, uid}, nil
 }
