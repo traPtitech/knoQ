@@ -47,7 +47,7 @@ const (
 	Room
 	User
 	Tag
-	EventName
+	Name
 	TimeStart
 	TimeEnd
 )
