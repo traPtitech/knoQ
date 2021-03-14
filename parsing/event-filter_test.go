@@ -111,6 +111,7 @@ var parseCasesFailure = []struct {
 	{"event=="},
 	{"tag== || user==123e4567-e89b-12d3-a456-426652340000"},
 	{"tag==123e4567-e89b-12d3-a456-426652340000||(user==123e4567-e89b-12d3-a456-426652340000))"},
+	{"select * from events;"},
 }
 
 func TestParse_Failure(t *testing.T) {
