@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/parsing"
 
 	repo "github.com/traPtitech/knoQ/repository"
@@ -53,8 +54,8 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 		return nil, fmt.Errorf("%w, %s has '%v'", repo.ErrInvalidArg, filterQuery, err)
 	}
 
-	var createFilter func(parsing.Expr) (string, []interface{}, error)
-	createFilter = func(expr parsing.Expr) (string, []interface{}, error) {
+	var createFilter func(domain.Expr) (string, []interface{}, error)
+	createFilter = func(expr domain.Expr) (string, []interface{}, error) {
 		var filter string
 		var filterArgs []interface{}
 
@@ -63,13 +64,13 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 			filter = ""
 			filterArgs = []interface{}{}
 
-		case *parsing.CmpExpr:
+		case *domain.CmpExpr:
 			id := uuid.Must(uuid.FromString(e.UUID))
 			switch e.Attr {
 			case "user":
-				rel := map[parsing.Relation]string{
-					parsing.Eq:  "IN",
-					parsing.Neq: "NOT IN",
+				rel := map[domain.Relation]string{
+					domain.Eq:  "IN",
+					domain.Neq: "NOT IN",
 				}[e.Relation]
 				ids, err := d.GetUserBelongingGroupIDs(token, id)
 				if err != nil {
@@ -84,18 +85,18 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 					"tag":   "event_tags.tag_id",
 					"event": "id",
 				}[e.Attr]
-				rel := map[parsing.Relation]string{
-					parsing.Eq:  "=",
-					parsing.Neq: "!=",
+				rel := map[domain.Relation]string{
+					domain.Eq:  "=",
+					domain.Neq: "!=",
 				}[e.Relation]
 				filter = fmt.Sprintf("%v %v ?", column, rel)
 				filterArgs = []interface{}{id}
 			}
 
-		case *parsing.LogicOpExpr:
-			op := map[parsing.LogicOp]string{
-				parsing.And: "AND",
-				parsing.Or:  "OR",
+		case *domain.LogicOpExpr:
+			op := map[domain.LogicOp]string{
+				domain.And: "AND",
+				domain.Or:  "OR",
 			}[e.LogicOp]
 			lFilter, lFilterArgs, err := createFilter(e.Lhs)
 			if err != nil {

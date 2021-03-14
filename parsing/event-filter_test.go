@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/traPtitech/knoQ/domain"
 )
 
 /*---------------------------------------------------------------------------*/
@@ -57,7 +58,7 @@ func TestLex_Failure(t *testing.T) {
 
 var parseCasesSuccess = []struct {
 	in  string
-	out Expr
+	out domain.Expr
 }{
 	{
 		"",
@@ -65,29 +66,29 @@ var parseCasesSuccess = []struct {
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000",
-		&CmpExpr{"user", Eq, "123e4567-e89b-12d3-a456-426652340000"},
+		&domain.CmpExpr{"user", domain.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 	},
 	{
 		"(((user==123e4567-e89b-12d3-a456-426652340000)))",
-		&CmpExpr{"user", Eq, "123e4567-e89b-12d3-a456-426652340000"},
+		&domain.CmpExpr{"user", domain.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&tag!=123e4567-e89b-12d3-a456-426652340000",
-		&LogicOpExpr{
-			And,
-			&CmpExpr{"user", Eq, "123e4567-e89b-12d3-a456-426652340000"},
-			&CmpExpr{"tag", Neq, "123e4567-e89b-12d3-a456-426652340000"},
+		&domain.LogicOpExpr{
+			domain.And,
+			&domain.CmpExpr{"user", domain.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+			&domain.CmpExpr{"tag", domain.Neq, "123e4567-e89b-12d3-a456-426652340000"},
 		},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&(tag!=123e4567-e89b-12d3-a456-426652340000||event==123e4567-e89b-12d3-a456-426652340000)",
-		&LogicOpExpr{
-			And,
-			&CmpExpr{"user", Eq, "123e4567-e89b-12d3-a456-426652340000"},
-			&LogicOpExpr{
-				Or,
-				&CmpExpr{"tag", Neq, "123e4567-e89b-12d3-a456-426652340000"},
-				&CmpExpr{"event", Eq, "123e4567-e89b-12d3-a456-426652340000"},
+		&domain.LogicOpExpr{
+			domain.And,
+			&domain.CmpExpr{"user", domain.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+			&domain.LogicOpExpr{
+				domain.Or,
+				&domain.CmpExpr{"tag", domain.Neq, "123e4567-e89b-12d3-a456-426652340000"},
+				&domain.CmpExpr{"event", domain.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 			},
 		},
 	},

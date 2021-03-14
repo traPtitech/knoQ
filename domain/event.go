@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/traPtitech/knoQ/parsing"
 )
 
 type Event struct {
@@ -53,10 +52,6 @@ type WriteTagRelationParams struct {
 	Locked bool
 }
 
-func UserEq(id uuid.UUID) parsing.Expr {
-	return parsing.CmpExpr{"user", parsing.Eq, id.String()}
-}
-
 // EventRepository is implemented by ...
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams, info *ConInfo) (*Event, error)
@@ -69,9 +64,62 @@ type EventRepository interface {
 	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, info *ConInfo) error
 
 	GetEvent(eventID uuid.UUID) (*Event, error)
-
-	// TODO 一つにまとめる
-	GetEvents(parsing.Expr) ([]*Event, error)
+	GetEvents(Expr) ([]*Event, error)
 
 	GetEventActivities(day int) ([]*Event, error)
+}
+
+// Expression
+
+type Relation int
+
+const (
+	Eq Relation = iota
+	Neq
+	Greter
+	Less
+	GreterEq
+	LessEq
+)
+
+type LogicOp int
+
+const (
+	And LogicOp = iota
+	Or
+)
+
+type Expr interface{} // expects *LogicOpExpr, *CmpExpr
+
+type LogicOpExpr struct {
+	LogicOp LogicOp
+	Lhs     Expr
+	Rhs     Expr
+}
+
+type CmpExpr struct {
+	Attr     string
+	Relation Relation
+	UUID     string
+}
+
+type UserExpr struct {
+	Relation Relation
+	Value    uuid.UUID
+}
+
+type CmpInterface interface {
+	Underlying() CmpExpr
+}
+
+func (cmp *CmpExpr) Underlying() CmpExpr {
+	return *cmp
+}
+
+func (user *UserExpr) Underlying() CmpExpr {
+	return CmpExpr{
+		Attr:     "user",
+		Relation: user.Relation,
+		UUID:     user.Value.String(),
+	}
 }
