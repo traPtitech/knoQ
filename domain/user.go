@@ -19,6 +19,7 @@ type WriteUserParams struct {
 }
 
 type UserRepository interface {
+	// SaveUser OAuthによってユーザーを得る
 	SaveUser(WriteUserParams) (*User, error)
 	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)
 	GetAllUsers(*ConInfo) ([]*User, error)

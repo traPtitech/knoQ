@@ -2,10 +2,7 @@ package db
 
 import (
 	"fmt"
-	"testing"
 
-	"github.com/gofrs/uuid"
-	"github.com/stretchr/testify/require"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -40,10 +37,4 @@ func (repo *GormRepository) Setup(host, user, password string) error {
 	}
 
 	return repo.db.AutoMigrate(tables...)
-}
-
-func mustNewUUIDV4(t *testing.T) uuid.UUID {
-	id, err := uuid.NewV4()
-	require.NoError(t, err)
-	return id
 }

@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
+	"github.com/gofrs/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/traQ/migration"
+	"github.com/traPtitech/traQ/utils/random"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -64,4 +70,114 @@ func TestMain(m *testing.M) {
 
 	code := m.Run()
 	os.Exit(code)
+}
+
+func assertAndRequire(t *testing.T) (*assert.Assertions, *require.Assertions) {
+	return assert.New(t), require.New(t)
+}
+
+func mustNewUUIDV4(t *testing.T) uuid.UUID {
+	id, err := uuid.NewV4()
+	require.NoError(t, err)
+	return id
+}
+
+func setupRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions) {
+	t.Helper()
+	r, ok := repositories[repo]
+	if !ok {
+		t.FailNow()
+	}
+	assert, require := assertAndRequire(t)
+	return r, assert, require
+}
+
+func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *UserMeta) {
+	t.Helper()
+	r, assert, require := setupRepo(t, repo)
+	user := mustMakeUserMeta(t, r, false)
+	return r, assert, require, user
+}
+
+func mustMakeUserMeta(t *testing.T, repo *GormRepository, admin bool) *UserMeta {
+	t.Helper()
+	userID := mustNewUUIDV4(t)
+	// TODO fix consider not traQ user.
+	user, err := saveUser(repo.db, userID, admin)
+	require.NoError(t, err)
+	return user
+}
+
+//func mustMakeUserBody(t *testing.T, repo *GormRepository, name, password string) *UserBody {
+//t.Helper()
+//user, err := saveUser(repo.db, userID uuid.UUID, privilege bool)
+//require.NoError(t, err)
+//return user
+//}
+
+// mustMakeGroup make group has no members
+func mustMakeGroup(t *testing.T, repo *GormRepository, name string, createdBy uuid.UUID) *Group {
+	t.Helper()
+	params := writeGroupParams{
+		WriteGroupParams: domain.WriteGroupParams{
+			Name:       name,
+			Members:    nil,
+			JoinFreely: true,
+		},
+		CreatedBy: createdBy,
+	}
+	group, err := createGroup(repo.db, params)
+	require.NoError(t, err)
+	return group
+}
+
+//func mustAddGroupMember(t *testing.T, repo *GormRepository, groupID uuid.UUID, userID uuid.UUID) {
+//t.Helper()
+//err := repo.AddUserToGroup(groupID, userID)
+//require.NoError(t, err)
+//}
+
+// mustMakeRoom make room. now -1h ~ now + 1h
+func mustMakeRoom(t *testing.T, repo *GormRepository, place string) *Room {
+	t.Helper()
+	params := writeRoomParams{
+		WriteRoomParams: domain.WriteRoomParams{
+			Place:     place,
+			TimeStart: time.Now().Add(-1 * time.Hour),
+			TimeEnd:   time.Now().Add(1 * time.Hour),
+		},
+	}
+	room, err := createRoom(repo.db, params)
+	require.NoError(t, err)
+	return room
+}
+
+func mustMakeTag(t *testing.T, repo *GormRepository, name string) *Tag {
+	t.Helper()
+
+	tag, err := createTag(repo.db, name)
+	require.NoError(t, err)
+	return tag
+}
+
+// mustMakeEvent make event. now ~ now + 1m
+func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.UUID) (*Event, *Group, *Room) {
+	t.Helper()
+	group := mustMakeGroup(t, repo, random.AlphaNumeric(10), userID)
+	room := mustMakeRoom(t, repo, random.AlphaNumeric(10))
+
+	params := writeEventParams{
+		WriteEventParams: domain.WriteEventParams{
+			Name:      name,
+			GroupID:   group.ID,
+			RoomID:    room.ID,
+			TimeStart: time.Now(),
+			TimeEnd:   time.Now().Add(1 * time.Minute),
+		},
+		CreatedBy: userID,
+	}
+
+	event, err := createEvent(repo.db, params)
+	require.NoError(t, err)
+	return event, group, room
 }

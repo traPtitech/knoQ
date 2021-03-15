@@ -11,7 +11,7 @@ import (
 func Test_createGroup(t *testing.T) {
 	r := repositories[common]
 
-	user, _ := saveUser(r.db, mustNewUUIDV4(t), true, true)
+	user, _ := saveUser(r.db, mustNewUUIDV4(t), true)
 
 	group, err := createGroup(r.db, writeGroupParams{
 		CreatedBy: user.ID,

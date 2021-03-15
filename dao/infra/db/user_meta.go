@@ -5,11 +5,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func saveUser(db *gorm.DB, userID uuid.UUID, privilege, istraQ bool) (*UserMeta, error) {
+func saveUser(db *gorm.DB, userID uuid.UUID, privilege bool) (*UserMeta, error) {
 	user := UserMeta{
 		ID:        userID,
 		Privilege: privilege,
-		IsTraq:    istraQ,
 	}
 	err := db.Create(&user).Error
 	if err != nil {
