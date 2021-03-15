@@ -39,12 +39,9 @@ func ConvertRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomPar
 	return
 }
 func ConvertdomainEventTagToEventTagRes(src domain.EventTag) (dst EventTagRes) {
-	dst.TagRes.Model.CreatedAt = src.Tag.Model.CreatedAt
-	dst.TagRes.Model.UpdatedAt = src.Tag.Model.UpdatedAt
-	dst.TagRes.Model.DeletedAt = src.Tag.Model.DeletedAt
-	dst.TagRes.ID = src.Tag.ID
-	dst.TagRes.Name = src.Tag.Name
 	dst.Locked = src.Locked
+	dst.ID = src.Tag.ID
+	dst.Name = src.Tag.Name
 	return
 }
 

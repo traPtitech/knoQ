@@ -30,23 +30,24 @@ type EventReqWrite struct {
 // EventResOne is experimental
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s domain.Event -d EventResOne -o converter.go .
 type EventResOne struct {
-	ID            uuid.UUID
-	Name          string
-	Description   string
-	Room          RoomRes
-	Group         GroupResOne
-	TimeStart     time.Time
-	TimeEnd       time.Time
-	CreatedBy     UserRes
-	Admins        []UserRes
-	Tags          []EventTagRes
-	AllowTogether bool
+	ID            uuid.UUID     `json:"eventId"`
+	Name          string        `json:"name"`
+	Description   string        `json:"description"`
+	Room          RoomRes       `json:"room"`
+	Group         GroupResOne   `json:"group"`
+	TimeStart     time.Time     `json:"timeStart"`
+	TimeEnd       time.Time     `json:"timeEnd"`
+	CreatedBy     UserRes       `json:"createdBy"`
+	Admins        []UserRes     `json:"admins"`
+	Tags          []EventTagRes `json:"tags"`
+	AllowTogether bool          `json:"sharedRoom"`
 	Model
 }
 
 type EventTagRes struct {
-	TagRes
-	Locked bool
+	ID     uuid.UUID `json:"tagId"`
+	Name   string    `json:"name"`
+	Locked bool      `json:"locked"`
 }
 
 // EventResMulti is for multiple response
