@@ -28,18 +28,25 @@ type Token struct {
 	UserMeta UserMeta `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
+type Provider struct {
+	ID       uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Iss      string    `gorm:"not null"`
+	Sub      string
+	UserMeta UserMeta `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
+}
+
 type UserMeta struct {
 	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	// Admin アプリの管理者かどうか
+	// アプリの管理者かどうか
 	Privilege  bool   `gorm:"not null"`
-	IsTraq     bool   `gorm:"not null"`
 	IcalSecret string `gorm:"not null"`
 }
 type UserBody struct {
 	ID          uuid.UUID `gorm:"type:char(36); primaryKey;"`
 	Name        string    `gorm:"type:varchar(32);"`
 	DisplayName string    `gorm:"type:varchar(32);"`
-	UserMeta    UserMeta  `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Icon        string
+	UserMeta    UserMeta `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
 // Room is

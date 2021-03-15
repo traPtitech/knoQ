@@ -11,14 +11,15 @@ type User struct {
 }
 
 type WriteUserParams struct {
-	Name        string
-	DisplayName string
-	Privileged  bool
-	IsTrap      bool
+	UserIdentifier string
+	Name           string
+	DisplayName    string // option
+	Icon           string // option
+	//Provider       string // never
 }
 
 type UserRepository interface {
-	CreateUser(WriteUserParams, *ConInfo) (*User, error)
+	SaveUser(WriteUserParams) (*User, error)
 	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)
 	GetAllUsers(*ConInfo) ([]*User, error)
 	ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error
