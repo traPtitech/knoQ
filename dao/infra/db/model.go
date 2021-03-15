@@ -12,6 +12,7 @@ var tables = []interface{}{
 	UserMeta{},
 	UserBody{},
 	Token{},
+	Provider{},
 	GroupMember{},
 	GroupAdmins{},
 	Group{},
