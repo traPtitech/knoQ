@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/gofrs/uuid"
@@ -11,18 +10,18 @@ import (
 	"gorm.io/gorm"
 )
 
-// implements domain
+// GormRepository implements domain
 type GormRepository struct {
 	db *gorm.DB
 }
 
-func (repo *GormRepository) Setup() error {
-	host := os.Getenv("MARIADB_HOSTNAME")
-	user := os.Getenv("MARIADB_USERNAME")
+func (repo *GormRepository) Setup(host, user, password string) error {
+	if host == "" {
+		host = "mysql"
+	}
 	if user == "" {
 		user = "root"
 	}
-	password := os.Getenv("MARIADB_PASSWORD")
 	if password == "" {
 		password = "password"
 	}
@@ -40,11 +39,7 @@ func (repo *GormRepository) Setup() error {
 		return err
 	}
 
-	err = repo.db.AutoMigrate(tables...)
-	if err != nil {
-		return err
-	}
-	return repo.db.SetupJoinTable(&Event{}, "Tags", &EventTag{})
+	return repo.db.AutoMigrate(tables...)
 }
 
 func mustNewUUIDV4(t *testing.T) uuid.UUID {

@@ -20,15 +20,11 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	host := os.Getenv("MARIADB_HOSTNAME")
-	user := os.Getenv("MARIADB_USERNAME")
-	if user == "" {
-		user = "root"
-	}
-	password := os.Getenv("MARIADB_PASSWORD")
-	if password == "" {
+	const (
+		user     = "root"
 		password = "password"
-	}
+		host     = "localhost"
+	)
 
 	dbs := []string{
 		common,
