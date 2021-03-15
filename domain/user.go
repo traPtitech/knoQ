@@ -19,12 +19,12 @@ type WriteUserParams struct {
 }
 
 type UserRepository interface {
-	// SaveUser OAuthによってユーザーを得る
-	SaveUser(WriteUserParams) (*User, error)
+	// LoginUser OAuthによってユーザーを得る
+	LoginUser(code, codeVerifier string) (*User, error)
 	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)
 	GetAllUsers(*ConInfo) ([]*User, error)
-	ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error
-	GetToken(info *ConInfo) (string, error)
+	//ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error
+	//GetToken(info *ConInfo) (string, error)
 	ReplaceMyiCalSecret(secret string, info *ConInfo) error
 	GetMyiCalSecret(info *ConInfo) (string, error)
 }
