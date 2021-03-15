@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	repo "room/repository"
-	"room/router"
-	"room/router/service"
-	"room/utils"
 	"time"
+
+	"github.com/traPtitech/knoQ/utils"
+
+	"github.com/traPtitech/knoQ/router"
+	"github.com/traPtitech/knoQ/router/service"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/carlescere/scheduler"
 	"github.com/gorilla/sessions"
@@ -34,16 +37,11 @@ func main() {
 	googleAPI := &repo.GoogleAPIRepository{
 		CalendarID: os.Getenv("TRAQ_CALENDARID"),
 	}
-	bytes, err := ioutil.ReadFile("service.json")
-	if err != nil {
-		panic("service.json does not exist.")
-	}
+	bytes, _ := ioutil.ReadFile("service.json")
 	googleAPI.Config, err = google.JWTConfigFromJSON(bytes, calendar.CalendarReadonlyScope)
-	if err != nil {
-		panic(err)
+	if err == nil {
+		googleAPI.Setup()
 	}
-
-	googleAPI.Setup()
 
 	logger, _ := zap.NewDevelopment()
 	handler := &router.Handlers{

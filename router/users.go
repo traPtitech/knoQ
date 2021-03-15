@@ -7,11 +7,12 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"room/router/service"
+
+	"github.com/traPtitech/knoQ/router/service"
 
 	"github.com/labstack/echo/v4"
 	traQv3 "github.com/traPtitech/traQ/router/v3"
-	traQutils "github.com/traPtitech/traQ/utils"
+	traQrandom "github.com/traPtitech/traQ/utils/random"
 )
 
 // HandleGetUserMe ヘッダー情報からuser情報を取得
@@ -62,7 +63,7 @@ func (h *Handlers) HandleGetiCal(c echo.Context) error {
 
 func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 	userID, _ := getRequestUserID(c)
-	secret := traQutils.RandAlphabetAndNumberString(16)
+	secret := traQrandom.SecureAlphaNumeric(16)
 	if err := h.Dao.Repo.ReplaceiCalSecret(userID, secret); err != nil {
 		return judgeErrorResponse(err)
 	}

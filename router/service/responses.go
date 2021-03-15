@@ -1,8 +1,9 @@
 package service
 
 import (
-	repo "room/repository"
 	"time"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/gofrs/uuid"
 )
@@ -66,6 +67,7 @@ func FormatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 			Description: g.Description,
 			JoinFreely:  g.JoinFreely,
 			Members:     formatGroupMembersRes(g.Members),
+			Admins:      formatGroupAdminsRes(g.Admins),
 		},
 		IsTraQGroup: IsTraQgroup,
 		CreatedBy:   g.CreatedBy,
@@ -76,6 +78,14 @@ func FormatGroupRes(g *repo.Group, IsTraQgroup bool) *GroupRes {
 }
 
 func formatGroupMembersRes(ms []repo.GroupUsers) []uuid.UUID {
+	ids := make([]uuid.UUID, len(ms))
+	for i, m := range ms {
+		ids[i] = m.UserID
+	}
+	return ids
+}
+
+func formatGroupAdminsRes(ms []repo.GroupAdmins) []uuid.UUID {
 	ids := make([]uuid.UUID, len(ms))
 	for i, m := range ms {
 		ids[i] = m.UserID
@@ -117,6 +127,8 @@ func FormatEventRes(e *repo.Event) *EventRes {
 			TimeEnd:       e.TimeEnd,
 			RoomID:        e.RoomID,
 			GroupID:       e.GroupID,
+			Place:         e.Room.Place,
+			Admins:        FormatEventAdmins(e.Admins),
 		},
 		Tags:      FormatTagsRes(e.Tags),
 		CreatedBy: e.CreatedBy,
@@ -124,6 +136,15 @@ func FormatEventRes(e *repo.Event) *EventRes {
 		UpdatedAt: e.UpdatedAt,
 		DeletedAt: e.DeletedAt,
 	}
+}
+
+func FormatEventAdmins(ea []repo.EventAdmins) []uuid.UUID {
+	ids := make([]uuid.UUID, len(ea))
+	for i, m := range ea {
+		ids[i] = m.UserID
+	}
+	return ids
+
 }
 
 func FormatEventsRes(es []*repo.Event) []*EventRes {

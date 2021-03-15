@@ -2,8 +2,11 @@ package service
 
 import (
 	"fmt"
-	"room/parsing"
-	repo "room/repository"
+
+	domainFilter "github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/parsing"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/gofrs/uuid"
 	"github.com/lestrrat-go/ical"
@@ -51,8 +54,8 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 		return nil, fmt.Errorf("%w, %s has '%v'", repo.ErrInvalidArg, filterQuery, err)
 	}
 
-	var createFilter func(parsing.Expr) (string, []interface{}, error)
-	createFilter = func(expr parsing.Expr) (string, []interface{}, error) {
+	var createFilter func(domainFilter.Expr) (string, []interface{}, error)
+	createFilter = func(expr domainFilter.Expr) (string, []interface{}, error) {
 		var filter string
 		var filterArgs []interface{}
 
@@ -61,13 +64,13 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 			filter = ""
 			filterArgs = []interface{}{}
 
-		case *parsing.CmpExpr:
-			id := uuid.Must(uuid.FromString(e.UUID))
+		case *domainFilter.CmpExpr:
+			id := e.Value.(uuid.UUID)
 			switch e.Attr {
-			case "user":
-				rel := map[parsing.Relation]string{
-					parsing.Eq:  "IN",
-					parsing.Neq: "NOT IN",
+			case domainFilter.User:
+				rel := map[domainFilter.Relation]string{
+					domainFilter.Eq:  "IN",
+					domainFilter.Neq: "NOT IN",
 				}[e.Relation]
 				ids, err := d.GetUserBelongingGroupIDs(token, id)
 				if err != nil {
@@ -77,23 +80,23 @@ func (d Dao) GetEventsByFilter(token, filterQuery string) ([]*repo.Event, error)
 				filterArgs = []interface{}{ids}
 
 			default:
-				column := map[string]string{
-					"group": "group_id",
-					"tag":   "event_tags.tag_id",
-					"event": "id",
+				column := map[domainFilter.Attr]string{
+					domainFilter.Group: "group_id",
+					domainFilter.Tag:   "event_tags.tag_id",
+					domainFilter.Event: "id",
 				}[e.Attr]
-				rel := map[parsing.Relation]string{
-					parsing.Eq:  "=",
-					parsing.Neq: "!=",
+				rel := map[domainFilter.Relation]string{
+					domainFilter.Eq:  "=",
+					domainFilter.Neq: "!=",
 				}[e.Relation]
 				filter = fmt.Sprintf("%v %v ?", column, rel)
 				filterArgs = []interface{}{id}
 			}
 
-		case *parsing.LogicOpExpr:
-			op := map[parsing.LogicOp]string{
-				parsing.And: "AND",
-				parsing.Or:  "OR",
+		case *domainFilter.LogicOpExpr:
+			op := map[domainFilter.LogicOp]string{
+				domainFilter.And: "AND",
+				domainFilter.Or:  "OR",
 			}[e.LogicOp]
 			lFilter, lFilterArgs, err := createFilter(e.Lhs)
 			if err != nil {

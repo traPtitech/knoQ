@@ -2,8 +2,9 @@ package utils
 
 import (
 	"fmt"
-	repo "room/repository"
 	"time"
+
+	repo "github.com/traPtitech/knoQ/repository"
 )
 
 // InitPostEventToTraQ 現在(job実行)から24時間以内に始まるイベントを取得し、
@@ -19,7 +20,6 @@ func InitPostEventToTraQ(repo interface {
 		events, _ := repo.GetAllEvents(&now, &tomorrow)
 		message := createMessage(now, rooms, events, origin)
 		RequestWebhook(message, secret, channelID, webhookID, 1)
-		//fmt.Println(message)
 	}
 
 	return job

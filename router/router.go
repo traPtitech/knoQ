@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"room/router/service"
+	"github.com/traPtitech/knoQ/router/service"
 
 	"github.com/gorilla/sessions"
 	"github.com/jinzhu/gorm"
@@ -68,8 +68,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			{
 				apiGroup.GET("", h.HandleGetGroup)
 
-				apiGroup.PUT("", h.HandleUpdateGroup, h.GroupCreatedUserMiddleware)
-				apiGroup.DELETE("", h.HandleDeleteGroup, h.GroupCreatedUserMiddleware)
+				apiGroup.PUT("", h.HandleUpdateGroup, h.GroupAdminsMiddleware)
+				apiGroup.DELETE("", h.HandleDeleteGroup, h.GroupAdminsMiddleware)
 
 				apiGroup.PUT("/members/me", h.HandleAddMeGroup)
 				apiGroup.DELETE("/members/me", h.HandleDeleteMeGroup)
@@ -86,8 +86,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiEvent := apiEvents.Group("/:eventid")
 			{
 				apiEvent.GET("", h.HandleGetEvent)
-				apiEvent.PUT("", h.HandleUpdateEvent, h.EventCreatedUserMiddleware, middleware.BodyDump(h.WebhookEventHandler))
-				apiEvent.DELETE("", h.HandleDeleteEvent, h.EventCreatedUserMiddleware)
+				apiEvent.PUT("", h.HandleUpdateEvent, h.EventAdminsMiddleware, middleware.BodyDump(h.WebhookEventHandler))
+				apiEvent.DELETE("", h.HandleDeleteEvent, h.EventAdminsMiddleware)
 
 				apiEvent.POST("/tags", h.HandleAddEventTag)
 				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)

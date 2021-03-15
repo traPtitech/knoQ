@@ -6,7 +6,7 @@ import (
 
 	"github.com/jinzhu/copier"
 	"github.com/stretchr/testify/assert"
-	traQutils "github.com/traPtitech/traQ/utils"
+	traQrandom "github.com/traPtitech/traQ/utils/random"
 )
 
 func TestGormRepository_CreateRoom(t *testing.T) {
@@ -14,7 +14,7 @@ func TestGormRepository_CreateRoom(t *testing.T) {
 	repo, _, _ := setupGormRepo(t, common)
 
 	params := WriteRoomParams{
-		Place:     traQutils.RandAlphabetAndNumberString(10),
+		Place:     traQrandom.AlphaNumeric(10),
 		TimeStart: time.Now(),
 		TimeEnd:   time.Now().Add(1 * time.Hour),
 	}
@@ -40,10 +40,10 @@ func TestGormRepository_CreateRoom(t *testing.T) {
 
 func TestGormRepository_UpdateRoom(t *testing.T) {
 	repo, _, _ := setupGormRepo(t, common)
-	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
+	room := mustMakeRoom(t, repo, traQrandom.AlphaNumeric(10))
 
 	params := WriteRoomParams{
-		Place:     traQutils.RandAlphabetAndNumberString(10),
+		Place:     traQrandom.AlphaNumeric(10),
 		TimeStart: time.Now(),
 		TimeEnd:   time.Now().Add(3 * time.Hour),
 	}
@@ -62,7 +62,7 @@ func TestGormRepository_UpdateRoom(t *testing.T) {
 func TestGormRepository_DeleteRoom(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupGormRepo(t, common)
-	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
+	room := mustMakeRoom(t, repo, traQrandom.AlphaNumeric(10))
 
 	t.Run("Delete existing room", func(t *testing.T) {
 		t.Parallel()
@@ -80,13 +80,13 @@ func TestGormRepository_DeleteRoom(t *testing.T) {
 func TestGormRepository_GetRoom(t *testing.T) {
 	repo, _, _, user := setupGormRepoWithUser(t, common)
 
-	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
+	room := mustMakeRoom(t, repo, traQrandom.AlphaNumeric(10))
 	if room, err := repo.GetRoom(room.ID); assert.NoError(t, err) {
 		assert.NotNil(t, room)
 	}
 
 	t.Run("room event test", func(t *testing.T) {
-		event, _, room := mustMakeEvent(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+		event, _, room := mustMakeEvent(t, repo, traQrandom.AlphaNumeric(20), user.ID)
 		if room, err := repo.GetRoom(room.ID); assert.NoError(t, err) {
 			assert.NotNil(t, room)
 			assert.Equal(t, event.ID, room.Events[0].ID)
@@ -191,7 +191,7 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 func TestGormRepository_GetAllRooms(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupGormRepo(t, ex)
-	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
+	room := mustMakeRoom(t, repo, traQrandom.AlphaNumeric(10))
 
 	t.Run("edge time", func(t *testing.T) {
 		start := room.TimeStart.Truncate(time.Second)

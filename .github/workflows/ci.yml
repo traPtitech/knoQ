@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.15
       - uses: actions/checkout@v2
       - uses: actions/cache@v1
         with:
@@ -36,11 +36,14 @@ jobs:
       - name: Login GitHub Registry
         run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
       - name: build traQ and DB environment
-        run: docker-compose up -d
+        run: |
+          cd development/test
+          docker-compose up -d traQ-backend traQ-frontend mysql
+          cd
 
       - uses: actions/setup-go@v1
         with:
-          go-version: 1.13
+          go-version: 1.15
       - uses: actions/cache@v1
         with:
           path: ~/go/pkg/mod

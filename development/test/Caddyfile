@@ -1,0 +1,24 @@
+:80
+
+log stdout
+errors stderr
+
+root /srv
+gzip {
+    level 1
+    not /api /img
+}
+
+header /service-worker.js Cache-Control "max-age=0"
+header /sw.js Cache-Control "max-age=0"
+
+rewrite {
+    regexp .*
+    if {path} not_starts_with /api
+    to {path} /
+}
+
+proxy /api traQ-backend:3000 {
+    transparent
+    websocket
+}

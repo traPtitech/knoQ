@@ -6,7 +6,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	traQutils "github.com/traPtitech/traQ/utils"
+	traQrandom "github.com/traPtitech/traQ/utils/random"
 )
 
 func TestGormRepository_CreateGroup(t *testing.T) {
@@ -15,40 +15,46 @@ func TestGormRepository_CreateGroup(t *testing.T) {
 	user := mustMakeUserMeta(t, repo, false)
 
 	params := WriteGroupParams{
-		Name:      traQutils.RandAlphabetAndNumberString(20),
+		Name:      traQrandom.AlphaNumeric(20),
 		Members:   []uuid.UUID{user.ID, mustNewUUIDV4(t)},
+		Admins:    []uuid.UUID{user.ID},
 		CreatedBy: user.ID,
 	}
 
-	if group, err := repo.CreateGroup(params); assert.NoError(t, err) {
-		assert.NotNil(t, group)
-		assert.Equal(t, params.Members[0], group.Members[0].UserID)
-		assert.Equal(t, 2, len(group.Members))
+	if g, err := repo.CreateGroup(params); assert.NoError(t, err) {
+		if group, err := repo.GetGroup(g.ID); assert.NoError(t, err) {
+			assert.NotNil(t, group)
+			assert.Equal(t, 2, len(group.Members))
+			assert.Equal(t, 1, len(group.Admins))
+		}
 	}
 }
 
 func TestGormRepository_UpdateGroup(t *testing.T) {
 	//t.Parallel()
 	repo, _, _, user := setupGormRepoWithUser(t, common)
-	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+	group := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(20), user.ID)
 
 	params := WriteGroupParams{
 		Name:      group.Name,
 		Members:   []uuid.UUID{user.ID, mustNewUUIDV4(t)},
+		Admins:    []uuid.UUID{user.ID},
 		CreatedBy: user.ID,
 	}
 
-	if group, err := repo.UpdateGroup(group.ID, params); assert.NoError(t, err) {
-		assert.NotNil(t, group)
-		assert.Equal(t, params.Members[0], group.Members[0].UserID)
-		assert.Equal(t, 2, len(group.Members))
+	if g, err := repo.UpdateGroup(group.ID, params); assert.NoError(t, err) {
+		if group, err := repo.GetGroup(g.ID); assert.NoError(t, err) {
+			assert.NotNil(t, group)
+			assert.Equal(t, 2, len(group.Members))
+			assert.Equal(t, 1, len(group.Admins))
+		}
 	}
 }
 
 func TestGormRepository_AddUserToGroup(t *testing.T) {
 	//t.Parallel()
 	repo, _, _, user := setupGormRepoWithUser(t, common)
-	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+	group := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(20), user.ID)
 
 	t.Run("Add existing user", func(t *testing.T) {
 		t.Parallel()
@@ -75,7 +81,7 @@ func TestGormRepository_AddUserToGroup(t *testing.T) {
 func TestGormRepository_DeleteGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _, user := setupGormRepoWithUser(t, common)
-	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+	group := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(20), user.ID)
 
 	t.Run("Delete existing group", func(t *testing.T) {
 		t.Parallel()
@@ -93,7 +99,7 @@ func TestGormRepository_DeleteGroup(t *testing.T) {
 func TestGormRepository_DeleteUserInGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _, user := setupGormRepoWithUser(t, common)
-	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+	group := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(20), user.ID)
 	mustAddGroupMember(t, repo, group.ID, user.ID)
 
 	t.Run("Delete existing member in group", func(t *testing.T) {
@@ -113,7 +119,7 @@ func TestGormRepository_DeleteUserInGroup(t *testing.T) {
 func TestGormRepository_GetGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _, user := setupGormRepoWithUser(t, common)
-	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+	group := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(20), user.ID)
 	mustAddGroupMember(t, repo, group.ID, user.ID)
 
 	t.Run("Get existing group", func(t *testing.T) {
@@ -131,10 +137,10 @@ func TestGormRepository_GetGroup(t *testing.T) {
 
 func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
 	repo, _, _, user := setupGormRepoWithUser(t, common)
-	group1 := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+	group1 := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(20), user.ID)
 	mustAddGroupMember(t, repo, group1.ID, user.ID)
 
-	group2 := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(20), user.ID)
+	group2 := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(20), user.ID)
 	mustAddGroupMember(t, repo, group2.ID, user.ID)
 
 	t.Run("success", func(t *testing.T) {
@@ -146,10 +152,10 @@ func TestGormRepository_GetUserBelongingGroupIDs(t *testing.T) {
 func TestTraQRepository_CreateGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupTraQRepo(t, TraQv3)
-	user := mustMakeUserBody(t, repo, traQutils.RandAlphabetAndNumberString(20), traQutils.RandAlphabetAndNumberString(20))
+	user := mustMakeUserBody(t, repo, traQrandom.AlphaNumeric(20), traQrandom.AlphaNumeric(20))
 
 	params := WriteGroupParams{
-		Name:      traQutils.RandAlphabetAndNumberString(20),
+		Name:      traQrandom.AlphaNumeric(20),
 		Members:   []uuid.UUID{user.ID},
 		CreatedBy: user.ID,
 	}
@@ -165,7 +171,7 @@ func TestTraQRepository_CreateGroup(t *testing.T) {
 func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupTraQRepo(t, TraQv1)
-	user := mustMakeUserBody(t, repo, traQutils.RandAlphabetAndNumberString(10), traQutils.RandAlphabetAndNumberString(10))
+	user := mustMakeUserBody(t, repo, traQrandom.AlphaNumeric(10), traQrandom.AlphaNumeric(10))
 
 	t.Run("success", func(t *testing.T) {
 		if groupIDs, err := repo.GetUserBelongingGroupIDs(user.ID); assert.NoError(t, err) {
@@ -177,8 +183,8 @@ func TestTraQRepository_GetUserBelongingGroupIDs(t *testing.T) {
 func TestTraQRepository_GetGroup(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupTraQRepo(t, TraQv3)
-	user := mustMakeUserBody(t, repo, traQutils.RandAlphabetAndNumberString(10), traQutils.RandAlphabetAndNumberString(10))
-	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(10), user.ID)
+	user := mustMakeUserBody(t, repo, traQrandom.AlphaNumeric(10), traQrandom.AlphaNumeric(10))
+	group := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(10), user.ID)
 
 	t.Run("success", func(t *testing.T) {
 		if group, err := repo.GetGroup(group.ID); assert.NoError(t, err) {

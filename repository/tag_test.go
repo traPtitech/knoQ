@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	traQutils "github.com/traPtitech/traQ/utils"
+	traQrandom "github.com/traPtitech/traQ/utils/random"
 )
 
 func TestGormRepository_CreateOrGetTag(t *testing.T) {
 	t.Parallel()
 	repo, _, _ := setupGormRepo(t, common)
 
-	tagName := traQutils.RandAlphabetAndNumberString(10)
+	tagName := traQrandom.AlphaNumeric(10)
 	tag, err := repo.CreateOrGetTag(tagName)
 	assert.NoError(t, err)
 

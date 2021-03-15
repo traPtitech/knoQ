@@ -3,8 +3,10 @@ package router
 import (
 	"bytes"
 	"net/http"
-	repo "room/repository"
-	"room/router/service"
+
+	"github.com/traPtitech/knoQ/router/service"
+
+	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
@@ -12,6 +14,23 @@ import (
 
 	"github.com/labstack/echo/v4"
 )
+
+func adminsValidation(userIDs []uuid.UUID, r repo.UserMetaRepository) ([]uuid.UUID, error) {
+	users, err := r.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]uuid.UUID, 0, len(userIDs))
+	for _, v := range userIDs {
+		for _, user := range users {
+			if v == user.ID {
+				ids = append(ids, v)
+				break
+			}
+		}
+	}
+	return ids, nil
+}
 
 // HandlePostEvent 部屋の使用宣言を作成
 func (h *Handlers) HandlePostEvent(c echo.Context) error {
@@ -26,6 +45,30 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 	}
 
 	eventParams.CreatedBy, _ = getRequestUserID(c)
+	eventParams.Admins, err = adminsValidation(eventParams.Admins, h.Repo)
+	if err != nil {
+		return internalServerError(err)
+	}
+	if len(eventParams.Admins) == 0 {
+		return badRequest(err, message("at least one admin is required"))
+	}
+
+	// 部屋を作成
+	if req.RoomID == uuid.Nil {
+		roomParams := &repo.WriteRoomParams{
+			Place:     req.Place,
+			Public:    false,
+			TimeStart: req.TimeStart,
+			TimeEnd:   req.TimeEnd,
+		}
+		setCreatedBytoRoom(c, roomParams)
+
+		room, err := h.Repo.CreateRoom(*roomParams)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+		eventParams.RoomID = room.ID
+	}
 
 	event, err := h.Repo.CreateEvent(*eventParams)
 	if err != nil {
@@ -132,9 +175,38 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	eventParams.CreatedBy, _ = getRequestUserID(c)
 
-	event, err := h.Repo.UpdateEvent(eventID, *eventParams)
+	event, err := h.Repo.GetEvent(eventID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	eventParams.CreatedBy = event.CreatedBy
+	eventParams.Admins, err = adminsValidation(eventParams.Admins, h.Repo)
+	if err != nil {
+		return internalServerError(err)
+	}
+	if len(eventParams.Admins) == 0 {
+		return badRequest(err)
+	}
+
+	// 部屋を作成
+	if req.RoomID == uuid.Nil {
+		roomParams := &repo.WriteRoomParams{
+			Place:     req.Place,
+			Public:    false,
+			TimeStart: req.TimeStart,
+			TimeEnd:   req.TimeEnd,
+		}
+		setCreatedBytoRoom(c, roomParams)
+
+		room, err := h.Repo.CreateRoom(*roomParams)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+		eventParams.RoomID = room.ID
+	}
+
+	event, err = h.Repo.UpdateEvent(eventID, *eventParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
