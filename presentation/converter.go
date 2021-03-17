@@ -40,8 +40,6 @@ func ConvertRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomPar
 }
 func ConvertdomainEventTagToEventTagRes(src domain.EventTag) (dst EventTagRes) {
 	dst.Locked = src.Locked
-	dst.ID = src.Tag.ID
-	dst.Name = src.Tag.Name
 	return
 }
 
@@ -104,7 +102,6 @@ func ConvertdomainGroupToGroupResOne(src domain.Group) (dst GroupResOne) {
 	for i := range src.Admins {
 		dst.GroupReq.Admins[i] = ConvertdomainUserTouuidUUID(src.Admins[i])
 	}
-	dst.IsTraQGroup = src.IsTraQGroup
 	dst.CreatedBy = ConvertdomainUserTouuidUUID(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
@@ -153,8 +150,7 @@ func ConvertdomainUserToUserRes(src domain.User) (dst UserRes) {
 func ConvertdomainUserTodomainWriteUserParams(src domain.User) (dst domain.WriteUserParams) {
 	dst.Name = src.Name
 	dst.DisplayName = src.DisplayName
-	dst.Privileged = src.Privileged
-	dst.IsTrap = src.IsTrap
+	dst.Icon = src.Icon
 	return
 }
 func ConvertdomainUserTouuidUUID(src domain.User) (dst uuid.UUID) {

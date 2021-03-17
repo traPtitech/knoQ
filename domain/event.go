@@ -23,7 +23,7 @@ type Event struct {
 }
 
 type EventTag struct {
-	Tag
+	Tag    Tag
 	Locked bool
 }
 

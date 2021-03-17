@@ -15,8 +15,7 @@ func ConvertEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
 }
 
 func ConvertEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
-	dst.Tag.ID = src.TagID
-	dst.Tag.Name = src.Tag.Name
+	dst.Tag = ConvertTagTodomainTag(src.Tag)
 	dst.Locked = src.Locked
 	return
 }
@@ -66,6 +65,10 @@ func ConvertGroupTodomainGroup(src Group) (dst domain.Group) {
 		dst.Admins[i] = ConvertGroupAdminsTodomainUser(src.Admins[i])
 	}
 	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
+	dst.Model.CreatedAt = src.Model.CreatedAt
+	dst.Model.UpdatedAt = src.Model.UpdatedAt
+	(*dst.Model.DeletedAt) = ConvertgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.IsTraQGroup = src.Model.DeletedAt.Valid
 	return
 }
 func ConvertRoomTodomainRoom(src Room) (dst domain.Room) {
@@ -79,21 +82,30 @@ func ConvertRoomTodomainRoom(src Room) (dst domain.Room) {
 		dst.Events[i] = ConvertEventTodomainEvent(src.Events[i])
 	}
 	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
+	dst.Model.CreatedAt = src.Model.CreatedAt
+	dst.Model.UpdatedAt = src.Model.UpdatedAt
+	(*dst.Model.DeletedAt) = ConvertgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
 func ConvertTagTodomainEventTag(src Tag) (dst domain.EventTag) {
 	dst.Tag.ID = src.ID
 	dst.Tag.Name = src.Name
-	dst.Locked = src.Locked
 	return
 }
 
+func ConvertTagTodomainTag(src Tag) (dst domain.Tag) {
+	dst.ID = src.ID
+	dst.Name = src.Name
+	dst.Model.CreatedAt = src.Model.CreatedAt
+	dst.Model.UpdatedAt = src.Model.UpdatedAt
+	(*dst.Model.DeletedAt) = ConvertgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	return
+}
 func ConvertUserMetaTodomainUser(src UserMeta) (dst domain.User) {
 	dst.ID = src.ID
 	return
 }
 func ConvertdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst EventTag) {
-	dst.Tag.Name = src.Name
 	dst.Locked = src.Locked
 	return
 }

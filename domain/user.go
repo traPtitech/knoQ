@@ -6,6 +6,7 @@ type User struct {
 	ID          uuid.UUID
 	Name        string
 	DisplayName string
+	Icon        string
 	Privileged  bool
 	IsTrap      bool
 }

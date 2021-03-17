@@ -94,7 +94,6 @@ type Group struct {
 type Tag struct {
 	ID         uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name       string    `gorm:"unique; type:varchar(16) binary"`
-	Locked     bool      `gorm:"-"` // for Event.Tags
 	gorm.Model `cvt:"->"`
 }
 
@@ -104,7 +103,7 @@ type EventTag struct {
 	TagID   uuid.UUID `gorm:"type:char(36); primaryKey" cvt:"ID"`
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Event   Event     `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
-	Tag     Tag       `gorm:"foreignKey:TagID; constraint:OnDelete:CASCADE;" cvt:"Name"`
+	Tag     Tag       `gorm:"foreignKey:TagID; constraint:OnDelete:CASCADE;"`
 	Locked  bool
 }
 
