@@ -103,7 +103,7 @@ type EventTag struct {
 	TagID   uuid.UUID `gorm:"type:char(36); primaryKey" cvt:"ID"`
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Event   Event     `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
-	Tag     Tag       `gorm:"foreignKey:TagID; constraint:OnDelete:CASCADE;"`
+	Tag     Tag       `gorm:"foreignKey:TagID; constraint:OnDelete:CASCADE;" cvt:"write:Name"`
 	Locked  bool
 }
 
