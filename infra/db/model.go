@@ -51,7 +51,7 @@ type UserBody struct {
 }
 
 // Room is
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s writeRoomParams -d Room -o converter.go .
+//go:generate gotypeconverter -s writeRoomParams -d Room -o converter.go .
 type Room struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Place          string    `gorm:"type:varchar(32);"`
@@ -77,8 +77,8 @@ type GroupAdmins struct {
 }
 
 // Group is user group
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s writeGroupParams -d Group -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s Group -d domain.Group -o converter.go .
+//go:generate gotypeconverter -s writeGroupParams -d Group -o converter.go .
+//go:generate gotypeconverter -s Group -d domain.Group -o converter.go .
 type Group struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name           string    `gorm:"type:varchar(32);not null"`
@@ -98,7 +98,7 @@ type Tag struct {
 }
 
 // EventTag is
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s domain.WriteTagRelationParams -d EventTag -o converter.go .
+//go:generate gotypeconverter -s domain.WriteTagRelationParams -d EventTag -o converter.go .
 type EventTag struct {
 	TagID   uuid.UUID `gorm:"type:char(36); primaryKey" cvt:"ID"`
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -114,8 +114,8 @@ type EventAdmin struct {
 }
 
 // Event is event for gorm
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s writeEventParams -d Event -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s Event -d domain.Event -o converter.go .
+//go:generate gotypeconverter -s writeEventParams -d Event -o converter.go .
+//go:generate gotypeconverter -s Event -d domain.Event -o converter.go .
 type Event struct {
 	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Name           string    `gorm:"type:varchar(32); not null"`

@@ -5,7 +5,6 @@ go 1.15
 require (
 	github.com/carlescere/scheduler v0.0.0-20170109141437-ee74d2f83d82
 	github.com/cheekybits/genny v1.0.0
-	github.com/fuji8/gotypeconverter v0.1.2-0.20210304175122-03baa246f266
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofrs/uuid v3.4.0+incompatible
 	github.com/gorilla/sessions v1.2.1

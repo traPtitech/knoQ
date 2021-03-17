@@ -11,7 +11,7 @@ import (
 )
 
 // EventReqWrite is
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s EventReqWrite -d domain.WriteEventParams -o converter.go .
+//go:generate gotypeconverter -s EventReqWrite -d domain.WriteEventParams -o converter.go .
 type EventReqWrite struct {
 	Name          string      `json:"name"`
 	Description   string      `json:"description"`
@@ -28,7 +28,7 @@ type EventReqWrite struct {
 }
 
 // EventResOne is experimental
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s domain.Event -d EventResOne -o converter.go .
+//go:generate gotypeconverter -s domain.Event -d EventResOne -o converter.go .
 type EventResOne struct {
 	ID            uuid.UUID     `json:"eventId"`
 	Name          string        `json:"name"`
@@ -51,7 +51,7 @@ type EventTagRes struct {
 }
 
 // EventResMulti is for multiple response
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/type-converter -s domain.Event -d EventResMulti -o converter.go .
+//go:generate gotypeconverter -s domain.Event -d EventResMulti -o converter.go .
 type EventResMulti struct {
 	ID            uuid.UUID         `json:"eventId"`
 	Name          string            `json:"name"`
