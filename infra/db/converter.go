@@ -44,10 +44,15 @@ func ConvertEventTodomainEvent(src Event) (dst domain.Event) {
 	return
 }
 
-func ConvertGroupAdminsTodomainUser(src GroupAdmins) (dst domain.User) {
+func ConvertGroupAdminTodomainUser(src GroupAdmin) (dst domain.User) {
 	dst.ID = src.UserID
 	return
 }
+func ConvertGroupAdminsTodomainUser(src GroupAdmin) (dst domain.User) {
+	dst.ID = src.UserID
+	return
+}
+
 func ConvertGroupMemberTodomainUser(src GroupMember) (dst domain.User) {
 	dst.ID = src.UserID
 	return
@@ -63,7 +68,7 @@ func ConvertGroupTodomainGroup(src Group) (dst domain.Group) {
 	}
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = ConvertGroupAdminsTodomainUser(src.Admins[i])
+		dst.Admins[i] = ConvertGroupAdminTodomainUser(src.Admins[i])
 	}
 	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt
@@ -128,10 +133,15 @@ func ConvertuuidUUIDToEventAdmin(src uuid.UUID) (dst EventAdmin) {
 	dst.UserID = src
 	return
 }
-func ConvertuuidUUIDToGroupAdmins(src uuid.UUID) (dst GroupAdmins) {
+func ConvertuuidUUIDToGroupAdmin(src uuid.UUID) (dst GroupAdmin) {
 	dst.UserID = src
 	return
 }
+func ConvertuuidUUIDToGroupAdmins(src uuid.UUID) (dst GroupAdmin) {
+	dst.UserID = src
+	return
+}
+
 func ConvertuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
 	dst.UserID = src
 	return
@@ -169,9 +179,9 @@ func ConvertwriteGroupParamsToGroup(src writeGroupParams) (dst Group) {
 	for i := range src.WriteGroupParams.Members {
 		dst.Members[i] = ConvertuuidUUIDToGroupMember(src.WriteGroupParams.Members[i])
 	}
-	dst.Admins = make([]GroupAdmins, len(src.WriteGroupParams.Admins))
+	dst.Admins = make([]GroupAdmin, len(src.WriteGroupParams.Admins))
 	for i := range src.WriteGroupParams.Admins {
-		dst.Admins[i] = ConvertuuidUUIDToGroupAdmins(src.WriteGroupParams.Admins[i])
+		dst.Admins[i] = ConvertuuidUUIDToGroupAdmin(src.WriteGroupParams.Admins[i])
 	}
 	return
 }

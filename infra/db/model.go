@@ -14,7 +14,7 @@ var tables = []interface{}{
 	Token{},
 	Provider{},
 	GroupMember{},
-	GroupAdmins{},
+	GroupAdmin{},
 	Group{},
 	Tag{},
 	Room{},
@@ -70,7 +70,7 @@ type GroupMember struct {
 	UserMeta UserMeta  `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
-type GroupAdmins struct {
+type GroupAdmin struct {
 	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
 	GroupID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	UserMeta UserMeta  `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
@@ -85,7 +85,7 @@ type Group struct {
 	Description    string    `gorm:"type:TEXT"`
 	JoinFreely     bool
 	Members        []GroupMember
-	Admins         []GroupAdmins
+	Admins         []GroupAdmin
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
