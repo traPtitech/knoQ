@@ -24,24 +24,25 @@ var tables = []interface{}{
 }
 
 type Token struct {
-	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	oauth2.Token
-	UserMeta UserMeta `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	*oauth2.Token
 }
 
 type Provider struct {
-	ID       uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Iss      string    `gorm:"not null"`
-	Sub      string
-	UserMeta UserMeta `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Issuer  string    `gorm:"not null"`
+	Subject string
 }
 
 type UserMeta struct {
 	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	// アプリの管理者かどうか
-	Privilege  bool   `gorm:"not null"`
-	IcalSecret string `gorm:"not null"`
+	Privilege  bool     `gorm:"not null"`
+	IcalSecret string   `gorm:"not null"`
+	Provider   Provider `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
+	Token      Token    `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
 }
+
 type UserBody struct {
 	ID          uuid.UUID `gorm:"type:char(36); primaryKey;"`
 	Name        string    `gorm:"type:varchar(32);"`
@@ -121,7 +122,7 @@ type Event struct {
 	Name           string    `gorm:"type:varchar(32); not null"`
 	Description    string    `gorm:"type:TEXT"`
 	GroupID        uuid.UUID `gorm:"type:char(36); not null; index"`
-	Group          Group     `gorm:"->; foreignKey:group_id; constraint:-"`
+	Group          Group     `gorm:"->; foreignKey:GroupID; constraint:-"`
 	RoomID         uuid.UUID `gorm:"type:char(36); not null; "`
 	Room           Room      `gorm:"->; foreignKey:RoomID; constraint:OnDelete:CASCADE;"`
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`

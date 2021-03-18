@@ -15,6 +15,7 @@ import (
 // TraQRepository is traq
 type TraQRepository struct {
 	Config *oauth2.Config
+	URL    string
 }
 
 var TraQDefaultConfig = &oauth2.Config{

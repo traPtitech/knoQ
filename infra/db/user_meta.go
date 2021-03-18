@@ -16,3 +16,8 @@ func saveUser(db *gorm.DB, userID uuid.UUID, privilege bool) (*UserMeta, error) 
 	}
 	return &user, nil
 }
+
+func (repo *GormRepository) SaveUser(user UserMeta) (*UserMeta, error) {
+	err := repo.db.FirstOrCreate(&user).Error
+	return &user, err
+}
