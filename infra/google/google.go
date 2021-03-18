@@ -14,7 +14,7 @@ type GoogleRepository struct {
 	Config *oauth2.Config
 }
 
-//go:embed client.json
+//go:embed tmp/client.json
 var ClientFile []byte
 
 func (repo *GoogleRepository) GetOAuthURL() (url, state string) {
