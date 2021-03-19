@@ -3,9 +3,13 @@ package production
 import (
 	"errors"
 
+	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
+	traQ "github.com/traPtitech/traQ/router/v3"
 )
+
+const traQIssuerName = "traQ"
 
 func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	if !repo.gormRepo.Privilege(info.ReqUserID) {
@@ -31,7 +35,7 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 			State: u.State,
 			Provider: db.Provider{
 				UserID:  u.ID,
-				Issuer:  "traQ",
+				Issuer:  traQIssuerName,
 				Subject: u.ID.String(),
 			},
 		}
@@ -59,7 +63,7 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
 		},
 		Provider: db.Provider{
 			UserID:  traQUser.ID,
-			Issuer:  "traQ",
+			Issuer:  traQIssuerName,
 			Subject: traQUser.ID.String(),
 		},
 	}
@@ -75,4 +79,75 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
 	//user.IsTrap = true
 
 	//return user, nil
+}
+
+func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
+	t, err := repo.gormRepo.GetToken(info.ReqUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	userMeta, err := repo.gormRepo.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if userMeta.Provider.Issuer == traQIssuerName {
+		userBody, err := repo.traQRepo.GetUser(t, userID)
+		if err != nil {
+			return nil, err
+		}
+		user := &domain.User{
+			ID:          userID,
+			Name:        userBody.Name,
+			DisplayName: userBody.DisplayName,
+			Icon:        repo.traQRepo.URL + "/public/icon/" + userBody.Name,
+			Privileged:  userMeta.Privilege,
+		}
+		return user, nil
+	}
+
+	// userBody, err := repo.gormRepo.GetUserBody(userID)
+
+	return nil, errors.New("not implemented")
+}
+
+func traQUserMap(users []*traQ.User) map[uuid.UUID]*traQ.User {
+	userMap := make(map[uuid.UUID]*traQ.User, 0)
+	for _, user := range users {
+		userMap[user.ID] = user
+	}
+	return userMap
+}
+
+func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) ([]*domain.User, error) {
+	t, err := repo.gormRepo.GetToken(info.ReqUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	userMetas, err := repo.gormRepo.GetAllUsers(!includeSuspend)
+	if err != nil {
+		return nil, err
+	}
+	traQUserBodys, err := repo.traQRepo.GetUsers(t, includeSuspend)
+	if err != nil {
+		return nil, err
+	}
+	traQUserBodsMap := traQUserMap(traQUserBodys)
+	users := make([]*domain.User, len(userMetas))
+	for i, userMeta := range userMetas {
+		userBody, ok := traQUserBodsMap[userMeta.ID]
+		if !ok {
+			continue
+		}
+		users[i] = &domain.User{
+			ID:          userMeta.ID,
+			Name:        userBody.Name,
+			DisplayName: userBody.DisplayName,
+			Icon:        repo.traQRepo.URL + "/public/icon/" + userBody.Name,
+			Privileged:  userMeta.Privilege,
+		}
+	}
+	return users, nil
 }

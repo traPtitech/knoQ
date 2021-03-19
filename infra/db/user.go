@@ -49,12 +49,20 @@ func getUser(db *gorm.DB, userID uuid.UUID) (*User, error) {
 	return &user, err
 }
 
-func (repo *GormRepository) GetAllUsers() ([]*User, error) {
-	return getAllUsers(repo.db)
+func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
+	return getUser(repo.db.Preload("Provider"), userID)
 }
 
-func getAllUsers(db *gorm.DB) ([]*User, error) {
+func (repo *GormRepository) GetAllUsers(onlyActive bool) ([]*User, error) {
+	return getAllUsers(repo.db, onlyActive)
+}
+
+func getAllUsers(db *gorm.DB, onlyActive bool) ([]*User, error) {
 	users := make([]*User, 0)
+	if onlyActive {
+		err := db.Where("state = ?", 1).Find(&users).Error
+		return users, err
+	}
 	err := db.Find(&users).Error
 	return users, err
 }
@@ -68,7 +76,7 @@ func getAllUsers(db *gorm.DB) ([]*User, error) {
 
 func (repo *GormRepository) SyncUsers(users []*User) error {
 	err := repo.db.Transaction(func(tx *gorm.DB) error {
-		existingUsers, err := getAllUsers(tx)
+		existingUsers, err := getAllUsers(tx, false)
 		if err != nil {
 			return err
 		}
