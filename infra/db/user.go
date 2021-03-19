@@ -7,7 +7,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// saveUser user.IcalSecret == "" の時、値は更新されません
+// saveUser user.IcalSecret == "" の時、値は更新されません。
+// また、user.Provider, user.Tokenは空の時、更新されません。
+// user.Previlegeは常に更新されません。
 func saveUser(db *gorm.DB, user *User) (*User, error) {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		existingUser, err := getUser(tx.Preload("Provider").Preload("Token"), user.ID)

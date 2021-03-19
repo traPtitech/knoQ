@@ -43,13 +43,14 @@ func Test_saveUser(t *testing.T) {
 			State: 2,
 		})
 		assert.NoError(t, err)
+
+		u, err := getUser(r.db.Preload("Token").Preload("Provider"), id)
+		assert.NoError(t, err)
 		// token
-		token, err := getToken(r.db, id)
-		assert.NoError(t, err)
-		assert.Equal(t, user.Token.AccessToken, token.AccessToken)
+		assert.Equal(t, user.Token.AccessToken, u.Token.AccessToken)
+		// provider
+		assert.Equal(t, user.Provider.Issuer, u.Provider.Issuer)
 		// icalSecret
-		u, err := getUser(r.db, id)
-		assert.NoError(t, err)
 		assert.Equal(t, user.IcalSecret, u.IcalSecret)
 	})
 
