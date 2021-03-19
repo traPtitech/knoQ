@@ -92,14 +92,14 @@ func setupRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertions, 
 	return r, assert, require
 }
 
-func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *UserMeta) {
+func setupGormRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
 	user := mustMakeUserMeta(t, r, false)
 	return r, assert, require, user
 }
 
-func mustMakeUserMeta(t *testing.T, repo *GormRepository, admin bool) *UserMeta {
+func mustMakeUserMeta(t *testing.T, repo *GormRepository, admin bool) *User {
 	t.Helper()
 	userID := mustNewUUIDV4(t)
 	// TODO fix consider not traQ user.

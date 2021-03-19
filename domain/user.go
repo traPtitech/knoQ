@@ -11,14 +11,6 @@ type User struct {
 	IsTrap      bool
 }
 
-type WriteUserParams struct {
-	UserIdentifier string
-	Name           string
-	DisplayName    string // option
-	Icon           string // option
-	//Provider       string // never
-}
-
 type UserRepository interface {
 	// LoginUser OAuthによってユーザーを得る
 	LoginUser(query, state, codeVerifier string) (*User, error)

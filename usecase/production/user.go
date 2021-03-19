@@ -1,15 +1,25 @@
 package production
 
 import (
+	"errors"
+
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
 )
 
-func (repo *Repository) SyncUser(params []domain.WriteUserParams, info *domain.ConInfo) ([]*domain.User, error) {
+func (repo *Repository) SyncUser(info *domain.ConInfo) ([]*domain.User, error) {
 	// 1. 特権による同期
 	// 1.1 特権か？
-	// 1.2 変換
-	// 1.3 いないユーザーを作っていく(UserMeta, UserBody)
+	// 1.2 Get
+	// 1.3 いないユーザーを作っていく(UserMeta)
+	if !repo.gormRepo.Privilege(info.ReqUserID) {
+		return nil, errors.New("fobidden")
+	}
+	t, err := repo.gormRepo.GetToken(info.ReqUserID)
+	if err != nil {
+		return nil, err
+	}
+	traQUsers, err := repo.traQRepo.GetUsers(t, true)
 
 	return nil, nil
 }
@@ -28,7 +38,7 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	if err != nil {
 		return nil, err
 	}
-	userMeta := &db.UserMeta{
+	userMeta := &db.User{
 		ID: traQUser.ID,
 		Token: db.Token{
 			UserID: traQUser.ID,

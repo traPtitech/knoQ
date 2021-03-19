@@ -110,7 +110,7 @@ func ConvertTagTodomainTag(src Tag) (dst domain.Tag) {
 	(*dst.Model.DeletedAt) = ConvertgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
-func ConvertUserMetaTodomainUser(src UserMeta) (dst domain.User) {
+func ConvertUserMetaTodomainUser(src User) (dst domain.User) {
 	dst.ID = src.ID
 	return
 }
@@ -146,7 +146,7 @@ func ConvertuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
 	dst.UserID = src
 	return
 }
-func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst UserMeta) {
+func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
 	dst.ID = src
 	return
 }

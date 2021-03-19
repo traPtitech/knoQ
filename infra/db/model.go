@@ -9,7 +9,7 @@ import (
 )
 
 var tables = []interface{}{
-	UserMeta{},
+	User{},
 	UserBody{},
 	Token{},
 	Provider{},
@@ -34,10 +34,11 @@ type Provider struct {
 	Subject string
 }
 
-type UserMeta struct {
+type User struct {
 	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	// アプリの管理者かどうか
-	Privilege  bool     `gorm:"not null"`
+	Privilege  bool `gorm:"not null"`
+	Suspended  bool
 	IcalSecret string   `gorm:"not null"`
 	Provider   Provider `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
 	Token      Token    `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
@@ -48,7 +49,7 @@ type UserBody struct {
 	Name        string    `gorm:"type:varchar(32);"`
 	DisplayName string    `gorm:"type:varchar(32);"`
 	Icon        string
-	UserMeta    UserMeta `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	UserMeta    User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
 // Room is
@@ -61,20 +62,20 @@ type Room struct {
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
 	Events         []Event   `gorm:"->; constraint:-"` // readOnly
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
-	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
+	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
 }
 
 type GroupMember struct {
-	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
-	GroupID  uuid.UUID `gorm:"type:char(36); primaryKey"`
-	UserMeta UserMeta  `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
 type GroupAdmin struct {
-	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
-	GroupID  uuid.UUID `gorm:"type:char(36); primaryKey"`
-	UserMeta UserMeta  `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
 // Group is user group
@@ -88,7 +89,7 @@ type Group struct {
 	Members        []GroupMember
 	Admins         []GroupAdmin
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
-	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
+	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	gorm.Model     `cvt:"->"`
 }
 
@@ -111,7 +112,7 @@ type EventTag struct {
 type EventAdmin struct {
 	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
 	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
-	UserMeta UserMeta  `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	UserMeta User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
 // Event is event for gorm
@@ -128,7 +129,7 @@ type Event struct {
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
 	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`
-	CreatedBy      UserMeta  `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
+	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	Admins         []EventAdmin
 	AllowTogether  bool
 	Tags           []EventTag

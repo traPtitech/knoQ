@@ -38,6 +38,22 @@ func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*tra
 	return user, err
 }
 
+func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]*traQ.User, error) {
+	URL := fmt.Sprintf("%s/users", repo.URL)
+	req, err := http.NewRequest(http.MethodGet, URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	data, err := repo.doRequest(token, req)
+	if err != nil {
+		return nil, err
+	}
+
+	users := make([]*traQ.User, 0)
+	err = json.Unmarshal(data, &users)
+	return users, err
+}
+
 func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traQ.User, error) {
 	URL := fmt.Sprintf("%s/users/me", repo.URL)
 	req, err := http.NewRequest(http.MethodGet, URL, nil)

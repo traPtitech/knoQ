@@ -147,12 +147,6 @@ func ConvertdomainUserToUserRes(src domain.User) (dst UserRes) {
 	return
 }
 
-func ConvertdomainUserTodomainWriteUserParams(src domain.User) (dst domain.WriteUserParams) {
-	dst.Name = src.Name
-	dst.DisplayName = src.DisplayName
-	dst.Icon = src.Icon
-	return
-}
 func ConvertdomainUserTouuidUUID(src domain.User) (dst uuid.UUID) {
 	dst = src.ID
 	return
