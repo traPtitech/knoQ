@@ -7,36 +7,48 @@ import (
 	"github.com/traPtitech/knoQ/infra/db"
 )
 
-func (repo *Repository) SyncUser(info *domain.ConInfo) ([]*domain.User, error) {
-	// 1. 特権による同期
-	// 1.1 特権か？
-	// 1.2 Get
-	// 1.3 いないユーザーを作っていく(UserMeta)
+func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	if !repo.gormRepo.Privilege(info.ReqUserID) {
-		return nil, errors.New("fobidden")
+		return errors.New("fobidden")
 	}
 	t, err := repo.gormRepo.GetToken(info.ReqUserID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	traQUsers, err := repo.traQRepo.GetUsers(t, true)
+	if err != nil {
+		return err
+	}
 
-	return nil, nil
+	users := make([]*db.User, 0)
+	for _, u := range traQUsers {
+		if u.Bot {
+			continue
+		}
+
+		user := &db.User{
+			ID:    u.ID,
+			State: u.State,
+			Provider: db.Provider{
+				UserID:  u.ID,
+				Issuer:  "traQ",
+				Subject: u.ID.String(),
+			},
+		}
+		users = append(users, user)
+	}
+
+	return repo.gormRepo.SyncUsers(users)
 }
 
-func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.User, error) {
-	// 2. ログインによる作成
-	// 2.1 traQ からOAuthの情報を使ってユーザーを識別
-	// 2.1 ユーザーが存在しなければ、作成。存在すれば、トークンを更新
-	//     Provider, Tokenにも適切な値を入れる
-
+func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
 	t, err := repo.traQRepo.GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	traQUser, err := repo.traQRepo.GetUserMe(t)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	userMeta := &db.User{
 		ID: traQUser.ID,
@@ -50,15 +62,16 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 			Subject: traQUser.ID.String(),
 		},
 	}
-	userMeta, err = repo.gormRepo.SaveUser(*userMeta)
-	if err != nil {
-		return nil, err
-	}
+	_, err = repo.gormRepo.SaveUser(*userMeta)
+	return err
+	//if err != nil {
+	//return err
+	//}
 
-	user := ConvertPointerv3UserToPointerdomainUser(traQUser)
-	user.Icon = repo.traQRepo.URL + "/public/icon/" + user.Name
-	user.Privileged = userMeta.Privilege
-	user.IsTrap = true
+	//user := ConvertPointerv3UserToPointerdomainUser(traQUser)
+	//user.Icon = repo.traQRepo.URL + "/public/icon/" + user.Name
+	//user.Privileged = userMeta.Privilege
+	//user.IsTrap = true
 
-	return user, nil
+	//return user, nil
 }

@@ -10,9 +10,7 @@ import (
 )
 
 func Test_createEvent(t *testing.T) {
-	r := repositories[common]
-
-	user, _ := saveUser(r.db, mustNewUUIDV4(t), true)
+	r, _, _, user := setupRepoWithUser(t, common)
 	room, _ := createRoom(r.db, writeRoomParams{
 		Verified:  false,
 		CreatedBy: user.ID,

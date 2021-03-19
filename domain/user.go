@@ -8,12 +8,11 @@ type User struct {
 	DisplayName string
 	Icon        string
 	Privileged  bool
-	IsTrap      bool
 }
 
 type UserRepository interface {
 	// LoginUser OAuthによってユーザーを得る
-	LoginUser(query, state, codeVerifier string) (*User, error)
+	LoginUser(query, state, codeVerifier string) error
 	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)
 	GetAllUsers(*ConInfo) ([]*User, error)
 	//ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error

@@ -143,7 +143,6 @@ func ConvertdomainUserToUserRes(src domain.User) (dst UserRes) {
 	dst.Name = src.Name
 	dst.DisplayName = src.DisplayName
 	dst.Privileged = src.Privileged
-	dst.IsTrap = src.IsTrap
 	return
 }
 

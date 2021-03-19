@@ -27,7 +27,7 @@ func ConvertEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.Group = ConvertGroupTodomainGroup(src.Group)
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
-	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
+	dst.CreatedBy = ConvertUserTodomainUser(src.CreatedBy)
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
 		dst.Admins[i] = ConvertEventAdminTodomainUser(src.Admins[i])
@@ -70,7 +70,7 @@ func ConvertGroupTodomainGroup(src Group) (dst domain.Group) {
 	for i := range src.Admins {
 		dst.Admins[i] = ConvertGroupAdminTodomainUser(src.Admins[i])
 	}
-	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
+	dst.CreatedBy = ConvertUserTodomainUser(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
 	dst.Model.DeletedAt = new(time.Time)
@@ -88,7 +88,7 @@ func ConvertRoomTodomainRoom(src Room) (dst domain.Room) {
 	for i := range src.Events {
 		dst.Events[i] = ConvertEventTodomainEvent(src.Events[i])
 	}
-	dst.CreatedBy = ConvertUserMetaTodomainUser(src.CreatedBy)
+	dst.CreatedBy = ConvertUserTodomainUser(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
 	dst.Model.DeletedAt = new(time.Time)
@@ -111,6 +111,11 @@ func ConvertTagTodomainTag(src Tag) (dst domain.Tag) {
 	return
 }
 func ConvertUserMetaTodomainUser(src User) (dst domain.User) {
+	dst.ID = src.ID
+	return
+}
+
+func ConvertUserTodomainUser(src User) (dst domain.User) {
 	dst.ID = src.ID
 	return
 }

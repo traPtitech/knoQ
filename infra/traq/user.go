@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
 
 	"github.com/gofrs/uuid"
 	"golang.org/x/oauth2"
@@ -39,8 +41,12 @@ func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*tra
 }
 
 func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]*traQ.User, error) {
-	URL := fmt.Sprintf("%s/users", repo.URL)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
+	URL, err := url.Parse(fmt.Sprintf("%s/users", repo.URL))
+	if err != nil {
+		return nil, err
+	}
+	URL.Query().Set("include-suspended", strconv.FormatBool(includeSuspended))
+	req, err := http.NewRequest(http.MethodGet, URL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
