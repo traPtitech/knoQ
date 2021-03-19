@@ -123,13 +123,12 @@ func setupRepoWithUserGroupRoomEvent(t *testing.T, repo string) (*GormRepository
 
 func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 	t.Helper()
-	userID := mustNewUUIDV4(t)
-	user, err := saveUser(repo.db, &User{
-		ID:        userID,
+	user := User{
 		Privilege: privilege,
-	})
+	}
+	err := repo.db.Create(&user).Error
 	require.NoError(t, err)
-	return user
+	return &user
 }
 
 //func mustMakeUserBody(t *testing.T, repo *GormRepository, name, password string) *UserBody {

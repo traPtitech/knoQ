@@ -42,8 +42,11 @@ func (t *Tag) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // BeforeCreate is hook
-func (um *User) BeforeCreate(tx *gorm.DB) (err error) {
-	um.ID, err = uuid.NewV4()
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	if u.ID != uuid.Nil {
+		return nil
+	}
+	u.ID, err = uuid.NewV4()
 	if err != nil {
 		return err
 	}

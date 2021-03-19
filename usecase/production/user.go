@@ -50,8 +50,9 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
 	if err != nil {
 		return err
 	}
-	userMeta := &db.User{
-		ID: traQUser.ID,
+	user := db.User{
+		ID:    traQUser.ID,
+		State: 1,
 		Token: db.Token{
 			UserID: traQUser.ID,
 			Token:  t,
@@ -62,7 +63,7 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
 			Subject: traQUser.ID.String(),
 		},
 	}
-	_, err = repo.gormRepo.SaveUser(*userMeta)
+	_, err = repo.gormRepo.SaveUser(user)
 	return err
 	//if err != nil {
 	//return err

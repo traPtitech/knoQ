@@ -1,12 +1,29 @@
 package db
 
 import (
+	"errors"
+
 	"github.com/gofrs/uuid"
 	"gorm.io/gorm"
 )
 
+// saveUser user.IcalSecret == "" の時、値は更新されません
 func saveUser(db *gorm.DB, user *User) (*User, error) {
-	err := db.Save(&user).Error
+	err := db.Transaction(func(tx *gorm.DB) error {
+		existingUser, err := getUser(tx.Preload("Provider").Preload("Token"), user.ID)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return tx.Create(&user).Error
+		}
+		if err != nil {
+			return err
+		}
+
+		if user.IcalSecret == "" {
+			user.IcalSecret = existingUser.IcalSecret
+		}
+		return tx.Session(&gorm.Session{FullSaveAssociations: true}).Save(&user).Error
+	})
+
 	return user, err
 }
 
@@ -22,18 +39,22 @@ func (repo *GormRepository) Privilege(userID uuid.UUID) bool {
 	return user.Privilege
 }
 
-func getUser(db *gorm.DB, userID uuid.UUID) (user *User, err error) {
-	err = db.Take(&user).Error
-	return
+func getUser(db *gorm.DB, userID uuid.UUID) (*User, error) {
+	user := User{
+		ID: userID,
+	}
+	err := db.Take(&user).Error
+	return &user, err
 }
 
 func (repo *GormRepository) GetAllUsers() ([]*User, error) {
 	return getAllUsers(repo.db)
 }
 
-func getAllUsers(db *gorm.DB) (users []*User, err error) {
-	err = db.Find(&users).Error
-	return
+func getAllUsers(db *gorm.DB) ([]*User, error) {
+	users := make([]*User, 0)
+	err := db.Find(&users).Error
+	return users, err
 }
 
 // func (repo *GormRepository) UpdateUserState(userID uuid.UUID, state int) error {
