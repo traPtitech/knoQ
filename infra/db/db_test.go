@@ -99,6 +99,28 @@ func setupRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Asse
 	return r, assert, require, user
 }
 
+func setupRepoWithUserGroup(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Group) {
+	t.Helper()
+	r, assert, require := setupRepo(t, repo)
+	group, user := mustMakeGroup(t, r, random.AlphaNumeric(10))
+	return r, assert, require, user, group
+}
+
+func setupRepoWithUserRoom(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Room) {
+	t.Helper()
+	r, assert, require := setupRepo(t, repo)
+	room, user := mustMakeRoom(t, r, "here")
+	return r, assert, require, user, room
+}
+
+func setupRepoWithUserGroupRoomEvent(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Group, *Room, *Event) {
+	t.Helper()
+	r, assert, require := setupRepo(t, repo)
+
+	event, group, room, user := mustMakeEvent(t, r, "event", mustNewUUIDV4(t))
+	return r, assert, require, user, group, room, event
+}
+
 func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 	t.Helper()
 	userID := mustNewUUIDV4(t)
@@ -118,19 +140,20 @@ func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 //}
 
 // mustMakeGroup make group has no members
-func mustMakeGroup(t *testing.T, repo *GormRepository, name string, createdBy uuid.UUID) *Group {
+func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *User) {
 	t.Helper()
+	user := mustMakeUser(t, repo, false)
 	params := writeGroupParams{
 		WriteGroupParams: domain.WriteGroupParams{
 			Name:       name,
 			Members:    nil,
 			JoinFreely: true,
 		},
-		CreatedBy: createdBy,
+		CreatedBy: user.ID,
 	}
 	group, err := createGroup(repo.db, params)
 	require.NoError(t, err)
-	return group
+	return group, user
 }
 
 //func mustAddGroupMember(t *testing.T, repo *GormRepository, groupID uuid.UUID, userID uuid.UUID) {
@@ -140,18 +163,21 @@ func mustMakeGroup(t *testing.T, repo *GormRepository, name string, createdBy uu
 //}
 
 // mustMakeRoom make room. now -1h ~ now + 1h
-func mustMakeRoom(t *testing.T, repo *GormRepository, place string) *Room {
+func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *User) {
 	t.Helper()
+
+	user := mustMakeUser(t, repo, false)
 	params := writeRoomParams{
 		WriteRoomParams: domain.WriteRoomParams{
 			Place:     place,
 			TimeStart: time.Now().Add(-1 * time.Hour),
 			TimeEnd:   time.Now().Add(1 * time.Hour),
 		},
+		CreatedBy: user.ID,
 	}
 	room, err := createRoom(repo.db, params)
 	require.NoError(t, err)
-	return room
+	return room, user
 }
 
 func mustMakeTag(t *testing.T, repo *GormRepository, name string) *Tag {
@@ -163,10 +189,10 @@ func mustMakeTag(t *testing.T, repo *GormRepository, name string) *Tag {
 }
 
 // mustMakeEvent make event. now ~ now + 1m
-func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.UUID) (*Event, *Group, *Room) {
+func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.UUID) (*Event, *Group, *Room, *User) {
 	t.Helper()
-	group := mustMakeGroup(t, repo, random.AlphaNumeric(10), userID)
-	room := mustMakeRoom(t, repo, random.AlphaNumeric(10))
+	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10))
+	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10))
 
 	params := writeEventParams{
 		WriteEventParams: domain.WriteEventParams{
@@ -176,10 +202,10 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.
 			TimeStart: time.Now(),
 			TimeEnd:   time.Now().Add(1 * time.Minute),
 		},
-		CreatedBy: userID,
+		CreatedBy: user.ID,
 	}
 
 	event, err := createEvent(repo.db, params)
 	require.NoError(t, err)
-	return event, group, room
+	return event, group, room, user
 }

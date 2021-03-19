@@ -10,16 +10,7 @@ import (
 )
 
 func Test_createEvent(t *testing.T) {
-	r, _, _, user := setupRepoWithUser(t, common)
-	room, _ := createRoom(r.db, writeRoomParams{
-		Verified:  false,
-		CreatedBy: user.ID,
-		WriteRoomParams: domain.WriteRoomParams{
-			Place:     "here",
-			TimeStart: time.Now(),
-			TimeEnd:   time.Now().Add(1 * time.Hour),
-		},
-	})
+	r, _, _, user, room := setupRepoWithUserRoom(t, common)
 
 	event, err := createEvent(r.db, writeEventParams{
 		CreatedBy: user.ID,
