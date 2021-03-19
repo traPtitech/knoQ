@@ -11,8 +11,7 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 }
 
 func (repo *GormRepository) SaveUser(user User) (*User, error) {
-	err := repo.db.Save(&user).Error
-	return &user, err
+	return saveUser(repo.db, &user)
 }
 
 func (repo *GormRepository) Privilege(userID uuid.UUID) bool {
@@ -23,15 +22,13 @@ func (repo *GormRepository) Privilege(userID uuid.UUID) bool {
 	return user.Privilege
 }
 
-func getUser(db *gorm.DB, userID uuid.UUID) (*User, error) {
-	var user User
-	err := db.Take(&user).Error
-	return &user, err
+func getUser(db *gorm.DB, userID uuid.UUID) (user *User, err error) {
+	err = db.Take(&user).Error
+	return
 }
 
-func (repo *GormRepository) GetAllUsers() (users []*User, err error) {
-	err = repo.db.Find(&users).Error
-	return
+func (repo *GormRepository) GetAllUsers() ([]*User, error) {
+	return getAllUsers(repo.db)
 }
 
 func getAllUsers(db *gorm.DB) (users []*User, err error) {
