@@ -121,9 +121,30 @@ paths:
     post:
       tags:
         - rooms
+      operationId: addAllrooms
       summary: traPで確保した部屋の情報追加
       description: 特権が必要。
-      operationId: addAllrooms
+      requestBody:
+        description: 進捗部屋情報
+        required: true
+        content:
+          text/csv:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  Subject:
+                    type: string
+                  Start date: &csvDate
+                    type: string
+                  End date: *csvDate
+                  Start time: &csvTime
+                    type: string
+                  End time: *csvTime
+                  Location:
+                    type: string
+
       # TODO
       responses:
         '201':
