@@ -218,7 +218,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/eventID'
       requestBody:
-        $ref: '#/components/requestBodies/tagName'
+        $ref: '#/components/requestBodies/EventTag'
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
@@ -476,7 +476,7 @@ paths:
       operationId: getTag
       responses:
         '200':
-          $ref: '#/components/responses/tagArray'
+          $ref: '#/components/responses/TagArray'
         '400':
           description: Bad Request
     post:
@@ -486,7 +486,7 @@ paths:
       description: すでにある場合は、error
       operationId: postTag
       requestBody:
-        $ref: '#/components/requestBodies/tagName'
+        $ref: '#/components/requestBodies/Tag'
       responses:
         '201':
           $ref: '#/components/responses/Tag'
@@ -685,6 +685,16 @@ components:
               timeStart: *time
               timeEnd: *time
 
+    Tag:
+      description: タグ自体の追加
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name: *tagName
+
     Event:
       description: 予約の編集
       required: true
@@ -723,6 +733,15 @@ components:
                   admins: *admins
                   tags: *reqEventTags
 
+    EventTag:
+      description: イベントにタグを追加
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name: *tagName
   responses:
     Nocontent:
       description: Nocontent
