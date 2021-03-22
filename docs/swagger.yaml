@@ -574,6 +574,16 @@ components:
           type: string
           example: '2006-01-02T15:04Z'
         timeEnd: *time
+        freeTimes:
+          description: どのイベントも使用していない時間帯
+          type: array
+          items:
+            $ref: '#/components/schemas/Duration'
+        sharedTimes:
+          description: 部屋を共用すれば、使用できる時間帯
+          type: array
+          items:
+            $ref: '#/components/schemas/Duration'
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
@@ -622,10 +632,12 @@ components:
           description: 部屋の共用をするか
         timeStart: *time
         timeEnd: *time
+        place: *place
+        groupName: *groupName
         roomId: *uuid
         groupId: *uuid
         admins: *admins
-        tags:
+        tags: &eventTags
           type: array
           items:
             type: object
@@ -639,15 +651,19 @@ components:
         createdAt: *time
         updatedAt: *time
 
+    Duration:
+      type: object
+      properties:
+        timeStart: *time
+        timeEnd: *time
+
     authParams:
       type: object
       properties:
-        clientId:
+        url:
           type: string
-        state:
-          type: string
-        codeChallenge:
-          type: string
+          format: url
+          example: 'https://q.trap.jp/api/v3/oauth2/authorize'
 
     icalToken:
       type: string
@@ -767,7 +783,26 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Event'
+            type: object
+            properties:
+              eventId: *uuid
+              name: *eventName
+              descirption: *eventDescription
+              sharedRoom: *sharedRoom
+              timeStart: *time
+              timeEnd: *time
+              place: *place
+              groupName: *groupName
+              room:
+                $ref: '#/components/schemas/Room'
+              group:
+                $ref: '#/components/schemas/Group'
+              admins: *admins
+              tags: *eventTags
+              createdBy: *uuid
+              createdAt: *time
+              updatedAt: *time
+
     EventArray:
       description: successful operation
       content:
