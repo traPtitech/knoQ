@@ -144,8 +144,6 @@ paths:
                   End time: *csvTime
                   Location:
                     type: string
-
-      # TODO
       responses:
         '201':
           $ref: '#/components/responses/RoomArray'
