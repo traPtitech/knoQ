@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/traPtitech/traQ/migration"
-	traQutils "github.com/traPtitech/traQ/utils"
+	traQrandom "github.com/traPtitech/traQ/utils/random"
 )
 
 const (
@@ -63,7 +63,7 @@ func TestMain(m *testing.M) {
 		}
 		repo := GormRepository{
 			DB:       db,
-			TokenKey: []byte(traQutils.RandAlphabetAndNumberString(32)),
+			TokenKey: []byte(traQrandom.AlphaNumeric(32)),
 		}
 		repositories[key] = &repo
 	}
@@ -197,8 +197,8 @@ func mustMakeTag(t *testing.T, repo TagRepository, name string) *Tag {
 // mustMakeEvent make event. now ~ now + 1m
 func mustMakeEvent(t *testing.T, repo Repository, name string, userID uuid.UUID) (*Event, *Group, *Room) {
 	t.Helper()
-	group := mustMakeGroup(t, repo, traQutils.RandAlphabetAndNumberString(10), userID)
-	room := mustMakeRoom(t, repo, traQutils.RandAlphabetAndNumberString(10))
+	group := mustMakeGroup(t, repo, traQrandom.AlphaNumeric(10), userID)
+	room := mustMakeRoom(t, repo, traQrandom.AlphaNumeric(10))
 
 	params := WriteEventParams{
 		Name:      name,

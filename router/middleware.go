@@ -16,14 +16,13 @@ import (
 	"time"
 
 	"github.com/traPtitech/knoQ/utils"
+	traQrandom "github.com/traPtitech/traQ/utils/random"
 
 	log "github.com/traPtitech/knoQ/logging"
 
 	"github.com/traPtitech/knoQ/router/service"
 
 	repo "github.com/traPtitech/knoQ/repository"
-
-	traQutils "github.com/traPtitech/traQ/utils"
 
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
@@ -167,7 +166,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		_, ok := sess.Values["ID"].(string)
 		if !ok {
 			sess.Options = &h.SessionOption
-			sess.Values["ID"] = traQutils.RandAlphabetAndNumberString(10)
+			sess.Values["ID"] = traQrandom.SecureAlphaNumeric(10)
 			sess.Save(c.Request(), c.Response())
 			return unauthorized(err, needAuthorization(true))
 		}

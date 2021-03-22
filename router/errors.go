@@ -158,7 +158,6 @@ func HTTPErrorHandler(err error, c echo.Context) {
 		if c.Request().Method == http.MethodHead { // Issue #608
 			err = c.NoContent(he.Code)
 		} else {
-			fmt.Printf("%T", message)
 			er, ok := message.(*ErrorResponse)
 			if ok && er.needAuthorization {
 				c.Response().Header().Set("X-KNOQ-Need-Authorization", "1")
