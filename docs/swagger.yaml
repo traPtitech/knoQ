@@ -511,6 +511,17 @@ paths:
         - authentication
       operationId: getCallback
       description: コールバックを検知して、トークンを取得します。
+      parameters:
+        - $ref: '#/components/parameters/session'
+        - name: code
+          in: query
+          required: true
+          description: OAuth2.0のcode
+          schema:
+            type: string
+      responses:
+        '302':
+          description: 成功。/callbackにリダイレクト。（その後はuiがリダイレクトする）
 
   /ical/v1/{icalToken}:
     get:
@@ -853,6 +864,13 @@ components:
               $ref: '#/components/schemas/Tag'
 
   parameters:
+    session:
+      name: session
+      in: cookie
+      required: true
+      schema:
+        type: string
+
     icalToken:
       name: icalToken
       in: path
