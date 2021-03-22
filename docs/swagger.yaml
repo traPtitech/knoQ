@@ -772,6 +772,19 @@ components:
                   groupId: *uuid
                   admins: *admins
                   tags: *reqEventTags
+            example:
+              name: イベント
+              description: これはイベントです。
+              sharedRoom: true
+              timeStart: 2006-01-02T15:04Z
+              timeEnd: 2006-01-02T15:04Z
+              place: Discord
+              groupId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+              admins:
+                - 3fa85f64-5717-4562-b3fc-2c963f66afa6
+              tags:
+                - name: golang
+                  locked: true
 
     EventTag:
       description: イベントにタグを追加
