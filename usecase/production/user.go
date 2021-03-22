@@ -69,16 +69,6 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
 	}
 	_, err = repo.gormRepo.SaveUser(user)
 	return err
-	//if err != nil {
-	//return err
-	//}
-
-	//user := ConvertPointerv3UserToPointerdomainUser(traQUser)
-	//user.Icon = repo.traQRepo.URL + "/public/icon/" + user.Name
-	//user.Privileged = userMeta.Privilege
-	//user.IsTrap = true
-
-	//return user, nil
 }
 
 func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
@@ -97,27 +87,36 @@ func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain
 		if err != nil {
 			return nil, err
 		}
-		user := &domain.User{
-			ID:          userID,
-			Name:        userBody.Name,
-			DisplayName: userBody.DisplayName,
-			Icon:        repo.traQRepo.URL + "/public/icon/" + userBody.Name,
-			Privileged:  userMeta.Privilege,
-		}
+		user, _ := repo.mergeUser(userMeta, userBody)
 		return user, nil
 	}
-
 	// userBody, err := repo.gormRepo.GetUserBody(userID)
 
 	return nil, errors.New("not implemented")
 }
 
 func traQUserMap(users []*traQ.User) map[uuid.UUID]*traQ.User {
-	userMap := make(map[uuid.UUID]*traQ.User, 0)
+	userMap := make(map[uuid.UUID]*traQ.User)
 	for _, user := range users {
 		userMap[user.ID] = user
 	}
 	return userMap
+}
+
+func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*domain.User, error) {
+	if userMeta.ID != userBody.ID {
+		return nil, errors.New("id does not match")
+	}
+	if userMeta.Provider.Issuer != traQIssuerName {
+		return nil, errors.New("different provider")
+	}
+	return &domain.User{
+		ID:          userMeta.ID,
+		Name:        userBody.Name,
+		DisplayName: userBody.DisplayName,
+		Icon:        repo.traQRepo.URL + "/public/icon/" + userBody.Name,
+		Privileged:  userMeta.Privilege,
+	}, nil
 }
 
 func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) ([]*domain.User, error) {
@@ -135,19 +134,14 @@ func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) (
 		return nil, err
 	}
 	traQUserBodsMap := traQUserMap(traQUserBodys)
-	users := make([]*domain.User, len(userMetas))
-	for i, userMeta := range userMetas {
+	users := make([]*domain.User, 0, len(userMetas))
+	for _, userMeta := range userMetas {
 		userBody, ok := traQUserBodsMap[userMeta.ID]
 		if !ok {
 			continue
 		}
-		users[i] = &domain.User{
-			ID:          userMeta.ID,
-			Name:        userBody.Name,
-			DisplayName: userBody.DisplayName,
-			Icon:        repo.traQRepo.URL + "/public/icon/" + userBody.Name,
-			Privileged:  userMeta.Privilege,
-		}
+		user, _ := repo.mergeUser(userMeta, userBody)
+		users = append(users, user)
 	}
 	return users, nil
 }
