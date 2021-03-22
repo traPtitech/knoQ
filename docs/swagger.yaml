@@ -61,14 +61,14 @@ paths:
           description: Forbidden
 
   /rooms/{roomID}:
+    parameters:
+      - $ref: '#/components/parameters/roomID'
     get:
       tags:
         - rooms
       operationId: getRoom
       summary: 一件取得する
       description: 一件取得する
-      parameters:
-        - $ref: '#/components/parameters/roomID'
       responses:
         '200':
           $ref: '#/components/responses/Room'
@@ -79,8 +79,6 @@ paths:
       description: (関連する予約を削除する)
         エラーを出して削除を促す予定
       operationId: deleterooms
-      parameters:
-        - $ref: '#/components/parameters/roomID'
       responses:
         '200':
           description: successful operation
@@ -90,14 +88,14 @@ paths:
           description: Forbidden
 
   /rooms/{roomID}/verified:
+    parameters:
+      - $ref: '#/components/parameters/roomID'
     post:
       tags:
         - rooms
       operationId: verifyRoom
       summary: 部屋を確認する
       description: 特権が必要。部屋が使用できることを確認する
-      parameters:
-        - $ref: '#/components/parameters/roomID'
       requestBody:
         $ref: '#/components/requestBodies/Room'
       responses:
@@ -111,8 +109,6 @@ paths:
       operationId: unverifyRoom
       summary: 部屋を未確認にする
       description: 特権が必要。部屋が使用できることの確認を取り消す。
-      parameters:
-        - $ref: '#/components/parameters/roomID'
       responses:
         '200':
           description: successful operation
@@ -165,14 +161,14 @@ paths:
         '403':
           description: Forbidden
   /events/{eventID}:
+    parameters:
+      - $ref: '#/components/parameters/eventID'
     get:
       tags:
         - events
       summary: 一件取得
       description: 一件取得
       operationId: getevent
-      parameters:
-        - $ref: '#/components/parameters/eventID'
       responses:
         '200':
           $ref: '#/components/responses/Event'
@@ -182,8 +178,6 @@ paths:
       summary: 部屋の使用宣言を更新
       description: adminsのみ
       operationId: updateevents
-      parameters:
-        - $ref: '#/components/parameters/eventID'
       requestBody:
         $ref: '#/components/requestBodies/Event'
       responses:
@@ -199,8 +193,6 @@ paths:
       summary: 使用宣言を削除
       description: adminsのみ
       operationId: deleteRevents
-      parameters:
-        - $ref: '#/components/parameters/eventID'
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
@@ -210,33 +202,33 @@ paths:
           description: Not Found
 
   /events/{eventID}/tags:
+    parameters:
+      - $ref: '#/components/parameters/eventID'
     post:
       tags:
         - events
       operationId: addEventTag
       summary: タグを追加
       description: タグを追加
-      parameters:
-        - $ref: '#/components/parameters/eventID'
       requestBody:
         $ref: '#/components/requestBodies/EventTag'
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
   /events/{eventID}/tags/{tagName}:
+    parameters:
+      - $ref: '#/components/parameters/eventID'
+      - name: tagName
+        in: path
+        required: true
+        schema:
+          type: string
     delete:
       tags:
         - events
       operationId: deleteEventTag
       summary: タグを削除
       description: locked=falseだけ
-      parameters:
-        - $ref: '#/components/parameters/eventID'
-        - name: tagName
-          in: path
-          required: true
-          schema:
-            type: string
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
@@ -251,36 +243,36 @@ paths:
         '200':
           $ref: '#/components/responses/EventArray'
   /users/{userID}/events:
+    parameters:
+      - $ref: '#/components/parameters/userID'
     get:
       tags:
         - events
       operationId: getUserEvents
       description: 所属しているイベントを返す
-      parameters:
-        - $ref: '#/components/parameters/userID'
       responses:
         '200':
           $ref: '#/components/responses/EventArray'
 
   /rooms/{roomID}/events:
+    parameters:
+      - $ref: '#/components/parameters/roomID'
     get:
       tags:
         - events
       operationId: getEventsOfRoom
       description: 指定した部屋で行われるイベントを返す
-      parameters:
-        - $ref: '#/components/parameters/roomID'
       responses:
         '200':
           $ref: '#/components/responses/EventArray'
   /groups/{groupID}/events:
+    parameters:
+      - $ref: '#/components/parameters/groupID'
     get:
       tags:
         - events
       operationId: getEventsOfGroup
       description: groupIdのeventsを取得
-      parameters:
-        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
           $ref: '#/components/responses/EventArray'
@@ -312,14 +304,14 @@ paths:
           description: Bad Request
 
   /groups/{groupID}:
+    parameters:
+      - $ref: '#/components/parameters/groupID'
     get:
       tags:
         - groups
       summary: 一件取得
       description: 一件取得
       operationId: getgroup
-      parameters:
-        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
           $ref: '#/components/responses/Group'
@@ -328,8 +320,6 @@ paths:
         - groups
       description: adminsのみ変更可能
       operationId: updateGroup
-      parameters:
-        - $ref: '#/components/parameters/groupID'
       requestBody:
         $ref: '#/components/requestBodies/Group'
       responses:
@@ -345,8 +335,6 @@ paths:
       summary: Delete group
       description: グループの削除
       operationId: deleteGroup
-      parameters:
-        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
           description: successful operation
@@ -356,14 +344,15 @@ paths:
           description: Groupid not found
 
   /groups/{groupID}/members/me:
+    parameters:
+      - $ref: '#/components/parameters/groupID'
     put:
       tags:
         - groups
       operationId: addMeToGroup
       summary: 自分を追加。open=true
       description: 自分をメンバーに追加する
-      parameters:
-        - $ref: '#/components/parameters/groupID'
+
       responses:
         '200':
           $ref: '#/components/responses/Group'
@@ -373,8 +362,6 @@ paths:
       operationId: deleteMeFromGroup
       summary: 自分しか削除出来ない。open=true
       description: 自分しか削除出来ない。open=true
-      parameters:
-        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
           $ref: '#/components/responses/Group'
@@ -389,13 +376,14 @@ paths:
         '200':
           $ref: '#/components/responses/UUIDArray'
   /users/{userID}/groups:
+    parameters:
+      - $ref: '#/components/parameters/userID'
     get:
       tags:
         - groups
       operationId: getUserGroups
       description: ユーザーが所属しているグループのIDを返す
-      parameters:
-        - $ref: '#/components/parameters/userID'
+
       responses:
         '200':
           $ref: '#/components/responses/UUIDArray'
@@ -517,6 +505,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/authParams'
+  /callback:
+    get:
+      tags:
+        - authentication
+      operationId: getCallback
+      description: コールバックを検知して、トークンを取得します。
 
   /ical/v1/{icalToken}:
     get:
@@ -574,6 +568,9 @@ components:
           type: string
           example: '2006-01-02T15:04Z'
         timeEnd: *time
+        verified: &verified
+          type: boolean
+          description: 部屋が使えることを保証する
         freeTimes:
           description: どのイベントも使用していない時間帯
           type: array
