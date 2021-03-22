@@ -17,6 +17,6 @@ type UserRepository interface {
 	GetAllUsers(*ConInfo) ([]*User, error)
 	//ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error
 	//GetToken(info *ConInfo) (string, error)
-	ReplaceMyiCalSecret(secret string, info *ConInfo) error
+	ReNewMyiCalSecret(info *ConInfo) (string, error)
 	GetMyiCalSecret(info *ConInfo) (string, error)
 }

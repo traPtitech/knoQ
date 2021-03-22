@@ -7,6 +7,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
 	traQ "github.com/traPtitech/traQ/router/v3"
+	"github.com/traPtitech/traQ/utils/random"
 )
 
 const traQIssuerName = "traQ"
@@ -95,30 +96,6 @@ func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain
 	return nil, errors.New("not implemented")
 }
 
-func traQUserMap(users []*traQ.User) map[uuid.UUID]*traQ.User {
-	userMap := make(map[uuid.UUID]*traQ.User)
-	for _, user := range users {
-		userMap[user.ID] = user
-	}
-	return userMap
-}
-
-func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*domain.User, error) {
-	if userMeta.ID != userBody.ID {
-		return nil, errors.New("id does not match")
-	}
-	if userMeta.Provider.Issuer != traQIssuerName {
-		return nil, errors.New("different provider")
-	}
-	return &domain.User{
-		ID:          userMeta.ID,
-		Name:        userBody.Name,
-		DisplayName: userBody.DisplayName,
-		Icon:        repo.traQRepo.URL + "/public/icon/" + userBody.Name,
-		Privileged:  userMeta.Privilege,
-	}, nil
-}
-
 func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) ([]*domain.User, error) {
 	t, err := repo.gormRepo.GetToken(info.ReqUserID)
 	if err != nil {
@@ -144,4 +121,42 @@ func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) (
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func (repo *Repository) ReNewMyiCalSecret(info *domain.ConInfo) (secret string, err error) {
+	secret = random.SecureAlphaNumeric(16)
+	err = repo.gormRepo.UpdateiCalSecret(info.ReqUserID, secret)
+	return
+}
+
+func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
+	user, err := repo.gormRepo.GetUser(info.ReqUserID)
+	if err != nil {
+		return "", err
+	}
+	return user.IcalSecret, err
+}
+
+func traQUserMap(users []*traQ.User) map[uuid.UUID]*traQ.User {
+	userMap := make(map[uuid.UUID]*traQ.User)
+	for _, user := range users {
+		userMap[user.ID] = user
+	}
+	return userMap
+}
+
+func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*domain.User, error) {
+	if userMeta.ID != userBody.ID {
+		return nil, errors.New("id does not match")
+	}
+	if userMeta.Provider.Issuer != traQIssuerName {
+		return nil, errors.New("different provider")
+	}
+	return &domain.User{
+		ID:          userMeta.ID,
+		Name:        userBody.Name,
+		DisplayName: userBody.DisplayName,
+		Icon:        repo.traQRepo.URL + "/public/icon/" + userBody.Name,
+		Privileged:  userMeta.Privilege,
+	}, nil
 }

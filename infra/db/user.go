@@ -33,6 +33,14 @@ func (repo *GormRepository) SaveUser(user User) (*User, error) {
 	return saveUser(repo.db, &user)
 }
 
+func (repo *GormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) error {
+	return updateiCalSecret(repo.db, userID, secret)
+}
+
+func updateiCalSecret(db *gorm.DB, userID uuid.UUID, secret string) error {
+	return db.Model(&User{}).Update("ical_secret", secret).Error
+}
+
 func (repo *GormRepository) Privilege(userID uuid.UUID) bool {
 	user, err := getUser(repo.db, userID)
 	if err != nil {
