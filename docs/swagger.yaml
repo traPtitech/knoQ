@@ -39,23 +39,11 @@ paths:
       summary: traPで確保した進捗部屋の情報を取得
       description: traPで確保した進捗部屋の情報を取得
       parameters:
-        - name: dateBegin
-          in: query
-          description: 特定の日から。(iso8601)
-          required: false
-          schema:
-            type: string
-            format: datetime
-        - name: dateEnd
-          in: query
-          description: 特定の日まで。(iso8601)
-          required: false
-          schema:
-            type: string
-            format: datetime
+        - $ref: '#/components/parameters/dateBegin'
+        - $ref: '#/components/parameters/dateEnd'
       responses:
         '200':
-          $ref: '#/components/responses/GetRoomArray'
+          $ref: '#/components/responses/RoomArray'
     post:
       tags:
         - rooms
@@ -66,7 +54,7 @@ paths:
         $ref: '#/components/requestBodies/Room'
       responses:
         '201':
-          $ref: '#/components/responses/PostRoom'
+          $ref: '#/components/responses/Room'
         '400':
           description: Bad Request
         '403':
@@ -80,15 +68,10 @@ paths:
       summary: 一件取得する
       description: 一件取得する
       parameters:
-        - name: roomID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/roomID'
       responses:
         '200':
-          $ref: '#/components/responses/GetRoom'
+          $ref: '#/components/responses/Room'
     delete:
       tags:
         - rooms
@@ -98,13 +81,7 @@ paths:
         エラーを出して削除を促す予定
       operationId: deleterooms
       parameters:
-        - name: roomID
-          in: path
-          description: 削除する部屋のID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/roomID'
       responses:
         '200':
           description: successful operation
@@ -123,7 +100,7 @@ paths:
         $ref: '#/components/requestBodies/Room'
       responses:
         '201':
-          $ref: '#/components/responses/PostRoom'
+          $ref: '#/components/responses/Room'
         '400':
           description: Bad Request
   /rooms/private/{roomID}:
@@ -134,12 +111,7 @@ paths:
       summary: 各自の部屋の情報削除 作成者のみ
       description: 各自の部屋の情報削除 作成者のみ
       parameters:
-        - name: roomID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/roomID'
       responses:
         '200':
           description: successful operation
@@ -158,7 +130,7 @@ paths:
       operationId: addAllrooms
       responses:
         '201':
-          $ref: '#/components/responses/PostRoomArray'
+          $ref: '#/components/responses/RoomArray'
         '403':
           description: Forbidden
 
@@ -170,24 +142,12 @@ paths:
       description: 使用宣言の情報を取得
       operationId: getevents
       parameters:
-        - name: dateBegin
-          in: query
-          description: 特定の日からのみにする。(iso8601)<br>qが優先される
-          required: false
-          schema:
-            type: string
-            format: datetime
-        - name: dateEnd
-          in: query
-          description: 特定の日までのみにする。(iso8601)<br>qが優先される
-          required: false
-          schema:
-            type: string
-            format: datetime
+        - $ref: '#/components/parameters/dateBegin'
+        - $ref: '#/components/parameters/dateEnd'
         - $ref: '#/components/parameters/eventFilter'
       responses:
         '200':
-          $ref: '#/components/responses/eventArray'
+          $ref: '#/components/responses/EventArray'
     post:
       tags:
         - events
@@ -195,10 +155,10 @@ paths:
       description: 部屋の使用宣言を行う
       operationId: addevents
       requestBody:
-        $ref: '#/components/requestBodies/PostEvent'
+        $ref: '#/components/requestBodies/Event'
       responses:
         '201':
-          $ref: '#/components/responses/event'
+          $ref: '#/components/responses/Event'
         '403':
           description: Forbidden
         '400':
@@ -211,15 +171,10 @@ paths:
       description: 一件取得
       operationId: getevent
       parameters:
-        - name: eventID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/eventID'
       responses:
         '200':
-          $ref: '#/components/responses/event'
+          $ref: '#/components/responses/Event'
     put:
       tags:
         - events
@@ -227,18 +182,12 @@ paths:
       description: adminsのみ
       operationId: updateevents
       parameters:
-        - name: eventID
-          in: path
-          description: 変更する情報のID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/eventID'
       requestBody:
-        $ref: '#/components/requestBodies/PutEvent'
+        $ref: '#/components/requestBodies/Event'
       responses:
         '200':
-          $ref: '#/components/responses/event'
+          $ref: '#/components/responses/Event'
         '403':
           description: Forbidden
         '400':
@@ -250,13 +199,7 @@ paths:
       description: adminsのみ
       operationId: deleteRevents
       parameters:
-        - name: eventID
-          in: path
-          description: 削除する情報のID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/eventID'
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
@@ -273,12 +216,7 @@ paths:
       summary: タグを追加
       description: タグを追加
       parameters:
-        - name: eventID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/eventID'
       requestBody:
         $ref: '#/components/requestBodies/tagName'
       responses:
@@ -292,12 +230,7 @@ paths:
       summary: タグを削除
       description: locked=falseだけ
       parameters:
-        - name: eventID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/eventID'
         - name: tagName
           in: path
           required: true
@@ -315,7 +248,7 @@ paths:
       description: 所属しているイベントを返す
       responses:
         '200':
-          $ref: '#/components/responses/eventArray'
+          $ref: '#/components/responses/EventArray'
   /users/{userID}/events:
     get:
       tags:
@@ -323,15 +256,10 @@ paths:
       operationId: getUserEvents
       description: 所属しているイベントを返す
       parameters:
-        - name: userID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/userID'
       responses:
         '200':
-          $ref: '#/components/responses/eventArray'
+          $ref: '#/components/responses/EventArray'
 
   /rooms/{roomID}/events:
     get:
@@ -340,15 +268,10 @@ paths:
       operationId: getEventsOfRoom
       description: 指定した部屋で行われるイベントを返す
       parameters:
-        - name: roomID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/roomID'
       responses:
         '200':
-          $ref: '#/components/responses/eventArray'
+          $ref: '#/components/responses/EventArray'
   /groups/{groupID}/events:
     get:
       tags:
@@ -356,15 +279,10 @@ paths:
       operationId: getEventsOfGroup
       description: groupIdのeventsを取得
       parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
-          $ref: '#/components/responses/eventArray'
+          $ref: '#/components/responses/EventArray'
 
   /groups:
     get:
@@ -375,7 +293,7 @@ paths:
       operationId: getGroup
       responses:
         '200':
-          $ref: '#/components/responses/groupArray'
+          $ref: '#/components/responses/GroupArray'
         '400':
           description: Bad Request
     post:
@@ -385,10 +303,10 @@ paths:
       description: Create group
       operationId: createGroup
       requestBody:
-        $ref: '#/components/requestBodies/group'
+        $ref: '#/components/requestBodies/Group'
       responses:
         '201':
-          $ref: '#/components/responses/group'
+          $ref: '#/components/responses/Group'
         '400':
           description: Bad Request
 
@@ -400,33 +318,22 @@ paths:
       description: 一件取得
       operationId: getgroup
       parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
-          $ref: '#/components/responses/group'
+          $ref: '#/components/responses/Group'
     put:
       tags:
         - groups
       description: adminsのみ変更可能
       operationId: updateGroup
       parameters:
-        - name: groupID
-          in: path
-          description: 変更する情報のID
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/groupID'
       requestBody:
-        $ref: '#/components/requestBodies/group'
+        $ref: '#/components/requestBodies/Group'
       responses:
         '200':
-          $ref: '#/components/responses/group'
+          $ref: '#/components/responses/Group'
         '400':
           description: Bad Request
         '403':
@@ -440,13 +347,7 @@ paths:
         削除されたgroupの予約
       operationId: deleteGroup
       parameters:
-        - name: groupID
-          in: path
-          description: The id that needs to be deleted
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
           description: successful operation
@@ -463,15 +364,10 @@ paths:
       summary: 自分を追加。open=true
       description: Headerを見て、メンバーを追加する
       parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
-          $ref: '#/components/responses/group'
+          $ref: '#/components/responses/Group'
     delete:
       tags:
         - groups
@@ -479,15 +375,10 @@ paths:
       summary: 自分しか削除出来ない。open=true
       description: 自分しか削除出来ない。open=true
       parameters:
-        - name: groupID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/groupID'
       responses:
         '200':
-          $ref: '#/components/responses/group'
+          $ref: '#/components/responses/Group'
 
   /users/me/groups:
     get:
@@ -505,12 +396,7 @@ paths:
       operationId: getUserGroups
       description: ユーザーが所属しているグループのIDを返す
       parameters:
-        - name: userID
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/userID'
       responses:
         '200':
           $ref: '#/components/responses/UUIDArray'
@@ -523,7 +409,7 @@ paths:
       description: ユーザー一覧を返す
       responses:
         '200':
-          $ref: '#/components/responses/userArray'
+          $ref: '#/components/responses/UserArray'
   /users/sync:
     post:
       tags:
@@ -546,7 +432,7 @@ paths:
       description: クライアントを識別するために最初に呼ばれる
       responses:
         '200':
-          $ref: '#/components/responses/user'
+          $ref: '#/components/responses/User'
   /users/me/ical:
     get:
       tags:
@@ -603,7 +489,7 @@ paths:
         $ref: '#/components/requestBodies/tagName'
       responses:
         '201':
-          $ref: '#/components/responses/tag'
+          $ref: '#/components/responses/Tag'
 
   /activity/events:
     get:
@@ -617,7 +503,7 @@ paths:
         削除されたものを含んで返す。
       responses:
         '200':
-          $ref: '#/components/responses/eventArray'
+          $ref: '#/components/responses/EventArray'
 
   /authParams:
     post:
@@ -726,7 +612,7 @@ components:
         createdAt: *time
         updatedAt: *time
 
-    event:
+    Event:
       type: object
       properties:
         eventId: *uuid
@@ -933,6 +819,51 @@ components:
         cmp  : Attr ( "==" | "!=" ) UUID<br>
         Attr : "event" | "user" | "group" | "tag"
         '
+    dateBegin:
+      name: dateBegin
+      in: query
+      description: 特定の日から。(iso8601)
+      required: false
+      schema:
+        type: string
+        format: datetime
+    dateEnd:
+      name: dateEnd
+      in: query
+      description: 特定の日まで。(iso8601)
+      required: false
+      schema:
+        type: string
+        format: datetime
+
+    userID:
+      name: userID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    groupID:
+      name: groupID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    roomID:
+      name: roomID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    eventID:
+      name: eventID
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
 
 externalDocs:
   description: Find out more about Swagger
