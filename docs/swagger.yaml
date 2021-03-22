@@ -659,6 +659,7 @@ paths:
 
 components:
   schemas:
+    # will delete
     UUIDs:
       type: array
       description: UUIDの配列
@@ -666,236 +667,97 @@ components:
         type: string
         format: uuid
 
-    room:
+    User:
       type: object
       properties:
-        place:
-          type: string
-          example: S516
-        timeStart:
-          type: string
-          example: "'200'4-04-01T12:00Z"
-        timeEnd:
-          type: string
-          example: "'200'4-04-01T12:00Z"
-
-    ResponseRoom:
-      allOf:
-        - type: object
-          properties:
-            roomId:
-              type: string
-              format: uuid
-              example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-        - $ref: '#/components/schemas/room'
-      properties:
-        public:
-          type: boolean
-        createdBy:
+        id: &uuid
           type: string
           format: uuid
-        createdAt:
+        name: &userName
           type: string
-          example: "'201'9-11-02T15:24:42.5438806Z"
-        updatedAt:
+          example: fuji
+        displayName: &displayName
           type: string
-          example: "'201'9-11-02T15:24:42.5438806Z"
-    RequestRoom:
-      $ref: '#/components/schemas/room'
+          example: ふじ
+        privileged: &privileged
+          type: boolean
+
+    Room:
+      type: object
+      properties:
+        roomId: *uuid
+        place: &place
+          type: string
+          example: S516
+        timeStart: &time
+          type: string
+          example: '2006-01-02T15:04Z'
+        timeEnd: *time
+        createdBy: *uuid
+        createdAt: *time
+        updatedAt: *time
+
+    Group:
+      type: object
+      properties:
+        groupId: *uuid
+        name: &groupName
+          type: string
+          example: room
+        description: &groupDescription
+          type: string
+          example: Sysad班room開発グループ
+        open: &open
+          type: boolean
+        members: &members
+          $ref: '#/components/schemas/UUIDs'
+        admins: &admins
+          $ref: '#/components/schemas/UUIDs'
+        createdBy: *uuid
+        createdAt: *time
+        updatedAt: *time
+    Tag:
+      type: object
+      properties: &tag
+        tagId: *uuid
+        name: &tagName
+          type: string
+          example: Vue
+        createdAt: *time
+        updatedAt: *time
 
     event:
       type: object
       properties:
-        name:
+        eventId: *uuid
+        name: &eventName
           type: string
           example: 第n回進捗回
-        descirption:
+        descirption: &eventDescription
           type: string
           example: 第n回の進捗会です。
-        sharedRoom:
+        sharedRoom: &sharedRoom
           type: boolean
-          example: false
-        timeStart:
-          type: string
-          example: "'200'4-04-01T12:00Z"
-        timeEnd:
-          type: string
-          example: "'200'4-04-01T12:00Z"
-        roomId:
-          type: string
-          format: uuid
-          example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-        groupId:
-          type: string
-          format: uuid
-          example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-        admins:
-          $ref: '#/components/schemas/UUIDs'
-
-    PutEvent:
-      allOf:
-        - $ref: '#/components/schemas/event'
-      properties:
+          description: 部屋の共用をするか
+        timeStart: *time
+        timeEnd: *time
+        roomId: *uuid
+        groupId: *uuid
+        admins: *admins
         tags:
           type: array
           items:
-            $ref: '#/components/schemas/ReqTagNameAuth'
-    PostEvent:
-      allOf:
-        - $ref: '#/components/schemas/PutEvent'
-      properties:
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/ReqTagNameAuth'
+            type: object
+            description: タグの配列
+            properties:
+              tagId: *uuid
+              name: *tagName
+              locked: &locked
+                type: boolean
+        createdBy: *uuid
+        createdAt: *time
+        updatedAt: *time
 
-    ResponseEvent:
-      allOf:
-        - type: object
-          properties:
-            eventId:
-              type: string
-              format: uuid
-              example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-        - $ref: '#/components/schemas/event'
-        - type: object
-          properties:
-            place:
-              type: string
-            tags:
-              type: array
-              items:
-                $ref: '#/components/schemas/ResponseTag'
-            createdBy:
-              type: string
-              format: uuid
-            createdAt:
-              type: string
-              example: "'201'9-11-02T15:24:42.5438806Z"
-            updatedAt:
-              type: string
-              example: "'201'9-11-02T15:24:42.5438806Z"
-            deletedAt:
-              type: string
-              format: omitempty
-              nullable: true
-
-    group:
-      type: object
-      properties:
-        name:
-          type: string
-          example: room
-        description:
-          type: string
-          example: Sysad班room開発グループ
-        open:
-          type: boolean
-        members:
-          $ref: '#/components/schemas/UUIDs'
-        admins:
-          $ref: '#/components/schemas/UUIDs'
-    RequestGroup:
-      $ref: '#/components/schemas/group'
-    ResponseGroup:
-      allOf:
-        - type: object
-          properties:
-            groupId:
-              type: string
-              format: uuid
-              example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-        - $ref: '#/components/schemas/group'
-      properties:
-        isTraQGroup:
-          type: boolean
-          example: false
-        createdBy:
-          type: string
-          format: uuid
-        createdAt:
-          type: string
-          example: "'201'9-11-02T15:24:42.5438806Z"
-        updatedAt:
-          type: string
-          example: "'201'9-11-02T15:24:42.5438806Z"
-
-    user:
-      allOf:
-        - $ref: '#/components/schemas/resUser'
-      properties:
-        admin:
-          type: boolean
-          example: true
-        name:
-          type: string
-        displayName:
-          type: string
-    resUser:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-
-    tag:
-      type: object
-      properties:
-        name:
-          type: string
-          example: Vue
-    ReqTagID:
-      type: object
-      properties:
-        tagId:
-          type: string
-          format: uuid
-          example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-    ReqTagName:
-      type: object
-      properties:
-        name:
-          type: string
-          example: Vue
-    ReqTagIDAuth:
-      allOf:
-        - $ref: '#/components/schemas/ReqTagID'
-      properties:
-        locked:
-          type: boolean
-          example: true
-    ReqTagNameAuth:
-      allOf:
-        - $ref: '#/components/schemas/ReqTagName'
-      properties:
-        locked:
-          type: boolean
-          example: true
-
-    ResTag:
-      type: object
-      properties:
-        tagId:
-          type: string
-          format: uuid
-          example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-        name:
-          type: string
-          example: vue
-    ResponseTag:
-      type: object
-      properties:
-        tagId:
-          type: string
-          format: uuid
-          example: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-        name:
-          type: string
-          example: vue
-        locked:
-          type: boolean
-          example: true
     authParams:
       type: object
       properties:
@@ -911,107 +773,69 @@ components:
       description: userIdとicalのsecretをつなげたもの
 
   requestBodies:
+    Group:
+      description: グループの追加
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name: *groupName
+              description: *groupDescription
+              open: *open
+              members: *members
+              admins: *admins
+
     Room:
       description: 部屋の追加
       required: true
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/RequestRoom'
+            type: object
+            properties:
+              place: *place
+              timeStart: *time
+              timeEnd: *time
 
-    PutEvent:
+    Event:
       description: 予約の編集
       required: true
       content:
         application/json:
           schema:
             oneOf:
-              - $ref: '#/components/schemas/PutEvent'
               - type: object
+                description: 部屋を作る
                 properties:
-                  name:
-                    type: string
-                  descirption:
-                    type: string
-                  sharedRoom:
-                    type: boolean
-                  timeStart:
-                    type: string
-                  timeEnd:
-                    type: string
-                  place:
-                    type: string
-                  groupId:
-                    type: string
-                    format: uuid
-                  admins:
-                    $ref: '#/components/schemas/UUIDs'
-                  tags:
+                  name: *eventName
+                  descirption: *eventDescription
+                  sharedRoom: *sharedRoom
+                  timeStart: *time
+                  timeEnd: *time
+                  place: *place
+                  groupId: *uuid
+                  admins: *admins
+                  tags: &reqEventTags
                     type: array
                     items:
-                      $ref: '#/components/schemas/ReqTagNameAuth'
-
-    PostEvent:
-      description: 予約の追加
-      required: true
-      content:
-        application/json:
-          schema:
-            oneOf:
-              - $ref: '#/components/schemas/PostEvent'
+                      type: object
+                      properties:
+                        name: *tagName
+                        locked: *locked
               - type: object
+                description: 既存の部屋を使う
                 properties:
-                  name:
-                    type: string
-                  descirption:
-                    type: string
-                  sharedRoom:
-                    type: boolean
-                  timeStart:
-                    type: string
-                  timeEnd:
-                    type: string
-                  place:
-                    type: string
-                  groupId:
-                    type: string
-                    format: uuid
-                  admins:
-                    $ref: '#/components/schemas/UUIDs'
-                  tags:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ReqTagNameAuth'
-
-    group:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RequestGroup'
-
-    tagID:
-      description: タグを付ける。
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ReqTagID'
-    tagName:
-      description: タグ本体の作成。
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ReqTagName'
-    stringArray:
-      description: タグで検索
-      required: true
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              type: string
-              example: 'vue'
+                  name: *eventName
+                  descirption: *eventDescription
+                  sharedRoom: *sharedRoom
+                  timeStart: *time
+                  timeEnd: *time
+                  roomId: *uuid
+                  groupId: *uuid
+                  admins: *admins
+                  tags: *reqEventTags
 
   responses:
     Nocontent:
@@ -1024,93 +848,77 @@ components:
           schema:
             $ref: '#/components/schemas/UUIDs'
 
-    PostRoom:
+    Room:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ResponseRoom'
-    PostRoomArray:
+            $ref: '#/components/schemas/Room'
+    RoomArray:
       description: successful operation
       content:
         application/json:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/ResponseRoom'
-    GetRoom:
+              $ref: '#/components/schemas/Room'
+    Event:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ResponseRoom'
+            $ref: '#/components/schemas/Event'
+    EventArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Event'
+    Group:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Group'
+    GroupArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Group'
+    User:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    UserArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
 
-    GetRoomArray:
+    Tag:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Tag'
+    TagArray:
       description: successful operation
       content:
         application/json:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/ResponseRoom'
-
-    event:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResponseEvent'
-    eventArray:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/ResponseEvent'
-    group:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResponseGroup'
-    groupArray:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/ResponseGroup'
-    user:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/user'
-    userArray:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/user'
-
-    tag:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResTag'
-    tagArray:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/ResTag'
+              $ref: '#/components/schemas/Tag'
 
   parameters:
     eventFilter:
