@@ -9,6 +9,9 @@ import (
 
 // BeforeCreate is hook
 func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
+	if e.ID != uuid.Nil {
+		return nil
+	}
 	e.ID, err = uuid.NewV4()
 	if err != nil {
 		return err
@@ -29,6 +32,9 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeCreate is hook
 func (r *Room) BeforeCreate(tx *gorm.DB) (err error) {
+	if r.ID != uuid.Nil {
+		return nil
+	}
 	r.ID, err = uuid.NewV4()
 	if err != nil {
 		return err
@@ -38,6 +44,9 @@ func (r *Room) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeCreate is hook
 func (g *Group) BeforeCreate(tx *gorm.DB) (err error) {
+	if g.ID != uuid.Nil {
+		return nil
+	}
 	g.ID, err = uuid.NewV4()
 	if err != nil {
 		return err
