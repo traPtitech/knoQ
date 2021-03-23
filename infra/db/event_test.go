@@ -50,6 +50,9 @@ func Test_createEvent(t *testing.T) {
 	})
 
 	t.Run("wrong time", func(t *testing.T) {
+		params.TimeStart = time.Now().Add(10 * time.Minute)
+		_, err := createEvent(r.db, params)
+		assert.ErrorIs(t, err, ErrTimeConsistency)
 	})
 
 }
