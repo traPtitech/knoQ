@@ -132,7 +132,7 @@ type Event struct {
 	Description    string    `gorm:"type:TEXT"`
 	GroupID        uuid.UUID `gorm:"type:char(36); not null; index"`
 	Group          Group     `gorm:"->; foreignKey:GroupID; constraint:-"`
-	RoomID         uuid.UUID `gorm:"type:char(36); not null; "`
+	RoomID         uuid.UUID `gorm:"type:char(36); not null; index"`
 	Room           Room      `gorm:"->; foreignKey:RoomID; constraint:OnDelete:CASCADE;"`
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
