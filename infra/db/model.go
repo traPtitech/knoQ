@@ -23,6 +23,12 @@ var tables = []interface{}{
 	EventAdmin{},
 }
 
+type Model struct {
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
+
 type Token struct {
 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	*oauth2.Token
@@ -63,7 +69,7 @@ type Room struct {
 	Events         []Event   `gorm:"->; constraint:-"` // readOnly
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
-	gorm.Model     `cvt:"->"`
+	Model          `cvt:"->"`
 }
 
 type GroupMember struct {
@@ -90,13 +96,13 @@ type Group struct {
 	Admins         []GroupAdmin
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
-	gorm.Model     `cvt:"->"`
+	Model          `cvt:"->"`
 }
 
 type Tag struct {
-	ID         uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Name       string    `gorm:"unique; type:varchar(16) binary"`
-	gorm.Model `cvt:"->"`
+	ID    uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Name  string    `gorm:"unique; type:varchar(16) binary"`
+	Model `cvt:"->"`
 }
 
 // EventTag is
@@ -107,12 +113,14 @@ type EventTag struct {
 	Event   Event     `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
 	Tag     Tag       `gorm:"foreignKey:TagID; constraint:OnDelete:CASCADE;" cvt:"write:Name"`
 	Locked  bool
+	Model   `cvt:"->"`
 }
 
 type EventAdmin struct {
 	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
 	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	UserMeta User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Model    `cvt:"->"`
 }
 
 // Event is event for gorm
@@ -133,5 +141,5 @@ type Event struct {
 	Admins         []EventAdmin
 	AllowTogether  bool
 	Tags           []EventTag
-	gorm.Model     `cvt:"->"`
+	Model          `cvt:"->"`
 }
