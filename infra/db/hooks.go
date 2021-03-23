@@ -38,11 +38,11 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 	e.Room = *r
 	Devent := ConvertEventTodomainEvent(*e)
 	if !Devent.TimeConsistency() {
-		return &ValueError{err: ErrTimeConsistency, args: []string{"timeStart", "timeEnd"}}
+		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
 	}
 
 	if !Devent.RoomTimeConsistency() {
-		return &ValueError{err: ErrTimeConsistency, args: []string{"timeStart", "timeEnd", "roomID"}}
+		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
 	}
 
 	return nil

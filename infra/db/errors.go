@@ -16,6 +16,13 @@ func (ve *ValueError) Error() string {
 
 func (ve *ValueError) Unwrap() error { return ve.err }
 
+func NewValueError(err error, args ...string) error {
+	return &ValueError{
+		err:  err,
+		args: args,
+	}
+}
+
 var (
 	ErrTimeConsistency = errors.New("inconsistent time")
 )
