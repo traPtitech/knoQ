@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// BeforeCreate is hook
-func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
+// BeforeSave is hook
+func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 	if e.ID != uuid.Nil {
 		return nil
 	}

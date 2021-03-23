@@ -156,7 +156,7 @@ func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
 	return
 }
 
-func ConvertwriteEventParamsToEvent(src writeEventParams) (dst Event) {
+func ConvertwriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	dst.CreatedByRefer = src.CreatedBy
 	dst.Name = src.WriteEventParams.Name
 	dst.Description = src.WriteEventParams.Description

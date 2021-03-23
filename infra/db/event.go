@@ -6,13 +6,17 @@ import (
 	"gorm.io/gorm"
 )
 
-type writeEventParams struct {
+type WriteEventParams struct {
 	domain.WriteEventParams
 	CreatedBy uuid.UUID
 }
 
-func createEvent(db *gorm.DB, eventParams writeEventParams) (*Event, error) {
-	event := ConvertwriteEventParamsToEvent(eventParams)
+func (repo *GormRepository) CreateEvent(params WriteEventParams) (*Event, error) {
+	return createEvent(repo.db, params)
+}
+
+func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
+	event := ConvertwriteEventParamsToEvent(params)
 
 	err := db.Create(&event).Error
 	if err != nil {
@@ -22,7 +26,6 @@ func createEvent(db *gorm.DB, eventParams writeEventParams) (*Event, error) {
 }
 
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
-	// allow together
 	event := Event{
 		ID: eventID,
 	}

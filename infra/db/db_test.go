@@ -193,7 +193,7 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.
 	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10))
 	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10))
 
-	params := writeEventParams{
+	params := WriteEventParams{
 		WriteEventParams: domain.WriteEventParams{
 			Name:      name,
 			GroupID:   group.ID,

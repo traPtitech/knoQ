@@ -13,7 +13,7 @@ import (
 func Test_createEvent(t *testing.T) {
 	r, _, _, user, room := setupRepoWithUserRoom(t, common)
 
-	params := writeEventParams{
+	params := WriteEventParams{
 		CreatedBy: user.ID,
 		WriteEventParams: domain.WriteEventParams{
 			Name:          "first event",
