@@ -77,9 +77,12 @@ func Test_updateEvent(t *testing.T) {
 	}
 
 	t.Run("update event", func(t *testing.T) {
-		e, err := updateEvent(r.db, event.ID, params)
+		_, err := updateEvent(r.db.Debug(), event.ID, params)
 		require.NoError(t, err)
 
-		assert.Equal(t, e.ID, event.ID)
+		e, err := getEvent(r.db, event.ID)
+		require.NoError(t, err)
+
+		assert.Equal(t, len(params.Tags), len(e.Tags))
 	})
 }

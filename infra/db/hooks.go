@@ -53,6 +53,16 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeUpdate is hook
 func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
+	// delete current m2m
+	err = tx.Where("event_id = ?", e.ID).Delete(&EventTag{}).Error
+	if err != nil {
+		return err
+	}
+	err = tx.Where("event_id = ?", e.ID).Delete(&EventAdmin{}).Error
+	if err != nil {
+		return err
+	}
+
 	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
 	if err != nil {
 		return err

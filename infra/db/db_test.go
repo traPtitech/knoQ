@@ -200,6 +200,9 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.
 			RoomID:    room.ID,
 			TimeStart: time.Now(),
 			TimeEnd:   time.Now().Add(1 * time.Minute),
+			Tags: []domain.EventTagParams{
+				{Name: "gin"},
+			},
 		},
 		CreatedBy: user.ID,
 	}
