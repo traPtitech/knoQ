@@ -26,6 +26,6 @@ func getRoom(db *gorm.DB, roomID uuid.UUID) (*Room, error) {
 	room := Room{
 		ID: roomID,
 	}
-	err := db.Preload("Events").Take(&room).Error
+	err := db.Take(&room).Error
 	return &room, err
 }

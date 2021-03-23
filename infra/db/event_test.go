@@ -56,3 +56,30 @@ func Test_createEvent(t *testing.T) {
 	})
 
 }
+
+func Test_updateEvent(t *testing.T) {
+	r, _, _, user, _, room, event := setupRepoWithUserGroupRoomEvent(t, common)
+
+	params := WriteEventParams{
+		CreatedBy: user.ID,
+		WriteEventParams: domain.WriteEventParams{
+			Name:          "update event",
+			GroupID:       mustNewUUIDV4(t),
+			RoomID:        room.ID,
+			TimeStart:     time.Now(),
+			TimeEnd:       time.Now().Add(1 * time.Minute),
+			AllowTogether: true,
+			Admins:        []uuid.UUID{user.ID},
+			Tags: []domain.EventTagParams{
+				{Name: "go", Locked: true}, {Name: "golang2"},
+			},
+		},
+	}
+
+	t.Run("update event", func(t *testing.T) {
+		e, err := updateEvent(r.db, event.ID, params)
+		require.NoError(t, err)
+
+		assert.Equal(t, e.ID, event.ID)
+	})
+}

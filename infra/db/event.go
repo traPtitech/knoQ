@@ -19,10 +19,15 @@ func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
 	event := ConvertwriteEventParamsToEvent(params)
 
 	err := db.Create(&event).Error
-	if err != nil {
-		return nil, err
-	}
-	return &event, nil
+	return &event, err
+}
+
+func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Event, error) {
+	event := ConvertwriteEventParamsToEvent(params)
+	event.ID = eventID
+
+	err := db.Save(&event).Error
+	return &event, err
 }
 
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {

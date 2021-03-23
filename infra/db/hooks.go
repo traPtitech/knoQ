@@ -9,12 +9,11 @@ import (
 
 // BeforeSave is hook
 func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
-	if e.ID != uuid.Nil {
-		return nil
-	}
-	e.ID, err = uuid.NewV4()
-	if err != nil {
-		return err
+	if e.ID == uuid.Nil {
+		e.ID, err = uuid.NewV4()
+		if err != nil {
+			return err
+		}
 	}
 
 	// タグが存在しなければ、作ってイベントにタグを追加する
@@ -31,20 +30,38 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 	}
 
 	// 時間整合性
-	r, err := getRoom(tx, e.RoomID)
+	Devent := ConvertEventTodomainEvent(*e)
+	if !Devent.TimeConsistency() {
+		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
+	}
+	return nil
+}
+
+// BeforeCreate is hook
+func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
+	r, err := getRoom(tx.Preload("Events"), e.RoomID)
 	if err != nil {
 		return err
 	}
 	e.Room = *r
 	Devent := ConvertEventTodomainEvent(*e)
-	if !Devent.TimeConsistency() {
-		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
-	}
-
 	if !Devent.RoomTimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
 	}
+	return nil
+}
 
+// BeforeUpdate is hook
+func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
+	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
+	if err != nil {
+		return err
+	}
+	e.Room = *r
+	Devent := ConvertEventTodomainEvent(*e)
+	if !Devent.RoomTimeConsistency() {
+		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
+	}
 	return nil
 }
 
