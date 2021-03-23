@@ -49,7 +49,7 @@ func getAllEvents(db *gorm.DB) ([]*Event, error) {
 }
 
 func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
-	event := Event{ID: eventID}
-	tag := ConvertdomainEventTagParamsToEventTag(params)
-	return db.Model(&event).Association("Tags").Append(&tag)
+	eventTag := ConvertdomainEventTagParamsToEventTag(params)
+	eventTag.EventID = eventID
+	return db.Create(&eventTag).Error
 }

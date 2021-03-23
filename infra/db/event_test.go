@@ -77,12 +77,23 @@ func Test_updateEvent(t *testing.T) {
 	}
 
 	t.Run("update event", func(t *testing.T) {
-		_, err := updateEvent(r.db.Debug(), event.ID, params)
+		_, err := updateEvent(r.db, event.ID, params)
 		require.NoError(t, err)
 
 		e, err := getEvent(r.db, event.ID)
 		require.NoError(t, err)
 
 		assert.Equal(t, len(params.Tags), len(e.Tags))
+	})
+}
+
+func Test_addEventTag(t *testing.T) {
+	r, _, _, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
+
+	t.Run("add tag", func(t *testing.T) {
+		err := addEventTag(r.db.Debug(), event.ID, domain.EventTagParams{
+			Name: "foo",
+		})
+		require.NoError(t, err)
 	})
 }
