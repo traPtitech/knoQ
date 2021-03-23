@@ -16,19 +16,6 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 		}
 	}
 
-	// タグが存在しなければ、作ってイベントにタグを追加する
-	// 存在すれば、作らずにイベントにタグを追加する
-	for i, t := range e.Tags {
-		tag := Tag{
-			Name: t.Tag.Name,
-		}
-		err := tx.Where(&tag).Take(&tag).Error
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			continue
-		}
-		e.Tags[i].Tag.ID = tag.ID
-	}
-
 	// 時間整合性
 	Devent := ConvertEventTodomainEvent(*e)
 	if !Devent.TimeConsistency() {
@@ -75,6 +62,25 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 		return err
 	}
 
+	return nil
+}
+
+// BeforeSave is hook
+func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
+	// タグが存在しなければ、作ってイベントにタグを追加する
+	// 存在すれば、作らずにイベントにタグを追加する
+	tag := Tag{
+		Name: et.Tag.Name,
+	}
+	err = tx.Where(&tag).Take(&tag).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
+	et.Tag.ID = tag.ID
 	return nil
 }
 
