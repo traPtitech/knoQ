@@ -39,6 +39,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 
 // BeforeCreate is hook
 func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
+	// 時間整合性
 	r, err := getRoom(tx.Preload("Events"), e.RoomID)
 	if err != nil {
 		return err
@@ -53,6 +54,17 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeUpdate is hook
 func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
+	// 時間整合性
+	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
+	if err != nil {
+		return err
+	}
+	e.Room = *r
+	Devent := ConvertEventTodomainEvent(*e)
+	if !Devent.RoomTimeConsistency() {
+		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
+	}
+
 	// delete current m2m
 	err = tx.Where("event_id = ?", e.ID).Delete(&EventTag{}).Error
 	if err != nil {
@@ -63,15 +75,6 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 		return err
 	}
 
-	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
-	if err != nil {
-		return err
-	}
-	e.Room = *r
-	Devent := ConvertEventTodomainEvent(*e)
-	if !Devent.RoomTimeConsistency() {
-		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
-	}
 	return nil
 }
 
