@@ -16,6 +16,9 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
+
+	// タグが存在しなければ、作ってイベントにタグを追加する
+	// 存在すれば、作らずにイベントにタグを追加する
 	for i, t := range e.Tags {
 		tag := Tag{
 			Name: t.Tag.Name,
@@ -25,6 +28,21 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 			continue
 		}
 		e.Tags[i].Tag.ID = tag.ID
+	}
+
+	// 時間整合性
+	r, err := getRoom(tx, e.RoomID)
+	if err != nil {
+		return err
+	}
+	e.Room = *r
+	Devent := ConvertEventTodomainEvent(*e)
+	if !Devent.TimeConsistency() {
+		return &ValueError{err: ErrTimeConsistency, args: []string{"timeStart", "timeEnd"}}
+	}
+
+	if !Devent.RoomTimeConsistency() {
+		return &ValueError{err: ErrTimeConsistency, args: []string{"timeStart", "timeEnd", "roomID"}}
 	}
 
 	return nil
