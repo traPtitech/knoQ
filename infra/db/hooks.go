@@ -67,8 +67,14 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 
 // BeforeSave is hook
 func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
+	// 名前からIDを探す
 	// タグが存在しなければ、作ってイベントにタグを追加する
+	//（自動で作ることを想定 FullSaveAssociations: true等）
 	// 存在すれば、作らずにイベントにタグを追加する
+	if et.Tag.ID != uuid.Nil {
+		return nil
+	}
+
 	tag := Tag{
 		Name: et.Tag.Name,
 	}
