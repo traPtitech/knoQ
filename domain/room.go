@@ -54,7 +54,7 @@ func (r *Room) CalcAvailableTime(allowTogether bool) []StartEndTime {
 		if allowTogether && e.AllowTogether {
 			continue
 		}
-		timeRangesSub(availabletime, StartEndTime{e.TimeStart, e.TimeEnd})
+		availabletime = timeRangesSub(availabletime, StartEndTime{e.TimeStart, e.TimeEnd})
 	}
 	return availabletime
 }

@@ -69,3 +69,20 @@ type EventRepository interface {
 
 	// GetEventActivities(day int) ([]*Event, error)
 }
+
+func (e *Event) TimeConsistency() bool {
+	return e.TimeStart.Before(e.TimeEnd)
+}
+
+func (e *Event) RoomTimeConsistency() bool {
+	times := e.Room.CalcAvailableTime(e.AllowTogether)
+	for _, t := range times {
+		start := t.TimeStart
+		end := t.TimeEnd
+		if start.Equal(e.TimeStart) || start.Before(e.TimeStart) &&
+			(end.Equal(e.TimeEnd) || end.After(e.TimeEnd)) {
+			return true
+		}
+	}
+	return false
+}
