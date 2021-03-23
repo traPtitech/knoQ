@@ -12,7 +12,7 @@ import (
 func Test_createEvent(t *testing.T) {
 	r, _, _, user, room := setupRepoWithUserRoom(t, common)
 
-	event, err := createEvent(r.db, writeEventParams{
+	params := writeEventParams{
 		CreatedBy: user.ID,
 		WriteEventParams: domain.WriteEventParams{
 			Name:      "first event",
@@ -25,21 +25,25 @@ func Test_createEvent(t *testing.T) {
 				{Name: "go", Locked: true}, {Name: "golang"},
 			},
 		},
+	}
+
+	t.Run("create event", func(t *testing.T) {
+		event, err := createEvent(r.db, params)
+		assert.NoError(t, err)
+		assert.NotNil(t, event.ID)
+
+		// tags
+		e, err := getEvent(r.db.Preload("Tags").Preload("Tags.Tag"), event.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, e.Tags[0].Tag.Name)
 	})
 
-	if assert.NoError(t, err) {
-		assert.NotNil(t, event.ID)
-		// TODO wip
-		events, err := getAllEvents(r.db)
-		if assert.NoError(t, err) {
-			assert.NotNil(t, events[0].Tags[0].Tag.Name)
-		}
-
-		tag, _ := createTag(r.db, "Go")
-		err = addEventTag(r.db, event.ID, domain.WriteTagRelationParams{
-			ID:     tag.ID,
-			Locked: true,
-		})
+	t.Run("create event with exsiting tags", func(t *testing.T) {
+		_, err := createTag(r.db, "Go")
 		assert.NoError(t, err)
-	}
+
+		params.Tags = append(params.Tags, domain.EventTagParams{Name: "Go"})
+		_, err = createEvent(r.db, params)
+		assert.NoError(t, err)
+	})
 }

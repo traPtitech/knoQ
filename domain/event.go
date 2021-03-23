@@ -67,5 +67,5 @@ type EventRepository interface {
 	GetEvent(eventID uuid.UUID) (*Event, error)
 	GetEvents(filter.Expr) ([]*Event, error)
 
-	GetEventActivities(day int) ([]*Event, error)
+	// GetEventActivities(day int) ([]*Event, error)
 }

@@ -1,6 +1,8 @@
 package db
 
 import (
+	"errors"
+
 	"github.com/gofrs/uuid"
 	"gorm.io/gorm"
 )
@@ -11,6 +13,17 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
+	for i, t := range e.Tags {
+		tag := Tag{
+			Name: t.Tag.Name,
+		}
+		err := tx.Where(&tag).Take(&tag).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			continue
+		}
+		e.Tags[i].Tag.ID = tag.ID
+	}
+
 	return nil
 }
 
@@ -34,6 +47,9 @@ func (g *Group) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeCreate is hook
 func (t *Tag) BeforeCreate(tx *gorm.DB) (err error) {
+	if t.ID != uuid.Nil {
+		return nil
+	}
 	t.ID, err = uuid.NewV4()
 	if err != nil {
 		return err

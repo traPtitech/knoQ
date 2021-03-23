@@ -13,11 +13,23 @@ type writeEventParams struct {
 
 func createEvent(db *gorm.DB, eventParams writeEventParams) (*Event, error) {
 	event := ConvertwriteEventParamsToEvent(eventParams)
+
 	err := db.Create(&event).Error
 	if err != nil {
 		return nil, err
 	}
 	return &event, nil
+}
+
+func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
+	// allow together
+	event := Event{
+		ID: eventID,
+	}
+	cmd := db.Preload("Group").Preload("Room").Preload("CreatedBy").
+		Preload("Admins").Preload("Admins.UserMeta").Preload("Tags").Preload("Tags.Tag")
+	err := cmd.Take(&event).Error
+	return &event, err
 }
 
 func getAllEvents(db *gorm.DB) ([]*Event, error) {
