@@ -26,3 +26,34 @@ func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*t
 	err = json.Unmarshal(data, &group)
 	return group, err
 }
+
+func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traQ.UserGroup, error) {
+	URL := fmt.Sprintf("%s/groups", repo.URL)
+	req, err := http.NewRequest(http.MethodGet, URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	data, err := repo.doRequest(token, req)
+	if err != nil {
+		return nil, err
+	}
+
+	groups := make([]*traQ.UserGroup, 0)
+	err = json.Unmarshal(data, &groups)
+	return groups, err
+}
+
+func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
+	URL := fmt.Sprintf("%s/groups", repo.URL)
+	req, err := http.NewRequest(http.MethodGet, URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	data, err := repo.doRequest(token, req)
+	if err != nil {
+		return nil, err
+	}
+	user := new(traQ.UserDetail)
+	err = json.Unmarshal(data, &user)
+	return user.Groups, err
+}
