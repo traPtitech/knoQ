@@ -106,7 +106,6 @@ type Tag struct {
 }
 
 // EventTag is
-//go:generate gotypeconverter -s domain.WriteTagRelationParams -d EventTag -o converter.go .
 type EventTag struct {
 	TagID   uuid.UUID `gorm:"type:char(36); primaryKey" cvt:"ID"`
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`

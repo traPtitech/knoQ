@@ -47,12 +47,6 @@ type EventTagParams struct {
 	Locked bool
 }
 
-// WriteTagRelationParams is used create and update
-type WriteTagRelationParams struct {
-	ID     uuid.UUID
-	Locked bool
-}
-
 // EventRepository is implemented by ...
 type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams, info *ConInfo) (*Event, error)

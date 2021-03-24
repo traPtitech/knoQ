@@ -124,11 +124,6 @@ func ConvertdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst Event
 	dst.Locked = src.Locked
 	return
 }
-func ConvertdomainWriteTagRelationParamsToEventTag(src domain.WriteTagRelationParams) (dst EventTag) {
-	dst.TagID = src.ID
-	dst.Locked = src.Locked
-	return
-}
 
 func ConvertgormDeletedAtTotimeTime(src gorm.DeletedAt) (dst time.Time) {
 	dst = src.Time
