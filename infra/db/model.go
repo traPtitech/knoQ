@@ -55,7 +55,7 @@ type UserBody struct {
 	Name        string    `gorm:"type:varchar(32);"`
 	DisplayName string    `gorm:"type:varchar(32);"`
 	Icon        string
-	UserMeta    User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
 // Room is
@@ -72,8 +72,9 @@ type Room struct {
 	Model          `cvt:"->"`
 }
 
+//go:generate gotypeconverter -s []*GroupMember -d []uuid.UUID -o converter.go -structTag cvt0 .
 type GroupMember struct {
-	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	UserID  uuid.UUID `gorm:"type:char(36); primaryKey" cvt0:"<-"`
 	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
@@ -116,14 +117,14 @@ type EventTag struct {
 }
 
 type EventAdmin struct {
-	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
-	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
-	UserMeta User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model    `cvt:"->"`
+	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Model   `cvt:"-"`
 }
 
 // Event is event for gorm
-//go:generate gotypeconverter -s writeEventParams -d Event -o converter.go .
+//go:generate gotypeconverter -s WriteEventParams -d Event -o converter.go .
 //go:generate gotypeconverter -s Event -d domain.Event -o converter.go .
 type Event struct {
 	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`

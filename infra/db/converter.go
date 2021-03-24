@@ -95,6 +95,13 @@ func ConvertRoomTodomainRoom(src Room) (dst domain.Room) {
 	(*dst.Model.DeletedAt) = ConvertgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
+func ConvertSlicePointerGroupMemberToSliceuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
+	dst = make([]uuid.UUID, len(src))
+	for i := range src {
+		dst[i] = (*src[i]).GroupID
+	}
+	return
+}
 func ConvertTagTodomainEventTag(src Tag) (dst domain.EventTag) {
 	dst.Tag.ID = src.ID
 	dst.Tag.Name = src.Name
@@ -119,6 +126,26 @@ func ConvertUserTodomainUser(src User) (dst domain.User) {
 	dst.ID = src.ID
 	return
 }
+func ConvertWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
+	dst.CreatedByRefer = src.CreatedBy
+	dst.Name = src.WriteEventParams.Name
+	dst.Description = src.WriteEventParams.Description
+	dst.GroupID = src.WriteEventParams.GroupID
+	dst.RoomID = src.WriteEventParams.RoomID
+	dst.TimeStart = src.WriteEventParams.TimeStart
+	dst.TimeEnd = src.WriteEventParams.TimeEnd
+	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
+	for i := range src.WriteEventParams.Admins {
+		dst.Admins[i] = ConvertuuidUUIDToEventAdmin(src.WriteEventParams.Admins[i])
+	}
+	dst.AllowTogether = src.WriteEventParams.AllowTogether
+	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
+	for i := range src.WriteEventParams.Tags {
+		dst.Tags[i] = ConvertdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
+	}
+	return
+}
+
 func ConvertdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst EventTag) {
 	dst.Tag.Name = src.Name
 	dst.Locked = src.Locked
@@ -170,6 +197,7 @@ func ConvertwriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	}
 	return
 }
+
 func ConvertwriteGroupParamsToGroup(src writeGroupParams) (dst Group) {
 	dst.CreatedByRefer = src.CreatedBy
 	dst.Name = src.WriteGroupParams.Name

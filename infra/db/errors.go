@@ -25,4 +25,5 @@ func NewValueError(err error, args ...string) error {
 
 var (
 	ErrTimeConsistency = errors.New("inconsistent time")
+	ErrExpression      = errors.New("invalid expression")
 )

@@ -19,3 +19,10 @@ func createGroup(db *gorm.DB, groupParams writeGroupParams) (*Group, error) {
 	}
 	return &group, nil
 }
+
+func getUserBelongingGroupIDs(db *gorm.DB, userID uuid.UUID) ([]uuid.UUID, error) {
+	groupMembers := make([]*GroupMember, 0)
+
+	err := db.Where("user_id = ?", userID).Find(&groupMembers).Error
+	return ConvertSlicePointerGroupMemberToSliceuuidUUID(groupMembers), err
+}
