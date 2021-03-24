@@ -76,14 +76,19 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 				filter.And: "AND",
 				filter.Or:  "OR",
 			}[e.LogicOp]
-			lFilter, lFilterArgs, err := createFilter(e.Lhs)
-			if err != nil {
-				return "", nil, err
+			lFilter, lFilterArgs, lerr := createFilter(e.Lhs)
+			rFilter, rFilterArgs, rerr := createFilter(e.Rhs)
+
+			if lerr != nil && rerr != nil {
+				return "", nil, ErrExpression
 			}
-			rFilter, rFilterArgs, err := createFilter(e.Rhs)
-			if err != nil {
-				return "", nil, err
+			if lerr != nil {
+				return rFilter, rFilterArgs, nil
 			}
+			if rerr != nil {
+				return lFilter, lFilterArgs, nil
+			}
+
 			filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
 			filterArgs = append(lFilterArgs, rFilterArgs...)
 
