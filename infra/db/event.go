@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
@@ -52,6 +53,38 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 				filterFormat = fmt.Sprintf("group_id %v (?)", rel)
 				filterArgs = []interface{}{ids}
 
+			case filter.Name:
+				name, ok := e.Value.(string)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				rel := map[filter.Relation]string{
+					filter.Eq:  "=",
+					filter.Neq: "!=",
+				}[e.Relation]
+				filterFormat = fmt.Sprintf("name %v ?", rel)
+				filterArgs = []interface{}{name}
+			case filter.TimeStart:
+				fallthrough
+			case filter.TimeEnd:
+				t, ok := e.Value.(time.Time)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				column := map[filter.Attr]string{
+					filter.TimeStart: "time_start",
+					filter.TimeEnd:   "time_end",
+				}[e.Attr]
+				rel := map[filter.Relation]string{
+					filter.Eq:       "=",
+					filter.Neq:      "!=",
+					filter.Greter:   ">",
+					filter.GreterEq: ">=",
+					filter.Less:     "<",
+					filter.LessEq:   "<=",
+				}[e.Relation]
+				filterFormat = fmt.Sprintf("%v %v ?", column, rel)
+				filterArgs = []interface{}{t}
 			default:
 				id := e.Value.(uuid.UUID)
 				id, ok := e.Value.(uuid.UUID)
@@ -60,6 +93,7 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 				}
 				column := map[filter.Attr]string{
 					filter.Group: "group_id",
+					filter.Room:  "room_id",
 					filter.Tag:   "event_tags.tag_id",
 					filter.Event: "id",
 				}[e.Attr]
