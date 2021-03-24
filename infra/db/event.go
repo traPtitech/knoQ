@@ -30,6 +30,25 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 		var filterFormat string
 		var filterArgs []interface{}
 
+		attrMap := map[filter.Attr]string{
+			filter.User:      "group_id",
+			filter.Name:      "name",
+			filter.Group:     "group_id",
+			filter.Room:      "room_id",
+			filter.Tag:       "event_tags.tag_id",
+			filter.Event:     "id",
+			filter.TimeStart: "time_start",
+			filter.TimeEnd:   "time_end",
+		}
+		defaultRelationMap := map[filter.Relation]string{
+			filter.Eq:       "=",
+			filter.Neq:      "!=",
+			filter.Greter:   ">",
+			filter.GreterEq: ">=",
+			filter.Less:     "<",
+			filter.LessEq:   "<=",
+		}
+
 		switch e := expr.(type) {
 		case nil:
 			filterFormat = ""
@@ -50,7 +69,8 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 				if err != nil {
 					return "", nil, err
 				}
-				filterFormat = fmt.Sprintf("group_id %v (?)", rel)
+
+				filterFormat = fmt.Sprintf("%s %v (?)", attrMap[e.Attr], rel)
 				filterArgs = []interface{}{ids}
 
 			case filter.Name:
@@ -71,19 +91,7 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 				if !ok {
 					return "", nil, ErrExpression
 				}
-				column := map[filter.Attr]string{
-					filter.TimeStart: "time_start",
-					filter.TimeEnd:   "time_end",
-				}[e.Attr]
-				rel := map[filter.Relation]string{
-					filter.Eq:       "=",
-					filter.Neq:      "!=",
-					filter.Greter:   ">",
-					filter.GreterEq: ">=",
-					filter.Less:     "<",
-					filter.LessEq:   "<=",
-				}[e.Relation]
-				filterFormat = fmt.Sprintf("%v %v ?", column, rel)
+				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
 				filterArgs = []interface{}{t}
 			default:
 				id := e.Value.(uuid.UUID)
@@ -91,17 +99,7 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 				if !ok {
 					return "", nil, ErrExpression
 				}
-				column := map[filter.Attr]string{
-					filter.Group: "group_id",
-					filter.Room:  "room_id",
-					filter.Tag:   "event_tags.tag_id",
-					filter.Event: "id",
-				}[e.Attr]
-				rel := map[filter.Relation]string{
-					filter.Eq:  "=",
-					filter.Neq: "!=",
-				}[e.Relation]
-				filterFormat = fmt.Sprintf("%v %v ?", column, rel)
+				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
 				filterArgs = []interface{}{id}
 			}
 
