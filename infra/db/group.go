@@ -28,8 +28,9 @@ func createGroup(db *gorm.DB, groupParams writeGroupParams) (*Group, error) {
 	return &group, nil
 }
 
-func updateGroup(db *gorm.DB, params writeGroupParams) (*Group, error) {
+func updateGroup(db *gorm.DB, groupID uuid.UUID, params writeGroupParams) (*Group, error) {
 	group := ConvertwriteGroupParamsToGroup(params)
+	group.ID = groupID
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&group).Error
 	return &group, err
 }
