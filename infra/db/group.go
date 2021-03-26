@@ -34,6 +34,29 @@ func updateGroup(db *gorm.DB, params writeGroupParams) (*Group, error) {
 	return &group, err
 }
 
+func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
+	groupMember := GroupMember{
+		GroupID: groupID,
+		UserID:  userID,
+	}
+	return db.Create(&groupMember).Error
+}
+
+func deleteGroup(db *gorm.DB, groupID uuid.UUID) error {
+	group := Group{
+		ID: groupID,
+	}
+	return db.Delete(&group).Error
+}
+
+func deleteMemberOfGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
+	groupMember := GroupMember{
+		GroupID: groupID,
+		UserID:  userID,
+	}
+	return db.Delete(&groupMember).Error
+}
+
 func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
 	group := Group{
 		ID: groupID,
