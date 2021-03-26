@@ -23,7 +23,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 			e.Room.TimeEnd = e.TimeEnd
 			e.Room.CreatedByRefer = e.CreatedByRefer
 		} else {
-			return NewValueError(ErrInvalidArg, "room")
+			return NewValueError(ErrRoomUndefined, "roomID", "place")
 		}
 	}
 
