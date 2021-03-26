@@ -53,8 +53,39 @@ type CmpExpr struct {
 	Value    interface{}
 }
 
-func (LogicOpExpr) isExpr() {}
-func (CmpExpr) isExpr()     {}
+func (*LogicOpExpr) isExpr() {}
+func (*CmpExpr) isExpr()     {}
+
+type Visitor interface {
+	Visit(e Expr) (w Visitor)
+}
+
+type inspector func(Expr) bool
+
+func (f inspector) Visit(e Expr) Visitor {
+	if f(e) {
+		return f
+	}
+	return nil
+}
+
+func Walk(v Visitor, expr Expr) {
+	if v = v.Visit(expr); v == nil {
+		return
+	}
+
+	switch e := expr.(type) {
+	case *CmpExpr:
+	case *LogicOpExpr:
+		Walk(v, e.Lhs)
+		Walk(v, e.Rhs)
+	}
+}
+
+// Inspect ast.Inspect
+func Inspect(expr Expr, f func(e Expr) bool) {
+	Walk(inspector(f), expr)
+}
 
 func FilterRoomIDs(roomIDs []uuid.UUID) Expr {
 	if len(roomIDs) == 0 {
@@ -62,19 +93,19 @@ func FilterRoomIDs(roomIDs []uuid.UUID) Expr {
 	}
 
 	var expr Expr
-	expr = CmpExpr{
+	expr = &CmpExpr{
 		Attr:     Room,
 		Relation: Eq,
 		Value:    roomIDs[0],
 	}
 	for _, id := range roomIDs[1:] {
 		lhs := expr
-		rhs := CmpExpr{
+		rhs := &CmpExpr{
 			Attr:     Room,
 			Relation: Eq,
 			Value:    id,
 		}
-		expr = LogicOpExpr{Or, lhs, rhs}
+		expr = &LogicOpExpr{Or, lhs, rhs}
 	}
 	return expr
 }
@@ -85,19 +116,19 @@ func FilterGroupIDs(groupIDs []uuid.UUID) Expr {
 	}
 
 	var expr Expr
-	expr = CmpExpr{
+	expr = &CmpExpr{
 		Attr:     Group,
 		Relation: Eq,
 		Value:    groupIDs[0],
 	}
 	for _, id := range groupIDs[1:] {
 		lhs := expr
-		rhs := CmpExpr{
+		rhs := &CmpExpr{
 			Attr:     Group,
 			Relation: Eq,
 			Value:    id,
 		}
-		expr = LogicOpExpr{Or, lhs, rhs}
+		expr = &LogicOpExpr{Or, lhs, rhs}
 	}
 	return expr
 }
@@ -106,12 +137,12 @@ func FilterTime(start, end time.Time) Expr {
 	if start.IsZero() && end.IsZero() {
 		return nil
 	}
-	timeStart := CmpExpr{
+	timeStart := &CmpExpr{
 		Attr:     TimeStart,
 		Relation: GreterEq,
 		Value:    start,
 	}
-	timeEnd := CmpExpr{
+	timeEnd := &CmpExpr{
 		Attr:     TimeEnd,
 		Relation: LessEq,
 		Value:    end,
@@ -123,7 +154,7 @@ func FilterTime(start, end time.Time) Expr {
 	if end.IsZero() {
 		return timeStart
 	}
-	return LogicOpExpr{
+	return &LogicOpExpr{
 		LogicOp: And,
 		Lhs:     timeStart,
 		Rhs:     timeEnd,
