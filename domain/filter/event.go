@@ -56,37 +56,6 @@ type CmpExpr struct {
 func (*LogicOpExpr) isExpr() {}
 func (*CmpExpr) isExpr()     {}
 
-type Visitor interface {
-	Visit(e Expr) (w Visitor)
-}
-
-type inspector func(Expr) bool
-
-func (f inspector) Visit(e Expr) Visitor {
-	if f(e) {
-		return f
-	}
-	return nil
-}
-
-func Walk(v Visitor, expr Expr) {
-	if v = v.Visit(expr); v == nil {
-		return
-	}
-
-	switch e := expr.(type) {
-	case *CmpExpr:
-	case *LogicOpExpr:
-		Walk(v, e.Lhs)
-		Walk(v, e.Rhs)
-	}
-}
-
-// Inspect ast.Inspect
-func Inspect(expr Expr, f func(e Expr) bool) {
-	Walk(inspector(f), expr)
-}
-
 func FilterRoomIDs(roomIDs []uuid.UUID) Expr {
 	if len(roomIDs) == 0 {
 		return nil
