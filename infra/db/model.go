@@ -134,7 +134,7 @@ type Event struct {
 	GroupID        uuid.UUID `gorm:"type:char(36); not null; index"`
 	Group          Group     `gorm:"->; foreignKey:GroupID; constraint:-"`
 	RoomID         uuid.UUID `gorm:"type:char(36); not null; index"`
-	Room           Room      `gorm:"->; foreignKey:RoomID; constraint:OnDelete:CASCADE;"`
+	Room           Room      `gorm:"->; foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"`
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
 	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`

@@ -145,7 +145,6 @@ func ConvertdomainUserToUserRes(src domain.User) (dst UserRes) {
 	dst.Privileged = src.Privileged
 	return
 }
-
 func ConvertdomainUserTouuidUUID(src domain.User) (dst uuid.UUID) {
 	dst = src.ID
 	return

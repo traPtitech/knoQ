@@ -35,6 +35,7 @@ type WriteEventParams struct {
 	Description   string
 	GroupID       uuid.UUID
 	RoomID        uuid.UUID
+	Place         string // option
 	TimeStart     time.Time
 	TimeEnd       time.Time
 	Admins        []uuid.UUID

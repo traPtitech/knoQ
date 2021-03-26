@@ -140,6 +140,7 @@ func ConvertWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	dst.Description = src.WriteEventParams.Description
 	dst.GroupID = src.WriteEventParams.GroupID
 	dst.RoomID = src.WriteEventParams.RoomID
+	dst.Room.Place = src.WriteEventParams.Place
 	dst.TimeStart = src.WriteEventParams.TimeStart
 	dst.TimeEnd = src.WriteEventParams.TimeEnd
 	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
