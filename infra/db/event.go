@@ -153,6 +153,29 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Even
 	return &event, err
 }
 
+func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
+	eventTag := ConvertdomainEventTagParamsToEventTag(params)
+	eventTag.EventID = eventID
+	return db.Create(&eventTag).Error
+}
+
+func deleteEvent(db *gorm.DB, eventID uuid.UUID) error {
+	event := Event{
+		ID: eventID,
+	}
+	return db.Delete(&event).Error
+}
+
+func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string) error {
+	eventTag := EventTag{
+		EventID: eventID,
+		Tag: Tag{
+			Name: tagName,
+		},
+	}
+	return db.Where("locked = ?", false).Delete(&eventTag).Error
+}
+
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
 	event := Event{
 		ID: eventID,
@@ -168,10 +191,4 @@ func getAllEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, erro
 	err := cmd.Joins("LEFT JOIN event_tags ON id = event_tags.event_id").
 		Where(query, args...).Group("id").Find(&events).Error
 	return events, err
-}
-
-func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
-	eventTag := ConvertdomainEventTagParamsToEventTag(params)
-	eventTag.EventID = eventID
-	return db.Create(&eventTag).Error
 }

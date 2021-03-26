@@ -65,6 +65,20 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	return nil
 }
 
+func (e *Event) BeforeDelete(tx *gorm.DB) (err error) {
+	// delete current m2m
+	err = tx.Where("event_id = ?", e.ID).Delete(&EventTag{}).Error
+	if err != nil {
+		return err
+	}
+	err = tx.Where("event_id = ?", e.ID).Delete(&EventAdmin{}).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // BeforeSave is hook
 func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
 	// 名前からIDを探す
@@ -87,6 +101,22 @@ func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
 	}
 
 	et.Tag.ID = tag.ID
+	return nil
+}
+
+func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
+	if et.TagID != uuid.Nil {
+		return nil
+	}
+	tag := Tag{
+		Name: et.Tag.Name,
+	}
+	err = tx.Where(&tag).Take(&tag).Error
+	if err != nil {
+		return err
+	}
+
+	et.TagID = tag.ID
 	return nil
 }
 
