@@ -28,6 +28,12 @@ func createGroup(db *gorm.DB, groupParams writeGroupParams) (*Group, error) {
 	return &group, nil
 }
 
+func updateGroup(db *gorm.DB, params writeGroupParams) (*Group, error) {
+	group := ConvertwriteGroupParamsToGroup(params)
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&group).Error
+	return &group, err
+}
+
 func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
 	group := Group{
 		ID: groupID,
@@ -35,6 +41,13 @@ func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
 	cmd := groupFullPreload(db)
 	err := cmd.Take(&group).Error
 	return &group, err
+}
+
+func getAllGroup(db *gorm.DB, groupID uuid.UUID) ([]*Group, error) {
+	groups := make([]*Group, 0)
+	cmd := groupFullPreload(db)
+	err := cmd.Find(&groups).Error
+	return groups, err
 }
 
 func getUserBelongingGroupIDs(db *gorm.DB, userID uuid.UUID) ([]uuid.UUID, error) {

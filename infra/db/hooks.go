@@ -114,6 +114,19 @@ func (g *Group) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
+func (g *Group) BeforeUpdate(tx *gorm.DB) (err error) {
+	// delete current m2m
+	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
+	if err != nil {
+		return err
+	}
+	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // BeforeCreate is hook
 func (t *Tag) BeforeCreate(tx *gorm.DB) (err error) {
 	if t.ID != uuid.Nil {
