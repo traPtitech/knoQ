@@ -5,6 +5,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/infra/db"
+	traQ "github.com/traPtitech/traQ/router/v3"
 )
 
 func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
@@ -49,15 +50,41 @@ func (repo *Repository) GetEvent(eventID uuid.UUID) (*domain.Event, error) {
 
 //go:generate gotypeconverter -s v3.UserGroup -d domain.Group -o converter.go .
 
+func traQGroupMap(groups []*traQ.UserGroup) map[uuid.UUID]*traQ.UserGroup {
+	groupMap := make(map[uuid.UUID]*traQ.UserGroup)
+	for _, group := range groups {
+		groupMap[group.ID] = group
+	}
+	return groupMap
+}
+
 func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
-	_, err := repo.gormRepo.GetAllEvents(expr)
+	es, err := repo.gormRepo.GetAllEvents(expr)
 	if err != nil {
 		return nil, err
 	}
+	events := db.ConvertSlicePointerEventToSlicePointerdomainEvent(es)
+	t, err := repo.gormRepo.GetToken(info.ReqUserID)
+	if err != nil {
+		return nil, err
+	}
+	traQgroups, err := repo.traQRepo.GetAllGroups(t)
+	if err != nil {
+		return events, nil
+	}
+	groupMap := traQGroupMap(traQgroups)
 
-	return nil, nil
+	for i, e := range events {
+		g, ok := groupMap[e.Group.ID]
+		if !ok {
+			continue
+		}
+		events[i].Group = Convertv3UserGroupTodomainGroup(*g)
+
+	}
+	return events, nil
 }
 
 func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filter.Expr {

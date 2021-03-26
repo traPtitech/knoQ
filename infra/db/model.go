@@ -126,6 +126,7 @@ type EventAdmin struct {
 // Event is event for gorm
 //go:generate gotypeconverter -s WriteEventParams -d Event -o converter.go .
 //go:generate gotypeconverter -s Event -d domain.Event -o converter.go .
+//go:generate gotypeconverter -s []*Event -d []*domain.Event -o converter.go .
 type Event struct {
 	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Name           string    `gorm:"type:varchar(32); not null"`

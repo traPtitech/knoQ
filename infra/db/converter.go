@@ -95,6 +95,14 @@ func ConvertRoomTodomainRoom(src Room) (dst domain.Room) {
 	(*dst.Model.DeletedAt) = ConvertgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
+func ConvertSlicePointerEventToSlicePointerdomainEvent(src []*Event) (dst []*domain.Event) {
+	dst = make([]*domain.Event, len(src))
+	for i := range src {
+		dst[i] = new(domain.Event)
+		(*dst[i]) = ConvertEventTodomainEvent((*src[i]))
+	}
+	return
+}
 func ConvertSlicePointerGroupMemberToSliceuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
 	dst = make([]uuid.UUID, len(src))
 	for i := range src {
