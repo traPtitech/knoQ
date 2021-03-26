@@ -189,6 +189,6 @@ func getAllEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, erro
 	events := make([]*Event, 0)
 	cmd := eventFullPreload(db)
 	err := cmd.Joins("LEFT JOIN event_tags ON id = event_tags.event_id").
-		Where(query, args...).Group("id").Find(&events).Error
+		Where(query, args...).Group("id").Order("time_start").Find(&events).Error
 	return events, err
 }
