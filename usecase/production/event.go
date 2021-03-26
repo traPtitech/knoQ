@@ -9,11 +9,7 @@ import (
 
 func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
 	// groupの確認
-	t, err := repo.gormRepo.GetToken(info.ReqUserID)
-	if err != nil {
-		return nil, err
-	}
-	_, err = repo.traQRepo.GetGroup(t, params.GroupID)
+	_, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
 		return nil, err
 	}

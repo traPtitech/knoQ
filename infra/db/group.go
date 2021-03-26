@@ -6,9 +6,17 @@ import (
 	"gorm.io/gorm"
 )
 
+func groupFullPreload(tx *gorm.DB) *gorm.DB {
+	return tx.Preload("Members").Preload("Admins")
+}
+
 type writeGroupParams struct {
 	domain.WriteGroupParams
 	CreatedBy uuid.UUID
+}
+
+func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
+	return getGroup(repo.db, groupID)
 }
 
 func createGroup(db *gorm.DB, groupParams writeGroupParams) (*Group, error) {
@@ -18,6 +26,15 @@ func createGroup(db *gorm.DB, groupParams writeGroupParams) (*Group, error) {
 		return nil, err
 	}
 	return &group, nil
+}
+
+func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
+	group := Group{
+		ID: groupID,
+	}
+	cmd := groupFullPreload(db)
+	err := cmd.Take(&group).Error
+	return &group, err
 }
 
 func getUserBelongingGroupIDs(db *gorm.DB, userID uuid.UUID) ([]uuid.UUID, error) {
