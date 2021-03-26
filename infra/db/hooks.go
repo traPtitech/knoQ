@@ -16,6 +16,17 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 		}
 	}
 
+	if e.RoomID == uuid.Nil {
+		if e.Room.Place != "" {
+			e.Room.Verified = false
+			e.Room.TimeStart = e.TimeStart
+			e.Room.TimeEnd = e.TimeEnd
+			e.Room.CreatedByRefer = e.CreatedByRefer
+		} else {
+			return NewValueError(ErrInvalidArg, "room")
+		}
+	}
+
 	// 時間整合性
 	Devent := ConvertEventTodomainEvent(*e)
 	if !Devent.TimeConsistency() {
