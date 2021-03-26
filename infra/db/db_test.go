@@ -182,7 +182,7 @@ func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *Use
 func mustMakeTag(t *testing.T, repo *GormRepository, name string) *Tag {
 	t.Helper()
 
-	tag, err := createTag(repo.db, name)
+	tag, err := createOrGetTag(repo.db, name)
 	require.NoError(t, err)
 	return tag
 }

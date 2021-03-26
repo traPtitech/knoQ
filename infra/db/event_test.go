@@ -39,7 +39,7 @@ func Test_createEvent(t *testing.T) {
 	})
 
 	t.Run("create event with exsiting tags", func(t *testing.T) {
-		_, err := createTag(r.db, "Go")
+		_, err := createOrGetTag(r.db, "Go")
 		require.NoError(err)
 
 		params.Tags = append(params.Tags, domain.EventTagParams{Name: "Go"})
