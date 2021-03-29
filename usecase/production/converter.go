@@ -13,6 +13,15 @@ func ConvertPointerv3UserToPointerdomainUser(src *v3.User) (dst *domain.User) {
 	return
 }
 
+func ConvertSlicePointerv3UserGroupToSlicePointerdomainGroup(src []*v3.UserGroup) (dst []*domain.Group) {
+	dst = make([]*domain.Group, len(src))
+	for i := range src {
+		dst[i] = new(domain.Group)
+		(*dst[i]) = Convertv3UserGroupTodomainGroup((*src[i]))
+	}
+	return
+}
+
 func ConvertuuidUUIDTodomainUser(src uuid.UUID) (dst domain.User) {
 	dst.ID = src
 	return

@@ -32,6 +32,7 @@ func (repo *Repository) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) e
 }
 
 //go:generate gotypeconverter -s v3.UserGroup -d domain.Group -o converter.go .
+//go:generate gotypeconverter -s []*v3.UserGroup -d []*domain.Group -o converter.go .
 
 func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*domain.Group, error) {
 	var group domain.Group
