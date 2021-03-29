@@ -695,7 +695,6 @@ components:
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
-
     ResponseEvent:
       type: object
       properties:
