@@ -300,7 +300,7 @@ paths:
     get:
       tags:
         - groups
-      operationId: getGroup
+      operationId: getGroups
       summary: グループを全て取得
       description: すべてのグループを取得する
       responses:
