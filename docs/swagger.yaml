@@ -78,7 +78,7 @@ paths:
       summary: 部屋の情報を削除
       description: (関連する予約を削除する)
         エラーを出して削除を促す予定
-      operationId: deleterooms
+      operationId: deleteRoom
       responses:
         '200':
           description: successful operation
@@ -121,7 +121,7 @@ paths:
     post:
       tags:
         - rooms
-      operationId: addAllrooms
+      operationId: addAllRooms
       summary: traPで確保した部屋の情報追加
       description: 特権が必要。
       requestBody:
@@ -156,7 +156,7 @@ paths:
         - events
       summary: 使用宣言の情報を取得
       description: 使用宣言の情報を取得
-      operationId: getevents
+      operationId: getEvents
       parameters:
         - $ref: '#/components/parameters/dateBegin'
         - $ref: '#/components/parameters/dateEnd'
@@ -169,7 +169,7 @@ paths:
         - events
       summary: 部屋の使用宣言を行う
       description: 部屋の使用宣言を行う
-      operationId: addevents
+      operationId: addEvents
       requestBody:
         $ref: '#/components/requestBodies/Event'
       responses:
@@ -187,7 +187,7 @@ paths:
         - events
       summary: 一件取得
       description: 一件取得
-      operationId: getevent
+      operationId: getEventDetail
       responses:
         '200':
           $ref: '#/components/responses/Event'
@@ -196,7 +196,7 @@ paths:
         - events
       summary: 部屋の使用宣言を更新
       description: adminsのみ
-      operationId: updateevents
+      operationId: updateEvent
       requestBody:
         $ref: '#/components/requestBodies/Event'
       responses:
@@ -211,7 +211,7 @@ paths:
         - events
       summary: 使用宣言を削除
       description: adminsのみ
-      operationId: deleteRevents
+      operationId: deleteEvent
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
@@ -330,7 +330,7 @@ paths:
         - groups
       summary: 一件取得
       description: 一件取得
-      operationId: getgroup
+      operationId: getGroup
       responses:
         '200':
           $ref: '#/components/responses/Group'
@@ -448,14 +448,8 @@ paths:
       description: /ical で使う`secret`を取得
       responses:
         '200':
-          description: /ical で使う`secret`を取得
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
+          $ref: '#/components/responses/icalSecret'
+
     put:
       tags:
         - users
@@ -464,14 +458,7 @@ paths:
       description: /ical で使う`secret`を再生成
       responses:
         '200':
-          description: 新たに生成したものを返す
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  secret:
-                    type: string
+          $ref: '#/components/responses/icalSecret'
 
   /tags:
     get:
@@ -696,6 +683,11 @@ components:
           format: url
           example: 'https://q.trap.jp/api/v3/oauth2/authorize'
 
+    icalSecret:
+      type: object
+      properties:
+        secret:
+          type: string
     icalToken:
       type: string
       description: userIdとicalのsecretをつなげたもの
@@ -883,6 +875,13 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/User'
+
+    icalSecret:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Tag'
 
     Tag:
       description: successful operation
