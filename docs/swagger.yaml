@@ -559,7 +559,7 @@ components:
         type: string
         format: uuid
 
-    User:
+    ResponseUser:
       type: object
       properties:
         id: &uuid
@@ -578,7 +578,7 @@ components:
         privileged: &privileged
           type: boolean
 
-    Room:
+    ResponseRoom:
       type: object
       properties:
         roomId: *uuid
@@ -596,17 +596,23 @@ components:
           description: どのイベントも使用していない時間帯
           type: array
           items:
-            $ref: '#/components/schemas/Duration'
+            $ref: '#/components/schemas/duration'
         sharedTimes:
           description: 部屋を共用すれば、使用できる時間帯
           type: array
           items:
-            $ref: '#/components/schemas/Duration'
+            $ref: '#/components/schemas/duration'
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
+    RequestRoom:
+      type: object
+      properties:
+        place: *place
+        timeStart: *time
+        timeEnd: *time
 
-    Group:
+    ResponseGroup:
       type: object
       properties:
         groupId: *uuid
@@ -619,13 +625,30 @@ components:
         open: &open
           type: boolean
         members: &members
-          $ref: '#/components/schemas/UUIDs'
+          type: array
+          description: グループのメンバー
+          items:
+            type: string
+            format: uuid
         admins: &admins
-          $ref: '#/components/schemas/UUIDs'
+          type: array
+          description: 編集権を持つユーザー
+          items:
+            type: string
+            format: uuid
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
-    Tag:
+    RequestGroup:
+      type: object
+      properties:
+        name: *groupName
+        description: *groupDescription
+        open: *open
+        members: *members
+        admins: *admins
+
+    ResponseTag:
       type: object
       properties: &tag
         tagId: *uuid
@@ -634,8 +657,12 @@ components:
           example: Vue
         createdAt: *time
         updatedAt: *time
+    RequestTag:
+      type: object
+      properties:
+        name: *tagName
 
-    Event:
+    ResponseEventDetail:
       type: object
       properties:
         eventId: *uuid
@@ -669,7 +696,60 @@ components:
         createdAt: *time
         updatedAt: *time
 
-    Duration:
+    ResponseEvent:
+      type: object
+      properties:
+        eventId: *uuid
+        name: *eventName
+        descirption: *eventDescription
+        sharedRoom: *sharedRoom
+        timeStart: *time
+        timeEnd: *time
+        place: *place
+        groupName: *groupName
+        room:
+          $ref: '#/components/schemas/Room'
+        group:
+          $ref: '#/components/schemas/Group'
+        admins: *admins
+        tags: *eventTags
+        createdBy: *uuid
+        createdAt: *time
+        updatedAt: *time
+    RequestEventInstant:
+      type: object
+      description: 部屋を作る
+      properties:
+        name: *eventName
+        descirption: *eventDescription
+        sharedRoom: *sharedRoom
+        timeStart: *time
+        timeEnd: *time
+        place: *place
+        groupId: *uuid
+        admins: *admins
+        tags: &reqEventTags
+          type: array
+          items:
+            type: object
+            properties:
+              name: *tagName
+              locked: *locked
+    RequestEvent:
+      type: object
+      description: 既存の部屋を使う
+      properties:
+        name: *eventName
+        descirption: *eventDescription
+        sharedRoom: *sharedRoom
+        timeStart: *time
+        timeEnd: *time
+        roomId: *uuid
+        groupId: *uuid
+        admins: *admins
+        tags: *reqEventTags
+
+    duration:
       type: object
       properties:
         timeStart: *time
@@ -699,13 +779,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              name: *groupName
-              description: *groupDescription
-              open: *open
-              members: *members
-              admins: *admins
+            $ref: '#/components/schemas/RequestGroup'
 
     Room:
       description: 部屋の追加
@@ -713,11 +787,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              place: *place
-              timeStart: *time
-              timeEnd: *time
+            $ref: '#/components/schemas/RequestRoom'
 
     Tag:
       description: タグ自体の追加
@@ -725,9 +795,7 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              name: *tagName
+            $ref: '#/components/schemas/RequestTag'
 
     Event:
       description: 予約の編集
@@ -736,36 +804,8 @@ components:
         application/json:
           schema:
             oneOf:
-              - type: object
-                description: 部屋を作る
-                properties:
-                  name: *eventName
-                  descirption: *eventDescription
-                  sharedRoom: *sharedRoom
-                  timeStart: *time
-                  timeEnd: *time
-                  place: *place
-                  groupId: *uuid
-                  admins: *admins
-                  tags: &reqEventTags
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        name: *tagName
-                        locked: *locked
-              - type: object
-                description: 既存の部屋を使う
-                properties:
-                  name: *eventName
-                  descirption: *eventDescription
-                  sharedRoom: *sharedRoom
-                  timeStart: *time
-                  timeEnd: *time
-                  roomId: *uuid
-                  groupId: *uuid
-                  admins: *admins
-                  tags: *reqEventTags
+              - $ref: '#/components/schemas/RequestEvent'
+              - $ref: '#/components/schemas/RequestEventInstant'
             example:
               name: イベント
               description: これはイベントです。
@@ -786,9 +826,8 @@ components:
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              name: *tagName
+            $ref: '#/components/schemas/RequestTag'
+
   responses:
     Nocontent:
       description: Nocontent
@@ -805,7 +844,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Room'
+            $ref: '#/components/schemas/ResponseRoom'
     RoomArray:
       description: successful operation
       content:
@@ -813,31 +852,13 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/Room'
+              $ref: '#/components/schemas/ResponseRoom'
     Event:
       description: successful operation
       content:
         application/json:
           schema:
-            type: object
-            properties:
-              eventId: *uuid
-              name: *eventName
-              descirption: *eventDescription
-              sharedRoom: *sharedRoom
-              timeStart: *time
-              timeEnd: *time
-              place: *place
-              groupName: *groupName
-              room:
-                $ref: '#/components/schemas/Room'
-              group:
-                $ref: '#/components/schemas/Group'
-              admins: *admins
-              tags: *eventTags
-              createdBy: *uuid
-              createdAt: *time
-              updatedAt: *time
+            $ref: '#/components/schemas/ResponseEventDetail'
 
     EventArray:
       description: successful operation
@@ -846,7 +867,7 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/Event'
+              $ref: '#/components/schemas/ResponseEvent'
     Group:
       description: successful operation
       content:
@@ -860,13 +881,13 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/Group'
+              $ref: '#/components/schemas/ResponseGroup'
     User:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/User'
+            $ref: '#/components/schemas/ResponseUser'
     UserArray:
       description: successful operation
       content:
@@ -874,21 +895,21 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/ResponseUser'
 
     icalSecret:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Tag'
+            $ref: '#/components/schemas/icalSecret'
 
     Tag:
       description: successful operation
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Tag'
+            $ref: '#/components/schemas/ResponseTag'
     TagArray:
       description: successful operation
       content:
@@ -896,7 +917,7 @@ components:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/Tag'
+              $ref: '#/components/schemas/ResponseTag'
 
   parameters:
     session:
