@@ -584,6 +584,10 @@ components:
         displayName: &displayName
           type: string
           example: ふじ
+        icon: &icon
+          type: string
+          format: url
+          example: https://q.trap.jp/api/v3/public/icon/fuji
         privileged: &privileged
           type: boolean
 
