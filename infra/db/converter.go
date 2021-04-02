@@ -187,26 +187,6 @@ func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
 	return
 }
 
-func ConvertwriteEventParamsToEvent(src WriteEventParams) (dst Event) {
-	dst.CreatedByRefer = src.CreatedBy
-	dst.Name = src.WriteEventParams.Name
-	dst.Description = src.WriteEventParams.Description
-	dst.GroupID = src.WriteEventParams.GroupID
-	dst.RoomID = src.WriteEventParams.RoomID
-	dst.TimeStart = src.WriteEventParams.TimeStart
-	dst.TimeEnd = src.WriteEventParams.TimeEnd
-	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
-	for i := range src.WriteEventParams.Admins {
-		dst.Admins[i] = ConvertuuidUUIDToEventAdmin(src.WriteEventParams.Admins[i])
-	}
-	dst.AllowTogether = src.WriteEventParams.AllowTogether
-	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
-	for i := range src.WriteEventParams.Tags {
-		dst.Tags[i] = ConvertdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
-	}
-	return
-}
-
 func ConvertwriteGroupParamsToGroup(src writeGroupParams) (dst Group) {
 	dst.CreatedByRefer = src.CreatedBy
 	dst.Name = src.WriteGroupParams.Name
