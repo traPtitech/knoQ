@@ -12,10 +12,8 @@ func createOrGetTag(db *gorm.DB, name string) (*Tag, error) {
 }
 
 func getTag(db *gorm.DB, tagID uuid.UUID) (*Tag, error) {
-	tag := Tag{
-		ID: tagID,
-	}
-	err := db.Take(&tag).Error
+	tag := Tag{}
+	err := db.Take(&tag, tagID).Error
 	return &tag, err
 }
 

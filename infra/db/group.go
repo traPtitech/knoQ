@@ -59,11 +59,9 @@ func deleteMemberOfGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 }
 
 func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
-	group := Group{
-		ID: groupID,
-	}
+	group := Group{}
 	cmd := groupFullPreload(db)
-	err := cmd.Take(&group).Error
+	err := cmd.Take(&group, groupID).Error
 	return &group, err
 }
 

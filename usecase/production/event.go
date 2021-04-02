@@ -27,8 +27,23 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	return &e, nil
 }
 
-func (repo *Repository) UpdateEvent(eventID uuid.UUID, eventParams domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
-	panic("not implemented") // TODO: Implement
+func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
+	// groupの確認
+	_, err := repo.GetGroup(params.GroupID, info)
+	if err != nil {
+		return nil, err
+	}
+
+	p := db.WriteEventParams{
+		WriteEventParams: params,
+		CreatedBy:        info.ReqUserID,
+	}
+	event, err := repo.gormRepo.CreateEvent(p)
+	if err != nil {
+		return nil, err
+	}
+	e := db.ConvertEventTodomainEvent(*event)
+	return &e, nil
 }
 
 func (repo *Repository) AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool, info *domain.ConInfo) error {

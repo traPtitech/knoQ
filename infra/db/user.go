@@ -95,10 +95,8 @@ func updateiCalSecret(db *gorm.DB, userID uuid.UUID, secret string) error {
 }
 
 func getUser(db *gorm.DB, userID uuid.UUID) (*User, error) {
-	user := User{
-		ID: userID,
-	}
-	err := db.Take(&user).Error
+	user := User{}
+	err := db.Take(&user, userID).Error
 	return &user, err
 }
 

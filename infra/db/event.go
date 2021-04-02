@@ -90,10 +90,8 @@ func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string) error {
 }
 
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
-	event := Event{
-		ID: eventID,
-	}
-	err := db.Take(&event).Error
+	event := Event{}
+	err := db.Take(&event, eventID).Error
 	return &event, err
 }
 
