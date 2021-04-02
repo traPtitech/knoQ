@@ -80,6 +80,9 @@ func deleteEvent(db *gorm.DB, eventID uuid.UUID) error {
 }
 
 func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string) error {
+	if eventID == uuid.Nil {
+		return NewValueError(gorm.ErrRecordNotFound, "eventID")
+	}
 	eventTag := EventTag{
 		EventID: eventID,
 		Tag: Tag{
