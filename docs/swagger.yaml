@@ -577,6 +577,9 @@ components:
           example: https://q.trap.jp/api/v3/public/icon/fuji
         privileged: &privileged
           type: boolean
+        state: &userState
+          type: integer
+          description: 'ユーザーアカウント状態 0: 停止 1: 有効 2: 一時停止'
 
     ResponseRoom:
       type: object
