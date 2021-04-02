@@ -59,18 +59,16 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	// 時間整合性
 	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if err == nil {
+		e.Room = *r
+		Devent := ConvertEventTodomainEvent(*e)
+		if !Devent.RoomTimeConsistency() {
+			return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
+		}
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
 		// 後で作られる
-		return nil
-	}
-	if err != nil {
 		return err
-	}
-	e.Room = *r
-	Devent := ConvertEventTodomainEvent(*e)
-	if !Devent.RoomTimeConsistency() {
-		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
 	}
 
 	// delete current m2m
@@ -138,7 +136,6 @@ func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 		}
 
 		et.TagID = tag.ID
-		return nil
 	}
 	return nil
 }
