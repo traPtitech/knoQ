@@ -76,7 +76,7 @@ func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) e
 }
 
 func deleteEvent(db *gorm.DB, eventID uuid.UUID) error {
-	return db.Where("id = ?", eventID).Delete(&Event{}).Error
+	return db.Delete(&Event{ID: eventID}).Error
 }
 
 func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string) error {
