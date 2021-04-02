@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   traQ-backend:
@@ -19,7 +19,6 @@ services:
 
   traQ-frontend:
     image: abiosoft/caddy:1.0.3-no-stats
-    restart: always
     expose:
       - "80"
     ports:
@@ -28,7 +27,7 @@ services:
       - traQ-backend
     volumes:
       - ./Caddyfile:/etc/Caddyfile:ro
-    
+
   mysql:
     image: mariadb:10.3.9
     environment:
@@ -40,7 +39,7 @@ services:
       - "3306"
     ports:
       - "3306:3306"
-  
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:
