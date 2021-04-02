@@ -41,6 +41,7 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 	r, err := getRoom(tx.Preload("Events"), e.RoomID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
+		// 後で作られる
 		return nil
 	}
 	if err != nil {
@@ -58,6 +59,11 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	// 時間整合性
 	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
+		// 後で作られる
+		return nil
+	}
 	if err != nil {
 		return err
 	}
