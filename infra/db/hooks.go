@@ -116,10 +116,9 @@ func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
 }
 
 func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
-	if et.TagID != uuid.Nil {
-		return nil
-	}
-	if et.Tag.Name != "" {
+	// タグのIDが空で名前が提供されている場合は、
+	// 名前に応じたタグを削除する
+	if et.TagID == uuid.Nil && et.Tag.Name != "" {
 		tag := Tag{
 			Name: et.Tag.Name,
 		}
