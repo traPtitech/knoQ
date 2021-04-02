@@ -135,7 +135,8 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	return getAllEvents(repo.db, filterFormat, filterArgs)
+	return getAllEvents(repo.db.Joins("LEFT JOIN event_tags ON id = event_tags.event_id"),
+		filterFormat, filterArgs)
 }
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
@@ -188,7 +189,6 @@ func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
 func getAllEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, error) {
 	events := make([]*Event, 0)
 	cmd := eventFullPreload(db)
-	err := cmd.Joins("LEFT JOIN event_tags ON id = event_tags.event_id").
-		Where(query, args...).Group("id").Order("time_start").Find(&events).Error
+	err := cmd.Where(query, args...).Group("id").Order("time_start").Find(&events).Error
 	return events, err
 }
