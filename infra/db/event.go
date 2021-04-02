@@ -12,7 +12,7 @@ import (
 
 func eventFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Group").Preload("Room").Preload("CreatedBy").
-		Preload("Admins").Preload("Admins.UserMeta").Preload("Tags").Preload("Tags.Tag")
+		Preload("Admins").Preload("Admins.User").Preload("Tags").Preload("Tags.Tag")
 }
 
 type WriteEventParams struct {

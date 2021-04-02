@@ -9,7 +9,7 @@ import (
 )
 
 func roomFullPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("events")
+	return tx.Preload("Events")
 }
 
 type writeRoomParams struct {
@@ -47,8 +47,7 @@ func getRoom(db *gorm.DB, roomID uuid.UUID) (*Room, error) {
 	room := Room{
 		ID: roomID,
 	}
-	cmd := roomFullPreload(db)
-	err := cmd.Take(&room).Error
+	err := db.Take(&room).Error
 	return &room, err
 }
 

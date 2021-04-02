@@ -119,15 +119,18 @@ func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 	if et.TagID != uuid.Nil {
 		return nil
 	}
-	tag := Tag{
-		Name: et.Tag.Name,
-	}
-	err = tx.Where(&tag).Take(&tag).Error
-	if err != nil {
-		return err
-	}
+	if et.Tag.Name != "" {
+		tag := Tag{
+			Name: et.Tag.Name,
+		}
+		err = tx.Where(&tag).Take(&tag).Error
+		if err != nil {
+			return err
+		}
 
-	et.TagID = tag.ID
+		et.TagID = tag.ID
+		return nil
+	}
 	return nil
 }
 
