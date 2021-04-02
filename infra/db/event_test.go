@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
 )
 
@@ -42,17 +43,46 @@ func Test_createEvent(t *testing.T) {
 		_, err := createOrGetTag(r.db, "Go")
 		require.NoError(err)
 
-		params.Tags = append(params.Tags, domain.EventTagParams{Name: "Go"})
-		_, err = createEvent(r.db, params)
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
+
+		p.Tags = append(p.Tags, domain.EventTagParams{Name: "Go"})
+		_, err = createEvent(r.db, p)
 		require.NoError(err)
 	})
 
 	t.Run("wrong time", func(t *testing.T) {
-		params.TimeStart = time.Now().Add(10 * time.Minute)
-		_, err := createEvent(r.db, params)
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
+
+		p.TimeStart = time.Now().Add(10 * time.Minute)
+		_, err := createEvent(r.db, p)
 		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 
+	t.Run("wrong room time", func(t *testing.T) {
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
+
+		p.AllowTogether = false
+		_, err := createEvent(r.db, p)
+		assert.ErrorIs(err, ErrTimeConsistency)
+	})
+
+	t.Run("create event with place", func(t *testing.T) {
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
+
+		p.RoomID = uuid.Nil
+		p.Place = "instant room"
+		event, err := createEvent(r.db.Debug(), p)
+		require.NoError(err)
+
+		e, err := getEvent(eventFullPreload(r.db), event.ID)
+		require.NoError(err)
+		assert.NotEqual(uuid.Nil, e.RoomID)
+		assert.Equal(p.Place, e.Room.Place)
+	})
 }
 
 func Test_updateEvent(t *testing.T) {

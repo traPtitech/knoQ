@@ -39,6 +39,10 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 	// 時間整合性
 	r, err := getRoom(tx.Preload("Events"), e.RoomID)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
+		return nil
+	}
 	if err != nil {
 		return err
 	}
@@ -133,8 +137,8 @@ func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 	return nil
 }
 
-// BeforeCreate is hook
-func (r *Room) BeforeCreate(tx *gorm.DB) (err error) {
+// BeforeSave is hook
+func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
 	if r.ID != uuid.Nil {
 		return nil
 	}
@@ -145,8 +149,8 @@ func (r *Room) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-// BeforeCreate is hook
-func (g *Group) BeforeCreate(tx *gorm.DB) (err error) {
+// BeforeSave is hook
+func (g *Group) BeforeSave(tx *gorm.DB) (err error) {
 	if g.ID != uuid.Nil {
 		return nil
 	}
