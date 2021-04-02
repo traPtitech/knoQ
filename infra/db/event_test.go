@@ -4,9 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
+	"gorm.io/gorm"
 )
 
 func Test_createEvent(t *testing.T) {
@@ -113,15 +115,48 @@ func Test_updateEvent(t *testing.T) {
 
 		assert.Equal(len(params.Tags), len(e.Tags))
 	})
+
+	t.Run("update random eventID", func(t *testing.T) {
+		_, err := updateEvent(r.db, mustNewUUIDV4(t), params)
+		var me *mysql.MySQLError
+		require.ErrorAs(err, &me)
+		assert.Equal(uint16(1452), me.Number)
+	})
 }
 
 func Test_addEventTag(t *testing.T) {
-	r, _, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
+	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
 
 	t.Run("add tag", func(t *testing.T) {
-		err := addEventTag(r.db.Debug(), event.ID, domain.EventTagParams{
+		err := addEventTag(r.db, event.ID, domain.EventTagParams{
 			Name: "foo",
 		})
 		require.NoError(err)
+	})
+
+	t.Run("add tag in random eventID", func(t *testing.T) {
+		err := addEventTag(r.db, mustNewUUIDV4(t), domain.EventTagParams{
+			Name: "foo",
+		})
+		var me *mysql.MySQLError
+		require.ErrorAs(err, &me)
+		assert.Equal(uint16(1452), me.Number)
+	})
+}
+
+func Test_deleteEvent(t *testing.T) {
+	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
+
+	t.Run("delete event", func(t *testing.T) {
+		err := deleteEvent(r.db, event.ID)
+		require.NoError(err)
+
+		_, err = getEvent(r.db, event.ID)
+		assert.ErrorIs(err, gorm.ErrRecordNotFound)
+	})
+
+	t.Run("delete random eventID", func(t *testing.T) {
+		err := deleteEvent(r.db, mustNewUUIDV4(t))
+		assert.NoError(err)
 	})
 }
