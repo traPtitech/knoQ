@@ -117,7 +117,7 @@ func setupRepoWithUserGroupRoomEvent(t *testing.T, repo string) (*GormRepository
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
 
-	event, group, room, user := mustMakeEvent(t, r, "event", mustNewUUIDV4(t))
+	event, group, room, user := mustMakeEvent(t, r, "event")
 	return r, assert, require, user, group, room, event
 }
 
@@ -146,6 +146,7 @@ func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *Us
 		WriteGroupParams: domain.WriteGroupParams{
 			Name:       name,
 			Members:    nil,
+			Admins:     []uuid.UUID{user.ID},
 			JoinFreely: true,
 		},
 		CreatedBy: user.ID,
@@ -188,7 +189,7 @@ func mustMakeTag(t *testing.T, repo *GormRepository, name string) *Tag {
 }
 
 // mustMakeEvent make event. now ~ now + 1m
-func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.UUID) (*Event, *Group, *Room, *User) {
+func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Group, *Room, *User) {
 	t.Helper()
 	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10))
 	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10))
@@ -201,6 +202,7 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.
 			TimeStart:     time.Now(),
 			TimeEnd:       time.Now().Add(1 * time.Minute),
 			AllowTogether: true,
+			Admins:        []uuid.UUID{user.ID},
 			Tags: []domain.EventTagParams{
 				{Name: "gin"},
 			},
