@@ -8,6 +8,7 @@ type User struct {
 	DisplayName string
 	Icon        string
 	Privileged  bool
+	State       int
 }
 
 type UserRepository interface {
