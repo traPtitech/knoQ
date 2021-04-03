@@ -3,6 +3,7 @@ package db
 import (
 	"testing"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
@@ -30,7 +31,23 @@ func Test_createGroup(t *testing.T) {
 		var p writeGroupParams
 		require.NoError(copier.Copy(&p, &params))
 		p.Members = append(p.Members, mustNewUUIDV4(t))
-		_, err := createGroup(r.db, params)
-		require.NoError(err)
+		_, err := createGroup(r.db, p)
+		var me *mysql.MySQLError
+		require.ErrorAs(err, &me)
+		assert.Equal(uint16(1032), me.Number)
+		assert.Contains(me.Message, "group_members")
+	})
+
+	t.Run("create group with invalid admins", func(t *testing.T) {
+		var p writeGroupParams
+		require.NoError(copier.Copy(&p, &params))
+
+		p.Admins = []uuid.UUID{mustNewUUIDV4(t)}
+		_, err := createGroup(r.db, p)
+
+		var me *mysql.MySQLError
+		require.ErrorAs(err, &me)
+		assert.Equal(uint16(1032), me.Number)
+		assert.Contains(me.Message, "group_admins")
 	})
 }
