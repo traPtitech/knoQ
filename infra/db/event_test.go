@@ -8,6 +8,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/traQ/utils/random"
 	"gorm.io/gorm"
 )
 
@@ -159,4 +160,73 @@ func Test_deleteEvent(t *testing.T) {
 		err := deleteEvent(r.db, mustNewUUIDV4(t))
 		assert.NoError(err)
 	})
+}
+
+func Test_deleteEventTag(t *testing.T) {
+	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
+
+	t.Run("delete eventTag", func(t *testing.T) {
+		err := deleteEventTag(r.db, event.ID, "gin")
+		require.NoError(err)
+
+		e, err := getEvent(r.db.Preload("Tags").Preload("Tags.Tag"), event.ID)
+		require.NoError(err)
+		assert.Empty(e.Tags)
+	})
+
+	t.Run("delete locked tag", func(t *testing.T) {
+		err := addEventTag(r.db, event.ID, domain.EventTagParams{
+			Name: "LOCK", Locked: true,
+		})
+		require.NoError(err)
+
+		err = deleteEventTag(r.db, event.ID, "LOCK")
+		assert.NoError(err)
+		e, err := getEvent(r.db.Preload("Tags").Preload("Tags.Tag"), event.ID)
+		require.NoError(err)
+		assert.True(containsEventTag(e.Tags, "LOCK"))
+	})
+
+	t.Run("delete tag in random eventID", func(t *testing.T) {
+		err := addEventTag(r.db, event.ID, domain.EventTagParams{
+			Name: "gin2",
+		})
+		require.NoError(err)
+		err = deleteEventTag(r.db, mustNewUUIDV4(t), "gin2")
+		assert.NoError(err)
+
+		err = deleteEventTag(r.db, mustNewUUIDV4(t), random.AlphaNumeric(8))
+		assert.ErrorIs(err, gorm.ErrRecordNotFound)
+	})
+
+	t.Run("delete non-tag", func(t *testing.T) {
+		err := deleteEventTag(r.db, event.ID, random.AlphaNumeric(8))
+		assert.ErrorIs(err, gorm.ErrRecordNotFound)
+	})
+}
+
+func Test_getEvent(t *testing.T) {
+	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
+
+	t.Run("get Event", func(t *testing.T) {
+		e, err := getEvent(r.db, event.ID)
+		require.NoError(err)
+		assert.Equal(event.Name, e.Name)
+	})
+
+	t.Run("get random eventID", func(t *testing.T) {
+		_, err := getEvent(r.db, mustNewUUIDV4(t))
+		assert.ErrorIs(err, gorm.ErrRecordNotFound)
+	})
+}
+
+func containsEventTag(tags []EventTag, tagName string) (exist bool) {
+	exist = false
+	for _, tag := range tags {
+		if tag.Tag.Name == tagName {
+			exist = true
+			return
+		}
+	}
+	return
 }
