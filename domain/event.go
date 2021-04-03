@@ -81,3 +81,7 @@ func (e *Event) RoomTimeConsistency() bool {
 	}
 	return false
 }
+
+func (e *Event) AdminsValidation() bool {
+	return len(e.Admins) != 0
+}

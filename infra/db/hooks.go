@@ -84,6 +84,18 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	return nil
 }
 
+func (e *Event) AfterSave(tx *gorm.DB) (err error) {
+	event, err := getEvent(tx.Preload("Admins"), e.ID)
+	if err != nil {
+		return err
+	}
+	Devent := ConvertEventTodomainEvent(*event)
+	if !Devent.AdminsValidation() {
+		return NewValueError(ErrNoAdmins, "admins")
+	}
+	return nil
+}
+
 func (e *Event) BeforeDelete(tx *gorm.DB) (err error) {
 	// delete current m2m
 	err = tx.Where("event_id = ?", e.ID).Delete(&EventTag{}).Error
@@ -176,6 +188,18 @@ func (g *Group) BeforeUpdate(tx *gorm.DB) (err error) {
 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (g *Group) AfterSave(tx *gorm.DB) (err error) {
+	group, err := getGroup(tx.Preload("Admins"), g.ID)
+	if err != nil {
+		return err
+	}
+	Dgroup := ConvertGroupTodomainGroup(*group)
+	if !Dgroup.AdminsValidation() {
+		return NewValueError(ErrNoAdmins, "admins")
 	}
 	return nil
 }

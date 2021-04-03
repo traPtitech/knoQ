@@ -35,3 +35,7 @@ type GroupRepository interface {
 	GetAllGroups(info *ConInfo) ([]*Group, error)
 	GetUserBelongingGroupIDs(userID uuid.UUID, info *ConInfo) ([]uuid.UUID, error)
 }
+
+func (g *Group) AdminsValidation() bool {
+	return len(g.Admins) != 0
+}

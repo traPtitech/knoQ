@@ -27,4 +27,5 @@ var (
 	ErrTimeConsistency = errors.New("inconsistent time")
 	ErrExpression      = errors.New("invalid expression")
 	ErrRoomUndefined   = errors.New("invalid room or args")
+	ErrNoAdmins        = errors.New("no admins")
 )
