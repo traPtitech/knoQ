@@ -195,11 +195,12 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string, userID uuid.
 
 	params := WriteEventParams{
 		WriteEventParams: domain.WriteEventParams{
-			Name:      name,
-			GroupID:   group.ID,
-			RoomID:    room.ID,
-			TimeStart: time.Now(),
-			TimeEnd:   time.Now().Add(1 * time.Minute),
+			Name:          name,
+			GroupID:       group.ID,
+			RoomID:        room.ID,
+			TimeStart:     time.Now(),
+			TimeEnd:       time.Now().Add(1 * time.Minute),
+			AllowTogether: true,
 			Tags: []domain.EventTagParams{
 				{Name: "gin"},
 			},
