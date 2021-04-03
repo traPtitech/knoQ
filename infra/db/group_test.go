@@ -42,12 +42,17 @@ func Test_createGroup(t *testing.T) {
 		var p writeGroupParams
 		require.NoError(copier.Copy(&p, &params))
 
-		p.Admins = []uuid.UUID{mustNewUUIDV4(t)}
+		p.Admins = nil
 		_, err := createGroup(r.db, p)
+		assert.ErrorIs(err, ErrNoAdmins)
+
+		p.Admins = []uuid.UUID{mustNewUUIDV4(t)}
+		_, err = createGroup(r.db, p)
 
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
 		assert.Equal(uint16(1032), me.Number)
 		assert.Contains(me.Message, "group_admins")
+
 	})
 }
