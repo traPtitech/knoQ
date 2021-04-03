@@ -56,3 +56,32 @@ func Test_createGroup(t *testing.T) {
 
 	})
 }
+
+func Test_updateGroup(t *testing.T) {
+	r, assert, require, user, group := setupRepoWithUserGroup(t, common)
+
+	params := writeGroupParams{
+		CreatedBy: user.ID,
+		WriteGroupParams: domain.WriteGroupParams{
+			Name:    "update group",
+			Members: []uuid.UUID{user.ID},
+			Admins:  []uuid.UUID{user.ID},
+		},
+	}
+
+	t.Run("update group", func(t *testing.T) {
+		_, err := updateGroup(r.db, group.ID, params)
+		require.NoError(err)
+
+		g, err := getGroup(groupFullPreload(r.db), group.ID)
+		require.NoError(err)
+		assert.Len(g.Members, len(params.Members))
+	})
+
+	t.Run("update random groupID", func(t *testing.T) {
+		_, err := updateGroup(r.db, mustNewUUIDV4(t), params)
+		var me *mysql.MySQLError
+		require.ErrorAs(err, &me)
+		assert.Equal(uint16(1452), me.Number)
+	})
+}
