@@ -7,6 +7,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
+	"gorm.io/gorm"
 )
 
 func Test_createGroup(t *testing.T) {
@@ -157,5 +158,20 @@ func Test_deleteMemberOfGroup(t *testing.T) {
 	t.Run("delete invalid member", func(t *testing.T) {
 		err := deleteMemberOfGroup(r.db.Debug(), group.ID, mustNewUUIDV4(t))
 		assert.NoError(err)
+	})
+}
+
+func Test_getGroup(t *testing.T) {
+	r, assert, require, _, group := setupRepoWithUserGroup(t, common)
+
+	t.Run("get group", func(t *testing.T) {
+		g, err := getGroup(r.db, group.ID)
+		require.NoError(err)
+		assert.Equal(group.Name, g.Name)
+	})
+
+	t.Run("get random groupID", func(t *testing.T) {
+		_, err := getGroup(r.db, mustNewUUIDV4(t))
+		assert.ErrorIs(err, gorm.ErrRecordNotFound)
 	})
 }
