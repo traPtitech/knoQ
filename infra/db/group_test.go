@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
@@ -80,6 +81,32 @@ func Test_updateGroup(t *testing.T) {
 
 	t.Run("update random groupID", func(t *testing.T) {
 		_, err := updateGroup(r.db, mustNewUUIDV4(t), params)
+		var me *mysql.MySQLError
+		require.ErrorAs(err, &me)
+		assert.Equal(uint16(1452), me.Number)
+	})
+}
+
+func Test_addMemberToGroup(t *testing.T) {
+	r, assert, require, _, group := setupRepoWithUserGroup(t, common)
+
+	t.Run("add member", func(t *testing.T) {
+		user := mustMakeUser(t, r, false)
+		err := addMemberToGroup(r.db, group.ID, user.ID)
+		assert.NoError(err)
+	})
+
+	t.Run("add member to random groupID", func(t *testing.T) {
+		user := mustMakeUser(t, r, false)
+		err := addMemberToGroup(r.db, mustNewUUIDV4(t), user.ID)
+		var me *mysql.MySQLError
+		require.ErrorAs(err, &me)
+		assert.Equal(uint16(1452), me.Number)
+		fmt.Println(me.Message)
+	})
+
+	t.Run("add invalid member", func(t *testing.T) {
+		err := addMemberToGroup(r.db, group.ID, mustNewUUIDV4(t))
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
 		assert.Equal(uint16(1452), me.Number)
