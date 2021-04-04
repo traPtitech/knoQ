@@ -39,8 +39,8 @@ func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 	return getGroup(groupFullPreload(repo.db), groupID)
 }
 
-func (repo *GormRepository) GetAllGroups(groupID uuid.UUID) ([]*Group, error) {
-	return getAllGroups(groupFullPreload(repo.db), groupID)
+func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
+	return getAllGroups(groupFullPreload(repo.db))
 }
 
 func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
@@ -92,7 +92,7 @@ func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
 	return &group, err
 }
 
-func getAllGroups(db *gorm.DB, groupID uuid.UUID) ([]*Group, error) {
+func getAllGroups(db *gorm.DB) ([]*Group, error) {
 	groups := make([]*Group, 0)
 	err := db.Find(&groups).Error
 	return groups, err
