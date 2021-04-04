@@ -187,7 +187,7 @@ func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
 	return
 }
 
-func ConvertwriteGroupParamsToGroup(src writeGroupParams) (dst Group) {
+func ConvertWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
 	dst.CreatedByRefer = src.CreatedBy
 	dst.Name = src.WriteGroupParams.Name
 	dst.Description = src.WriteGroupParams.Description

@@ -142,7 +142,7 @@ func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *User) {
 	t.Helper()
 	user := mustMakeUser(t, repo, false)
-	params := writeGroupParams{
+	params := WriteGroupParams{
 		WriteGroupParams: domain.WriteGroupParams{
 			Name:       name,
 			Members:    nil,
