@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-sql-driver/mysql"
@@ -106,7 +105,6 @@ func Test_addMemberToGroup(t *testing.T) {
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
 		assert.Equal(uint16(1452), me.Number)
-		fmt.Println(me.Message)
 	})
 
 	t.Run("add invalid member", func(t *testing.T) {
@@ -114,6 +112,17 @@ func Test_addMemberToGroup(t *testing.T) {
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
 		assert.Equal(uint16(1452), me.Number)
+	})
+
+	t.Run("add duplicate member", func(t *testing.T) {
+		user := mustMakeUser(t, r, false)
+		err := addMemberToGroup(r.db, group.ID, user.ID)
+		require.NoError(err)
+
+		err = addMemberToGroup(r.db, group.ID, user.ID)
+		var me *mysql.MySQLError
+		require.ErrorAs(err, &me)
+		assert.Equal(uint16(1062), me.Number)
 	})
 }
 
@@ -143,5 +152,10 @@ func Test_deleteMemberOfGroup(t *testing.T) {
 		g, err := getGroup(r.db.Preload("Members"), group.ID)
 		require.NoError(err)
 		assert.Len(g.Members, 0)
+	})
+
+	t.Run("delete invalid member", func(t *testing.T) {
+		err := deleteMemberOfGroup(r.db.Debug(), group.ID, mustNewUUIDV4(t))
+		assert.NoError(err)
 	})
 }
