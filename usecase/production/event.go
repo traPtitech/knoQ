@@ -1,8 +1,6 @@
 package production
 
 import (
-	"errors"
-
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
@@ -53,7 +51,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 
 func (repo *Repository) AddTagToEvent(eventID uuid.UUID, tagName string, locked bool, info *domain.ConInfo) error {
 	if locked && !repo.IsEventAdmins(eventID, info) {
-		return errors.New("Forbidden")
+		return domain.ErrForbidden
 	}
 	return repo.gormRepo.AddEventTag(eventID, domain.EventTagParams{
 		Name: tagName, Locked: locked,
@@ -62,7 +60,7 @@ func (repo *Repository) AddTagToEvent(eventID uuid.UUID, tagName string, locked 
 
 func (repo *Repository) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) error {
 	if !repo.IsEventAdmins(eventID, info) {
-		return errors.New("Forbidden")
+		return domain.ErrForbidden
 	}
 
 	return repo.gormRepo.DeleteEvent(eventID)
