@@ -112,3 +112,17 @@ func Test_addMemberToGroup(t *testing.T) {
 		assert.Equal(uint16(1452), me.Number)
 	})
 }
+
+func Test_deleteGroup(t *testing.T) {
+	r, assert, _, _, group := setupRepoWithUserGroup(t, common)
+
+	t.Run("delete group", func(t *testing.T) {
+		err := deleteGroup(r.db, group.ID)
+		assert.NoError(err)
+	})
+
+	t.Run("delete random groupID", func(t *testing.T) {
+		err := deleteGroup(r.db, mustNewUUIDV4(t))
+		assert.NoError(err)
+	})
+}
