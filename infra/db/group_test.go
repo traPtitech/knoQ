@@ -93,7 +93,11 @@ func Test_addMemberToGroup(t *testing.T) {
 	t.Run("add member", func(t *testing.T) {
 		user := mustMakeUser(t, r, false)
 		err := addMemberToGroup(r.db, group.ID, user.ID)
-		assert.NoError(err)
+		require.NoError(err)
+
+		g, err := getGroup(r.db.Preload("Members"), group.ID)
+		require.NoError(err)
+		assert.Len(g.Members, 1)
 	})
 
 	t.Run("add member to random groupID", func(t *testing.T) {
@@ -124,5 +128,20 @@ func Test_deleteGroup(t *testing.T) {
 	t.Run("delete random groupID", func(t *testing.T) {
 		err := deleteGroup(r.db, mustNewUUIDV4(t))
 		assert.NoError(err)
+	})
+}
+
+func Test_deleteMemberOfGroup(t *testing.T) {
+	r, assert, require, user, group := setupRepoWithUserGroup(t, common)
+
+	t.Run("delete member", func(t *testing.T) {
+		err := addMemberToGroup(r.db, group.ID, user.ID)
+		require.NoError(err)
+
+		err = deleteMemberOfGroup(r.db, group.ID, user.ID)
+		require.NoError(err)
+		g, err := getGroup(r.db.Preload("Members"), group.ID)
+		require.NoError(err)
+		assert.Len(g.Members, 0)
 	})
 }

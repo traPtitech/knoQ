@@ -77,12 +77,14 @@ type GroupMember struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primaryKey" cvt0:"<-"`
 	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Model   `cvt:"->"`
 }
 
 type GroupAdmin struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Model   `cvt:"->"`
 }
 
 // Group is user group
