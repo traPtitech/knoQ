@@ -23,15 +23,15 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupPara
 	return updateGroup(repo.db, groupID, params)
 }
 
-func (repo *GormRepository) AddMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
+func (repo *GormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
 	return addMemberToGroup(repo.db, groupID, userID)
 }
 
-func (repo *GormRepository) DeleteGroup(db *gorm.DB, groupID uuid.UUID) error {
+func (repo *GormRepository) DeleteGroup(groupID uuid.UUID) error {
 	return deleteGroup(repo.db, groupID)
 }
 
-func (repo *GormRepository) DeleteMemberOfGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
+func (repo *GormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error {
 	return deleteMemberOfGroup(repo.db, groupID, userID)
 }
 
@@ -39,11 +39,11 @@ func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 	return getGroup(groupFullPreload(repo.db), groupID)
 }
 
-func (repo *GormRepository) GetAllGroups(db *gorm.DB, groupID uuid.UUID) ([]*Group, error) {
+func (repo *GormRepository) GetAllGroups(groupID uuid.UUID) ([]*Group, error) {
 	return getAllGroups(groupFullPreload(repo.db), groupID)
 }
 
-func (repo *GormRepository) GetUserBelongingGroupIDs(db *gorm.DB, userID uuid.UUID) ([]uuid.UUID, error) {
+func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	return getUserBelongingGroupIDs(repo.db, userID)
 }
 
