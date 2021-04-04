@@ -30,6 +30,9 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 }
 
 func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
+	if !repo.IsEventAdmins(eventID, info) {
+		return nil, domain.ErrForbidden
+	}
 	// groupの確認
 	_, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
