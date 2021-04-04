@@ -166,7 +166,7 @@ func Test_deleteEventTag(t *testing.T) {
 	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
 
 	t.Run("delete eventTag", func(t *testing.T) {
-		err := deleteEventTag(r.db, event.ID, "gin")
+		err := deleteEventTag(r.db, event.ID, "gin", false)
 		require.NoError(err)
 
 		e, err := getEvent(r.db.Preload("Tags").Preload("Tags.Tag"), event.ID)
@@ -180,7 +180,7 @@ func Test_deleteEventTag(t *testing.T) {
 		})
 		require.NoError(err)
 
-		err = deleteEventTag(r.db, event.ID, "LOCK")
+		err = deleteEventTag(r.db, event.ID, "LOCK", false)
 		assert.NoError(err)
 		e, err := getEvent(r.db.Preload("Tags").Preload("Tags.Tag"), event.ID)
 		require.NoError(err)
@@ -192,15 +192,15 @@ func Test_deleteEventTag(t *testing.T) {
 			Name: "gin2",
 		})
 		require.NoError(err)
-		err = deleteEventTag(r.db, mustNewUUIDV4(t), "gin2")
+		err = deleteEventTag(r.db, mustNewUUIDV4(t), "gin2", false)
 		assert.NoError(err)
 
-		err = deleteEventTag(r.db, mustNewUUIDV4(t), random.AlphaNumeric(8))
+		err = deleteEventTag(r.db, mustNewUUIDV4(t), random.AlphaNumeric(8), false)
 		assert.ErrorIs(err, gorm.ErrRecordNotFound)
 	})
 
 	t.Run("delete non-tag", func(t *testing.T) {
-		err := deleteEventTag(r.db, event.ID, random.AlphaNumeric(8))
+		err := deleteEventTag(r.db, event.ID, random.AlphaNumeric(8), false)
 		assert.ErrorIs(err, gorm.ErrRecordNotFound)
 	})
 }

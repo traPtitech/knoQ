@@ -59,8 +59,9 @@ type EventRepository interface {
 	// DeleteTagInEvent delete a tag in that Event
 	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, info *ConInfo) error
 
-	GetEvent(eventID uuid.UUID) (*Event, error)
+	GetEvent(eventID uuid.UUID, info *ConInfo) (*Event, error)
 	GetEvents(expr filter.Expr, info *ConInfo) ([]*Event, error)
+	IsEventAdmins(eventID uuid.UUID, info *ConInfo) bool
 
 	// GetEventActivities(day int) ([]*Event, error)
 }

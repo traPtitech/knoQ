@@ -1,6 +1,8 @@
 package production
 
 import (
+	"errors"
+
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
@@ -38,7 +40,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 		WriteEventParams: params,
 		CreatedBy:        info.ReqUserID,
 	}
-	event, err := repo.gormRepo.CreateEvent(p)
+	event, err := repo.gormRepo.UpdateEvent(eventID, p)
 	if err != nil {
 		return nil, err
 	}
@@ -46,31 +48,44 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	return &e, nil
 }
 
-func (repo *Repository) AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool, info *domain.ConInfo) error {
-	panic("not implemented") // TODO: Implement
+func (repo *Repository) AddTagToEvent(eventID uuid.UUID, tagName string, locked bool, info *domain.ConInfo) error {
+	if locked && !repo.IsEventAdmins(eventID, info) {
+		return errors.New("Forbidden")
+	}
+	return repo.gormRepo.AddEventTag(eventID, domain.EventTagParams{
+		Name: tagName, Locked: locked,
+	})
 }
 
 func (repo *Repository) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) error {
-	panic("not implemented") // TODO: Implement
+	if !repo.IsEventAdmins(eventID, info) {
+		return errors.New("Forbidden")
+	}
+
+	return repo.gormRepo.DeleteEvent(eventID)
 }
 
 // DeleteTagInEvent delete a tag in that Event
-func (repo *Repository) DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, info *domain.ConInfo) error {
-	panic("not implemented") // TODO: Implement
-}
-
-func (repo *Repository) GetEvent(eventID uuid.UUID) (*domain.Event, error) {
-	panic("not implemented") // TODO: Implement
-}
-
-//go:generate gotypeconverter -s v3.UserGroup -d domain.Group -o converter.go .
-
-func traQGroupMap(groups []*traQ.UserGroup) map[uuid.UUID]*traQ.UserGroup {
-	groupMap := make(map[uuid.UUID]*traQ.UserGroup)
-	for _, group := range groups {
-		groupMap[group.ID] = group
+func (repo *Repository) DeleteTagInEvent(eventID uuid.UUID, tagName string, info *domain.ConInfo) error {
+	deleteLocked := false
+	if !repo.IsEventAdmins(eventID, info) {
+		deleteLocked = true
 	}
-	return groupMap
+	return repo.gormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
+}
+
+func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*domain.Event, error) {
+	e, err := repo.gormRepo.GetEvent(eventID)
+	if err != nil {
+		return nil, err
+	}
+	event := db.ConvertEventTodomainEvent(*e)
+	g, err := repo.GetGroup(event.Group.ID, info)
+	if err != nil {
+		return nil, err
+	}
+	event.Group = *g
+	return &event, nil
 }
 
 func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
@@ -100,6 +115,29 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 
 	}
 	return events, nil
+}
+
+func (repo *Repository) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) bool {
+	event, err := repo.gormRepo.GetEvent(eventID)
+	if err != nil {
+		return false
+	}
+	for _, admin := range event.Admins {
+		if info.ReqUserID == admin.UserID {
+			return true
+		}
+	}
+	return false
+}
+
+//go:generate gotypeconverter -s v3.UserGroup -d domain.Group -o converter.go .
+
+func traQGroupMap(groups []*traQ.UserGroup) map[uuid.UUID]*traQ.UserGroup {
+	groupMap := make(map[uuid.UUID]*traQ.UserGroup)
+	for _, group := range groups {
+		groupMap[group.ID] = group
+	}
+	return groupMap
 }
 
 func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filter.Expr {

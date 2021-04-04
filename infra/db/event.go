@@ -36,8 +36,8 @@ func (repo *GormRepository) DeleteEvent(eventID uuid.UUID) error {
 	return deleteEvent(repo.db, eventID)
 }
 
-func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string) error {
-	return deleteEventTag(repo.db, eventID, tagName)
+func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
+	return deleteEventTag(repo.db, eventID, tagName, deleteLocked)
 }
 
 func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
@@ -79,7 +79,7 @@ func deleteEvent(db *gorm.DB, eventID uuid.UUID) error {
 	return db.Delete(&Event{ID: eventID}).Error
 }
 
-func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string) error {
+func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string, deleteLocked bool) error {
 	if eventID == uuid.Nil {
 		return NewValueError(gorm.ErrRecordNotFound, "eventID")
 	}
@@ -89,7 +89,11 @@ func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string) error {
 			Name: tagName,
 		},
 	}
-	return db.Where("locked = ?", false).Delete(&eventTag).Error
+	if !deleteLocked {
+		db = db.Where("locked = ?", false)
+	}
+
+	return db.Delete(&eventTag).Error
 }
 
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {

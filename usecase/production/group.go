@@ -64,3 +64,16 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.ConInfo) ([]uuid.UUID, error) {
 	panic("not implemented") // TODO: Implement
 }
+
+func (repo *Repository) IsGroupAdmins(groupID uuid.UUID, info *domain.ConInfo) bool {
+	group, err := repo.gormRepo.GetGroup(groupID)
+	if err != nil {
+		return false
+	}
+	for _, admin := range group.Admins {
+		if info.ReqUserID == admin.UserID {
+			return true
+		}
+	}
+	return false
+}
