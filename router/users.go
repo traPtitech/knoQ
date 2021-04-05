@@ -88,6 +88,7 @@ func (h *Handlers) HandleSyncUser(c echo.Context) error {
 	for _, user := range allUsers {
 		if user.State == 0 {
 			h.Repo.ReplaceToken(user.ID, "")
+			h.Repo.ReplaceiCalSecret(user.ID, "")
 		} else if user.State == 1 {
 			h.Repo.SaveUser(user.ID, false, true)
 		}
