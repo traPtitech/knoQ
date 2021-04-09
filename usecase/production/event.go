@@ -23,7 +23,7 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	if err != nil {
 		return nil, err
 	}
-	e := db.ConvertEventTodomainEvent(*event)
+	e := db.ConvEventTodomainEvent(*event)
 	return &e, nil
 }
 
@@ -45,7 +45,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	if err != nil {
 		return nil, err
 	}
-	e := db.ConvertEventTodomainEvent(*event)
+	e := db.ConvEventTodomainEvent(*event)
 	return &e, nil
 }
 
@@ -80,7 +80,7 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 	if err != nil {
 		return nil, err
 	}
-	event := db.ConvertEventTodomainEvent(*e)
+	event := db.ConvEventTodomainEvent(*e)
 	g, err := repo.GetGroup(event.Group.ID, info)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 	if err != nil {
 		return nil, err
 	}
-	events := db.ConvertSlicePointerEventToSlicePointerdomainEvent(es)
+	events := db.ConvSPEventToSPdomainEvent(es)
 	t, err := repo.gormRepo.GetToken(info.ReqUserID)
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 		if !ok {
 			continue
 		}
-		events[i].Group = Convertv3UserGroupTodomainGroup(*g)
+		events[i].Group = Convv3UserGroupTodomainGroup(*g)
 
 	}
 	return events, nil

@@ -28,7 +28,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 	}
 
 	// 時間整合性
-	Devent := ConvertEventTodomainEvent(*e)
+	Devent := ConvEventTodomainEvent(*e)
 	if !Devent.TimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
 	}
@@ -48,7 +48,7 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 		return err
 	}
 	e.Room = *r
-	Devent := ConvertEventTodomainEvent(*e)
+	Devent := ConvEventTodomainEvent(*e)
 	if !Devent.RoomTimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
 	}
@@ -61,7 +61,7 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
 	if err == nil {
 		e.Room = *r
-		Devent := ConvertEventTodomainEvent(*e)
+		Devent := ConvEventTodomainEvent(*e)
 		if !Devent.RoomTimeConsistency() {
 			return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
 		}
@@ -89,7 +89,7 @@ func (e *Event) AfterSave(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	Devent := ConvertEventTodomainEvent(*event)
+	Devent := ConvEventTodomainEvent(*event)
 	if !Devent.AdminsValidation() {
 		return NewValueError(ErrNoAdmins, "admins")
 	}
@@ -180,7 +180,7 @@ func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	Droom := ConvertRoomTodomainRoom(*room)
+	Droom := ConvRoomTodomainRoom(*room)
 	if !Droom.AdminsValidation() {
 		return NewValueError(ErrNoAdmins, "admins")
 	}
@@ -217,7 +217,7 @@ func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	Dgroup := ConvertGroupTodomainGroup(*group)
+	Dgroup := ConvGroupTodomainGroup(*group)
 	if !Dgroup.AdminsValidation() {
 		return NewValueError(ErrNoAdmins, "admins")
 	}

@@ -24,7 +24,7 @@ func (repo GormRepository) CreateRoom(params WriteRoomParams) (*domain.Room, err
 	if err != nil {
 		return nil, err
 	}
-	r := ConvertRoomTodomainRoom(*room)
+	r := ConvRoomTodomainRoom(*room)
 	return &r, nil
 }
 
@@ -33,7 +33,7 @@ func (repo GormRepository) UpdateRoom(roomID uuid.UUID, params WriteRoomParams) 
 	if err != nil {
 		return nil, err
 	}
-	r := ConvertRoomTodomainRoom(*room)
+	r := ConvRoomTodomainRoom(*room)
 	return &r, nil
 }
 
@@ -50,7 +50,7 @@ func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := ConvertRoomTodomainRoom(*room)
+	r := ConvRoomTodomainRoom(*room)
 	return &r, nil
 }
 
@@ -59,12 +59,12 @@ func (repo GormRepository) GetAllRoom(start, end time.Time) ([]*domain.Room, err
 	if err != nil {
 		return nil, err
 	}
-	r := ConvertSlicePointerRoomToSlicePointerdomainRoom(rooms)
+	r := ConvSPRoomToSPdomainRoom(rooms)
 	return r, nil
 }
 
 func createRoom(db *gorm.DB, roomParams WriteRoomParams) (*Room, error) {
-	room := ConvertWriteRoomParamsToRoom(roomParams)
+	room := ConvWriteRoomParamsToRoom(roomParams)
 	err := db.Create(&room).Error
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func createRoom(db *gorm.DB, roomParams WriteRoomParams) (*Room, error) {
 }
 
 func updateRoom(db *gorm.DB, roomID uuid.UUID, params WriteRoomParams) (*Room, error) {
-	room := ConvertWriteRoomParamsToRoom(params)
+	room := ConvWriteRoomParamsToRoom(params)
 	room.ID = roomID
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&room).Error
 	return &room, err

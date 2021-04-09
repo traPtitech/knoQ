@@ -48,7 +48,7 @@ func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.U
 }
 
 func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {
-	group := ConvertWriteGroupParamsToGroup(groupParams)
+	group := ConvWriteGroupParamsToGroup(groupParams)
 	err := db.Create(&group).Error
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {
 }
 
 func updateGroup(db *gorm.DB, groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
-	group := ConvertWriteGroupParamsToGroup(params)
+	group := ConvWriteGroupParamsToGroup(params)
 	group.ID = groupID
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&group).Error
 	return &group, err
@@ -102,5 +102,5 @@ func getUserBelongingGroupIDs(db *gorm.DB, userID uuid.UUID) ([]uuid.UUID, error
 	groupMembers := make([]*GroupMember, 0)
 
 	err := db.Where("user_id = ?", userID).Find(&groupMembers).Error
-	return ConvertSlicePointerGroupMemberToSliceuuidUUID(groupMembers), err
+	return ConvSPGroupMemberToSuuidUUID(groupMembers), err
 }

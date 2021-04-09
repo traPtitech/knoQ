@@ -55,14 +55,14 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 }
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
-	event := ConvertWriteEventParamsToEvent(params)
+	event := ConvWriteEventParamsToEvent(params)
 
 	err := db.Create(&event).Error
 	return &event, err
 }
 
 func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Event, error) {
-	event := ConvertWriteEventParamsToEvent(params)
+	event := ConvWriteEventParamsToEvent(params)
 	event.ID = eventID
 
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&event).Error
@@ -70,7 +70,7 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Even
 }
 
 func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
-	eventTag := ConvertdomainEventTagParamsToEventTag(params)
+	eventTag := ConvdomainEventTagParamsToEventTag(params)
 	eventTag.EventID = eventID
 	return db.Create(&eventTag).Error
 }

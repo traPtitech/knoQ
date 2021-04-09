@@ -6,7 +6,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 )
 
-func ConvertEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain.WriteEventParams) {
+func ConvEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain.WriteEventParams) {
 	dst.Name = src.Name
 	dst.Description = src.Description
 	dst.GroupID = src.GroupID
@@ -17,135 +17,120 @@ func ConvertEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain
 	dst.AllowTogether = src.AllowTogether
 	dst.Tags = make([]domain.EventTagParams, len(src.Tags))
 	for i := range src.Tags {
-		dst.Tags[i].Name = src.Tags[i].Name
-		dst.Tags[i].Locked = src.Tags[i].Locked
+		dst.Tags[i] = domain.EventTagParams(src.Tags[i])
 	}
 	return
 }
 
-func ConvertGroupReqTodomainWriteGroupParams(src GroupReq) (dst domain.WriteGroupParams) {
-	dst.Name = src.Name
-	dst.Description = src.Description
-	dst.JoinFreely = src.JoinFreely
-	dst.Members = src.Members
-	dst.Admins = src.Admins
+func ConvGroupReqTodomainWriteGroupParams(src GroupReq) (dst domain.WriteGroupParams) {
+	dst = domain.WriteGroupParams(src)
 	return
 }
 
-func ConvertRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams) {
+func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams) {
 	dst.Place = src.Place
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	return
 }
-func ConvertdomainEventTagToEventTagRes(src domain.EventTag) (dst EventTagRes) {
+func ConvdomainEventTagToEventTagRes(src domain.EventTag) (dst EventTagRes) {
 	dst.Locked = src.Locked
 	return
 }
 
-func ConvertdomainEventToEventResMulti(src domain.Event) (dst EventResMulti) {
+func ConvdomainEventToEventResMulti(src domain.Event) (dst EventResMulti) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
 	dst.AllowTogether = src.AllowTogether
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
-	dst.RoomID = ConvertdomainRoomTouuidUUID(src.Room)
-	dst.GroupID = ConvertdomainGroupTouuidUUID(src.Group)
+	dst.RoomID = ConvdomainRoomTouuidUUID(src.Room)
+	dst.GroupID = ConvdomainGroupTouuidUUID(src.Group)
 	dst.Place = src.Room.Place
 	dst.GroupName = src.Group.Name
 	dst.Admins = make([]uuid.UUID, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = ConvertdomainUserTouuidUUID(src.Admins[i])
+		dst.Admins[i] = ConvdomainUserTouuidUUID(src.Admins[i])
 	}
 	dst.Tags = src.Tags
-	dst.CreatedBy = ConvertdomainUserTouuidUUID(src.CreatedBy)
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = src.Model.DeletedAt
+	dst.CreatedBy = ConvdomainUserTouuidUUID(src.CreatedBy)
+	dst.Model = Model(src.Model)
 	return
 }
-func ConvertdomainEventToEventResOne(src domain.Event) (dst EventResOne) {
+func ConvdomainEventToEventResOne(src domain.Event) (dst EventResOne) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	dst.Room = ConvertdomainRoomToRoomRes(src.Room)
-	dst.Group = ConvertdomainGroupToGroupResOne(src.Group)
+	dst.Room = ConvdomainRoomToRoomRes(src.Room)
+	dst.Group = ConvdomainGroupToGroupResOne(src.Group)
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
-	dst.CreatedBy = ConvertdomainUserToUserRes(src.CreatedBy)
+	dst.CreatedBy = ConvdomainUserToUserRes(src.CreatedBy)
 	dst.Admins = make([]UserRes, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = ConvertdomainUserToUserRes(src.Admins[i])
+		dst.Admins[i] = ConvdomainUserToUserRes(src.Admins[i])
 	}
 	dst.Tags = make([]EventTagRes, len(src.Tags))
 	for i := range src.Tags {
-		dst.Tags[i] = ConvertdomainEventTagToEventTagRes(src.Tags[i])
+		dst.Tags[i] = ConvdomainEventTagToEventTagRes(src.Tags[i])
 	}
 	dst.AllowTogether = src.AllowTogether
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = src.Model.DeletedAt
+	dst.Model = Model(src.Model)
 	return
 }
 
-func ConvertdomainGroupToGroupResOne(src domain.Group) (dst GroupResOne) {
+func ConvdomainGroupToGroupResOne(src domain.Group) (dst GroupResOne) {
 	dst.ID = src.ID
 	dst.GroupReq.Name = src.Name
 	dst.GroupReq.Description = src.Description
 	dst.GroupReq.JoinFreely = src.JoinFreely
 	dst.GroupReq.Members = make([]uuid.UUID, len(src.Members))
 	for i := range src.Members {
-		dst.GroupReq.Members[i] = ConvertdomainUserTouuidUUID(src.Members[i])
+		dst.GroupReq.Members[i] = ConvdomainUserTouuidUUID(src.Members[i])
 	}
 	dst.GroupReq.Admins = make([]uuid.UUID, len(src.Admins))
 	for i := range src.Admins {
-		dst.GroupReq.Admins[i] = ConvertdomainUserTouuidUUID(src.Admins[i])
+		dst.GroupReq.Admins[i] = ConvdomainUserTouuidUUID(src.Admins[i])
 	}
-	dst.CreatedBy = ConvertdomainUserTouuidUUID(src.CreatedBy)
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = src.Model.DeletedAt
+	dst.CreatedBy = ConvdomainUserTouuidUUID(src.CreatedBy)
+	dst.Model = Model(src.Model)
 	return
 }
-func ConvertdomainGroupTouuidUUID(src domain.Group) (dst uuid.UUID) {
+func ConvdomainGroupTouuidUUID(src domain.Group) (dst uuid.UUID) {
 	dst = src.ID
 	return
 }
 
-func ConvertdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
+func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 	dst.ID = src.ID
 	dst.Verified = src.Verified
 	dst.RoomReq.Place = src.Place
 	dst.RoomReq.TimeStart = src.TimeStart
 	dst.RoomReq.TimeEnd = src.TimeEnd
-	dst.CreatedBy = ConvertdomainUserToUserRes(src.CreatedBy)
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = src.Model.DeletedAt
+	dst.CreatedBy = ConvdomainUserToUserRes(src.CreatedBy)
+	dst.Model = Model(src.Model)
 	return
 }
-func ConvertdomainRoomTouuidUUID(src domain.Room) (dst uuid.UUID) {
+func ConvdomainRoomTouuidUUID(src domain.Room) (dst uuid.UUID) {
 	dst = src.ID
 	return
 }
 
-func ConvertdomainTagToTagRes(src domain.Tag) (dst TagRes) {
+func ConvdomainTagToTagRes(src domain.Tag) (dst TagRes) {
 	dst.ID = src.ID
 	dst.Name = src.Name
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = src.Model.DeletedAt
+	dst.Model = Model(src.Model)
 	return
 }
-func ConvertdomainUserToUserRes(src domain.User) (dst UserRes) {
+func ConvdomainUserToUserRes(src domain.User) (dst UserRes) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.DisplayName = src.DisplayName
 	dst.Privileged = src.Privileged
 	return
 }
-func ConvertdomainUserTouuidUUID(src domain.User) (dst uuid.UUID) {
+func ConvdomainUserTouuidUUID(src domain.User) (dst uuid.UUID) {
 	dst = src.ID
 	return
 }

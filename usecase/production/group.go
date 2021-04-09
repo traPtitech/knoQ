@@ -18,7 +18,7 @@ func (repo *Repository) CreateGroup(params domain.WriteGroupParams, info *domain
 	if err != nil {
 		return nil, err
 	}
-	group := db.ConvertGroupTodomainGroup(*g)
+	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
 }
 
@@ -34,7 +34,7 @@ func (repo *Repository) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupP
 	if err != nil {
 		return nil, err
 	}
-	group := db.ConvertGroupTodomainGroup(*g)
+	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
 }
 
@@ -77,12 +77,12 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 			if err != nil {
 				return nil, err
 			}
-			group = Convertv3UserGroupTodomainGroup(*g)
+			group = Convv3UserGroupTodomainGroup(*g)
 		} else {
 			return nil, err
 		}
 	} else {
-		group = db.ConvertGroupTodomainGroup(*g)
+		group = db.ConvGroupTodomainGroup(*g)
 	}
 	return &group, nil
 }
@@ -97,12 +97,12 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 	if err != nil {
 		return nil, err
 	}
-	groups = append(groups, db.ConvertSlicePointerGroupToSlicePointerdomainGroup(gg)...)
+	groups = append(groups, db.ConvSPGroupToSPdomainGroup(gg)...)
 	tg, err := repo.traQRepo.GetAllGroups(t)
 	if err != nil {
 		return nil, err
 	}
-	groups = append(groups, ConvertSlicePointerv3UserGroupToSlicePointerdomainGroup(tg)...)
+	groups = append(groups, ConvSPv3UserGroupToSPdomainGroup(tg)...)
 
 	return groups, nil
 }
