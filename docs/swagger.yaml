@@ -605,6 +605,12 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/duration'
+        admins: &admins
+          type: array
+          description: 編集権を持つユーザー
+          items:
+            type: string
+            format: uuid
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
@@ -614,6 +620,7 @@ components:
         place: *place
         timeStart: *time
         timeEnd: *time
+        admins: *admins
 
     ResponseGroup:
       type: object
@@ -633,12 +640,7 @@ components:
           items:
             type: string
             format: uuid
-        admins: &admins
-          type: array
-          description: 編集権を持つユーザー
-          items:
-            type: string
-            format: uuid
+        admins: *admins
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
