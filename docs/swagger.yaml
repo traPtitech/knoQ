@@ -665,7 +665,7 @@ components:
       properties:
         name: *tagName
 
-    ResponseEventDetail:
+    ResponseEvent:
       type: object
       properties:
         eventId: *uuid
@@ -698,7 +698,7 @@ components:
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
-    ResponseEvent:
+    ResponseEventDetail:
       type: object
       properties:
         eventId: *uuid
@@ -710,9 +710,9 @@ components:
         place: *place
         groupName: *groupName
         room:
-          $ref: '#/components/schemas/Room'
+          $ref: '#/components/schemas/ResponseRoom'
         group:
-          $ref: '#/components/schemas/Group'
+          $ref: '#/components/schemas/ResponseGroup'
         admins: *admins
         tags: *eventTags
         createdBy: *uuid
@@ -875,7 +875,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Group'
+            $ref: '#/components/schemas/ResponseGroup'
     GroupArray:
       description: successful operation
       content:
