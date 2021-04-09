@@ -77,19 +77,20 @@ type GroupMember struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primaryKey" cvt0:"<-"`
 	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model   `cvt:"->"`
+	Model   `cvt:"-"`
 }
 
 type GroupAdmin struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model   `cvt:"->"`
+	Model   `cvt:"-"`
 }
 
 // Group is user group
-//go:generate gotypeconverter -s writeGroupParams -d Group -o converter.go .
+//go:generate gotypeconverter -s WriteGroupParams -d Group -o converter.go .
 //go:generate gotypeconverter -s Group -d domain.Group -o converter.go .
+//go:generate gotypeconverter -s []*Group -d []*domain.Group -o converter.go .
 type Group struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name           string    `gorm:"type:varchar(32);not null"`

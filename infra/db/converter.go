@@ -48,11 +48,6 @@ func ConvertGroupAdminTodomainUser(src GroupAdmin) (dst domain.User) {
 	dst.ID = src.UserID
 	return
 }
-func ConvertGroupAdminsTodomainUser(src GroupAdmin) (dst domain.User) {
-	dst.ID = src.UserID
-	return
-}
-
 func ConvertGroupMemberTodomainUser(src GroupMember) (dst domain.User) {
 	dst.ID = src.UserID
 	return
@@ -110,6 +105,15 @@ func ConvertSlicePointerGroupMemberToSliceuuidUUID(src []*GroupMember) (dst []uu
 	}
 	return
 }
+
+func ConvertSlicePointerGroupToSlicePointerdomainGroup(src []*Group) (dst []*domain.Group) {
+	dst = make([]*domain.Group, len(src))
+	for i := range src {
+		dst[i] = new(domain.Group)
+		(*dst[i]) = ConvertGroupTodomainGroup((*src[i]))
+	}
+	return
+}
 func ConvertTagTodomainEventTag(src Tag) (dst domain.EventTag) {
 	dst.Tag.ID = src.ID
 	dst.Tag.Name = src.Name
@@ -132,6 +136,7 @@ func ConvertUserMetaTodomainUser(src User) (dst domain.User) {
 
 func ConvertUserTodomainUser(src User) (dst domain.User) {
 	dst.ID = src.ID
+	dst.State = src.State
 	return
 }
 func ConvertWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
@@ -151,6 +156,21 @@ func ConvertWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
 	for i := range src.WriteEventParams.Tags {
 		dst.Tags[i] = ConvertdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
+	}
+	return
+}
+func ConvertWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
+	dst.CreatedByRefer = src.CreatedBy
+	dst.Name = src.WriteGroupParams.Name
+	dst.Description = src.WriteGroupParams.Description
+	dst.JoinFreely = src.WriteGroupParams.JoinFreely
+	dst.Members = make([]GroupMember, len(src.WriteGroupParams.Members))
+	for i := range src.WriteGroupParams.Members {
+		dst.Members[i] = ConvertuuidUUIDToGroupMember(src.WriteGroupParams.Members[i])
+	}
+	dst.Admins = make([]GroupAdmin, len(src.WriteGroupParams.Admins))
+	for i := range src.WriteGroupParams.Admins {
+		dst.Admins[i] = ConvertuuidUUIDToGroupAdmin(src.WriteGroupParams.Admins[i])
 	}
 	return
 }
@@ -187,21 +207,6 @@ func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
 	return
 }
 
-func ConvertWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
-	dst.CreatedByRefer = src.CreatedBy
-	dst.Name = src.WriteGroupParams.Name
-	dst.Description = src.WriteGroupParams.Description
-	dst.JoinFreely = src.WriteGroupParams.JoinFreely
-	dst.Members = make([]GroupMember, len(src.WriteGroupParams.Members))
-	for i := range src.WriteGroupParams.Members {
-		dst.Members[i] = ConvertuuidUUIDToGroupMember(src.WriteGroupParams.Members[i])
-	}
-	dst.Admins = make([]GroupAdmin, len(src.WriteGroupParams.Admins))
-	for i := range src.WriteGroupParams.Admins {
-		dst.Admins[i] = ConvertuuidUUIDToGroupAdmin(src.WriteGroupParams.Admins[i])
-	}
-	return
-}
 func ConvertwriteRoomParamsToRoom(src writeRoomParams) (dst Room) {
 	dst.Verified = src.Verified
 	dst.CreatedByRefer = src.CreatedBy
