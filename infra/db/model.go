@@ -66,7 +66,9 @@ type RoomAdmin struct {
 }
 
 // Room is
-//go:generate gotypeconverter -s writeRoomParams -d Room -o converter.go .
+//go:generate gotypeconverter -s WriteRoomParams -d Room -o converter.go .
+//go:generate gotypeconverter -s Room -d domain.Room -o converter.go .
+//go:generate gotypeconverter -s []*Room -d []*domain.Room -o converter.go .
 type Room struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Place          string    `gorm:"type:varchar(32);"`

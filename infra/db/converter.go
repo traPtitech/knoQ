@@ -73,6 +73,10 @@ func ConvertGroupTodomainGroup(src Group) (dst domain.Group) {
 	dst.IsTraQGroup = src.Model.DeletedAt.Valid
 	return
 }
+func ConvertRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
+	dst.ID = src.UserID
+	return
+}
 func ConvertRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
 	dst.Place = src.Place
@@ -82,6 +86,10 @@ func ConvertRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.Events = make([]domain.Event, len(src.Events))
 	for i := range src.Events {
 		dst.Events[i] = ConvertEventTodomainEvent(src.Events[i])
+	}
+	dst.Admins = make([]domain.User, len(src.Admins))
+	for i := range src.Admins {
+		dst.Admins[i] = ConvertRoomAdminTodomainUser(src.Admins[i])
 	}
 	dst.CreatedBy = ConvertUserTodomainUser(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt
@@ -111,6 +119,14 @@ func ConvertSlicePointerGroupToSlicePointerdomainGroup(src []*Group) (dst []*dom
 	for i := range src {
 		dst[i] = new(domain.Group)
 		(*dst[i]) = ConvertGroupTodomainGroup((*src[i]))
+	}
+	return
+}
+func ConvertSlicePointerRoomToSlicePointerdomainRoom(src []*Room) (dst []*domain.Room) {
+	dst = make([]*domain.Room, len(src))
+	for i := range src {
+		dst[i] = new(domain.Room)
+		(*dst[i]) = ConvertRoomTodomainRoom((*src[i]))
 	}
 	return
 }
@@ -174,6 +190,18 @@ func ConvertWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
 	}
 	return
 }
+func ConvertWriteRoomParamsToRoom(src WriteRoomParams) (dst Room) {
+	dst.Verified = src.Verified
+	dst.CreatedByRefer = src.CreatedBy
+	dst.Place = src.WriteRoomParams.Place
+	dst.TimeStart = src.WriteRoomParams.TimeStart
+	dst.TimeEnd = src.WriteRoomParams.TimeEnd
+	dst.Admins = make([]RoomAdmin, len(src.WriteRoomParams.Admins))
+	for i := range src.WriteRoomParams.Admins {
+		dst.Admins[i] = ConvertuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
+	}
+	return
+}
 
 func ConvertdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst EventTag) {
 	dst.Tag.Name = src.Name
@@ -202,16 +230,11 @@ func ConvertuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
 	dst.UserID = src
 	return
 }
-func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
-	dst.ID = src
+func ConvertuuidUUIDToRoomAdmin(src uuid.UUID) (dst RoomAdmin) {
+	dst.UserID = src
 	return
 }
-
-func ConvertWriteRoomParamsToRoom(src WriteRoomParams) (dst Room) {
-	dst.Verified = src.Verified
-	dst.CreatedByRefer = src.CreatedBy
-	dst.Place = src.WriteRoomParams.Place
-	dst.TimeStart = src.WriteRoomParams.TimeStart
-	dst.TimeEnd = src.WriteRoomParams.TimeEnd
+func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
+	dst.ID = src
 	return
 }

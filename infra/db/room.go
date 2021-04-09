@@ -9,7 +9,7 @@ import (
 )
 
 func roomFullPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Events")
+	return tx.Preload("Events").Preload("Admins")
 }
 
 type WriteRoomParams struct {
@@ -17,6 +17,50 @@ type WriteRoomParams struct {
 
 	Verified  bool
 	CreatedBy uuid.UUID
+}
+
+func (repo GormRepository) CreateRoom(params WriteRoomParams) (*domain.Room, error) {
+	room, err := createRoom(repo.db, params)
+	if err != nil {
+		return nil, err
+	}
+	r := ConvertRoomTodomainRoom(*room)
+	return &r, nil
+}
+
+func (repo GormRepository) UpdateRoom(roomID uuid.UUID, params WriteRoomParams) (*domain.Room, error) {
+	room, err := updateRoom(repo.db, roomID, params)
+	if err != nil {
+		return nil, err
+	}
+	r := ConvertRoomTodomainRoom(*room)
+	return &r, nil
+}
+
+func (repo GormRepository) UpdateRoomVerified(roomID uuid.UUID, verified bool) error {
+	return updateRoomVerified(repo.db, roomID, verified)
+}
+
+func (repo GormRepository) DeleteRoom(roomID uuid.UUID) error {
+	return deleteRoom(repo.db, roomID)
+}
+
+func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
+	room, err := getRoom(roomFullPreload(repo.db), roomID)
+	if err != nil {
+		return nil, err
+	}
+	r := ConvertRoomTodomainRoom(*room)
+	return &r, nil
+}
+
+func (repo GormRepository) GetAllRoom(start, end time.Time) ([]*domain.Room, error) {
+	rooms, err := getAllRooms(roomFullPreload(repo.db), start, end)
+	if err != nil {
+		return nil, err
+	}
+	r := ConvertSlicePointerRoomToSlicePointerdomainRoom(rooms)
+	return r, nil
 }
 
 func createRoom(db *gorm.DB, roomParams WriteRoomParams) (*Room, error) {
@@ -35,7 +79,7 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, params WriteRoomParams) (*Room, e
 	return &room, err
 }
 
-func updateVerified(db *gorm.DB, roomID uuid.UUID, verified bool) error {
+func updateRoomVerified(db *gorm.DB, roomID uuid.UUID, verified bool) error {
 	return db.Model(&Room{}).Where("id = ?", roomID).Update("verified", verified).Error
 }
 
@@ -55,13 +99,12 @@ func getRoom(db *gorm.DB, roomID uuid.UUID) (*Room, error) {
 
 func getAllRooms(db *gorm.DB, start, end time.Time) ([]*Room, error) {
 	rooms := make([]*Room, 0)
-	cmd := roomFullPreload(db)
 	if !start.IsZero() {
-		cmd = cmd.Where("time_start >= ?", start)
+		db = db.Where("time_start >= ?", start)
 	}
 	if !end.IsZero() {
-		cmd = cmd.Where("time_end <= ?", end)
+		db = db.Where("time_end <= ?", end)
 	}
-	err := cmd.Order("time_start").Find(&rooms).Error
+	err := db.Order("time_start").Find(&rooms).Error
 	return rooms, err
 }
