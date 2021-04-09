@@ -31,7 +31,7 @@ func createRoom(db *gorm.DB, roomParams WriteRoomParams) (*Room, error) {
 func updateRoom(db *gorm.DB, roomID uuid.UUID, params WriteRoomParams) (*Room, error) {
 	room := ConvertWriteRoomParamsToRoom(params)
 	room.ID = roomID
-	err := db.Save(&room).Error
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&room).Error
 	return &room, err
 }
 

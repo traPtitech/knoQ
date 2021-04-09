@@ -129,3 +129,7 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 	}
 	return nil
 }
+
+func (r *Room) AdminsValidation() bool {
+	return len(r.Admins) != 0
+}

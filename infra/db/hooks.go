@@ -167,6 +167,26 @@ func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
 	return nil
 }
 
+func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
+	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Room) AfterSave(tx *gorm.DB) (err error) {
+	room, err := getRoom(tx.Preload("Admins"), r.ID)
+	if err != nil {
+		return err
+	}
+	Droom := ConvertRoomTodomainRoom(*room)
+	if !Droom.AdminsValidation() {
+		return NewValueError(ErrNoAdmins, "admins")
+	}
+	return nil
+}
+
 // BeforeSave is hook
 func (g *Group) BeforeSave(tx *gorm.DB) (err error) {
 	if g.ID != uuid.Nil {
