@@ -35,6 +35,10 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, params WriteRoomParams) (*Room, e
 	return &room, err
 }
 
+func updateVerified(db *gorm.DB, roomID uuid.UUID, verified bool) error {
+	return db.Model(&Room{}).Where("id = ?", roomID).Update("verified", verified).Error
+}
+
 func deleteRoom(db *gorm.DB, roomID uuid.UUID) error {
 	room := Room{
 		ID: roomID,
