@@ -207,7 +207,7 @@ func ConvertuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
 	return
 }
 
-func ConvertwriteRoomParamsToRoom(src writeRoomParams) (dst Room) {
+func ConvertWriteRoomParamsToRoom(src WriteRoomParams) (dst Room) {
 	dst.Verified = src.Verified
 	dst.CreatedByRefer = src.CreatedBy
 	dst.Place = src.WriteRoomParams.Place

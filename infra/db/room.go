@@ -12,15 +12,15 @@ func roomFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Events")
 }
 
-type writeRoomParams struct {
+type WriteRoomParams struct {
 	domain.WriteRoomParams
 
 	Verified  bool
 	CreatedBy uuid.UUID
 }
 
-func createRoom(db *gorm.DB, roomParams writeRoomParams) (*Room, error) {
-	room := ConvertwriteRoomParamsToRoom(roomParams)
+func createRoom(db *gorm.DB, roomParams WriteRoomParams) (*Room, error) {
+	room := ConvertWriteRoomParamsToRoom(roomParams)
 	err := db.Create(&room).Error
 	if err != nil {
 		return nil, err
@@ -28,8 +28,8 @@ func createRoom(db *gorm.DB, roomParams writeRoomParams) (*Room, error) {
 	return &room, nil
 }
 
-func updateRoom(db *gorm.DB, roomID uuid.UUID, params writeRoomParams) (*Room, error) {
-	room := ConvertwriteRoomParamsToRoom(params)
+func updateRoom(db *gorm.DB, roomID uuid.UUID, params WriteRoomParams) (*Room, error) {
+	room := ConvertWriteRoomParamsToRoom(params)
 	room.ID = roomID
 	err := db.Save(&room).Error
 	return &room, err

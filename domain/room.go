@@ -14,6 +14,7 @@ type Room struct {
 	TimeStart time.Time
 	TimeEnd   time.Time
 	Events    []Event
+	Admins    []User
 	CreatedBy User
 	Model
 }
@@ -24,6 +25,8 @@ type WriteRoomParams struct {
 	// Verifeid indicates if the room has been verified by privileged users.
 	TimeStart time.Time
 	TimeEnd   time.Time
+
+	Admins []uuid.UUID
 }
 
 type RoomRepository interface {
@@ -31,7 +34,7 @@ type RoomRepository interface {
 	UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams, info *ConInfo) (*Room, error)
 	DeleteRoom(roomID uuid.UUID, info *ConInfo) error
 	GetRoom(roomID uuid.UUID) (*Room, error)
-	GetAllRooms(start *time.Time, end *time.Time) ([]*Room, error)
+	GetAllRooms(start time.Time, end time.Time) ([]*Room, error)
 }
 
 // StartEndTime has start and end time
