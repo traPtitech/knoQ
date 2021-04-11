@@ -48,8 +48,6 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	// defer close(quit)
 	go store.PeriodicCleanup(1*time.Hour, quit)
 
-	e.Use(h.WatchCallbackMiddleware())
-
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://portal.trap.jp", "http://localhost:8080"},

@@ -106,56 +106,6 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 	}
 }
 
-// WatchCallbackMiddleware /callback?code= を監視
-func (h *Handlers) WatchCallbackMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			path := c.Request().URL.Path
-			if path != "/callback" {
-				return next(c)
-			}
-			code := c.QueryParam("code")
-
-			sess, _ := session.Get("session", c)
-			sessionID, ok := sess.Values["ID"].(string)
-			if !ok {
-				return internalServerError(errors.New("sessionID can not parse string"))
-			}
-			codeVerifier, ok := verifierCache.Get(sessionID)
-			if !ok {
-				return internalServerError(errors.New("codeVerifier is not cached"))
-			}
-
-			token, err := requestOAuth(h.ClientID, code, codeVerifier.(string))
-			if err != nil {
-				return internalServerError(err)
-			}
-
-			// TODO fix
-			bytes, _ := utils.GetUserMe(token)
-			userID := new(UserID)
-			json.Unmarshal(bytes, userID)
-
-			// sess.Values["authorization"] = token
-			_, err = h.Repo.SaveUser(userID.Value, false, true)
-			if err != nil && !errors.Is(err, repo.ErrAlreadyExists) {
-				return internalServerError(err)
-			}
-			if err := h.Dao.Repo.ReplaceToken(userID.Value, token); err != nil {
-				return internalServerError(err)
-			}
-			sess.Values["userID"] = userID.Value.String()
-			// sess.Options = &h.SessionOption
-			err = sess.Save(c.Request(), c.Response())
-			if err != nil {
-				return internalServerError(err)
-			}
-
-			return next(c)
-		}
-	}
-}
-
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {

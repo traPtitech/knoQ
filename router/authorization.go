@@ -1,6 +1,7 @@
 package router
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -43,4 +44,31 @@ func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusCreated, authParams)
+}
+
+func (h *Handlers) HandleCallback(c echo.Context) error {
+	sess, _ := session.Get("session", c)
+	sessionID, ok := sess.Values["ID"].(string)
+	if !ok {
+		return internalServerError(errors.New("session error"))
+	}
+	codeVerifier, ok := verifierCache.Get(sessionID)
+	if !ok {
+		return internalServerError(errors.New("codeVerifier is not cached"))
+	}
+	state, ok := stateCache.Get(sessionID)
+	if !ok {
+		return internalServerError(errors.New("state is not cached"))
+	}
+	user, err := h.repo.LoginUser(c.QueryString(), state.(string), codeVerifier.(string))
+	if err != nil {
+		return internalServerError(err)
+	}
+
+	sess.Values["userID"] = user.ID
+	err = sess.Save(c.Request(), c.Response())
+	if err != nil {
+		return internalServerError(err)
+	}
+	return c.Redirect(http.StatusFound, "/callback")
 }

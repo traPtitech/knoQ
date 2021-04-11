@@ -50,14 +50,14 @@ func (repo *Repository) GetOAuthURL() (url, state, codeVerifier string) {
 	return repo.traQRepo.GetOAuthURL()
 }
 
-func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
+func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.User, error) {
 	t, err := repo.traQRepo.GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	traQUser, err := repo.traQRepo.GetUserMe(t)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	user := db.User{
 		ID:    traQUser.ID,
@@ -73,7 +73,12 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
 		},
 	}
 	_, err = repo.gormRepo.SaveUser(user)
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return repo.GetUser(user.ID, &domain.ConInfo{
+		ReqUserID: user.ID,
+	})
 }
 
 func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
