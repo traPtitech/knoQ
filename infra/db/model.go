@@ -68,7 +68,8 @@ type RoomAdmin struct {
 }
 
 // Room is
-//go:generate gotypeconverter -s WriteRoomParams -d Room -o converter.go .
+//go:generate gotypeconverter -s CreateRoomParams -d Room -o converter.go .
+//go:generate gotypeconverter -s UpdateRoomParams -d Room -o converter.go .
 //go:generate gotypeconverter -s Room -d domain.Room -o converter.go .
 //go:generate gotypeconverter -s []*Room -d []*domain.Room -o converter.go .
 type Room struct {

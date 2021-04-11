@@ -9,7 +9,7 @@ import (
 )
 
 func (repo *Repository) CreateUnVerifiedRoom(params domain.WriteRoomParams, info *domain.ConInfo) (*domain.Room, error) {
-	p := db.WriteRoomParams{
+	p := db.CreateRoomParams{
 		WriteRoomParams: params,
 		Verified:        false,
 		CreatedBy:       info.ReqUserID,
@@ -21,7 +21,7 @@ func (repo *Repository) CreateVerifiedRoom(params domain.WriteRoomParams, info *
 	if !repo.IsPrevilege(info) {
 		return nil, domain.ErrForbidden
 	}
-	p := db.WriteRoomParams{
+	p := db.CreateRoomParams{
 		WriteRoomParams: params,
 		Verified:        true,
 		CreatedBy:       info.ReqUserID,
@@ -34,7 +34,7 @@ func (repo *Repository) UpdateRoom(roomID uuid.UUID, params domain.WriteRoomPara
 		return nil, domain.ErrForbidden
 	}
 
-	p := db.WriteRoomParams{
+	p := db.UpdateRoomParams{
 		WriteRoomParams: params,
 		CreatedBy:       info.ReqUserID,
 	}

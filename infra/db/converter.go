@@ -9,6 +9,18 @@ import (
 	"gorm.io/gorm"
 )
 
+func ConvCreateRoomParamsToRoom(src CreateRoomParams) (dst Room) {
+	dst.Verified = src.Verified
+	dst.CreatedByRefer = src.CreatedBy
+	dst.Place = src.WriteRoomParams.Place
+	dst.TimeStart = src.WriteRoomParams.TimeStart
+	dst.TimeEnd = src.WriteRoomParams.TimeEnd
+	dst.Admins = make([]RoomAdmin, len(src.WriteRoomParams.Admins))
+	for i := range src.WriteRoomParams.Admins {
+		dst.Admins[i] = ConvuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
+	}
+	return
+}
 func ConvEventAdminToRoomAdmin(src EventAdmin) (dst RoomAdmin) {
 	dst.UserID = src.UserID
 	return
@@ -158,6 +170,17 @@ func ConvTagTodomainTag(src Tag) (dst domain.Tag) {
 	(*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
+func ConvUpdateRoomParamsToRoom(src UpdateRoomParams) (dst Room) {
+	dst.CreatedByRefer = src.CreatedBy
+	dst.Place = src.WriteRoomParams.Place
+	dst.TimeStart = src.WriteRoomParams.TimeStart
+	dst.TimeEnd = src.WriteRoomParams.TimeEnd
+	dst.Admins = make([]RoomAdmin, len(src.WriteRoomParams.Admins))
+	for i := range src.WriteRoomParams.Admins {
+		dst.Admins[i] = ConvuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
+	}
+	return
+}
 func ConvUserMetaTodomainUser(src User) (dst domain.User) {
 	dst.ID = src.ID
 	return
@@ -200,18 +223,6 @@ func ConvWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
 	dst.Admins = make([]GroupAdmin, len(src.WriteGroupParams.Admins))
 	for i := range src.WriteGroupParams.Admins {
 		dst.Admins[i] = ConvuuidUUIDToGroupAdmin(src.WriteGroupParams.Admins[i])
-	}
-	return
-}
-func ConvWriteRoomParamsToRoom(src WriteRoomParams) (dst Room) {
-	dst.Verified = src.Verified
-	dst.CreatedByRefer = src.CreatedBy
-	dst.Place = src.WriteRoomParams.Place
-	dst.TimeStart = src.WriteRoomParams.TimeStart
-	dst.TimeEnd = src.WriteRoomParams.TimeEnd
-	dst.Admins = make([]RoomAdmin, len(src.WriteRoomParams.Admins))
-	for i := range src.WriteRoomParams.Admins {
-		dst.Admins[i] = ConvuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
 	}
 	return
 }

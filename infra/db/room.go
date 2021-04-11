@@ -12,14 +12,20 @@ func roomFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Events").Preload("Admins")
 }
 
-type WriteRoomParams struct {
+type CreateRoomParams struct {
 	domain.WriteRoomParams
 
 	Verified  bool
 	CreatedBy uuid.UUID
 }
 
-func (repo GormRepository) CreateRoom(params WriteRoomParams) (*domain.Room, error) {
+type UpdateRoomParams struct {
+	domain.WriteRoomParams
+
+	CreatedBy uuid.UUID
+}
+
+func (repo GormRepository) CreateRoom(params CreateRoomParams) (*domain.Room, error) {
 	room, err := createRoom(repo.db, params)
 	if err != nil {
 		return nil, err
@@ -28,7 +34,7 @@ func (repo GormRepository) CreateRoom(params WriteRoomParams) (*domain.Room, err
 	return &r, nil
 }
 
-func (repo GormRepository) UpdateRoom(roomID uuid.UUID, params WriteRoomParams) (*domain.Room, error) {
+func (repo GormRepository) UpdateRoom(roomID uuid.UUID, params UpdateRoomParams) (*domain.Room, error) {
 	room, err := updateRoom(repo.db, roomID, params)
 	if err != nil {
 		return nil, err
@@ -63,8 +69,8 @@ func (repo GormRepository) GetAllRooms(start, end time.Time) ([]*domain.Room, er
 	return r, nil
 }
 
-func createRoom(db *gorm.DB, roomParams WriteRoomParams) (*Room, error) {
-	room := ConvWriteRoomParamsToRoom(roomParams)
+func createRoom(db *gorm.DB, roomParams CreateRoomParams) (*Room, error) {
+	room := ConvCreateRoomParamsToRoom(roomParams)
 	err := db.Create(&room).Error
 	if err != nil {
 		return nil, err
@@ -72,10 +78,11 @@ func createRoom(db *gorm.DB, roomParams WriteRoomParams) (*Room, error) {
 	return &room, nil
 }
 
-func updateRoom(db *gorm.DB, roomID uuid.UUID, params WriteRoomParams) (*Room, error) {
-	room := ConvWriteRoomParamsToRoom(params)
+func updateRoom(db *gorm.DB, roomID uuid.UUID, params UpdateRoomParams) (*Room, error) {
+	room := ConvUpdateRoomParamsToRoom(params)
 	room.ID = roomID
-	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&room).Error
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
+		Omit("verified").Save(&room).Error
 	return &room, err
 }
 
