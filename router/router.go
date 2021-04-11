@@ -58,7 +58,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	// API定義 (/api)
 	api := e.Group("/api", h.TraQUserMiddleware)
 	{
-		adminMiddle := h.AdminUserMiddleware
+		previlegeMiddle := h.AdminUserMiddleware
 
 		apiGroups := api.Group("/groups")
 		{
@@ -97,24 +97,23 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		apiRooms := api.Group("/rooms")
 		{
 			apiRooms.GET("", h.HandleGetRooms)
-			apiRooms.POST("", h.HandlePostRoom, adminMiddle)
-			apiRooms.POST("/all", h.HandleSetRooms, adminMiddle)
-
-			apiRooms.POST("/private", h.HandlePostPrivateRoom)
+			apiRooms.POST("", h.HandlePostRoom)
+			apiRooms.POST("/all", h.HandleSetRooms, previlegeMiddle)
 
 			apiRoom := apiRooms.Group("/:roomid")
 			{
 				apiRoom.GET("", h.HandleGetRoom)
-				apiRoom.DELETE("", h.HandleDeleteRoom, adminMiddle)
-				apiRoom.GET("/events", h.HandleGetEventsByRoomID)
+				apiRoom.DELETE("", h.HandleDeleteRoom)
+
+				apiRooms.POST("/verified", h.HandlePostPrivateRoom, previlegeMiddle)
+				apiRooms.DELETE("/verified", h.HandlePostPrivateRoom, previlegeMiddle)
 			}
-			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom, h.RoomCreatedUserMiddleware)
 		}
 
 		apiUsers := api.Group("/users")
 		{
 			apiUsers.GET("", h.HandleGetUsers)
-			apiUsers.POST("/sync", h.HandleSyncUser, h.AdminUserMiddleware)
+			apiUsers.POST("/sync", h.HandleSyncUser, previlegeMiddle)
 
 			apiUsers.GET("/me", h.HandleGetUserMe)
 			apiUsers.GET("/me/ical", h.HandleGetiCal)
@@ -142,6 +141,8 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
+	// TODO
+	e.GET("/api/callback", nil)
 	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
