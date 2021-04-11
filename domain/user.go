@@ -12,6 +12,7 @@ type User struct {
 }
 
 type UserRepository interface {
+	GetOAuthURL() (url, state, codeVerifier string)
 	// LoginUser OAuthによってユーザーを得る
 	LoginUser(query, state, codeVerifier string) error
 	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)

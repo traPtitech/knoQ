@@ -46,6 +46,10 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	return repo.gormRepo.SyncUsers(users)
 }
 
+func (repo *Repository) GetOAuthURL() (url, state, codeVerifier string) {
+	return repo.traQRepo.GetOAuthURL()
+}
+
 func (repo *Repository) LoginUser(query, state, codeVerifier string) error {
 	t, err := repo.traQRepo.GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
