@@ -28,6 +28,10 @@ type EventReqWrite struct {
 	} `json:"tags"`
 }
 
+type EventTagReq struct {
+	Name string `json:"name"`
+}
+
 // EventDetailRes is experimental
 //go:generate gotypeconverter -s domain.Event -d EventDetailRes -o converter.go .
 type EventDetailRes struct {
@@ -94,7 +98,7 @@ func iCalVeventFormat(e *domain.Event, host string) *ical.Event {
 	return vevent
 }
 
-func iCalFormat(events []*domain.Event, host string) *ical.Calendar {
+func ICalFormat(events []*domain.Event, host string) *ical.Calendar {
 	c := ical.New()
 	ical.NewEvent()
 	tz := ical.NewTimezone()
