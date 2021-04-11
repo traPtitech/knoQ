@@ -54,7 +54,7 @@ func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
 	return &r, nil
 }
 
-func (repo GormRepository) GetAllRoom(start, end time.Time) ([]*domain.Room, error) {
+func (repo GormRepository) GetAllRooms(start, end time.Time) ([]*domain.Room, error) {
 	rooms, err := getAllRooms(roomFullPreload(repo.db), start, end)
 	if err != nil {
 		return nil, err
