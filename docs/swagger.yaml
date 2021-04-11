@@ -96,11 +96,9 @@ paths:
       operationId: verifyRoom
       summary: 部屋を確認する
       description: 特権が必要。部屋が使用できることを確認する
-      requestBody:
-        $ref: '#/components/requestBodies/Room'
       responses:
-        '201':
-          $ref: '#/components/responses/Room'
+        '200':
+          description: successful operation
         '400':
           description: Bad Request
     delete:
