@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/router/service"
 
 	"github.com/gorilla/sessions"
@@ -19,6 +20,7 @@ import (
 
 type Handlers struct {
 	service.Dao
+	repo              domain.Repository
 	Logger            *zap.Logger
 	SessionKey        []byte
 	SessionOption     sessions.Options

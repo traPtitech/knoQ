@@ -17,3 +17,11 @@ type ConInfo struct {
 	// Token     string
 	ReqUserID uuid.UUID
 }
+
+type Repository interface {
+	EventRepository
+	GroupRepository
+	RoomRepository
+	TagRepository
+	UserRepository
+}
