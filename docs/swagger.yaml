@@ -632,6 +632,9 @@ components:
           example: Sysad班room開発グループ
         open: &open
           type: boolean
+        isTraQGroup: &isTraQGroup
+          type: boolean
+          example: false
         members: &members
           type: array
           description: グループのメンバー
