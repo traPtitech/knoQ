@@ -129,10 +129,7 @@ func ConvdomainTagToTagRes(src domain.Tag) (dst TagRes) {
 	return
 }
 func ConvdomainUserToUserRes(src domain.User) (dst UserRes) {
-	dst.ID = src.ID
-	dst.Name = src.Name
-	dst.DisplayName = src.DisplayName
-	dst.Privileged = src.Privileged
+	dst = UserRes(src)
 	return
 }
 func ConvdomainUserTouuidUUID(src domain.User) (dst uuid.UUID) {
