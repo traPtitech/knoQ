@@ -8,9 +8,10 @@ import (
 
 //go:generate gotypeconverter -s RoomReq -d domain.WriteRoomParams -o converter.go .
 type RoomReq struct {
-	Place     string    `json:"place"`
-	TimeStart time.Time `json:"timeStart"`
-	TimeEnd   time.Time `json:"timeEnd"`
+	Place     string      `json:"place"`
+	TimeStart time.Time   `json:"timeStart"`
+	TimeEnd   time.Time   `json:"timeEnd"`
+	Admins    []uuid.UUID `json:"admins"`
 }
 
 type StartEndTime struct {

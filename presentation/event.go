@@ -19,6 +19,7 @@ type EventReqWrite struct {
 	TimeStart     time.Time   `json:"timeStart"`
 	TimeEnd       time.Time   `json:"timeEnd"`
 	RoomID        uuid.UUID   `json:"roomId"`
+	Place         string      `json:"place"`
 	GroupID       uuid.UUID   `json:"groupId"`
 	Admins        []uuid.UUID `json:"admins"`
 	Tags          []struct {
@@ -27,14 +28,16 @@ type EventReqWrite struct {
 	} `json:"tags"`
 }
 
-// EventResOne is experimental
-//go:generate gotypeconverter -s domain.Event -d EventResOne -o converter.go .
-type EventResOne struct {
+// EventDetailRes is experimental
+//go:generate gotypeconverter -s domain.Event -d EventDetailRes -o converter.go .
+type EventDetailRes struct {
 	ID            uuid.UUID     `json:"eventId"`
 	Name          string        `json:"name"`
 	Description   string        `json:"description"`
 	Room          RoomRes       `json:"room"`
 	Group         GroupResOne   `json:"group"`
+	Place         string        `json:"place" cvt:"Room"`
+	GroupName     string        `json:"groupName" cvt:"Group"`
 	TimeStart     time.Time     `json:"timeStart"`
 	TimeEnd       time.Time     `json:"timeEnd"`
 	CreatedBy     UserRes       `json:"createdBy"`
@@ -50,9 +53,9 @@ type EventTagRes struct {
 	Locked bool      `json:"locked"`
 }
 
-// EventResMulti is for multiple response
-//go:generate gotypeconverter -s domain.Event -d EventResMulti -o converter.go .
-type EventResMulti struct {
+// EventRes is for multiple response
+//go:generate gotypeconverter -s domain.Event -d EventRes -o converter.go .
+type EventRes struct {
 	ID            uuid.UUID         `json:"eventId"`
 	Name          string            `json:"name"`
 	Description   string            `json:"description"`
