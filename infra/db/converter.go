@@ -155,6 +155,15 @@ func ConvSPRoomToSPdomainRoom(src []*Room) (dst []*domain.Room) {
 	}
 	return
 }
+
+func ConvSPTagToSPdomainTag(src []*Tag) (dst []*domain.Tag) {
+	dst = make([]*domain.Tag, len(src))
+	for i := range src {
+		dst[i] = new(domain.Tag)
+		(*dst[i]) = ConvTagTodomainTag((*src[i]))
+	}
+	return
+}
 func ConvTagTodomainEventTag(src Tag) (dst domain.EventTag) {
 	dst.Tag.ID = src.ID
 	dst.Tag.Name = src.Name

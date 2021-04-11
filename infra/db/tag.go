@@ -2,8 +2,36 @@ package db
 
 import (
 	"github.com/gofrs/uuid"
+	"github.com/traPtitech/knoQ/domain"
 	"gorm.io/gorm"
 )
+
+func (repo *GormRepository) CreateOrGetTag(name string) (*domain.Tag, error) {
+	tag, err := createOrGetTag(repo.db, name)
+	if err != nil {
+		return nil, err
+	}
+	t := ConvTagTodomainTag(*tag)
+	return &t, nil
+}
+
+func (repo *GormRepository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
+	tag, err := getTag(repo.db, tagID)
+	if err != nil {
+		return nil, err
+	}
+	t := ConvTagTodomainTag(*tag)
+	return &t, nil
+}
+
+func (repo *GormRepository) GetAllTags() ([]*domain.Tag, error) {
+	tags, err := getAllTags(repo.db)
+	if err != nil {
+		return nil, err
+	}
+	t := ConvSPTagToSPdomainTag(tags)
+	return t, nil
+}
 
 func createOrGetTag(db *gorm.DB, name string) (*Tag, error) {
 	tag := Tag{Name: name}
