@@ -22,6 +22,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 			e.Room.TimeStart = e.TimeStart
 			e.Room.TimeEnd = e.TimeEnd
 			e.Room.CreatedByRefer = e.CreatedByRefer
+			e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
 		} else {
 			return NewValueError(ErrRoomUndefined, "roomID", "place")
 		}

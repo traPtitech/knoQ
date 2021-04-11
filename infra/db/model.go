@@ -58,6 +58,7 @@ type UserBody struct {
 	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
+//go:generate gotypeconverter -s []EventAdmin -d []RoomAdmin -o converter.go .
 type RoomAdmin struct {
 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	RoomID uuid.UUID `gorm:"type:char(36); primaryKey"`

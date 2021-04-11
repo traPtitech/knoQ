@@ -9,6 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
+func ConvEventAdminToRoomAdmin(src EventAdmin) (dst RoomAdmin) {
+	dst.UserID = src.UserID
+	return
+}
+
 func ConvEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
 	dst.ID = src.UserID
 	return
@@ -98,6 +103,14 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	(*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
+func ConvSEventAdminToSRoomAdmin(src []EventAdmin) (dst []RoomAdmin) {
+	dst = make([]RoomAdmin, len(src))
+	for i := range src {
+		dst[i] = ConvEventAdminToRoomAdmin(src[i])
+	}
+	return
+}
+
 func ConvSPEventToSPdomainEvent(src []*Event) (dst []*domain.Event) {
 	dst = make([]*domain.Event, len(src))
 	for i := range src {
