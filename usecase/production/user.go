@@ -105,6 +105,10 @@ func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain
 	return nil, errors.New("not implemented")
 }
 
+func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
+	return repo.GetUser(info.ReqUserID, info)
+}
+
 func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) ([]*domain.User, error) {
 	t, err := repo.gormRepo.GetToken(info.ReqUserID)
 	if err != nil {

@@ -53,11 +53,11 @@ type EventRepository interface {
 	CreateEvent(eventParams WriteEventParams, info *ConInfo) (*Event, error)
 
 	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams, info *ConInfo) (*Event, error)
-	AddTagToEvent(eventID uuid.UUID, tagID uuid.UUID, locked bool, info *ConInfo) error
+	AddEventTag(eventID uuid.UUID, tagName string, locked bool, info *ConInfo) error
 
 	DeleteEvent(eventID uuid.UUID, info *ConInfo) error
 	// DeleteTagInEvent delete a tag in that Event
-	DeleteTagInEvent(eventID uuid.UUID, tagID uuid.UUID, info *ConInfo) error
+	DeleteEventTag(eventID uuid.UUID, tagName string, info *ConInfo) error
 
 	GetEvent(eventID uuid.UUID, info *ConInfo) (*Event, error)
 	GetEvents(expr filter.Expr, info *ConInfo) ([]*Event, error)

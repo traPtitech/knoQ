@@ -49,7 +49,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	return &e, nil
 }
 
-func (repo *Repository) AddTagToEvent(eventID uuid.UUID, tagName string, locked bool, info *domain.ConInfo) error {
+func (repo *Repository) AddEventTag(eventID uuid.UUID, tagName string, locked bool, info *domain.ConInfo) error {
 	if locked && !repo.IsEventAdmins(eventID, info) {
 		return domain.ErrForbidden
 	}
@@ -67,7 +67,7 @@ func (repo *Repository) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) err
 }
 
 // DeleteTagInEvent delete a tag in that Event
-func (repo *Repository) DeleteTagInEvent(eventID uuid.UUID, tagName string, info *domain.ConInfo) error {
+func (repo *Repository) DeleteEventTag(eventID uuid.UUID, tagName string, info *domain.ConInfo) error {
 	deleteLocked := false
 	if !repo.IsEventAdmins(eventID, info) {
 		deleteLocked = true
