@@ -167,7 +167,7 @@ func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *Use
 	t.Helper()
 
 	user := mustMakeUser(t, repo, false)
-	params := WriteRoomParams{
+	params := CreateRoomParams{
 		WriteRoomParams: domain.WriteRoomParams{
 			Place:     place,
 			TimeStart: time.Now().Add(-1 * time.Hour),
