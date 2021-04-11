@@ -1,10 +1,8 @@
 package traq
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -14,15 +12,6 @@ import (
 
 	traQ "github.com/traPtitech/traQ/router/v3"
 )
-
-func (repo *TraQRepository) doRequest(token *oauth2.Token, req *http.Request) ([]byte, error) {
-	client := repo.Config.Client(context.TODO(), token)
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	return ioutil.ReadAll(resp.Body)
-}
 
 func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*traQ.User, error) {
 	URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
