@@ -34,6 +34,7 @@ type GroupRepository interface {
 	GetGroup(groupID uuid.UUID, info *ConInfo) (*Group, error)
 	GetAllGroups(info *ConInfo) ([]*Group, error)
 	GetUserBelongingGroupIDs(userID uuid.UUID, info *ConInfo) ([]uuid.UUID, error)
+	IsGroupAdmins(groupID uuid.UUID, info *ConInfo) bool
 }
 
 func (g *Group) AdminsValidation() bool {

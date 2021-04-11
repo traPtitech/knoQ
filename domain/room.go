@@ -30,17 +30,18 @@ type WriteRoomParams struct {
 }
 
 type RoomRepository interface {
-	CreateUnVerifiedRoom(roomParams WriteRoomParams, info *ConInfo) (*Room, error)
-	CreateVerifiedRoom(roomParams WriteRoomParams, info *ConInfo) (*Room, error)
+	CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
+	CreateVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
 
-	UpdateRoom(roomID uuid.UUID, roomParams WriteRoomParams, info *ConInfo) (*Room, error)
-	VerifyRoom(roomID uuid.UUID, info *ConInfo)
-	UnVerifyRoom(roomID uuid.UUID, info *ConInfo)
+	UpdateRoom(roomID uuid.UUID, params WriteRoomParams, info *ConInfo) (*Room, error)
+	VerifyRoom(roomID uuid.UUID, info *ConInfo) error
+	UnVerifyRoom(roomID uuid.UUID, info *ConInfo) error
 
 	DeleteRoom(roomID uuid.UUID, info *ConInfo) error
 
 	GetRoom(roomID uuid.UUID) (*Room, error)
 	GetAllRooms(start time.Time, end time.Time) ([]*Room, error)
+	IsRoomAdmins(roomID uuid.UUID, info *ConInfo) bool
 }
 
 // StartEndTime has start and end time
