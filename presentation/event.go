@@ -55,6 +55,7 @@ type EventTagRes struct {
 
 // EventRes is for multiple response
 //go:generate gotypeconverter -s domain.Event -d EventRes -o converter.go .
+//go:generate gotypeconverter -s []*domain.Event -d []EventRes -o converter.go .
 type EventRes struct {
 	ID            uuid.UUID         `json:"eventId"`
 	Name          string            `json:"name"`
