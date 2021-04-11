@@ -165,6 +165,12 @@ func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
+
+	// 時間整合性
+	Droom := ConvRoomTodomainRoom(*r)
+	if !Droom.TimeConsistency() {
+		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
+	}
 	return nil
 }
 

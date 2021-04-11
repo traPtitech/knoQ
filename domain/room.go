@@ -131,6 +131,10 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 	return nil
 }
 
+func (r *Room) TimeConsistency() bool {
+	return r.TimeStart.Before((r.TimeEnd))
+}
+
 func (r *Room) AdminsValidation() bool {
 	return len(r.Admins) != 0
 }
