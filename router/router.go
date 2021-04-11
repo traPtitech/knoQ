@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/router/service"
 
@@ -58,7 +59,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	// API定義 (/api)
 	api := e.Group("/api", h.TraQUserMiddleware)
 	{
-		previlegeMiddle := h.AdminUserMiddleware
+		previlegeMiddle := h.PrevilegeUserMiddleware
 
 		apiGroups := api.Group("/groups")
 		{
@@ -154,4 +155,10 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	}))
 
 	return e
+}
+
+func getConinfo(c echo.Context) (info *domain.ConInfo) {
+	sess, _ := session.Get("session", c)
+	info.ReqUserID = sess.Values["userID"].(uuid.UUID)
+	return info
 }

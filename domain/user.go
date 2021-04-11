@@ -15,6 +15,8 @@ type UserRepository interface {
 	GetOAuthURL() (url, state, codeVerifier string)
 	// LoginUser OAuthによってユーザーを得る
 	LoginUser(query, state, codeVerifier string) (*User, error)
+
+	GetUserMe(info *ConInfo) (*User, error)
 	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)
 	GetAllUsers(*ConInfo) ([]*User, error)
 	//ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error

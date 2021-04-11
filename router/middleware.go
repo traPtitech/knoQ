@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path"
@@ -15,14 +14,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/traPtitech/knoQ/utils"
 	traQrandom "github.com/traPtitech/traQ/utils/random"
 
 	log "github.com/traPtitech/knoQ/logging"
-
-	"github.com/traPtitech/knoQ/router/service"
-
-	repo "github.com/traPtitech/knoQ/repository"
+	"github.com/traPtitech/knoQ/presentation"
 
 	"github.com/gofrs/uuid"
 	jsoniter "github.com/json-iterator/go"
@@ -107,6 +102,7 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 }
 
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
+// TODO funcname fix
 func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		sess, err := session.Get("session", c)
@@ -124,26 +120,25 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if err != nil || userID == uuid.Nil {
 			return unauthorized(err, needAuthorization(true))
 		}
-		auth, err := h.Dao.Repo.GetToken(userID)
+
+		user, err := h.repo.GetUserMe(getConinfo(c))
 		if err != nil {
-			return judgeErrorResponse(err)
+			return internalServerError(err)
 		}
-		if auth == "" {
-			return forbidden(err, needAuthorization(true))
+
+		// state check
+		if user.State != 1 {
+			return forbidden(errors.New("invalid user"))
 		}
-		setRequestUserIsAdmin(c, h.Repo)
-		c.Set("token", auth)
 		return next(c)
 	}
 }
 
-// AdminUserMiddleware 管理者ユーザーか判定するミドルウェア
-func (h *Handlers) AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// PrevilegeUserMiddleware 管理者ユーザーか判定するミドルウェア
+func (h *Handlers) PrevilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		isAdmin := getRequestUserIsAdmin(c)
-
 		// 判定
-		if !isAdmin {
+		if h.repo.IsPrevilege(getConinfo(c)) {
 			return forbidden(
 				errors.New("not admin"),
 				message("You are not admin user."),
@@ -158,17 +153,11 @@ func (h *Handlers) AdminUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // GroupAdminsMiddleware グループ管理ユーザーか判定するミドルウェア
 func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUserID, _ := getRequestUserID(c)
-		token, _ := getRequestUserToken(c)
 		groupID, err := getPathGroupID(c)
 		if err != nil {
 			return notFound(err)
 		}
-		group, err := h.Dao.GetGroup(token, groupID)
-		if err != nil {
-			return judgeErrorResponse(err)
-		}
-		if !utils.UuidUUIDIn(requestUserID, group.Admins) || group.IsTraQGroup {
+		if !h.repo.IsGroupAdmins(groupID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
@@ -182,16 +171,12 @@ func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 // EventAdminsMiddleware イベント管理ユーザーか判定するミドルウェア
 func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUserID, _ := getRequestUserID(c)
 		eventID, err := getPathEventID(c)
 		if err != nil {
 			return notFound(err)
 		}
-		event, err := h.Repo.GetEvent(eventID)
-		if err != nil {
-			return judgeErrorResponse(err)
-		}
-		if !utils.UuidUUIDIn(requestUserID, service.FormatEventAdmins(event.Admins)) {
+
+		if !h.repo.IsEventAdmins(eventID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -203,19 +188,15 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 	}
 }
 
-// RoomCreatedUserMiddleware イベント作成ユーザーか判定するミドルウェア
-func (h *Handlers) RoomCreatedUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// RoomAdminsMiddleware 部屋管理ユーザーか判定するミドルウェア
+func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		requestUserID, _ := getRequestUserID(c)
 		roomID, err := getPathRoomID(c)
 		if err != nil {
 			return notFound(err)
 		}
-		room, err := h.Repo.GetRoom(roomID)
-		if err != nil {
-			return judgeErrorResponse(err)
-		}
-		if room.CreatedBy != requestUserID {
+
+		if !h.repo.IsRoomAdmins(roomID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -229,20 +210,12 @@ func (h *Handlers) RoomCreatedUserMiddleware(next echo.HandlerFunc) echo.Handler
 
 // WebhookEventHandler is used with middleware.BodyDump
 func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) {
-	resEvent := new(service.EventRes)
-	err := json.Unmarshal(resBody, resEvent)
+	e := new(presentation.EventDetailRes)
+	err := json.Unmarshal(resBody, e)
 	if err != nil {
 		return
 	}
-	token, _ := getRequestUserToken(c)
-	group, err := h.Dao.GetGroup(token, resEvent.GroupID)
-	if err != nil {
-		return
-	}
-	room, err := h.Repo.GetRoom(resEvent.RoomID)
-	if err != nil {
-		return
-	}
+
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	timeFormat := "01/02(Mon) 15:04"
 	var content string
@@ -251,44 +224,14 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	} else if c.Request().Method == http.MethodPut {
 		content = "## イベントが更新されました" + "\n"
 	}
-	content += fmt.Sprintf("### [%s](%s/events/%s)", resEvent.Name, h.Origin, resEvent.ID) + "\n"
-	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", group.Name, h.Origin, group.ID) + "\n"
-	content += fmt.Sprintf("- 日時: %s ~ %s", resEvent.TimeStart.In(jst).Format(timeFormat), resEvent.TimeEnd.In(jst).Format(timeFormat)) + "\n"
-	content += fmt.Sprintf("- 場所: %s", room.Place) + "\n"
+	content += fmt.Sprintf("### [%s](%s/events/%s)", e.Name, h.Origin, e.ID) + "\n"
+	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", e.GroupName, h.Origin, e.Group.ID) + "\n"
+	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
+	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
 	content += "\n"
-	content += resEvent.Description
+	content += e.Description
 
 	_ = RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
-}
-
-func requestOAuth(clientID, code, codeVerifier string) (token string, err error) {
-	form := url.Values{}
-	form.Add("grant_type", "authorization_code")
-	form.Add("client_id", clientID)
-	form.Add("code", code)
-	form.Add("code_verifier", codeVerifier)
-
-	body := strings.NewReader(form.Encode())
-
-	req, err := http.NewRequest("POST", "https://q.trap.jp/api/1.0/oauth2/token", body)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	if res.StatusCode >= 300 {
-		return "", err
-	}
-
-	data, _ := ioutil.ReadAll(res.Body)
-	oauthRes := new(OauthResponse)
-	json.Unmarshal(data, oauthRes)
-
-	token = oauthRes.AccessToken
-	return
 }
 
 func RequestWebhook(message, secret, channelID, webhookID string, embed int) error {
@@ -336,31 +279,8 @@ func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	return uuid.FromString(userID)
 }
 
-func setRequestUserIsAdmin(c echo.Context, repo repo.UserMetaRepository) error {
-	userID, _ := getRequestUserID(c)
-	user, err := repo.GetUser(userID)
-	if err != nil {
-		return err
-	}
-	c.Set("IsAdmin", user.Admin)
-	return nil
-}
-
-func getRequestUserIsAdmin(c echo.Context) bool {
-	return c.Get("IsAdmin").(bool)
-}
-
-func getRequestUserToken(c echo.Context) (string, error) {
-	token, ok := c.Get("token").(string)
-	if !ok {
-		return "", errors.New("error")
-	}
-	return token, nil
-}
-
 // getPathEventID :eventidを返します
 func getPathEventID(c echo.Context) (uuid.UUID, error) {
-
 	eventID, err := uuid.FromString(c.Param("eventid"))
 	if err != nil {
 		return uuid.Nil, errors.New("EventID is not uuid")
