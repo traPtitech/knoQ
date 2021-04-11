@@ -172,6 +172,7 @@ func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *Use
 			Place:     place,
 			TimeStart: time.Now().Add(-1 * time.Hour),
 			TimeEnd:   time.Now().Add(1 * time.Hour),
+			Admins:    []uuid.UUID{user.ID},
 		},
 		CreatedBy: user.ID,
 	}

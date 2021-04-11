@@ -18,6 +18,7 @@ var tables = []interface{}{
 	Group{},
 	Tag{},
 	Room{},
+	RoomAdmin{},
 	Event{},
 	EventTag{}, // Eventより下にないと、overrideされる
 	EventAdmin{},
