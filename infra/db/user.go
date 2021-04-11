@@ -15,14 +15,6 @@ func (repo *GormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) er
 	return updateiCalSecret(repo.db, userID, secret)
 }
 
-func (repo *GormRepository) Privilege(userID uuid.UUID) bool {
-	user, err := getUser(repo.db, userID)
-	if err != nil {
-		return false
-	}
-	return user.Privilege
-}
-
 func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
 	return getUser(repo.db.Preload("Provider"), userID)
 }

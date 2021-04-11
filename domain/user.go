@@ -20,4 +20,6 @@ type UserRepository interface {
 	//GetToken(info *ConInfo) (string, error)
 	ReNewMyiCalSecret(info *ConInfo) (string, error)
 	GetMyiCalSecret(info *ConInfo) (string, error)
+
+	IsPrevilege(info *ConInfo) bool
 }
