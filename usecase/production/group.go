@@ -78,6 +78,7 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 				return nil, err
 			}
 			group = Convv3UserGroupTodomainGroup(*g)
+			group.IsTraQGroup = true
 		} else {
 			return nil, err
 		}
@@ -102,7 +103,12 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 	if err != nil {
 		return nil, err
 	}
-	groups = append(groups, ConvSPv3UserGroupToSPdomainGroup(tg)...)
+	dg := ConvSPv3UserGroupToSPdomainGroup(tg)
+	// add IsTraQGroup
+	for i := range dg {
+		dg[i].IsTraQGroup = true
+	}
+	groups = append(groups, dg...)
 
 	return groups, nil
 }
