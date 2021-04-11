@@ -6,6 +6,7 @@ type UserRes struct {
 	ID          uuid.UUID `json:"userId"`
 	Name        string    `json:"name"`
 	DisplayName string    `json:"displayName"`
+	Icon        string    `json:"icon"`
 	Privileged  bool      `json:"privileged"`
-	IsTrap      bool      `json:"isTrap"`
+	State       int       `json:"state"`
 }
