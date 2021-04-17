@@ -7,6 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
+func userPreload(tx *gorm.DB) *gorm.DB {
+	return tx.Preload("Provider")
+}
+
 func (repo *GormRepository) SaveUser(user User) (*User, error) {
 	return saveUser(repo.db, &user)
 }
@@ -16,11 +20,11 @@ func (repo *GormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) er
 }
 
 func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
-	return getUser(repo.db.Preload("Provider"), userID)
+	return getUser(userPreload(repo.db), userID)
 }
 
 func (repo *GormRepository) GetAllUsers(onlyActive bool) ([]*User, error) {
-	return getAllUsers(repo.db, onlyActive)
+	return getAllUsers(userPreload(repo.db), onlyActive)
 }
 
 func (repo *GormRepository) SyncUsers(users []*User) error {
