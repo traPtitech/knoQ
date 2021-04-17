@@ -74,6 +74,23 @@ func ConvSPdomainRoomToSPRoomRes(src []*domain.Room) (dst []*RoomRes) {
 	return
 }
 
+func ConvSPdomainTagToSPTagRes(src []*domain.Tag) (dst []*TagRes) {
+	dst = make([]*TagRes, len(src))
+	for i := range src {
+		dst[i] = new(TagRes)
+		(*dst[i]) = ConvdomainTagToTagRes((*src[i]))
+	}
+	return
+}
+
+func ConvSPdomainUserToSPUserRes(src []*domain.User) (dst []*UserRes) {
+	dst = make([]*UserRes, len(src))
+	for i := range src {
+		dst[i] = new(UserRes)
+		(*dst[i]) = ConvdomainUserToUserRes((*src[i]))
+	}
+	return
+}
 func ConvSPdomainUserToSUserRes(src []*domain.User) (dst []UserRes) {
 	dst = make([]UserRes, len(src))
 	for i := range src {
@@ -81,6 +98,7 @@ func ConvSPdomainUserToSUserRes(src []*domain.User) (dst []UserRes) {
 	}
 	return
 }
+
 func ConvdomainEventTagToEventTagRes(src domain.EventTag) (dst EventTagRes) {
 	dst.Locked = src.Locked
 	return
