@@ -179,5 +179,6 @@ func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*doma
 		DisplayName: userBody.DisplayName,
 		Icon:        repo.TraQRepo.URL + "/public/icon/" + userBody.Name,
 		Privileged:  userMeta.Privilege,
+		State:       userMeta.State,
 	}, nil
 }
