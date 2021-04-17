@@ -7,7 +7,7 @@ import (
 )
 
 func groupFullPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Members").Preload("Admins")
+	return tx.Preload("Members").Preload("Admins").Preload("CreatedBy")
 }
 
 type WriteGroupParams struct {

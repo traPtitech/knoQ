@@ -28,6 +28,6 @@ type RoomRes struct {
 	RoomReq
 	FreeTimes   []StartEndTime `json:"freeTimes" cvt:"-"`
 	SharedTimes []StartEndTime `json:"sharedTimes" cvt:"-"`
-	CreatedBy   UserRes        `json:"createdBy"`
+	CreatedBy   uuid.UUID      `json:"createdBy"`
 	Model
 }

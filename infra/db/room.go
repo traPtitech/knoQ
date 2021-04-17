@@ -9,7 +9,7 @@ import (
 )
 
 func roomFullPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Events").Preload("Admins")
+	return tx.Preload("Events").Preload("Admins").Preload("CreatedBy")
 }
 
 type CreateRoomParams struct {

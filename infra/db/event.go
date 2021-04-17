@@ -11,8 +11,11 @@ import (
 )
 
 func eventFullPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Group").Preload("Room").Preload("CreatedBy").
-		Preload("Admins").Preload("Admins.User").Preload("Tags").Preload("Tags.Tag")
+	return tx.Preload("Group").Preload("Group.Members").Preload("Group.Admins").Preload("Group.CreatedBy").
+		Preload("Room").Preload("Room.Events").Preload("Room.Admins").Preload("Room.CreatedBy").
+		Preload("Admins").Preload("Admins.User").
+		Preload("Tags").Preload("Tags.Tag").
+		Preload("CreatedBy")
 }
 
 type WriteEventParams struct {

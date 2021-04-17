@@ -44,16 +44,16 @@ type EventDetailRes struct {
 	GroupName     string        `json:"groupName" cvt:"Group"`
 	TimeStart     time.Time     `json:"timeStart"`
 	TimeEnd       time.Time     `json:"timeEnd"`
-	CreatedBy     UserRes       `json:"createdBy"`
-	Admins        []UserRes     `json:"admins"`
+	CreatedBy     uuid.UUID     `json:"createdBy"`
+	Admins        []uuid.UUID   `json:"admins"`
 	Tags          []EventTagRes `json:"tags"`
 	AllowTogether bool          `json:"sharedRoom"`
 	Model
 }
 
 type EventTagRes struct {
-	ID     uuid.UUID `json:"tagId"`
-	Name   string    `json:"name"`
+	ID     uuid.UUID `json:"tagId" cvt:"Tag"`
+	Name   string    `json:"name" cvt:"Tag"`
 	Locked bool      `json:"locked"`
 }
 
