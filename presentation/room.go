@@ -20,6 +20,7 @@ type StartEndTime struct {
 }
 
 //go:generate gotypeconverter -s domain.Room -d RoomRes -o converter.go .
+//go:generate gotypeconverter -s []*domain.Room -d []*RoomRes -o converter.go .
 type RoomRes struct {
 	ID uuid.UUID `json:"roomId"`
 	// Verifeid indicates if the room has been verified by privileged users.

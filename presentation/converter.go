@@ -65,6 +65,15 @@ func ConvSPdomainGroupToSPGroupRes(src []*domain.Group) (dst []*GroupRes) {
 	return
 }
 
+func ConvSPdomainRoomToSPRoomRes(src []*domain.Room) (dst []*RoomRes) {
+	dst = make([]*RoomRes, len(src))
+	for i := range src {
+		dst[i] = new(RoomRes)
+		(*dst[i]) = ConvdomainRoomToRoomRes((*src[i]))
+	}
+	return
+}
+
 func ConvSPdomainUserToSUserRes(src []*domain.User) (dst []UserRes) {
 	dst = make([]UserRes, len(src))
 	for i := range src {

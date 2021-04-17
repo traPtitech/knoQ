@@ -99,15 +99,15 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		{
 			apiRooms.GET("", h.HandleGetRooms)
 			apiRooms.POST("", h.HandlePostRoom)
-			apiRooms.POST("/all", h.HandleSetRooms, previlegeMiddle)
+			apiRooms.POST("/all", h.HandleCreateVerifedRooms, previlegeMiddle)
 
 			apiRoom := apiRooms.Group("/:roomid")
 			{
 				apiRoom.GET("", h.HandleGetRoom)
 				apiRoom.DELETE("", h.HandleDeleteRoom)
 
-				apiRooms.POST("/verified", h.HandlePostPrivateRoom, previlegeMiddle)
-				apiRooms.DELETE("/verified", h.HandlePostPrivateRoom, previlegeMiddle)
+				apiRooms.POST("/verified", h.HandleVerifyRoom, previlegeMiddle)
+				apiRooms.DELETE("/verified", h.HandleUnVerifyRoom, previlegeMiddle)
 			}
 		}
 
