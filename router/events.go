@@ -205,7 +205,7 @@ func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 
 // HandleGetiCalByPrivateID sessionを持たないリクエストが想定されている
 func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
-
+	// 認証
 	str := c.Param("userIDsecret")
 	userID, err := uuid.FromString(str[:36])
 	if err != nil {
@@ -216,7 +216,6 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-
 	secret := str[36:]
 	if icalSecret == "" || icalSecret != secret {
 		return notFound(err)
@@ -227,10 +226,7 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return badRequest(err)
 	}
-	events, err := h.repo.GetEvents(
-		expr,
-		info,
-	)
+	events, err := h.repo.GetEvents(expr, info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
