@@ -13,8 +13,9 @@ type GroupReq struct {
 	Admins      []uuid.UUID `json:"admins"`
 }
 
-//go:generate gotypeconverter -s domain.Group -d GroupResOne -o converter.go .
-type GroupResOne struct {
+//go:generate gotypeconverter -s domain.Group -d GroupRes -o converter.go .
+//go:generate gotypeconverter -s []*domain.Group -d []*GroupRes -o converter.go .
+type GroupRes struct {
 	ID uuid.UUID `json:"groupId"`
 	GroupReq
 	IsTraQGroup bool      `json:"isTraQGroup"`

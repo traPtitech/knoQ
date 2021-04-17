@@ -39,7 +39,7 @@ type EventDetailRes struct {
 	Name          string        `json:"name"`
 	Description   string        `json:"description"`
 	Room          RoomRes       `json:"room"`
-	Group         GroupResOne   `json:"group"`
+	Group         GroupRes      `json:"group"`
 	Place         string        `json:"place" cvt:"Room"`
 	GroupName     string        `json:"groupName" cvt:"Group"`
 	TimeStart     time.Time     `json:"timeStart"`

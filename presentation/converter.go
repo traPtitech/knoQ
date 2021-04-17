@@ -56,6 +56,15 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 	return
 }
 
+func ConvSPdomainGroupToSPGroupRes(src []*domain.Group) (dst []*GroupRes) {
+	dst = make([]*GroupRes, len(src))
+	for i := range src {
+		dst[i] = new(GroupRes)
+		(*dst[i]) = ConvdomainGroupToGroupRes((*src[i]))
+	}
+	return
+}
+
 func ConvSPdomainUserToSUserRes(src []*domain.User) (dst []UserRes) {
 	dst = make([]UserRes, len(src))
 	for i := range src {
@@ -72,7 +81,7 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	dst.Name = src.Name
 	dst.Description = src.Description
 	dst.Room = ConvdomainRoomToRoomRes(src.Room)
-	dst.Group = ConvdomainGroupToGroupResOne(src.Group)
+	dst.Group = ConvdomainGroupToGroupRes(src.Group)
 	dst.Place = src.Room.Place
 	dst.GroupName = src.Group.Name
 	dst.TimeStart = src.TimeStart
@@ -112,7 +121,7 @@ func ConvdomainEventToEventRes(src domain.Event) (dst EventRes) {
 	return
 }
 
-func ConvdomainGroupToGroupResOne(src domain.Group) (dst GroupResOne) {
+func ConvdomainGroupToGroupRes(src domain.Group) (dst GroupRes) {
 	dst.ID = src.ID
 	dst.GroupReq.Name = src.Name
 	dst.GroupReq.Description = src.Description
