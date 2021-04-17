@@ -20,7 +20,6 @@ import (
 	"github.com/traPtitech/knoQ/presentation"
 
 	"github.com/gofrs/uuid"
-	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
 	"github.com/labstack/echo-contrib/session"
@@ -29,26 +28,6 @@ import (
 
 const requestUserStr string = "Request-User"
 const authScheme string = "Bearer"
-
-var traQjson = jsoniter.Config{
-	EscapeHTML:             true,
-	SortMapKeys:            true,
-	ValidateJsonRawMessage: true,
-	TagKey:                 "traq",
-}
-
-type OauthResponse struct {
-	AccessToken  string `json:"access_token"`
-	TokenType    string `json:"token_type"`
-	ExpiresIn    int    `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
-	Scope        string `json:"scope"`
-	IDToken      string `json:"id_token"`
-}
-
-type UserID struct {
-	Value uuid.UUID `json:"userId"`
-}
 
 func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -270,6 +249,7 @@ func calcSignature(message, secret string) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
+// getRequestUserID sessionからuserを返します
 func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	sess, err := session.Get("session", c)
 	if err != nil {
