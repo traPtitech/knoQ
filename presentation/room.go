@@ -26,8 +26,8 @@ type RoomRes struct {
 	// Verifeid indicates if the room has been verified by privileged users.
 	Verified bool `json:"verified"`
 	RoomReq
-	FreeTimes   []StartEndTime `json:"freeTimes" cvt:"-"`
-	SharedTimes []StartEndTime `json:"sharedTimes" cvt:"-"`
+	FreeTimes   []StartEndTime `json:"freeTimes,omitempty" cvt:"-"`
+	SharedTimes []StartEndTime `json:"sharedTimes,omitempty" cvt:"-"`
 	CreatedBy   uuid.UUID      `json:"createdBy"`
 	Model
 }
