@@ -135,8 +135,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
-	// TODO
-	e.GET("/api/callback", nil)
+	e.GET("/api/callback", h.HandleCallback)
 	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
