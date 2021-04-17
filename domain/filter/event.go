@@ -152,3 +152,20 @@ func FilterTime(start, end time.Time) Expr {
 		Rhs:     timeEnd,
 	}
 }
+
+func AddAnd(lhs, rhs Expr) Expr {
+	if lhs == nil && rhs == nil {
+		return nil
+	}
+	if lhs == nil {
+		return rhs
+	}
+	if rhs == nil {
+		return lhs
+	}
+	return &LogicOpExpr{
+		LogicOp: And,
+		Lhs:     lhs,
+		Rhs:     rhs,
+	}
+}

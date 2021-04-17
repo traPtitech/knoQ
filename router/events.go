@@ -93,11 +93,7 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 		return badRequest(err, message("invalid time"))
 	}
 	events, err := h.Repo.GetEvents(
-		&filter.LogicOpExpr{
-			LogicOp: filter.And,
-			Rhs:     filter.FilterTime(start, end),
-			Lhs:     expr,
-		},
+		filter.AddAnd(expr, filter.FilterTime(start, end)),
 		getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)

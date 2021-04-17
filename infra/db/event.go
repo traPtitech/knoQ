@@ -109,8 +109,9 @@ func getAllEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, erro
 }
 
 func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) {
-	var filterFormat string
-	var filterArgs []interface{}
+	if expr == nil {
+		return "", []interface{}{}, nil
+	}
 
 	attrMap := map[filter.Attr]string{
 		filter.User:      "group_id",
@@ -131,84 +132,87 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 		filter.LessEq:   "<=",
 	}
 
-	switch e := expr.(type) {
-	case nil:
-		filterFormat = ""
-		filterArgs = []interface{}{}
+	var cf func(tx *gorm.DB, e filter.Expr) (string, []interface{}, error)
+	cf = func(tx *gorm.DB, e filter.Expr) (string, []interface{}, error) {
+		var filterFormat string
+		var filterArgs []interface{}
 
-	case *filter.CmpExpr:
-		switch e.Attr {
-		case filter.User:
-			id, ok := e.Value.(uuid.UUID)
-			if !ok {
+		switch e := e.(type) {
+		case *filter.CmpExpr:
+			switch e.Attr {
+			case filter.User:
+				id, ok := e.Value.(uuid.UUID)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				rel := map[filter.Relation]string{
+					filter.Eq:  "IN",
+					filter.Neq: "NOT IN",
+				}[e.Relation]
+				ids, err := getUserBelongingGroupIDs(db, id)
+				if err != nil {
+					return "", nil, err
+				}
+
+				filterFormat = fmt.Sprintf("%s %v (?)", attrMap[e.Attr], rel)
+				filterArgs = []interface{}{ids}
+
+			case filter.Name:
+				name, ok := e.Value.(string)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				rel := map[filter.Relation]string{
+					filter.Eq:  "=",
+					filter.Neq: "!=",
+				}[e.Relation]
+				filterFormat = fmt.Sprintf("name %v ?", rel)
+				filterArgs = []interface{}{name}
+			case filter.TimeStart:
+				fallthrough
+			case filter.TimeEnd:
+				t, ok := e.Value.(time.Time)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
+				filterArgs = []interface{}{t}
+			default:
+				id := e.Value.(uuid.UUID)
+				id, ok := e.Value.(uuid.UUID)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
+				filterArgs = []interface{}{id}
+			}
+
+		case *filter.LogicOpExpr:
+			op := map[filter.LogicOp]string{
+				filter.And: "AND",
+				filter.Or:  "OR",
+			}[e.LogicOp]
+			lFilter, lFilterArgs, lerr := cf(db, e.Lhs)
+			rFilter, rFilterArgs, rerr := cf(db, e.Rhs)
+
+			if lerr != nil && rerr != nil {
 				return "", nil, ErrExpression
 			}
-			rel := map[filter.Relation]string{
-				filter.Eq:  "IN",
-				filter.Neq: "NOT IN",
-			}[e.Relation]
-			ids, err := getUserBelongingGroupIDs(db, id)
-			if err != nil {
-				return "", nil, err
+			if lerr != nil {
+				return rFilter, rFilterArgs, nil
+			}
+			if rerr != nil {
+				return lFilter, lFilterArgs, nil
 			}
 
-			filterFormat = fmt.Sprintf("%s %v (?)", attrMap[e.Attr], rel)
-			filterArgs = []interface{}{ids}
+			filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
+			filterArgs = append(lFilterArgs, rFilterArgs...)
 
-		case filter.Name:
-			name, ok := e.Value.(string)
-			if !ok {
-				return "", nil, ErrExpression
-			}
-			rel := map[filter.Relation]string{
-				filter.Eq:  "=",
-				filter.Neq: "!=",
-			}[e.Relation]
-			filterFormat = fmt.Sprintf("name %v ?", rel)
-			filterArgs = []interface{}{name}
-		case filter.TimeStart:
-			fallthrough
-		case filter.TimeEnd:
-			t, ok := e.Value.(time.Time)
-			if !ok {
-				return "", nil, ErrExpression
-			}
-			filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
-			filterArgs = []interface{}{t}
 		default:
-			id := e.Value.(uuid.UUID)
-			id, ok := e.Value.(uuid.UUID)
-			if !ok {
-				return "", nil, ErrExpression
-			}
-			filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
-			filterArgs = []interface{}{id}
-		}
-
-	case *filter.LogicOpExpr:
-		op := map[filter.LogicOp]string{
-			filter.And: "AND",
-			filter.Or:  "OR",
-		}[e.LogicOp]
-		lFilter, lFilterArgs, lerr := createFilter(db, e.Lhs)
-		rFilter, rFilterArgs, rerr := createFilter(db, e.Rhs)
-
-		if lerr != nil && rerr != nil {
 			return "", nil, ErrExpression
 		}
-		if lerr != nil {
-			return rFilter, rFilterArgs, nil
-		}
-		if rerr != nil {
-			return lFilter, lFilterArgs, nil
-		}
 
-		filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
-		filterArgs = append(lFilterArgs, rFilterArgs...)
-
-	default:
-		return "", nil, ErrExpression
+		return filterFormat, filterArgs, nil
 	}
-
-	return filterFormat, filterArgs, nil
+	return cf(db, expr)
 }
