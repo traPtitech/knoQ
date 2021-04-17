@@ -255,8 +255,8 @@ func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	if err != nil {
 		return uuid.Nil, err
 	}
-	userID, _ := sess.Values["userID"].(string)
-	return uuid.FromString(userID)
+	userID, _ := sess.Values["userID"].(uuid.UUID)
+	return userID, nil
 }
 
 // getPathEventID :eventidを返します

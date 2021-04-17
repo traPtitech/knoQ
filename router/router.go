@@ -149,7 +149,8 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	return e
 }
 
-func getConinfo(c echo.Context) (info *domain.ConInfo) {
+func getConinfo(c echo.Context) *domain.ConInfo {
+	info := new(domain.ConInfo)
 	sess, _ := session.Get("session", c)
 	info.ReqUserID = sess.Values["userID"].(uuid.UUID)
 	return info
