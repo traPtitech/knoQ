@@ -19,7 +19,7 @@ type AuthParams struct {
 }
 
 func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
-	url, state, codeVerifier := h.repo.GetOAuthURL()
+	url, state, codeVerifier := h.Repo.GetOAuthURL()
 
 	// cache codeVerifier
 	sess, err := session.Get("session", c)
@@ -60,7 +60,7 @@ func (h *Handlers) HandleCallback(c echo.Context) error {
 	if !ok {
 		return internalServerError(errors.New("state is not cached"))
 	}
-	user, err := h.repo.LoginUser(c.QueryString(), state.(string), codeVerifier.(string))
+	user, err := h.Repo.LoginUser(c.QueryString(), state.(string), codeVerifier.(string))
 	if err != nil {
 		return internalServerError(err)
 	}

@@ -6,8 +6,8 @@ import (
 )
 
 type Repository struct {
-	gormRepo db.GormRepository
-	traQRepo traq.TraQRepository
+	GormRepo db.GormRepository
+	TraQRepo traq.TraQRepository
 }
 
 // implements domain

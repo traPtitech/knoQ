@@ -17,7 +17,7 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 
 	roomParams := presentation.ConvRoomReqTodomainWriteRoomParams(req)
 
-	room, err := h.repo.CreateUnVerifiedRoom(roomParams, getConinfo(c))
+	room, err := h.Repo.CreateUnVerifiedRoom(roomParams, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -36,7 +36,7 @@ func (h *Handlers) HandleGetRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	room, err := h.repo.GetRoom(roomID)
+	room, err := h.Repo.GetRoom(roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -50,7 +50,7 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	rooms, err := h.repo.GetAllRooms(start, end)
+	rooms, err := h.Repo.GetAllRooms(start, end)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -63,7 +63,7 @@ func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	err = h.repo.DeleteRoom(roomID, getConinfo(c))
+	err = h.Repo.DeleteRoom(roomID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -77,7 +77,7 @@ func (h *Handlers) HandleVerifyRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.repo.VerifyRoom(roomID, getConinfo(c))
+	err = h.Repo.VerifyRoom(roomID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -90,7 +90,7 @@ func (h *Handlers) HandleUnVerifyRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.repo.UnVerifyRoom(roomID, getConinfo(c))
+	err = h.Repo.UnVerifyRoom(roomID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

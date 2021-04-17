@@ -15,7 +15,7 @@ import (
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 // 認証状態を確認
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
-	user, err := h.repo.GetUserMe(getConinfo(c))
+	user, err := h.Repo.GetUserMe(getConinfo(c))
 	if err != nil {
 		if errors.Is(domain.ErrInvalidToken, err) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
@@ -29,7 +29,7 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 func (h *Handlers) HandleGetUsers(c echo.Context) error {
 	includeSuspend, _ := strconv.ParseBool(c.QueryParam("include-suspended"))
 
-	users, err := h.repo.GetAllUsers(includeSuspend, getConinfo(c))
+	users, err := h.Repo.GetAllUsers(includeSuspend, getConinfo(c))
 	if err != nil {
 		if errors.Is(domain.ErrInvalidToken, err) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
@@ -41,7 +41,7 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 }
 
 func (h *Handlers) HandleGetiCal(c echo.Context) error {
-	secret, err := h.repo.GetMyiCalSecret(getConinfo(c))
+	secret, err := h.Repo.GetMyiCalSecret(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -53,7 +53,7 @@ func (h *Handlers) HandleGetiCal(c echo.Context) error {
 }
 
 func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
-	secret, err := h.repo.ReNewMyiCalSecret(getConinfo(c))
+	secret, err := h.Repo.ReNewMyiCalSecret(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -68,7 +68,7 @@ func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 // 停止されているユーザーの`token`を削除して、
 // 活動中のユーザーを追加する(userIDをDBに保存)
 func (h *Handlers) HandleSyncUser(c echo.Context) error {
-	repo, ok := h.repo.(*production.Repository)
+	repo, ok := h.Repo.(*production.Repository)
 	if !ok {
 		return internalServerError(errors.New("not implemented"))
 	}

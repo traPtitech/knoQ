@@ -16,11 +16,11 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	if !repo.IsPrevilege(info) {
 		return domain.ErrForbidden
 	}
-	t, err := repo.gormRepo.GetToken(info.ReqUserID)
+	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
 		return err
 	}
-	traQUsers, err := repo.traQRepo.GetUsers(t, true)
+	traQUsers, err := repo.TraQRepo.GetUsers(t, true)
 	if err != nil {
 		return err
 	}
@@ -43,19 +43,19 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 		users = append(users, user)
 	}
 
-	return repo.gormRepo.SyncUsers(users)
+	return repo.GormRepo.SyncUsers(users)
 }
 
 func (repo *Repository) GetOAuthURL() (url, state, codeVerifier string) {
-	return repo.traQRepo.GetOAuthURL()
+	return repo.TraQRepo.GetOAuthURL()
 }
 
 func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.User, error) {
-	t, err := repo.traQRepo.GetOAuthToken(query, state, codeVerifier)
+	t, err := repo.TraQRepo.GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
 		return nil, err
 	}
-	traQUser, err := repo.traQRepo.GetUserMe(t)
+	traQUser, err := repo.TraQRepo.GetUserMe(t)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 			Subject: traQUser.ID.String(),
 		},
 	}
-	_, err = repo.gormRepo.SaveUser(user)
+	_, err = repo.GormRepo.SaveUser(user)
 	if err != nil {
 		return nil, err
 	}
@@ -82,18 +82,18 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 }
 
 func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
-	t, err := repo.gormRepo.GetToken(info.ReqUserID)
+	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
 		return nil, err
 	}
 
-	userMeta, err := repo.gormRepo.GetUser(userID)
+	userMeta, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
 		return nil, err
 	}
 
 	if userMeta.Provider.Issuer == traQIssuerName {
-		userBody, err := repo.traQRepo.GetUser(t, userID)
+		userBody, err := repo.TraQRepo.GetUser(t, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -110,16 +110,16 @@ func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 }
 
 func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) ([]*domain.User, error) {
-	t, err := repo.gormRepo.GetToken(info.ReqUserID)
+	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
 		return nil, err
 	}
 
-	userMetas, err := repo.gormRepo.GetAllUsers(!includeSuspend)
+	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
 		return nil, err
 	}
-	traQUserBodys, err := repo.traQRepo.GetUsers(t, includeSuspend)
+	traQUserBodys, err := repo.TraQRepo.GetUsers(t, includeSuspend)
 	if err != nil {
 		return nil, err
 	}
@@ -138,12 +138,12 @@ func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) (
 
 func (repo *Repository) ReNewMyiCalSecret(info *domain.ConInfo) (secret string, err error) {
 	secret = random.SecureAlphaNumeric(16)
-	err = repo.gormRepo.UpdateiCalSecret(info.ReqUserID, secret)
+	err = repo.GormRepo.UpdateiCalSecret(info.ReqUserID, secret)
 	return
 }
 
 func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
-	user, err := repo.gormRepo.GetUser(info.ReqUserID)
+	user, err := repo.GormRepo.GetUser(info.ReqUserID)
 	if err != nil {
 		return "", err
 	}
@@ -151,7 +151,7 @@ func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 }
 
 func (repo *Repository) IsPrevilege(info *domain.ConInfo) bool {
-	user, err := repo.gormRepo.GetUser(info.ReqUserID)
+	user, err := repo.GormRepo.GetUser(info.ReqUserID)
 	if err != nil {
 		return false
 	}
@@ -177,7 +177,7 @@ func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*doma
 		ID:          userMeta.ID,
 		Name:        userBody.Name,
 		DisplayName: userBody.DisplayName,
-		Icon:        repo.traQRepo.URL + "/public/icon/" + userBody.Name,
+		Icon:        repo.TraQRepo.URL + "/public/icon/" + userBody.Name,
 		Privileged:  userMeta.Privilege,
 	}, nil
 }

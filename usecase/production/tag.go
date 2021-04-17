@@ -6,13 +6,13 @@ import (
 )
 
 func (repo *Repository) CreateOrGetTag(name string) (*domain.Tag, error) {
-	return repo.gormRepo.CreateOrGetTag(name)
+	return repo.GormRepo.CreateOrGetTag(name)
 }
 
 func (repo *Repository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
-	return repo.gormRepo.GetTag(tagID)
+	return repo.GormRepo.GetTag(tagID)
 }
 
 func (repo *Repository) GetAllTags() ([]*domain.Tag, error) {
-	return repo.gormRepo.GetAllTags()
+	return repo.GormRepo.GetAllTags()
 }

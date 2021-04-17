@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"time"
 
-	repo "github.com/traPtitech/knoQ/repository"
+	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/infra/db"
 )
 
 // InitPostEventToTraQ 現在(job実行)から24時間以内に始まるイベントを取得し、
 // webhookでtraQに送るjobを作成。
-func InitPostEventToTraQ(repo interface {
-	repo.EventRepository
-	repo.RoomRepository
-}, secret, channelID, webhookID, origin string) func() {
+func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, origin string) func() {
 	job := func() {
 		now := time.Now().AddDate(0, 0, 0)
 		tomorrow := now.AddDate(0, 0, 1)
-		rooms, _ := repo.GetAllRooms(&now, &tomorrow)
-		events, _ := repo.GetAllEvents(&now, &tomorrow)
+
+		rooms, _ := repo.GetAllRooms(now, tomorrow)
+		events, _ := repo.GetAllEvents(filter.FilterTime(now, tomorrow))
 		message := createMessage(now, rooms, events, origin)
 		RequestWebhook(message, secret, channelID, webhookID, 1)
 	}
@@ -25,7 +25,7 @@ func InitPostEventToTraQ(repo interface {
 	return job
 }
 
-func createMessage(t time.Time, rooms []*repo.Room, events []*repo.Event, origin string) string {
+func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	date := t.In(jst).Format("01/02(Mon)")
 	combined := map[bool]string{
@@ -40,7 +40,7 @@ func createMessage(t time.Time, rooms []*repo.Room, events []*repo.Event, origin
 		roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
 	} else {
 		for _, room := range rooms {
-			if room.Public {
+			if room.Verified {
 				publicRoomN++
 				roomMessage += fmt.Sprintf("- %s %s ~ %s\n", room.Place,
 					room.TimeStart.In(jst).Format("15:04"), room.TimeEnd.In(jst).Format("15:04"))

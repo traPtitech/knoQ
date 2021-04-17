@@ -14,7 +14,7 @@ func (repo *Repository) CreateUnVerifiedRoom(params domain.WriteRoomParams, info
 		Verified:        false,
 		CreatedBy:       info.ReqUserID,
 	}
-	return repo.gormRepo.CreateRoom(p)
+	return repo.GormRepo.CreateRoom(p)
 }
 
 func (repo *Repository) CreateVerifiedRoom(params domain.WriteRoomParams, info *domain.ConInfo) (*domain.Room, error) {
@@ -26,7 +26,7 @@ func (repo *Repository) CreateVerifiedRoom(params domain.WriteRoomParams, info *
 		Verified:        true,
 		CreatedBy:       info.ReqUserID,
 	}
-	return repo.gormRepo.CreateRoom(p)
+	return repo.GormRepo.CreateRoom(p)
 }
 
 func (repo *Repository) UpdateRoom(roomID uuid.UUID, params domain.WriteRoomParams, info *domain.ConInfo) (*domain.Room, error) {
@@ -39,36 +39,36 @@ func (repo *Repository) UpdateRoom(roomID uuid.UUID, params domain.WriteRoomPara
 		CreatedBy:       info.ReqUserID,
 	}
 
-	return repo.gormRepo.UpdateRoom(roomID, p)
+	return repo.GormRepo.UpdateRoom(roomID, p)
 }
 
 func (repo *Repository) VerifyRoom(roomID uuid.UUID, info *domain.ConInfo) error {
 	if !repo.IsPrevilege(info) {
 		return domain.ErrForbidden
 	}
-	return repo.gormRepo.UpdateRoomVerified(roomID, true)
+	return repo.GormRepo.UpdateRoomVerified(roomID, true)
 }
 
 func (repo *Repository) UnVerifyRoom(roomID uuid.UUID, info *domain.ConInfo) error {
 	if !repo.IsPrevilege(info) {
 		return domain.ErrForbidden
 	}
-	return repo.gormRepo.UpdateRoomVerified(roomID, false)
+	return repo.GormRepo.UpdateRoomVerified(roomID, false)
 }
 
 func (repo *Repository) DeleteRoom(roomID uuid.UUID, info *domain.ConInfo) error {
 	if !repo.IsRoomAdmins(roomID, info) {
 		return domain.ErrForbidden
 	}
-	return repo.gormRepo.DeleteRoom(roomID)
+	return repo.GormRepo.DeleteRoom(roomID)
 }
 
 func (repo *Repository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
-	return repo.gormRepo.GetRoom(roomID)
+	return repo.GormRepo.GetRoom(roomID)
 }
 
 func (repo *Repository) GetAllRooms(start time.Time, end time.Time) ([]*domain.Room, error) {
-	return repo.gormRepo.GetAllRooms(start, end)
+	return repo.GormRepo.GetAllRooms(start, end)
 }
 
 func (repo *Repository) IsRoomAdmins(roomID uuid.UUID, info *domain.ConInfo) bool {

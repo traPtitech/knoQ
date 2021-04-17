@@ -4,24 +4,20 @@ package router
 import (
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/router/service"
 
+	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/wader/gormstore"
 	"go.uber.org/zap"
 )
 
 type Handlers struct {
-	service.Dao
-	repo              domain.Repository
+	Repo              domain.Repository
 	Logger            *zap.Logger
 	SessionKey        []byte
 	SessionOption     sessions.Options
@@ -32,7 +28,7 @@ type Handlers struct {
 	Origin            string
 }
 
-func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
+func (h *Handlers) SetupRoute() *echo.Echo {
 	echo.NotFoundHandler = NotFoundHandler
 	// echo初期化
 	e := echo.New()
@@ -41,13 +37,10 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.Use(middleware.Secure())
 	e.Use(AccessLoggingMiddleware(h.Logger))
 
-	store := gormstore.New(db, h.SessionKey)
-	e.Use(session.Middleware(store))
-	// db cleanup every hour
-	// close quit channel to stop cleanup
-	quit := make(chan struct{})
-	// defer close(quit)
-	go store.PeriodicCleanup(1*time.Hour, quit)
+	if len(h.SessionKey) == 0 {
+		h.SessionKey = securecookie.GenerateRandomKey(32)
+	}
+	e.Use(session.Middleware(sessions.NewCookieStore(h.SessionKey)))
 
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{

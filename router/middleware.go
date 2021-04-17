@@ -100,7 +100,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized(err, needAuthorization(true))
 		}
 
-		user, err := h.repo.GetUserMe(getConinfo(c))
+		user, err := h.Repo.GetUserMe(getConinfo(c))
 		if err != nil {
 			return internalServerError(err)
 		}
@@ -117,7 +117,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func (h *Handlers) PrevilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// 判定
-		if h.repo.IsPrevilege(getConinfo(c)) {
+		if h.Repo.IsPrevilege(getConinfo(c)) {
 			return forbidden(
 				errors.New("not admin"),
 				message("You are not admin user."),
@@ -136,7 +136,7 @@ func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 		if err != nil {
 			return notFound(err)
 		}
-		if !h.repo.IsGroupAdmins(groupID, getConinfo(c)) {
+		if !h.Repo.IsGroupAdmins(groupID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
@@ -155,7 +155,7 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 			return notFound(err)
 		}
 
-		if !h.repo.IsEventAdmins(eventID, getConinfo(c)) {
+		if !h.Repo.IsEventAdmins(eventID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -175,7 +175,7 @@ func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc 
 			return notFound(err)
 		}
 
-		if !h.repo.IsRoomAdmins(roomID, getConinfo(c)) {
+		if !h.Repo.IsRoomAdmins(roomID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
