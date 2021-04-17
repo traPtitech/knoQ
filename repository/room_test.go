@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -183,7 +184,12 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 				TimeEnd:   tt.fields.TimeEnd,
 				Events:    tt.fields.Events,
 			}
-			r.CalcAvailableTime(true)
+			got := r.CalcAvailableTime(tt.allowTogether)
+			if !reflect.DeepEqual(got, tt.want) {
+				if !(len(got) == 0 && len(tt.want) == 0) {
+					t.Errorf("r.CalcAvailableTime() = %v, want %v", got, tt.want)
+				}
+			}
 		})
 	}
 }

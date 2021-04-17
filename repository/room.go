@@ -211,7 +211,7 @@ func (r *Room) CalcAvailableTime(allowTogether bool) []StartEndTime {
 		if allowTogether && e.AllowTogether {
 			continue
 		}
-		TimeRangesSub(availabletime, StartEndTime{e.TimeStart, e.TimeEnd})
+		availabletime = TimeRangesSub(availabletime, StartEndTime{e.TimeStart, e.TimeEnd})
 	}
 	return availabletime
 }
@@ -224,14 +224,6 @@ func TimeRangesSub(as []StartEndTime, b StartEndTime) (cs []StartEndTime) {
 }
 
 func TimeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
-	/*
-		a: s####e-------
-		b: -------s####e
-		-> s####e
-	*/
-	if a.TimeStart.Unix() >= b.TimeEnd.Unix() || a.TimeEnd.Unix() <= b.TimeEnd.Unix() {
-		return []StartEndTime{a}
-	}
 
 	/*
 		a: ---s#####e---
@@ -243,11 +235,41 @@ func TimeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 	}
 
 	/*
+		a: s####e-------
+		b: -------s####e
+		-> s####e
+	*/
+	if a.TimeStart.Unix() >= b.TimeEnd.Unix() || a.TimeEnd.Unix() <= b.TimeEnd.Unix() {
+		return []StartEndTime{a}
+	}
+
+	/*
 		a: s###########e
 		b: ----s####e---
 		-> s###e----s##e
 	*/
-	if a.TimeStart.Unix() < b.TimeStart.Unix() && b.TimeEnd.Unix() < a.TimeEnd.Unix() {
+	if a.TimeStart.Unix() <= b.TimeStart.Unix() && b.TimeEnd.Unix() <= a.TimeEnd.Unix() {
+		/*
+			a: --s######e---
+			b: --s#####e----
+			-> --------se---
+		*/
+		if a.TimeStart.Unix() == b.TimeStart.Unix() {
+			return []StartEndTime{
+				{b.TimeEnd, a.TimeEnd},
+			}
+		}
+
+		/*
+			a: --s######e---
+			b: ----s###e----
+			-> --s#e--------
+		*/
+		if a.TimeEnd.Unix() == b.TimeStart.Unix() {
+			return []StartEndTime{
+				{a.TimeStart, b.TimeStart},
+			}
+		}
 		return []StartEndTime{
 			{a.TimeStart, b.TimeStart},
 			{b.TimeEnd, a.TimeEnd},
@@ -275,6 +297,7 @@ func TimeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 			{b.TimeEnd, a.TimeEnd},
 		}
 	}
+
 	return nil
 }
 
