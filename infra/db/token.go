@@ -15,6 +15,6 @@ func getToken(db *gorm.DB, userID uuid.UUID) (*oauth2.Token, error) {
 		UserID: userID,
 	}
 	err := db.Take(&token).Error
-	return token.Token, err
+	return token.Token, defaultErrorHandling(err)
 
 }

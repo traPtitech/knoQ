@@ -24,27 +24,33 @@ type WriteEventParams struct {
 }
 
 func (repo *GormRepository) CreateEvent(params WriteEventParams) (*Event, error) {
-	return createEvent(repo.db, params)
+	e, err := createEvent(repo.db, params)
+	return e, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*Event, error) {
-	return updateEvent(repo.db, eventID, params)
+	e, err := updateEvent(repo.db, eventID, params)
+	return e, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
-	return addEventTag(repo.db, eventID, params)
+	err := addEventTag(repo.db, eventID, params)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) DeleteEvent(eventID uuid.UUID) error {
-	return deleteEvent(repo.db, eventID)
+	err := deleteEvent(repo.db, eventID)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
-	return deleteEventTag(repo.db, eventID, tagName, deleteLocked)
+	err := deleteEventTag(repo.db, eventID, tagName, deleteLocked)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
-	return getEvent(eventFullPreload(repo.db), eventID)
+	es, err := getEvent(eventFullPreload(repo.db), eventID)
+	return es, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
@@ -53,8 +59,9 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 		return nil, err
 	}
 	cmd := eventFullPreload(repo.db)
-	return getAllEvents(cmd.Joins("LEFT JOIN event_tags ON id = event_tags.event_id"),
+	es, err := getAllEvents(cmd.Joins("LEFT JOIN event_tags ON id = event_tags.event_id"),
 		filterFormat, filterArgs)
+	return es, defaultErrorHandling(err)
 }
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {

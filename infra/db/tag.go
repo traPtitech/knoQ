@@ -9,7 +9,7 @@ import (
 func (repo *GormRepository) CreateOrGetTag(name string) (*domain.Tag, error) {
 	tag, err := createOrGetTag(repo.db, name)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	t := ConvTagTodomainTag(*tag)
 	return &t, nil
@@ -18,7 +18,7 @@ func (repo *GormRepository) CreateOrGetTag(name string) (*domain.Tag, error) {
 func (repo *GormRepository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
 	tag, err := getTag(repo.db, tagID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	t := ConvTagTodomainTag(*tag)
 	return &t, nil
@@ -27,7 +27,7 @@ func (repo *GormRepository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
 func (repo *GormRepository) GetAllTags() ([]*domain.Tag, error) {
 	tags, err := getAllTags(repo.db)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	t := ConvSPTagToSPdomainTag(tags)
 	return t, nil

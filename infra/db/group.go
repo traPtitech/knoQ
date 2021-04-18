@@ -16,35 +16,43 @@ type WriteGroupParams struct {
 }
 
 func (repo *GormRepository) CreateGroup(params WriteGroupParams) (*Group, error) {
-	return createGroup(repo.db, params)
+	g, err := createGroup(repo.db, params)
+	return g, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
-	return updateGroup(repo.db, groupID, params)
+	g, err := updateGroup(repo.db, groupID, params)
+	return g, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
-	return addMemberToGroup(repo.db, groupID, userID)
+	err := addMemberToGroup(repo.db, groupID, userID)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) DeleteGroup(groupID uuid.UUID) error {
-	return deleteGroup(repo.db, groupID)
+	err := deleteGroup(repo.db, groupID)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error {
-	return deleteMemberOfGroup(repo.db, groupID, userID)
+	err := deleteMemberOfGroup(repo.db, groupID, userID)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
-	return getGroup(groupFullPreload(repo.db), groupID)
+	gs, err := getGroup(groupFullPreload(repo.db), groupID)
+	return gs, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
-	return getAllGroups(groupFullPreload(repo.db))
+	gs, err := getAllGroups(groupFullPreload(repo.db))
+	return gs, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetUserBelongingGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
-	return getUserBelongingGroupIDs(repo.db, userID)
+	ids, err := getUserBelongingGroupIDs(repo.db, userID)
+	return ids, defaultErrorHandling(err)
 }
 
 func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {

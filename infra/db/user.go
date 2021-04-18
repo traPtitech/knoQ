@@ -12,19 +12,23 @@ func userPreload(tx *gorm.DB) *gorm.DB {
 }
 
 func (repo *GormRepository) SaveUser(user User) (*User, error) {
-	return saveUser(repo.db, &user)
+	u, err := saveUser(repo.db, &user)
+	return u, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) error {
-	return updateiCalSecret(repo.db, userID, secret)
+	err := updateiCalSecret(repo.db, userID, secret)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
-	return getUser(userPreload(repo.db), userID)
+	u, err := getUser(userPreload(repo.db), userID)
+	return u, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetAllUsers(onlyActive bool) ([]*User, error) {
-	return getAllUsers(userPreload(repo.db), onlyActive)
+	us, err := getAllUsers(userPreload(repo.db), onlyActive)
+	return us, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) SyncUsers(users []*User) error {
@@ -61,7 +65,7 @@ func (repo *GormRepository) SyncUsers(users []*User) error {
 		return nil
 	})
 
-	return err
+	return defaultErrorHandling(err)
 }
 
 // saveUser user.IcalSecret == "" の時、値は更新されません。
