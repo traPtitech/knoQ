@@ -235,9 +235,9 @@ func TimeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 	}
 
 	/*
-		a: s####e-------
-		b: -------s####e
-		-> s####e
+		a: s####e-------    a: -------s####e
+		b: -------s####e    b: s####e-------
+		-> s####e-------    -> -------s####e
 	*/
 	if a.TimeStart.Unix() >= b.TimeEnd.Unix() || a.TimeEnd.Unix() <= b.TimeEnd.Unix() {
 		return []StartEndTime{a}
