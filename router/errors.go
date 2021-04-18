@@ -161,7 +161,6 @@ func HTTPErrorHandler(err error, c echo.Context) {
 			er, ok := message.(*ErrorResponse)
 			if ok && er.needAuthorization {
 				c.Response().Header().Set("X-KNOQ-Need-Authorization", "1")
-				fmt.Println("need auth")
 			}
 			err = c.JSON(code, message)
 		}
