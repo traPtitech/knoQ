@@ -15,7 +15,7 @@ func handleStatusCode(statusCode int) error {
 	if statusCode >= 300 {
 		switch statusCode {
 		case 401:
-			return ErrForbidden
+			return ErrUnAuthorized
 		case 403:
 			return ErrForbidden
 		case 404:
