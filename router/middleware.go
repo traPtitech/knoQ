@@ -189,6 +189,10 @@ func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc 
 
 // WebhookEventHandler is used with middleware.BodyDump
 func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) {
+	if c.Response().Status >= 400 {
+		return
+	}
+
 	e := new(presentation.EventDetailRes)
 	err := json.Unmarshal(resBody, e)
 	if err != nil {
