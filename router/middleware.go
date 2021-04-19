@@ -117,7 +117,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func (h *Handlers) PrevilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// 判定
-		if h.Repo.IsPrevilege(getConinfo(c)) {
+		if !h.Repo.IsPrevilege(getConinfo(c)) {
 			return forbidden(
 				errors.New("not admin"),
 				message("You are not admin user."),
