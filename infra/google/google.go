@@ -15,7 +15,7 @@ type GoogleRepository struct {
 }
 
 //go:embed tmp/client.json
-var ClientFile []byte
+//var ClientFile []byte
 
 func (repo *GoogleRepository) GetOAuthURL() (url, state string) {
 	state = random.SecureAlphaNumeric(10)
