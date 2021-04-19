@@ -87,7 +87,6 @@ func ConvGroupTodomainGroup(src Group) (dst domain.Group) {
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
 	dst.Model.DeletedAt = new(time.Time)
 	(*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
-	dst.IsTraQGroup = src.Model.DeletedAt.Valid
 	return
 }
 func ConvRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {

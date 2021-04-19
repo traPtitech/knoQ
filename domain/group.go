@@ -9,7 +9,7 @@ type Group struct {
 	JoinFreely  bool
 	Members     []User
 	Admins      []User
-	IsTraQGroup bool `cvt:"<-"`
+	IsTraQGroup bool `cvt:"->"`
 	CreatedBy   User
 	Model
 }
