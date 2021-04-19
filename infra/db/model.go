@@ -13,9 +13,9 @@ var tables = []interface{}{
 	UserBody{},
 	Token{},
 	Provider{},
+	Group{},
 	GroupMember{},
 	GroupAdmin{},
-	Group{},
 	Tag{},
 	Room{},
 	RoomAdmin{},
@@ -116,6 +116,8 @@ type Group struct {
 	Model          `cvt:"->"`
 }
 
+//go:generate gotypeconverter -s Tag -d domain.Tag -o converter.go .
+//go:generate gotypeconverter -s []*Tag -d []*domain.Tag -o converter.go .
 type Tag struct {
 	ID    uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name  string    `gorm:"unique; type:varchar(16) binary"`

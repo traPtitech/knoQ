@@ -44,7 +44,7 @@ func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traQ.UserGroup
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
-	URL := fmt.Sprintf("%s/groups", repo.URL)
+	URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
 	req, err := http.NewRequest(http.MethodGet, URL, nil)
 	if err != nil {
 		return nil, err

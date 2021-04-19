@@ -9,7 +9,7 @@ import (
 )
 
 func roomFullPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Events").Preload("Admins")
+	return tx.Preload("Events").Preload("Admins").Preload("CreatedBy")
 }
 
 type CreateRoomParams struct {
@@ -28,7 +28,7 @@ type UpdateRoomParams struct {
 func (repo GormRepository) CreateRoom(params CreateRoomParams) (*domain.Room, error) {
 	room, err := createRoom(repo.db, params)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	r := ConvRoomTodomainRoom(*room)
 	return &r, nil
@@ -37,7 +37,7 @@ func (repo GormRepository) CreateRoom(params CreateRoomParams) (*domain.Room, er
 func (repo GormRepository) UpdateRoom(roomID uuid.UUID, params UpdateRoomParams) (*domain.Room, error) {
 	room, err := updateRoom(repo.db, roomID, params)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	r := ConvRoomTodomainRoom(*room)
 	return &r, nil
@@ -54,7 +54,7 @@ func (repo GormRepository) DeleteRoom(roomID uuid.UUID) error {
 func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
 	room, err := getRoom(roomFullPreload(repo.db), roomID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	r := ConvRoomTodomainRoom(*room)
 	return &r, nil
@@ -63,7 +63,7 @@ func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
 func (repo GormRepository) GetAllRooms(start, end time.Time) ([]*domain.Room, error) {
 	rooms, err := getAllRooms(roomFullPreload(repo.db), start, end)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	r := ConvSPRoomToSPdomainRoom(rooms)
 	return r, nil
@@ -72,10 +72,7 @@ func (repo GormRepository) GetAllRooms(start, end time.Time) ([]*domain.Room, er
 func createRoom(db *gorm.DB, roomParams CreateRoomParams) (*Room, error) {
 	room := ConvCreateRoomParamsToRoom(roomParams)
 	err := db.Create(&room).Error
-	if err != nil {
-		return nil, err
-	}
-	return &room, nil
+	return &room, err
 }
 
 func updateRoom(db *gorm.DB, roomID uuid.UUID, params UpdateRoomParams) (*Room, error) {

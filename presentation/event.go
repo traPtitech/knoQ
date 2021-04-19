@@ -28,6 +28,10 @@ type EventReqWrite struct {
 	} `json:"tags"`
 }
 
+type EventTagReq struct {
+	Name string `json:"name"`
+}
+
 // EventDetailRes is experimental
 //go:generate gotypeconverter -s domain.Event -d EventDetailRes -o converter.go .
 type EventDetailRes struct {
@@ -35,26 +39,27 @@ type EventDetailRes struct {
 	Name          string        `json:"name"`
 	Description   string        `json:"description"`
 	Room          RoomRes       `json:"room"`
-	Group         GroupResOne   `json:"group"`
+	Group         GroupRes      `json:"group"`
 	Place         string        `json:"place" cvt:"Room"`
 	GroupName     string        `json:"groupName" cvt:"Group"`
 	TimeStart     time.Time     `json:"timeStart"`
 	TimeEnd       time.Time     `json:"timeEnd"`
-	CreatedBy     UserRes       `json:"createdBy"`
-	Admins        []UserRes     `json:"admins"`
+	CreatedBy     uuid.UUID     `json:"createdBy"`
+	Admins        []uuid.UUID   `json:"admins"`
 	Tags          []EventTagRes `json:"tags"`
 	AllowTogether bool          `json:"sharedRoom"`
 	Model
 }
 
 type EventTagRes struct {
-	ID     uuid.UUID `json:"tagId"`
-	Name   string    `json:"name"`
+	ID     uuid.UUID `json:"tagId" cvt:"Tag"`
+	Name   string    `json:"name" cvt:"Tag"`
 	Locked bool      `json:"locked"`
 }
 
 // EventRes is for multiple response
 //go:generate gotypeconverter -s domain.Event -d EventRes -o converter.go .
+//go:generate gotypeconverter -s []*domain.Event -d []EventRes -o converter.go .
 type EventRes struct {
 	ID            uuid.UUID         `json:"eventId"`
 	Name          string            `json:"name"`
@@ -93,7 +98,7 @@ func iCalVeventFormat(e *domain.Event, host string) *ical.Event {
 	return vevent
 }
 
-func iCalFormat(events []*domain.Event, host string) *ical.Calendar {
+func ICalFormat(events []*domain.Event, host string) *ical.Calendar {
 	c := ical.New()
 	ical.NewEvent()
 	tz := ical.NewTimezone()

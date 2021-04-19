@@ -411,6 +411,8 @@ paths:
         - users
       operationId: getUsers
       description: ユーザー一覧を返す
+      parameters:
+        - $ref: '#/components/parameters/include-suspended'
       responses:
         '200':
           $ref: '#/components/responses/UserArray'
@@ -966,6 +968,17 @@ components:
       schema:
         type: string
         format: datetime
+
+    include-suspended:
+      name: include-suspended
+      in: query
+      description: アカウントがアクティブでないユーザーを含めるかどうか。 |
+        traQ由来のquery。 |
+        de
+      required: false
+      schema:
+        type: boolean
+        example: false
 
     userID:
       name: userID

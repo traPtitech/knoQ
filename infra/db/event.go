@@ -11,8 +11,11 @@ import (
 )
 
 func eventFullPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Group").Preload("Room").Preload("CreatedBy").
-		Preload("Admins").Preload("Admins.User").Preload("Tags").Preload("Tags.Tag")
+	return tx.Preload("Group").Preload("Group.Members").Preload("Group.Admins").Preload("Group.CreatedBy").
+		Preload("Room").Preload("Room.Events").Preload("Room.Admins").Preload("Room.CreatedBy").
+		Preload("Admins").Preload("Admins.User").
+		Preload("Tags").Preload("Tags.Tag").
+		Preload("CreatedBy")
 }
 
 type WriteEventParams struct {
@@ -21,27 +24,33 @@ type WriteEventParams struct {
 }
 
 func (repo *GormRepository) CreateEvent(params WriteEventParams) (*Event, error) {
-	return createEvent(repo.db, params)
+	e, err := createEvent(repo.db, params)
+	return e, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*Event, error) {
-	return updateEvent(repo.db, eventID, params)
+	e, err := updateEvent(repo.db, eventID, params)
+	return e, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
-	return addEventTag(repo.db, eventID, params)
+	err := addEventTag(repo.db, eventID, params)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) DeleteEvent(eventID uuid.UUID) error {
-	return deleteEvent(repo.db, eventID)
+	err := deleteEvent(repo.db, eventID)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
-	return deleteEventTag(repo.db, eventID, tagName, deleteLocked)
+	err := deleteEventTag(repo.db, eventID, tagName, deleteLocked)
+	return defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
-	return getEvent(eventFullPreload(repo.db), eventID)
+	es, err := getEvent(eventFullPreload(repo.db), eventID)
+	return es, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
@@ -50,8 +59,9 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 		return nil, err
 	}
 	cmd := eventFullPreload(repo.db)
-	return getAllEvents(cmd.Joins("LEFT JOIN event_tags ON id = event_tags.event_id"),
+	es, err := getAllEvents(cmd.Joins("LEFT JOIN event_tags ON id = event_tags.event_id"),
 		filterFormat, filterArgs)
+	return es, defaultErrorHandling(err)
 }
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
@@ -109,8 +119,9 @@ func getAllEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, erro
 }
 
 func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) {
-	var filterFormat string
-	var filterArgs []interface{}
+	if expr == nil {
+		return "", []interface{}{}, nil
+	}
 
 	attrMap := map[filter.Attr]string{
 		filter.User:      "group_id",
@@ -131,84 +142,87 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 		filter.LessEq:   "<=",
 	}
 
-	switch e := expr.(type) {
-	case nil:
-		filterFormat = ""
-		filterArgs = []interface{}{}
+	var cf func(tx *gorm.DB, e filter.Expr) (string, []interface{}, error)
+	cf = func(tx *gorm.DB, e filter.Expr) (string, []interface{}, error) {
+		var filterFormat string
+		var filterArgs []interface{}
 
-	case *filter.CmpExpr:
-		switch e.Attr {
-		case filter.User:
-			id, ok := e.Value.(uuid.UUID)
-			if !ok {
+		switch e := e.(type) {
+		case *filter.CmpExpr:
+			switch e.Attr {
+			case filter.User:
+				id, ok := e.Value.(uuid.UUID)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				rel := map[filter.Relation]string{
+					filter.Eq:  "IN",
+					filter.Neq: "NOT IN",
+				}[e.Relation]
+				ids, err := getUserBelongingGroupIDs(db, id)
+				if err != nil {
+					return "", nil, err
+				}
+
+				filterFormat = fmt.Sprintf("%s %v (?)", attrMap[e.Attr], rel)
+				filterArgs = []interface{}{ids}
+
+			case filter.Name:
+				name, ok := e.Value.(string)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				rel := map[filter.Relation]string{
+					filter.Eq:  "=",
+					filter.Neq: "!=",
+				}[e.Relation]
+				filterFormat = fmt.Sprintf("name %v ?", rel)
+				filterArgs = []interface{}{name}
+			case filter.TimeStart:
+				fallthrough
+			case filter.TimeEnd:
+				t, ok := e.Value.(time.Time)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
+				filterArgs = []interface{}{t}
+			default:
+				id := e.Value.(uuid.UUID)
+				id, ok := e.Value.(uuid.UUID)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
+				filterArgs = []interface{}{id}
+			}
+
+		case *filter.LogicOpExpr:
+			op := map[filter.LogicOp]string{
+				filter.And: "AND",
+				filter.Or:  "OR",
+			}[e.LogicOp]
+			lFilter, lFilterArgs, lerr := cf(db, e.Lhs)
+			rFilter, rFilterArgs, rerr := cf(db, e.Rhs)
+
+			if lerr != nil && rerr != nil {
 				return "", nil, ErrExpression
 			}
-			rel := map[filter.Relation]string{
-				filter.Eq:  "IN",
-				filter.Neq: "NOT IN",
-			}[e.Relation]
-			ids, err := getUserBelongingGroupIDs(db, id)
-			if err != nil {
-				return "", nil, err
+			if lerr != nil {
+				return rFilter, rFilterArgs, nil
+			}
+			if rerr != nil {
+				return lFilter, lFilterArgs, nil
 			}
 
-			filterFormat = fmt.Sprintf("%s %v (?)", attrMap[e.Attr], rel)
-			filterArgs = []interface{}{ids}
+			filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
+			filterArgs = append(lFilterArgs, rFilterArgs...)
 
-		case filter.Name:
-			name, ok := e.Value.(string)
-			if !ok {
-				return "", nil, ErrExpression
-			}
-			rel := map[filter.Relation]string{
-				filter.Eq:  "=",
-				filter.Neq: "!=",
-			}[e.Relation]
-			filterFormat = fmt.Sprintf("name %v ?", rel)
-			filterArgs = []interface{}{name}
-		case filter.TimeStart:
-			fallthrough
-		case filter.TimeEnd:
-			t, ok := e.Value.(time.Time)
-			if !ok {
-				return "", nil, ErrExpression
-			}
-			filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
-			filterArgs = []interface{}{t}
 		default:
-			id := e.Value.(uuid.UUID)
-			id, ok := e.Value.(uuid.UUID)
-			if !ok {
-				return "", nil, ErrExpression
-			}
-			filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
-			filterArgs = []interface{}{id}
-		}
-
-	case *filter.LogicOpExpr:
-		op := map[filter.LogicOp]string{
-			filter.And: "AND",
-			filter.Or:  "OR",
-		}[e.LogicOp]
-		lFilter, lFilterArgs, lerr := createFilter(db, e.Lhs)
-		rFilter, rFilterArgs, rerr := createFilter(db, e.Rhs)
-
-		if lerr != nil && rerr != nil {
 			return "", nil, ErrExpression
 		}
-		if lerr != nil {
-			return rFilter, rFilterArgs, nil
-		}
-		if rerr != nil {
-			return lFilter, lFilterArgs, nil
-		}
 
-		filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
-		filterArgs = append(lFilterArgs, rFilterArgs...)
-
-	default:
-		return "", nil, ErrExpression
+		return filterFormat, filterArgs, nil
 	}
-
-	return filterFormat, filterArgs, nil
+	return cf(db, expr)
 }

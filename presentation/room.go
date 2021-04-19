@@ -20,13 +20,15 @@ type StartEndTime struct {
 }
 
 //go:generate gotypeconverter -s domain.Room -d RoomRes -o converter.go .
+//go:generate gotypeconverter -s []*domain.Room -d []*RoomRes -o converter.go .
+//go:generate gotypeconverter -s []domain.StartEndTime -d []StartEndTime -o converter.go .
 type RoomRes struct {
 	ID uuid.UUID `json:"roomId"`
 	// Verifeid indicates if the room has been verified by privileged users.
 	Verified bool `json:"verified"`
 	RoomReq
-	FreeTimes   []StartEndTime `json:"freeTimes" cvt:"-"`
-	SharedTimes []StartEndTime `json:"sharedTimes" cvt:"-"`
-	CreatedBy   UserRes        `json:"createdBy"`
+	FreeTimes   []StartEndTime `json:"freeTimes,omitempty" cvt:"-"`
+	SharedTimes []StartEndTime `json:"sharedTimes,omitempty" cvt:"-"`
+	CreatedBy   uuid.UUID      `json:"createdBy"`
 	Model
 }

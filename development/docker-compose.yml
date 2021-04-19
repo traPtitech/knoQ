@@ -25,10 +25,13 @@ services:
     volumes:
       - ../main.go:/srv/knoq/main.go
       - ../logging:/srv/knoq/logging
-      - ../repository:/srv/knoq/repository
       - ../router:/srv/knoq/router
       - ../utils:/srv/knoq/utils
       - ../migration:/srv/knoq/migration
+      - ../domain:/srv/knoq/domain
+      - ../infra:/srv/knoq/infra
+      - ../presentation:/srv/knoq/presentation
+      - ../usecase:/srv/knoq/usecase
       - ../parsing:/srv/knoq/parsing
       - ./dist:/srv/knoq/web/dist/:ro
       - ./service.json:/srv/knoq/service.json

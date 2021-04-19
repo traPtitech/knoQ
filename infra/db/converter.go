@@ -87,7 +87,6 @@ func ConvGroupTodomainGroup(src Group) (dst domain.Group) {
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
 	dst.Model.DeletedAt = new(time.Time)
 	(*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
-	dst.IsTraQGroup = src.Model.DeletedAt.Valid
 	return
 }
 func ConvRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
@@ -152,6 +151,15 @@ func ConvSPRoomToSPdomainRoom(src []*Room) (dst []*domain.Room) {
 	for i := range src {
 		dst[i] = new(domain.Room)
 		(*dst[i]) = ConvRoomTodomainRoom((*src[i]))
+	}
+	return
+}
+
+func ConvSPTagToSPdomainTag(src []*Tag) (dst []*domain.Tag) {
+	dst = make([]*domain.Tag, len(src))
+	for i := range src {
+		dst[i] = new(domain.Tag)
+		(*dst[i]) = ConvTagTodomainTag((*src[i]))
 	}
 	return
 }
