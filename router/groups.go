@@ -3,41 +3,24 @@ package router
 import (
 	"net/http"
 
-	"github.com/traPtitech/knoQ/router/service"
+	"github.com/traPtitech/knoQ/presentation"
 
-	repo "github.com/traPtitech/knoQ/repository"
-
-	"github.com/jinzhu/copier"
 	"github.com/labstack/echo/v4"
 )
 
 // HandlePostGroup グループを作成
 func (h *Handlers) HandlePostGroup(c echo.Context) error {
-	var req service.GroupReq
-
+	var req presentation.GroupReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest(err, message(err.Error()))
 	}
-	groupParams := new(repo.WriteGroupParams)
-	err := copier.Copy(&groupParams, req)
-	if err != nil {
-		return internalServerError(err)
-	}
-	groupParams.CreatedBy, _ = getRequestUserID(c)
-	groupParams.Admins, err = adminsValidation(groupParams.Admins, h.Repo)
-	if err != nil {
-		return internalServerError(err)
-	}
-	if len(groupParams.Admins) == 0 {
-		return badRequest(err, message("at least one admin is required"))
-	}
+	groupParams := presentation.ConvGroupReqTodomainWriteGroupParams(req)
 
-	token, _ := getRequestUserToken(c)
-
-	res, err := h.Dao.CreateGroup(token, *groupParams)
+	group, err := h.Repo.CreateGroup(groupParams, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
+	res := presentation.ConvdomainGroupToGroupRes(*group)
 	return c.JSON(http.StatusCreated, res)
 }
 
@@ -48,22 +31,22 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	token, _ := getRequestUserToken(c)
-	groupRes, err := h.Dao.GetGroup(token, groupID)
+	group, err := h.Repo.GetGroup(groupID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
 
-	return c.JSON(http.StatusOK, groupRes)
+	res := presentation.ConvdomainGroupToGroupRes(*group)
+	return c.JSON(http.StatusOK, res)
 }
 
 // HandleGetGroups グループを取得
 func (h *Handlers) HandleGetGroups(c echo.Context) error {
-	token, _ := getRequestUserToken(c)
-	res, err := h.Dao.GetAllGroups(token)
+	groups, err := h.Repo.GetAllGroups(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
+	res := presentation.ConvSPdomainGroupToSPGroupRes(groups)
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -74,7 +57,7 @@ func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	if err := h.Repo.DeleteGroup(groupID); err != nil {
+	if err := h.Repo.DeleteGroup(groupID, getConinfo(c)); err != nil {
 		return judgeErrorResponse(err)
 	}
 
@@ -83,35 +66,18 @@ func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 
 // HandleUpdateGroup 変更できるものはpostと同等
 func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
-	var req service.GroupReq
-	if err := c.Bind(&req); err != nil {
-		return badRequest(err, message(err.Error()))
-	}
-	groupParams := new(repo.WriteGroupParams)
-	err := copier.Copy(&groupParams, req)
-	if err != nil {
-		return internalServerError(err)
-	}
-
 	groupID, err := getPathGroupID(c)
 	if err != nil {
 		return notFound(err)
 	}
-	token, _ := getRequestUserToken(c)
-	group, err := h.Repo.GetGroup(groupID)
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-	groupParams.CreatedBy = group.CreatedBy
-	groupParams.Admins, err = adminsValidation(groupParams.Admins, h.Repo)
-	if err != nil {
-		return internalServerError(err)
-	}
-	if len(groupParams.Admins) == 0 {
-		return badRequest(err, message("at least one admin is required"))
-	}
 
-	res, err := h.Dao.UpdateGroup(token, groupID, *groupParams)
+	var req presentation.GroupReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(err, message(err.Error()))
+	}
+	groupParams := presentation.ConvGroupReqTodomainWriteGroupParams(req)
+
+	res, err := h.Repo.UpdateGroup(groupID, groupParams, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -124,9 +90,8 @@ func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	userID, _ := getRequestUserID(c)
-	token, _ := getRequestUserToken(c)
-	if err := h.Dao.AddUserToGroup(token, groupID, userID); err != nil {
+	err = h.Repo.AddMeToGroup(groupID, getConinfo(c))
+	if err != nil {
 		return judgeErrorResponse(err)
 	}
 
@@ -139,8 +104,8 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	userID, _ := getRequestUserID(c)
-	if err := h.Repo.DeleteUserInGroup(groupID, userID); err != nil {
+	err = h.Repo.DeleteMeGroup(groupID, getConinfo(c))
+	if err != nil {
 		return judgeErrorResponse(err)
 	}
 
@@ -150,8 +115,7 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 	userID, _ := getRequestUserID(c)
 
-	token, _ := getRequestUserToken(c)
-	groupIDs, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
+	groupIDs, err := h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -164,11 +128,10 @@ func (h *Handlers) HandleGetGroupIDsByUserID(c echo.Context) error {
 		return notFound(err, message(err.Error()))
 	}
 
-	token, _ := getRequestUserToken(c)
-	res, err := h.Dao.GetUserBelongingGroupIDs(token, userID)
+	groupIDs, err := h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
 
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, groupIDs)
 }

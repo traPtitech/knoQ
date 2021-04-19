@@ -7,11 +7,12 @@ import (
 	"regexp"
 
 	"github.com/gofrs/uuid"
+	"github.com/traPtitech/knoQ/domain/filter"
 )
 
 /*---------------------------------------------------------------------------*/
 
-func Parse(input string) (Expr, error) {
+func Parse(input string) (filter.Expr, error) {
 	ts, err := Lex(input)
 	if err != nil {
 		return nil, err
@@ -198,35 +199,14 @@ func advanceToken(b *[]byte) (Token, error) {
 
 /*---------------------------------------------------------------------------*/
 
-type Relation int
-
-const (
-	Eq Relation = iota
-	Neq
-)
-
-type LogicOp int
-
-const (
-	And LogicOp = iota
-	Or
-)
-
-type Expr interface{} // expects *LogicOpExpr, *CmpExpr
-
-type LogicOpExpr struct {
-	LogicOp LogicOp
-	Lhs     Expr
-	Rhs     Expr
-}
-
-type CmpExpr struct {
-	Attr     string
-	Relation Relation
-	UUID     string
-}
-
 /*---------------------------------------------------------------------------*/
+
+var MapSupportedAttributes = map[string]filter.Attr{
+	"user":  filter.User,
+	"group": filter.Group,
+	"tag":   filter.Tag,
+	"event": filter.Event,
+}
 
 func createParseError(found tokenKind, expected ...tokenKind) error {
 	return fmt.Errorf("expected %v, found %v", expected, found)
@@ -252,8 +232,8 @@ Syntax:
 
 */
 
-func ParseTop(ts *TokenStream) (Expr, error) {
-	var expr Expr
+func ParseTop(ts *TokenStream) (filter.Expr, error) {
+	var expr filter.Expr
 	var err error
 
 	if ts.Peek().Kind != EOF {
@@ -269,8 +249,8 @@ func ParseTop(ts *TokenStream) (Expr, error) {
 	return expr, nil
 }
 
-func ParseExpr(ts *TokenStream) (Expr, error) {
-	var expr Expr
+func ParseExpr(ts *TokenStream) (filter.Expr, error) {
+	var expr filter.Expr
 	var err error
 
 	if expr, err = ParseTerm(ts); err != nil {
@@ -283,15 +263,15 @@ Loop:
 		case AndOp, OrOp:
 			ts.Next()
 			lhs := expr
-			op := map[tokenKind]LogicOp{
-				AndOp: And,
-				OrOp:  Or,
+			op := map[tokenKind]filter.LogicOp{
+				AndOp: filter.And,
+				OrOp:  filter.Or,
 			}[k]
 			rhs, err := ParseTerm(ts)
 			if err != nil {
 				return nil, err
 			}
-			expr = &LogicOpExpr{op, lhs, rhs}
+			expr = &filter.LogicOpExpr{op, lhs, rhs}
 
 		default:
 			break Loop
@@ -301,8 +281,8 @@ Loop:
 	return expr, nil
 }
 
-func ParseTerm(ts *TokenStream) (Expr, error) {
-	var expr Expr
+func ParseTerm(ts *TokenStream) (filter.Expr, error) {
+	var expr filter.Expr
 	var err error
 
 	switch k := ts.Peek().Kind; k {
@@ -327,10 +307,10 @@ func ParseTerm(ts *TokenStream) (Expr, error) {
 	return expr, nil
 }
 
-func ParseCmp(ts *TokenStream) (Expr, error) {
+func ParseCmp(ts *TokenStream) (filter.Expr, error) {
 	var attr string
-	var rel Relation
-	var uuid string
+	var rel filter.Relation
+	var uid uuid.UUID
 
 	tok := ts.Next()
 	if tok.Kind != Attr {
@@ -342,16 +322,16 @@ func ParseCmp(ts *TokenStream) (Expr, error) {
 	if tok.Kind != EqOp && tok.Kind != NeqOp {
 		return nil, createParseError(tok.Kind, EqOp, NeqOp)
 	}
-	rel = map[tokenKind]Relation{
-		EqOp:  Eq,
-		NeqOp: Neq,
+	rel = map[tokenKind]filter.Relation{
+		EqOp:  filter.Eq,
+		NeqOp: filter.Neq,
 	}[tok.Kind]
 
 	tok = ts.Next()
 	if tok.Kind != UUID {
 		return nil, createParseError(tok.Kind, UUID)
 	}
-	uuid = tok.Value
+	uid = uuid.Must(uuid.FromString(tok.Value))
 
-	return &CmpExpr{attr, rel, uuid}, nil
+	return &filter.CmpExpr{MapSupportedAttributes[attr], rel, uid}, nil
 }

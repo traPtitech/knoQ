@@ -4,147 +4,52 @@ import (
 	"bytes"
 	"net/http"
 
-	"github.com/traPtitech/knoQ/router/service"
-
-	repo "github.com/traPtitech/knoQ/repository"
+	"github.com/lestrrat-go/ical"
+	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/parsing"
+	"github.com/traPtitech/knoQ/presentation"
 
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/copier"
-	"github.com/lestrrat-go/ical"
 
 	"github.com/labstack/echo/v4"
 )
 
-func adminsValidation(userIDs []uuid.UUID, r repo.UserMetaRepository) ([]uuid.UUID, error) {
-	users, err := r.GetAllUsers()
-	if err != nil {
-		return nil, err
-	}
-	ids := make([]uuid.UUID, 0, len(userIDs))
-	for _, v := range userIDs {
-		for _, user := range users {
-			if v == user.ID {
-				ids = append(ids, v)
-				break
-			}
-		}
-	}
-	return ids, nil
-}
-
 // HandlePostEvent 部屋の使用宣言を作成
 func (h *Handlers) HandlePostEvent(c echo.Context) error {
-	var req service.EventReq
+	var req presentation.EventReqWrite
 	if err := c.Bind(&req); err != nil {
 		return badRequest(err, message(err.Error()))
 	}
-	eventParams := new(repo.WriteEventParams)
-	err := copier.Copy(&eventParams, req)
-	if err != nil {
-		return internalServerError(err)
-	}
+	params := presentation.ConvEventReqWriteTodomainWriteEventParams(req)
 
-	eventParams.CreatedBy, _ = getRequestUserID(c)
-	eventParams.Admins, err = adminsValidation(eventParams.Admins, h.Repo)
-	if err != nil {
-		return internalServerError(err)
-	}
-	if len(eventParams.Admins) == 0 {
-		return badRequest(err, message("at least one admin is required"))
-	}
-
-	// 部屋を作成
-	if req.RoomID == uuid.Nil {
-		roomParams := &repo.WriteRoomParams{
-			Place:     req.Place,
-			Public:    false,
-			TimeStart: req.TimeStart,
-			TimeEnd:   req.TimeEnd,
-		}
-		setCreatedBytoRoom(c, roomParams)
-
-		room, err := h.Repo.CreateRoom(*roomParams)
-		if err != nil {
-			return judgeErrorResponse(err)
-		}
-		eventParams.RoomID = room.ID
-	}
-
-	event, err := h.Repo.CreateEvent(*eventParams)
+	event, err := h.Repo.CreateEvent(params, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	// add tag
-	for _, reqTag := range req.Tags {
-		tag, err := h.Repo.CreateOrGetTag(reqTag.Name)
-		if err != nil {
-			continue
-		}
-		tag.Locked = reqTag.Locked
-		event.Tags = append(event.Tags, *tag)
-		err = h.Repo.AddTagToEvent(event.ID, tag.ID, reqTag.Locked)
-		if err != nil {
-			return judgeErrorResponse(err)
-		}
-	}
 
-	return c.JSON(http.StatusCreated, service.FormatEventRes(event))
+	return c.JSON(http.StatusCreated, presentation.ConvdomainEventToEventDetailRes(*event))
 }
 
-// HandleGetEvent get one event
-func (h *Handlers) HandleGetEvent(c echo.Context) error {
+// HandleUpdateEvent 任意の要素を変更
+func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err)
 	}
 
-	event, err := h.Repo.GetEvent(eventID)
+	var req presentation.EventReqWrite
+	if err := c.Bind(&req); err != nil {
+		return badRequest(err, message(err.Error()))
+	}
+	params := presentation.ConvEventReqWriteTodomainWriteEventParams(req)
+
+	event, err := h.Repo.UpdateEvent(eventID, params, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	res := service.FormatEventRes(event)
-	return c.JSON(http.StatusOK, res)
-}
 
-// HandleGetEvents 部屋の使用宣言情報を取得
-func (h *Handlers) HandleGetEvents(c echo.Context) error {
-	values := c.QueryParams()
-	filterQuery := values.Get("q")
-	if filterQuery != "" {
-		token, _ := getRequestUserToken(c)
-		events, err := h.GetEventsByFilter(token, filterQuery)
-		if err != nil {
-			return judgeErrorResponse(err)
-		}
-		return c.JSON(http.StatusOK, service.FormatEventsRes(events))
-	}
-
-	start, end, err := getTiemRange(values)
-	if err != nil {
-		return badRequest(err, message("invalid time"))
-	}
-
-	events, err := h.Repo.GetAllEvents(&start, &end)
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-	res := service.FormatEventsRes(events)
-	return c.JSON(http.StatusOK, res)
-}
-
-// HandleGetEventsByGroupID get events by groupID
-// If groupID does not exist, this return []. Does not returns error.
-func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
-	groupID, err := getPathGroupID(c)
-	if err != nil {
-		return notFound(err)
-	}
-	events, err := h.Repo.GetEventsByGroupIDs([]uuid.UUID{groupID})
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
-
+	return c.JSON(http.StatusCreated, presentation.ConvdomainEventToEventDetailRes(*event))
 }
 
 // HandleDeleteEvent 部屋の使用宣言を削除
@@ -154,98 +59,76 @@ func (h *Handlers) HandleDeleteEvent(c echo.Context) error {
 		return notFound(err)
 	}
 
-	if err = h.Repo.DeleteEvent(eventID); err != nil {
+	if err = h.Repo.DeleteEvent(eventID, getConinfo(c)); err != nil {
 		return internalServerError(err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
-// HandleUpdateEvent 任意の要素を変更
-func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
-	var req service.EventReq
-	if err := c.Bind(&req); err != nil {
-		return badRequest(err, message(err.Error()))
-	}
-	eventParams := new(repo.WriteEventParams)
-	err := copier.Copy(&eventParams, req)
-	if err != nil {
-		return internalServerError(err)
-	}
+// HandleGetEvent get one event
+func (h *Handlers) HandleGetEvent(c echo.Context) error {
 	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err)
 	}
 
-	event, err := h.Repo.GetEvent(eventID)
+	event, err := h.Repo.GetEvent(eventID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	eventParams.CreatedBy = event.CreatedBy
-	eventParams.Admins, err = adminsValidation(eventParams.Admins, h.Repo)
+	return c.JSON(http.StatusOK, presentation.ConvdomainEventToEventDetailRes(*event))
+}
+
+// HandleGetEvents 部屋の使用宣言情報を取得
+func (h *Handlers) HandleGetEvents(c echo.Context) error {
+	values := c.QueryParams()
+	filterQuery := values.Get("q")
+	expr, err := parsing.Parse(filterQuery)
 	if err != nil {
-		return internalServerError(err)
-	}
-	if len(eventParams.Admins) == 0 {
-		return badRequest(err)
+		return badRequest(err, message("parse error"))
 	}
 
-	// 部屋を作成
-	if req.RoomID == uuid.Nil {
-		roomParams := &repo.WriteRoomParams{
-			Place:     req.Place,
-			Public:    false,
-			TimeStart: req.TimeStart,
-			TimeEnd:   req.TimeEnd,
-		}
-		setCreatedBytoRoom(c, roomParams)
-
-		room, err := h.Repo.CreateRoom(*roomParams)
-		if err != nil {
-			return judgeErrorResponse(err)
-		}
-		eventParams.RoomID = room.ID
-	}
-
-	event, err = h.Repo.UpdateEvent(eventID, *eventParams)
+	start, end, err := getTiemRange(values)
 	if err != nil {
-		return judgeErrorResponse(err)
+		return badRequest(err, message("invalid time"))
 	}
-	// update tag
-	tagsParams := make([]repo.WriteTagRelationParams, 0)
-	for _, reqTag := range req.Tags {
-		tag, err := h.Repo.CreateOrGetTag(reqTag.Name)
-		if err != nil {
-			continue
-		}
-		tagsParams = append(tagsParams, repo.WriteTagRelationParams{
-			ID:     tag.ID,
-			Locked: reqTag.Locked,
-		})
-		event.Tags = append(event.Tags, *tag)
-	}
-	err = h.Repo.UpdateTagsInEvent(eventID, tagsParams)
+	events, err := h.Repo.GetEvents(
+		filter.AddAnd(expr, filter.FilterTime(start, end)),
+		getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
 
-	res := service.FormatEventRes(event)
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
+}
+
+// HandleGetEventsByGroupID get events by groupID
+// If groupID does not exist, this return []. Does not returns error.
+func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
+	groupID, err := getPathGroupID(c)
+	if err != nil {
+		return notFound(err)
+	}
+	events, err := h.Repo.GetEvents(filter.FilterGroupIDs(groupID),
+		getConinfo(c))
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
 }
 
 func (h *Handlers) HandleAddEventTag(c echo.Context) error {
-	var req service.TagRelationReq
-	if err := c.Bind(&req); err != nil {
-		return badRequest(err)
-	}
 	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err, message(err.Error()))
 	}
-	tag, err := h.Repo.CreateOrGetTag(req.Name)
-	if err != nil {
-		return judgeErrorResponse(err)
+
+	var req presentation.EventTagReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(err)
 	}
-	err = h.Repo.AddTagToEvent(eventID, tag.ID, false)
+
+	err = h.Repo.AddEventTag(eventID, req.Name, false, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -259,11 +142,8 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 		return notFound(err, message(err.Error()))
 	}
 	tagName := c.Param("tagName")
-	tag, err := h.Repo.GetTagByName(tagName)
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-	err = h.Repo.DeleteTagInEvent(eventID, tag.ID, false)
+
+	err = h.Repo.DeleteEventTag(eventID, tagName, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -272,15 +152,18 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 }
 
 func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
-	userID, _ := getRequestUserID(c)
+	userID, err := getRequestUserID(c)
+	if err != nil {
+		return notFound(err)
+	}
 
-	token, _ := getRequestUserToken(c)
-	res, err := h.Dao.GetEventsByUserID(token, userID)
+	events, err := h.Repo.GetEvents(
+		filter.FilterUserIDs(userID),
+		getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, res)
-
+	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
 }
 
 func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
@@ -289,61 +172,63 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 		return notFound(err)
 	}
 
-	token, _ := getRequestUserToken(c)
-	res, err := h.Dao.GetEventsByUserID(token, userID)
+	events, err := h.Repo.GetEvents(
+		filter.FilterUserIDs(userID),
+		getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
 }
 
 // HandleGetEventsByRoomID get events by roomID
 // If roomID does not exist, this return []. Does not returns error.
 func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
-	roomID, _ := getPathRoomID(c)
-	events, err := h.Repo.GetEventsByRoomIDs([]uuid.UUID{roomID})
+	roomID, err := getPathRoomID(c)
+	if err != nil {
+		return notFound(err)
+	}
+
+	events, err := h.Repo.GetEvents(
+		filter.FilterRoomIDs(roomID),
+		getConinfo(c),
+	)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
-}
-
-func (h *Handlers) HandleGetEventActivities(c echo.Context) error {
-	events, err := h.Repo.GetEventActivities(7)
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-
-	return c.JSON(http.StatusOK, service.FormatEventsRes(events))
+	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
 }
 
 // HandleGetiCalByPrivateID sessionを持たないリクエストが想定されている
 func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
+	// 認証
 	str := c.Param("userIDsecret")
-	filter := c.QueryParam("q")
 	userID, err := uuid.FromString(str[:36])
 	if err != nil {
 		return notFound(err)
 	}
-	secret := str[36:]
-	user, err := h.Dao.Repo.GetUser(userID)
+	info := &domain.ConInfo{ReqUserID: userID}
+	icalSecret, err := h.Repo.GetMyiCalSecret(info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-
-	if user.IcalSecret == "" || user.IcalSecret != secret {
+	secret := str[36:]
+	if icalSecret == "" || icalSecret != secret {
 		return notFound(err)
 	}
-	token, err := h.Dao.Repo.GetToken(userID)
+
+	filter := c.QueryParam("q")
+	expr, err := parsing.Parse(filter)
+	if err != nil {
+		return badRequest(err)
+	}
+	events, err := h.Repo.GetEvents(expr, info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	cal, err := h.Dao.GetiCalByFilter(token, filter, h.Origin)
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
+
+	cal := presentation.ICalFormat(events, h.Origin)
 	var buf bytes.Buffer
 	ical.NewEncoder(&buf).Encode(cal)
-
 	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())
 }

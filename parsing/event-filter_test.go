@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/traPtitech/knoQ/domain/filter"
 )
 
 /*---------------------------------------------------------------------------*/
@@ -57,7 +58,7 @@ func TestLex_Failure(t *testing.T) {
 
 var parseCasesSuccess = []struct {
 	in  string
-	out Expr
+	out filter.Expr
 }{
 	{
 		"",
@@ -65,29 +66,29 @@ var parseCasesSuccess = []struct {
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000",
-		&CmpExpr{"user", Eq, "123e4567-e89b-12d3-a456-426652340000"},
+		&filter.CmpExpr{filter.User, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 	},
 	{
 		"(((user==123e4567-e89b-12d3-a456-426652340000)))",
-		&CmpExpr{"user", Eq, "123e4567-e89b-12d3-a456-426652340000"},
+		&filter.CmpExpr{filter.User, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&tag!=123e4567-e89b-12d3-a456-426652340000",
-		&LogicOpExpr{
-			And,
-			&CmpExpr{"user", Eq, "123e4567-e89b-12d3-a456-426652340000"},
-			&CmpExpr{"tag", Neq, "123e4567-e89b-12d3-a456-426652340000"},
+		&filter.LogicOpExpr{
+			filter.And,
+			&filter.CmpExpr{filter.User, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+			&filter.CmpExpr{filter.Tag, filter.Neq, "123e4567-e89b-12d3-a456-426652340000"},
 		},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&(tag!=123e4567-e89b-12d3-a456-426652340000||event==123e4567-e89b-12d3-a456-426652340000)",
-		&LogicOpExpr{
-			And,
-			&CmpExpr{"user", Eq, "123e4567-e89b-12d3-a456-426652340000"},
-			&LogicOpExpr{
-				Or,
-				&CmpExpr{"tag", Neq, "123e4567-e89b-12d3-a456-426652340000"},
-				&CmpExpr{"event", Eq, "123e4567-e89b-12d3-a456-426652340000"},
+		&filter.LogicOpExpr{
+			filter.And,
+			&filter.CmpExpr{filter.User, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+			&filter.LogicOpExpr{
+				filter.Or,
+				&filter.CmpExpr{filter.Tag, filter.Neq, "123e4567-e89b-12d3-a456-426652340000"},
+				&filter.CmpExpr{filter.Event, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 			},
 		},
 	},
@@ -110,6 +111,7 @@ var parseCasesFailure = []struct {
 	{"event=="},
 	{"tag== || user==123e4567-e89b-12d3-a456-426652340000"},
 	{"tag==123e4567-e89b-12d3-a456-426652340000||(user==123e4567-e89b-12d3-a456-426652340000))"},
+	{"select * from events;"},
 }
 
 func TestParse_Failure(t *testing.T) {
