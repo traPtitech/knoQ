@@ -25,9 +25,6 @@ func handleTraQError(err error) error {
 }
 
 func handleDBError(err error) error {
-	if errors.Is(err, db.ErrInvalidArgs) {
-		return domain.ErrBadRequest
-	}
 	if errors.Is(err, db.ErrTimeConsistency) {
 		return fmt.Errorf("%w: %s", domain.ErrBadRequest, err)
 	}
@@ -45,6 +42,10 @@ func handleDBError(err error) error {
 	}
 	if errors.Is(err, db.ErrRecordNotFound) {
 		return fmt.Errorf("%w: %s", domain.ErrNotFound, err)
+	}
+
+	if errors.Is(err, db.ErrInvalidArgs) {
+		return domain.ErrBadRequest
 	}
 
 	return err
