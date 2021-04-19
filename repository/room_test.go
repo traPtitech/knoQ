@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -175,6 +176,25 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 			},
 			allowTogether: false,
 		},
+		{
+			name: "Independent error",
+			fields: fields{
+				TimeStart: now,
+				TimeEnd:   now.Add(10 * time.Hour),
+				Events: []Event{
+					{
+						TimeStart: now.Add(4 * time.Hour),
+						TimeEnd:   now.Add(12 * time.Hour),
+					},
+				},
+			},
+			want: []StartEndTime{
+				{
+					TimeStart: now,
+					TimeEnd:   now.Add(4 * time.Hour),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -183,7 +203,12 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 				TimeEnd:   tt.fields.TimeEnd,
 				Events:    tt.fields.Events,
 			}
-			r.CalcAvailableTime(true)
+			got := r.CalcAvailableTime(tt.allowTogether)
+			if !reflect.DeepEqual(got, tt.want) {
+				if !(len(got) == 0 && len(tt.want) == 0) {
+					t.Errorf("r.CalcAvailableTime() = %v, want %v", got, tt.want)
+				}
+			}
 		})
 	}
 }
