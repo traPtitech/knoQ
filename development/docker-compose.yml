@@ -25,7 +25,6 @@ services:
     volumes:
       - ../main.go:/srv/knoq/main.go
       - ../logging:/srv/knoq/logging
-      - ../repository:/srv/knoq/repository
       - ../router:/srv/knoq/router
       - ../utils:/srv/knoq/utils
       - ../migration:/srv/knoq/migration
