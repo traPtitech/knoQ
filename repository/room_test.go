@@ -176,6 +176,25 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 			},
 			allowTogether: false,
 		},
+		{
+			name: "Independent error",
+			fields: fields{
+				TimeStart: now,
+				TimeEnd:   now.Add(10 * time.Hour),
+				Events: []Event{
+					{
+						TimeStart: now.Add(4 * time.Hour),
+						TimeEnd:   now.Add(12 * time.Hour),
+					},
+				},
+			},
+			want: []StartEndTime{
+				{
+					TimeStart: now,
+					TimeEnd:   now.Add(4 * time.Hour),
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
