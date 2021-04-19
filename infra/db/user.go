@@ -91,7 +91,7 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 }
 
 func updateiCalSecret(db *gorm.DB, userID uuid.UUID, secret string) error {
-	return db.Model(&User{}).Update("ical_secret", secret).Error
+	return db.Model(&User{ID: userID}).Update("ical_secret", secret).Error
 }
 
 func getUser(db *gorm.DB, userID uuid.UUID) (*User, error) {

@@ -34,7 +34,9 @@ func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool)
 	if err != nil {
 		return nil, err
 	}
-	URL.Query().Set("include-suspended", strconv.FormatBool(includeSuspended))
+	q := URL.Query()
+	q.Set("include-suspended", strconv.FormatBool(includeSuspended))
+	URL.RawQuery = q.Encode()
 	req, err := http.NewRequest(http.MethodGet, URL.String(), nil)
 	if err != nil {
 		return nil, err
