@@ -31,7 +31,7 @@ func main() {
 	traqRepo := traq.TraQRepository{
 		Config: &oauth2.Config{
 			ClientID:    os.Getenv("CLIENT_ID"),
-			RedirectURL: "http://localhost:6006/api/callback",
+			RedirectURL: os.Getenv("ORIGIN") + "/api/callback",
 			Scopes:      []string{"read"},
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://q.trap.jp/api/v3/oauth2/authorize",
