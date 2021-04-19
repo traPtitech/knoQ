@@ -65,7 +65,7 @@ func (h *Handlers) HandleCallback(c echo.Context) error {
 		return internalServerError(err)
 	}
 
-	sess.Values["userID"] = user.ID
+	sess.Values["userID"] = user.ID.String()
 	err = sess.Save(c.Request(), c.Response())
 	if err != nil {
 		return internalServerError(err)

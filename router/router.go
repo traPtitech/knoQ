@@ -152,6 +152,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 func getConinfo(c echo.Context) *domain.ConInfo {
 	info := new(domain.ConInfo)
 	sess, _ := session.Get("session", c)
-	info.ReqUserID = sess.Values["userID"].(uuid.UUID)
+	str := sess.Values["userID"].(string)
+	info.ReqUserID = uuid.FromStringOrNil(str)
 	return info
 }
