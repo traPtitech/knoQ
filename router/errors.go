@@ -6,11 +6,8 @@ import (
 	"net/http"
 	"runtime"
 
-	repo "github.com/traPtitech/knoQ/repository"
-
-	"github.com/go-sql-driver/mysql"
-
 	"github.com/labstack/echo/v4"
+	"github.com/traPtitech/knoQ/domain"
 )
 
 type ErrorResponse struct {
@@ -113,24 +110,21 @@ func internalServerError(err error, responses ...option) *echo.HTTPError {
 }
 
 func judgeErrorResponse(err error) *echo.HTTPError {
-	if errors.Is(err, repo.ErrNilID) {
-		return internalServerError(err, message("ID is nil"), errorRuntime(1))
-	} else if errors.Is(err, repo.ErrNotFound) {
-		return notFound(err, errorRuntime(1))
-	} else if errors.Is(err, repo.ErrForbidden) {
-		return forbidden(err, errorRuntime(1))
-	} else if errors.Is(err, repo.ErrAlreadyExists) {
-		return badRequest(err, message("already exists"), errorRuntime(1))
-	} else if errors.Is(err, repo.ErrInvalidArg) {
-		return badRequest(err, message(err.Error()), errorRuntime(1))
+	if errors.Is(err, domain.ErrInvalidToken) {
+		return forbidden(err, message(err.Error()), needAuthorization(true))
 	}
 
-	me, ok := err.(*mysql.MySQLError)
-	if !ok {
-		return internalServerError(err, errorRuntime(1))
+	if errors.Is(err, domain.ErrBadRequest) {
+		return badRequest(err, message(err.Error()))
 	}
-	if me.Number == 1062 {
-		return badRequest(err, message("It already exists"), errorRuntime(1))
+	if errors.Is(err, domain.ErrUnAuthorized) {
+		return unauthorized(err, needAuthorization(true))
+	}
+	if errors.Is(err, domain.ErrForbidden) {
+		return forbidden(err, message(err.Error()))
+	}
+	if errors.Is(err, domain.ErrNotFound) {
+		return notFound(err, message(err.Error()))
 	}
 
 	return internalServerError(err, errorRuntime(1))
