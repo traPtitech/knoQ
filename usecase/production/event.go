@@ -12,7 +12,7 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	// groupの確認
 	_, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 
 	p := db.WriteEventParams{
@@ -21,7 +21,7 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	}
 	event, err := repo.GormRepo.CreateEvent(p)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	e := db.ConvEventTodomainEvent(*event)
 	return &e, nil
@@ -34,7 +34,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	// groupの確認
 	_, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 
 	p := db.WriteEventParams{
@@ -43,7 +43,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	}
 	event, err := repo.GormRepo.UpdateEvent(eventID, p)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	e := db.ConvEventTodomainEvent(*event)
 	return &e, nil
@@ -78,12 +78,12 @@ func (repo *Repository) DeleteEventTag(eventID uuid.UUID, tagName string, info *
 func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*domain.Event, error) {
 	e, err := repo.GormRepo.GetEvent(eventID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	event := db.ConvEventTodomainEvent(*e)
 	g, err := repo.GetGroup(event.Group.ID, info)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	event.Group = *g
 	return &event, nil
@@ -94,12 +94,12 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	events := db.ConvSPEventToSPdomainEvent(es)
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	traQgroups, err := repo.TraQRepo.GetAllGroups(t)
 	if err != nil {

@@ -18,11 +18,11 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	}
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
-		return err
+		return defaultErrorHandling(err)
 	}
 	traQUsers, err := repo.TraQRepo.GetUsers(t, true)
 	if err != nil {
-		return err
+		return defaultErrorHandling(err)
 	}
 
 	users := make([]*db.User, 0)
@@ -43,7 +43,8 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 		users = append(users, user)
 	}
 
-	return repo.GormRepo.SyncUsers(users)
+	err = repo.GormRepo.SyncUsers(users)
+	return defaultErrorHandling(err)
 }
 
 func (repo *Repository) GetOAuthURL() (url, state, codeVerifier string) {
@@ -53,11 +54,11 @@ func (repo *Repository) GetOAuthURL() (url, state, codeVerifier string) {
 func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.User, error) {
 	t, err := repo.TraQRepo.GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	traQUser, err := repo.TraQRepo.GetUserMe(t)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	user := db.User{
 		ID:    traQUser.ID,
@@ -74,28 +75,29 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	}
 	_, err = repo.GormRepo.SaveUser(user)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
-	return repo.GetUser(user.ID, &domain.ConInfo{
+	u, err := repo.GetUser(user.ID, &domain.ConInfo{
 		ReqUserID: user.ID,
 	})
+	return u, defaultErrorHandling(err)
 }
 
 func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 
 	userMeta, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 
 	if userMeta.Provider.Issuer == traQIssuerName {
 		userBody, err := repo.TraQRepo.GetUser(t, userID)
 		if err != nil {
-			return nil, err
+			return nil, defaultErrorHandling(err)
 		}
 		user, _ := repo.mergeUser(userMeta, userBody)
 		return user, nil
@@ -112,16 +114,16 @@ func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) ([]*domain.User, error) {
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 
 	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	traQUserBodys, err := repo.TraQRepo.GetUsers(t, includeSuspend)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	traQUserBodsMap := traQUserMap(traQUserBodys)
 	users := make([]*domain.User, 0, len(userMetas))
@@ -145,9 +147,9 @@ func (repo *Repository) ReNewMyiCalSecret(info *domain.ConInfo) (secret string, 
 func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 	user, err := repo.GormRepo.GetUser(info.ReqUserID)
 	if err != nil {
-		return "", err
+		return "", defaultErrorHandling(err)
 	}
-	return user.IcalSecret, err
+	return user.IcalSecret, nil
 }
 
 func (repo *Repository) IsPrevilege(info *domain.ConInfo) bool {

@@ -6,13 +6,16 @@ import (
 )
 
 func (repo *Repository) CreateOrGetTag(name string) (*domain.Tag, error) {
-	return repo.GormRepo.CreateOrGetTag(name)
+	t, err := repo.GormRepo.CreateOrGetTag(name)
+	return t, defaultErrorHandling(err)
 }
 
 func (repo *Repository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
-	return repo.GormRepo.GetTag(tagID)
+	t, err := repo.GormRepo.GetTag(tagID)
+	return t, defaultErrorHandling(err)
 }
 
 func (repo *Repository) GetAllTags() ([]*domain.Tag, error) {
-	return repo.GormRepo.GetAllTags()
+	ts, err := repo.GormRepo.GetAllTags()
+	return ts, defaultErrorHandling(err)
 }

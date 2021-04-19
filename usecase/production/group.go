@@ -16,7 +16,7 @@ func (repo *Repository) CreateGroup(params domain.WriteGroupParams, info *domain
 	}
 	g, err := repo.GormRepo.CreateGroup(p)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
@@ -32,7 +32,7 @@ func (repo *Repository) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupP
 	}
 	g, err := repo.GormRepo.UpdateGroup(groupID, p)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
@@ -71,16 +71,16 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			t, err := repo.GormRepo.GetToken(info.ReqUserID)
 			if err != nil {
-				return nil, err
+				return nil, defaultErrorHandling(err)
 			}
 			g, err := repo.TraQRepo.GetGroup(t, groupID)
 			if err != nil {
-				return nil, err
+				return nil, defaultErrorHandling(err)
 			}
 			group = Convv3UserGroupTodomainGroup(*g)
 			group.IsTraQGroup = true
 		} else {
-			return nil, err
+			return nil, defaultErrorHandling(err)
 		}
 	} else {
 		group = db.ConvGroupTodomainGroup(*g)
@@ -92,16 +92,16 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 	groups := make([]*domain.Group, 0)
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	gg, err := repo.GormRepo.GetAllGroups()
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	groups = append(groups, db.ConvSPGroupToSPdomainGroup(gg)...)
 	tg, err := repo.TraQRepo.GetAllGroups(t)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	dg := ConvSPv3UserGroupToSPdomainGroup(tg)
 	// add IsTraQGroup
@@ -116,15 +116,15 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.ConInfo) ([]uuid.UUID, error) {
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	ggIDs, err := repo.GormRepo.GetUserBelongingGroupIDs(userID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	tgIDs, err := repo.TraQRepo.GetUserBelongingGroupIDs(t, userID)
 	if err != nil {
-		return nil, err
+		return nil, defaultErrorHandling(err)
 	}
 	return append(ggIDs, tgIDs...), nil
 }
