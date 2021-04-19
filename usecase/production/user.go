@@ -149,6 +149,9 @@ func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 	if err != nil {
 		return "", defaultErrorHandling(err)
 	}
+	if user.IcalSecret == "" {
+		return "", domain.ErrNotFound
+	}
 	return user.IcalSecret, nil
 }
 
