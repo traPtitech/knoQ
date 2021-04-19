@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/setup-go@v1
         with:
-          go-version: 1.15
+          go-version: 1.16
       - uses: actions/checkout@v2
       - uses: actions/cache@v1
         with:
@@ -43,7 +43,7 @@ jobs:
 
       - uses: actions/setup-go@v1
         with:
-          go-version: 1.15
+          go-version: 1.16
       - uses: actions/cache@v1
         with:
           path: ~/go/pkg/mod
@@ -59,4 +59,4 @@ jobs:
             ${{ runner.os }}-go-build-
       - name: Run repository tests
         run: |
-          go test ./repository
+          go test ./infra...
