@@ -2,8 +2,6 @@ package db
 
 import (
 	"testing"
-
-	"golang.org/x/oauth2"
 )
 
 func Test_saveUser(t *testing.T) {
@@ -17,7 +15,7 @@ func Test_saveUser(t *testing.T) {
 		IcalSecret: "foo",
 		Token: Token{
 			UserID: id,
-			Token: &oauth2.Token{
+			Oauth2Token: &Oauth2Token{
 				AccessToken: "hoge",
 			},
 		},
@@ -58,7 +56,7 @@ func Test_saveUser(t *testing.T) {
 			ID:    user.ID,
 			State: 2,
 			Token: Token{
-				Token: &oauth2.Token{
+				Oauth2Token: &Oauth2Token{
 					AccessToken: "hoge2",
 				},
 			},

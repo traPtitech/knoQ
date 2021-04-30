@@ -12,7 +12,7 @@ type GormRepository struct {
 	db *gorm.DB
 }
 
-var tokenKey string
+var tokenKey []byte
 
 func (repo *GormRepository) Setup(host, user, password, database, key string) error {
 	if host == "" {
@@ -28,7 +28,7 @@ func (repo *GormRepository) Setup(host, user, password, database, key string) er
 		database = "knoQ"
 	}
 	if len(key) == 32 {
-		tokenKey = key
+		tokenKey = []byte(key)
 	}
 
 	var err error
