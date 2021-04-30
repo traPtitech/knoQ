@@ -40,6 +40,8 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
+	tokenKey = []byte(random.AlphaNumeric(32))
+
 	for _, key := range dbs {
 		db, err := gorm.Open(mysql.New(mysql.Config{
 			DSN:                       fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=true&loc=Local", user, password, host, "knoq-test-"+key),
