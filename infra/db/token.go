@@ -11,10 +11,8 @@ func (repo *GormRepository) GetToken(userID uuid.UUID) (*oauth2.Token, error) {
 }
 
 func getToken(db *gorm.DB, userID uuid.UUID) (*oauth2.Token, error) {
-	token := Token{
-		UserID: userID,
-	}
-	err := db.Take(&token).Error
+	token := Token{}
+	err := db.Take(&token, userID).Error
+	// decrypt
 	return token.Token, defaultErrorHandling(err)
-
 }

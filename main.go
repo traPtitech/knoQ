@@ -24,7 +24,7 @@ func main() {
 	logger, _ := zap.NewDevelopment()
 	gormRepo := db.GormRepository{}
 	err := gormRepo.Setup(os.Getenv("MARIADB_HOSTNAME"), os.Getenv("MARIADB_USERNAME"),
-		os.Getenv("MARIADB_PASSWORD"), os.Getenv("MARIADB_DATABASE"))
+		os.Getenv("MARIADB_PASSWORD"), os.Getenv("MARIADB_DATABASE"), os.Getenv("TOKEN_KEY"))
 	if err != nil {
 		panic(err)
 	}

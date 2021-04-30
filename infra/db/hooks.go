@@ -267,3 +267,8 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return nil
 }
+
+func (t *Token) BeforeSave(tx *gorm.DB) (err error) {
+	// encrypt
+	return nil
+}
