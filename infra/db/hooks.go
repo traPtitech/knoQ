@@ -267,3 +267,15 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return nil
 }
+
+func (t *Token) BeforeSave(tx *gorm.DB) (err error) {
+	if t.AccessToken != "" {
+		cipherText, err := encryptByGCM(tokenKey, t.AccessToken)
+		if err != nil {
+			return err
+		}
+		t.AccessToken = string(cipherText)
+	}
+
+	return nil
+}

@@ -65,7 +65,12 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 		State: 1,
 		Token: db.Token{
 			UserID: traQUser.ID,
-			Token:  t,
+			Oauth2Token: &db.Oauth2Token{
+				AccessToken:  t.AccessToken,
+				TokenType:    t.TokenType,
+				RefreshToken: t.RefreshToken,
+				Expiry:       t.Expiry,
+			},
 		},
 		Provider: db.Provider{
 			UserID:  traQUser.ID,

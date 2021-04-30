@@ -22,6 +22,7 @@ services:
       WEBHOOK_ID: ${WEBHOOK_ID}
       WEBHOOK_SECRET: ${WEBHOOK_SECRET}
       CHANNEL_ID: ${CHANNEL_ID}
+      TOKEN_KEY: ${TOKEN_KEY}
     volumes:
       - ../main.go:/srv/knoq/main.go
       - ../logging:/srv/knoq/logging
