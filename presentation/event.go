@@ -61,19 +61,19 @@ type EventTagRes struct {
 //go:generate gotypeconverter -s domain.Event -d EventRes -o converter.go .
 //go:generate gotypeconverter -s []*domain.Event -d []EventRes -o converter.go .
 type EventRes struct {
-	ID            uuid.UUID         `json:"eventId"`
-	Name          string            `json:"name"`
-	Description   string            `json:"description"`
-	AllowTogether bool              `json:"sharedRoom"`
-	TimeStart     time.Time         `json:"timeStart"`
-	TimeEnd       time.Time         `json:"timeEnd"`
-	RoomID        uuid.UUID         `json:"roomId" cvt:"Room"`
-	GroupID       uuid.UUID         `json:"groupId" cvt:"Group"`
-	Place         string            `json:"place" cvt:"Room"`
-	GroupName     string            `json:"groupName" cvt:"Group"`
-	Admins        []uuid.UUID       `json:"admins"`
-	Tags          []domain.EventTag `json:"tags"`
-	CreatedBy     uuid.UUID         `json:"createdBy"`
+	ID            uuid.UUID     `json:"eventId"`
+	Name          string        `json:"name"`
+	Description   string        `json:"description"`
+	AllowTogether bool          `json:"sharedRoom"`
+	TimeStart     time.Time     `json:"timeStart"`
+	TimeEnd       time.Time     `json:"timeEnd"`
+	RoomID        uuid.UUID     `json:"roomId" cvt:"Room"`
+	GroupID       uuid.UUID     `json:"groupId" cvt:"Group"`
+	Place         string        `json:"place" cvt:"Room"`
+	GroupName     string        `json:"groupName" cvt:"Group"`
+	Admins        []uuid.UUID   `json:"admins"`
+	Tags          []EventTagRes `json:"tags"`
+	CreatedBy     uuid.UUID     `json:"createdBy"`
 	Model
 }
 

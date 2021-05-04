@@ -49,7 +49,10 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 		for j := range (*src[i]).Admins {
 			dst[i].Admins[j] = ConvdomainUserTouuidUUID((*src[i]).Admins[j])
 		}
-		dst[i].Tags = (*src[i]).Tags
+		dst[i].Tags = make([]EventTagRes, len((*src[i]).Tags))
+		for j := range (*src[i]).Tags {
+			dst[i].Tags[j] = ConvdomainEventTagToEventTagRes((*src[i]).Tags[j])
+		}
 		dst[i].CreatedBy = ConvdomainUserTouuidUUID((*src[i]).CreatedBy)
 		dst[i].Model = Model((*src[i]).Model)
 	}
@@ -151,7 +154,10 @@ func ConvdomainEventToEventRes(src domain.Event) (dst EventRes) {
 	for i := range src.Admins {
 		dst.Admins[i] = ConvdomainUserTouuidUUID(src.Admins[i])
 	}
-	dst.Tags = src.Tags
+	dst.Tags = make([]EventTagRes, len(src.Tags))
+	for i := range src.Tags {
+		dst.Tags[i] = ConvdomainEventTagToEventTagRes(src.Tags[i])
+	}
 	dst.CreatedBy = ConvdomainUserTouuidUUID(src.CreatedBy)
 	dst.Model = Model(src.Model)
 	return
@@ -221,7 +227,6 @@ func ConvdomainUserToUserRes(src domain.User) (dst UserRes) {
 	dst = UserRes(src)
 	return
 }
-
 func ConvdomainUserTouuidUUID(src domain.User) (dst uuid.UUID) {
 	dst = src.ID
 	return
