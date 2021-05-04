@@ -29,7 +29,7 @@ type Model struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-// *oauth2.Token
+// Oauth2Token is oauth2.Token
 type Oauth2Token struct {
 	// AccessToken is the token that authorizes and authenticates
 	// the requests.
