@@ -742,7 +742,7 @@ components:
             properties:
               name: *tagName
               locked: *locked
-    RequestEventRoomStock:
+    RequestEventStock:
       type: object
       description: 既存の部屋を使う
       properties:
@@ -758,7 +758,7 @@ components:
     RequestEvent:
       oneOf:
         - $ref: "#/components/schemas/RequestEventInstant"
-        - $ref: "#/components/schemas/RequestEventRoomStock"
+        - $ref: "#/components/schemas/RequestEventStock"
     duration:
       type: object
       properties:
