@@ -750,6 +750,9 @@ components:
               name: *tagName
               locked: &locked
                 type: boolean
+            required:
+              - tagId
+              - name
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
@@ -826,6 +829,8 @@ components:
             properties:
               name: *tagName
               locked: *locked
+            required:
+              - tagName
       required:
         - name
         - description
