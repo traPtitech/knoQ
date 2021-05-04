@@ -580,6 +580,13 @@ components:
         state: &userState
           type: integer
           description: 'ユーザーアカウント状態 0: 停止 1: 有効 2: 一時停止'
+      required:
+        - id
+        - name
+        - displayName
+        - icon
+        - privileged
+        - state
 
     ResponseRoom:
       type: object
@@ -614,6 +621,19 @@ components:
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
+      required:
+        - roomId
+        - place
+        - timeStart
+        - timeEnd
+        - verified
+        - freeTimes
+        - sharedTimes
+        - admins
+        - createdBy
+        - createdAt
+        - updatedAt
+
     RequestRoom:
       type: object
       properties:
@@ -621,6 +641,11 @@ components:
         timeStart: *time
         timeEnd: *time
         admins: *admins
+      required:
+        - place
+        - timeStart
+        - timeEnd
+        - admins
 
     ResponseGroup:
       type: object
@@ -647,6 +672,18 @@ components:
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
+      required:
+        - groupId
+        - name
+        - description
+        - open
+        - isTraQGroup
+        - members
+        - admins
+        - createdBy
+        - createdAt
+        - updatedAt
+
     RequestGroup:
       type: object
       properties:
@@ -655,6 +692,12 @@ components:
         open: *open
         members: *members
         admins: *admins
+      required:
+        - name
+        - description
+        - open
+        - members
+        - admins
 
     ResponseTag:
       type: object
@@ -665,10 +708,18 @@ components:
           example: Vue
         createdAt: *time
         updatedAt: *time
+      required:
+        - tagId
+        - name
+        - createdAt
+        - updatedAt
+
     RequestTag:
       type: object
       properties:
         name: *tagName
+      required:
+        - name
 
     ResponseEvent:
       type: object
@@ -703,6 +754,23 @@ components:
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
+      required:
+        - eventId
+        - name
+        - descirption
+        - sharedRoom
+        - timeStart
+        - timeEnd
+        - place
+        - groupName
+        - roomId
+        - groupId
+        - admins
+        - tags
+        - createdBy
+        - createdAt
+        - updatedAt
+
     ResponseEventDetail:
       type: object
       properties:
@@ -723,6 +791,23 @@ components:
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
+      required:
+        - eventId
+        - name
+        - descirption
+        - sharedRoom
+        - timeStart
+        - timeEnd
+        - place
+        - groupName
+        - room
+        - group
+        - admins
+        - tags
+        - createdBy
+        - createdAt
+        - updatedAt
+
     RequestEventInstant:
       type: object
       description: 部屋を作る
@@ -742,6 +827,17 @@ components:
             properties:
               name: *tagName
               locked: *locked
+      required:
+        - name
+        - descirption
+        - sharedRoom
+        - timeStart
+        - timeEnd
+        - place
+        - groupId
+        - admins
+        - tags
+
     RequestEventStock:
       type: object
       description: 既存の部屋を使う
@@ -755,15 +851,30 @@ components:
         groupId: *uuid
         admins: *admins
         tags: *reqEventTags
+      required:
+        - name
+        - descirption
+        - sharedRoom
+        - timeStart
+        - timeEnd
+        - roomId
+        - groupId
+        - admins
+        - tags
+
     RequestEvent:
       oneOf:
         - $ref: "#/components/schemas/RequestEventInstant"
         - $ref: "#/components/schemas/RequestEventStock"
+
     duration:
       type: object
       properties:
         timeStart: *time
         timeEnd: *time
+      required:
+        - timeStart
+        - timeEnd
 
     authParams:
       type: object
@@ -772,12 +883,17 @@ components:
           type: string
           format: url
           example: 'https://q.trap.jp/api/v3/oauth2/authorize'
+      required:
+        - url
 
     icalSecret:
       type: object
       properties:
         secret:
           type: string
+      required:
+        - secret
+
     icalToken:
       type: string
       description: userIdとicalのsecretをつなげたもの
