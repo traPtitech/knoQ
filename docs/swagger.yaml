@@ -742,7 +742,7 @@ components:
             properties:
               name: *tagName
               locked: *locked
-    RequestEvent:
+    RequestEventRoomStock:
       type: object
       description: 既存の部屋を使う
       properties:
@@ -755,10 +755,10 @@ components:
         groupId: *uuid
         admins: *admins
         tags: *reqEventTags
-    RequestEventAll:
+    RequestEvent:
       oneOf:
-        - $ref: "#/components/schemas/RequestEvent"
         - $ref: "#/components/schemas/RequestEventInstant"
+        - $ref: "#/components/schemas/RequestEventRoomStock"
     duration:
       type: object
       properties:
@@ -813,7 +813,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/RequestEventAll'
+            $ref: '#/components/schemas/RequestEvent'
             example:
               name: イベント
               description: これはイベントです。
