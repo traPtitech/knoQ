@@ -188,7 +188,6 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
 				filterArgs = []interface{}{t}
 			default:
-				id := e.Value.(uuid.UUID)
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {
 					return "", nil, ErrExpression

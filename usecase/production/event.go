@@ -113,7 +113,6 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 			continue
 		}
 		events[i].Group = Convv3UserGroupTodomainGroup(*g)
-
 	}
 	return events, nil
 }
@@ -167,6 +166,7 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filte
 					Rhs:     filter.FilterGroupIDs(groupIDs...),
 				}
 			}
+			return e
 		case *filter.LogicOpExpr:
 			return &filter.LogicOpExpr{
 				LogicOp: e.LogicOp,
