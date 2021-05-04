@@ -2,8 +2,8 @@
 package migration
 
 import (
-	"github.com/jinzhu/gorm"
-	"gopkg.in/gormigrate.v1"
+	gormigrate "github.com/go-gormigrate/gormigrate/v2"
+	"gorm.io/gorm"
 )
 
 // v1 unique_index:idx_room_uniqueの削除
@@ -11,9 +11,7 @@ func v1() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "1",
 		Migrate: func(db *gorm.DB) error {
-			return db.
-				Table("rooms").
-				RemoveIndex("idx_room_unique").Error
+			return db.Migrator().DropIndex("rooms", "idx_room_unique")
 		},
 	}
 }

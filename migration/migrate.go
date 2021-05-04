@@ -1,8 +1,8 @@
 package migration
 
 import (
-	"github.com/jinzhu/gorm"
-	"gopkg.in/gormigrate.v1"
+	gormigrate "github.com/go-gormigrate/gormigrate/v2"
+	"gorm.io/gorm"
 )
 
 // Migrate execute migrations
@@ -20,7 +20,7 @@ func Migrate(db *gorm.DB, tables []interface{}) error {
 		if err != nil {
 			return err
 		}
-		err = tx.AutoMigrate(tables...).Error
+		err = tx.AutoMigrate(tables...)
 		if err != nil {
 			return err
 		}

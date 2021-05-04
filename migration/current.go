@@ -1,7 +1,7 @@
 package migration
 
 import (
-	"gopkg.in/gormigrate.v1"
+	gormigrate "github.com/go-gormigrate/gormigrate/v2"
 )
 
 // Migrations is all db migrations

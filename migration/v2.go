@@ -1,9 +1,9 @@
 package migration
 
 import (
+	gormigrate "github.com/go-gormigrate/gormigrate/v2"
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/gorm"
-	"gopkg.in/gormigrate.v1"
+	"gorm.io/gorm"
 )
 
 type oldUser struct {
@@ -37,7 +37,7 @@ func v2() *gormigrate.Migration {
 			if err != nil {
 				return err
 			}
-			err = db.CreateTable(&newUser{}).Error
+			err = db.Migrator().CreateTable(&newUser{})
 			if err != nil {
 				return err
 			}
@@ -51,7 +51,7 @@ func v2() *gormigrate.Migration {
 					return err
 				}
 			}
-			return db.DropTableIfExists("users").Error
+			return db.Migrator().DropTable("users")
 		},
 	}
 }

@@ -1,9 +1,9 @@
 package migration
 
 import (
+	gormigrate "github.com/go-gormigrate/gormigrate/v2"
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/gorm"
-	"gopkg.in/gormigrate.v1"
+	"gorm.io/gorm"
 )
 
 type newEventAdmins struct {
@@ -31,7 +31,7 @@ func v4() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "4",
 		Migrate: func(db *gorm.DB) error {
-			err := db.CreateTable(&newEventAdmins{}).Error
+			err := db.Migrator().CreateTable(&newEventAdmins{})
 			if err != nil {
 				return err
 			}
