@@ -755,7 +755,10 @@ components:
         groupId: *uuid
         admins: *admins
         tags: *reqEventTags
-
+    RequestEventAll:
+      oneOf:
+        - $ref: "#/components/schemas/RequestEvent"
+        - $ref: "#/components/schemas/RequestEventInstant"
     duration:
       type: object
       properties:
@@ -810,9 +813,7 @@ components:
       content:
         application/json:
           schema:
-            oneOf:
-              - $ref: '#/components/schemas/RequestEvent'
-              - $ref: '#/components/schemas/RequestEventInstant'
+            $ref: '#/components/schemas/RequestEventAll'
             example:
               name: イベント
               description: これはイベントです。
