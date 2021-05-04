@@ -696,7 +696,6 @@ components:
         - name
         - description
         - open
-        - members
         - admins
 
     ResponseTag:
@@ -836,7 +835,6 @@ components:
         - place
         - groupId
         - admins
-        - tags
 
     RequestEventStock:
       type: object
@@ -860,7 +858,6 @@ components:
         - roomId
         - groupId
         - admins
-        - tags
 
     RequestEvent:
       oneOf:
