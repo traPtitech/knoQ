@@ -81,7 +81,7 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 		return nil, defaultErrorHandling(err)
 	}
 	event := db.ConvEventTodomainEvent(*e)
-	g, err := repo.GetGroup(event.Group.ID, info)
+	g, err := repo.GetGroup(e.GroupID, info)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
