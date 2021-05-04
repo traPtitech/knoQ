@@ -727,7 +727,7 @@ components:
         name: &eventName
           type: string
           example: 第n回進捗回
-        descirption: &eventDescription
+        description: &eventDescription
           type: string
           example: 第n回の進捗会です。
         sharedRoom: &sharedRoom
@@ -756,7 +756,7 @@ components:
       required:
         - eventId
         - name
-        - descirption
+        - description
         - sharedRoom
         - timeStart
         - timeEnd
@@ -775,7 +775,7 @@ components:
       properties:
         eventId: *uuid
         name: *eventName
-        descirption: *eventDescription
+        description: *eventDescription
         sharedRoom: *sharedRoom
         timeStart: *time
         timeEnd: *time
@@ -793,7 +793,7 @@ components:
       required:
         - eventId
         - name
-        - descirption
+        - description
         - sharedRoom
         - timeStart
         - timeEnd
@@ -812,7 +812,7 @@ components:
       description: 部屋を作る
       properties:
         name: *eventName
-        descirption: *eventDescription
+        description: *eventDescription
         sharedRoom: *sharedRoom
         timeStart: *time
         timeEnd: *time
@@ -828,7 +828,7 @@ components:
               locked: *locked
       required:
         - name
-        - descirption
+        - description
         - sharedRoom
         - timeStart
         - timeEnd
@@ -841,7 +841,7 @@ components:
       description: 既存の部屋を使う
       properties:
         name: *eventName
-        descirption: *eventDescription
+        description: *eventDescription
         sharedRoom: *sharedRoom
         timeStart: *time
         timeEnd: *time
@@ -851,7 +851,7 @@ components:
         tags: *reqEventTags
       required:
         - name
-        - descirption
+        - description
         - sharedRoom
         - timeStart
         - timeEnd
