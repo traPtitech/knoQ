@@ -27,9 +27,10 @@ func (repo *GormRepository) Setup(host, user, password, database, key string) er
 	if database == "" {
 		database = "knoQ"
 	}
-	if len(key) == 32 {
-		tokenKey = []byte(key)
+	if len(key) != 32 {
+		panic("token key is not 32 words")
 	}
+	tokenKey = []byte(key)
 
 	var err error
 	repo.db, err = gorm.Open(mysql.New(mysql.Config{
