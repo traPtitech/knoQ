@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 
+	"github.com/traPtitech/knoQ/migration"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -44,5 +45,5 @@ func (repo *GormRepository) Setup(host, user, password, database, key string) er
 		return err
 	}
 
-	return repo.db.AutoMigrate(tables...)
+	return migration.Migrate(repo.db, tables)
 }

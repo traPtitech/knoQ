@@ -3,14 +3,16 @@ package migration
 import (
 	gormigrate "github.com/go-gormigrate/gormigrate/v2"
 	"gorm.io/gorm"
+
+	newModel "github.com/traPtitech/knoQ/migration/v8"
 )
 
 // rename table group_users -> group_members
-func v5() *gormigrate.Migration {
+func v9() *gormigrate.Migration {
 	return &gormigrate.Migration{
-		ID: "5",
+		ID: "9",
 		Migrate: func(db *gorm.DB) error {
-			return db.Migrator().RenameTable("group_users", "group_members")
+			return db.AutoMigrate(newModel.Tables...)
 		},
 	}
 }

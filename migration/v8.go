@@ -10,7 +10,12 @@ func v8() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "8",
 		Migrate: func(db *gorm.DB) error {
-			return db.AutoMigrate(newModel.Tables...)
+			err := db.Migrator().RenameColumn(&newModel.Event{}, "created_by", "created_by_refer")
+			if err != nil {
+				return err
+			}
+			return db.Migrator().RenameColumn(&newModel.Group{}, "created_by", "created_by_refer")
+
 		},
 	}
 }
