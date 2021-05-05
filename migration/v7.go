@@ -62,7 +62,7 @@ type v7newUser struct {
 }
 
 func (*v7newUser) TableName() string {
-	return "user"
+	return "users"
 }
 
 type v7newUserBody struct {
@@ -74,7 +74,7 @@ type v7newUserBody struct {
 }
 
 func (*v7newUserBody) TableName() string {
-	return "user_body"
+	return "user_bodies"
 }
 
 type v7currentUserMeta struct {
