@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// v8 created_by -> created_by_refer
 func v8() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "8",

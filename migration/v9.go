@@ -7,7 +7,7 @@ import (
 	newModel "github.com/traPtitech/knoQ/migration/v8"
 )
 
-// rename table group_users -> group_members
+// v9 足りないカラムの追加、キーの作成
 func v9() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "9",

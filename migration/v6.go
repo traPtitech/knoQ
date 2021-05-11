@@ -21,6 +21,7 @@ func (*v6currentRoom) TableName() string {
 	return "rooms"
 }
 
+// v6 room.public -> room.verifed
 func v6() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "6",

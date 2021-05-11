@@ -107,6 +107,7 @@ func ConvSPv7currentUserMetaToSPv7newUser(src []*v7currentUserMeta) (dst []*v7ne
 	return
 }
 
+// v7 user_meta -> token, user, provider に分割
 func v7() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "7",

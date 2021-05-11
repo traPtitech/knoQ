@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// rename table group_users -> group_members
+// delete sessions
 func v10() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "10",

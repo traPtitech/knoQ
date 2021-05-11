@@ -27,6 +27,7 @@ func (*currentGroup) TableName() string {
 	return "groups"
 }
 
+// v3 グループの作成者を管理者にする
 func v3() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "3",

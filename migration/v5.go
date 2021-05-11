@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// rename table group_users -> group_members
+// v5 rename table group_users -> group_members
 func v5() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "5",

@@ -28,6 +28,7 @@ func (*newUser) TableName() string {
 	return "user_meta"
 }
 
+// v2 Token, IsTraQ, IcalSecret を user_metaに追加
 func v2() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "2",

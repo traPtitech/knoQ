@@ -27,6 +27,7 @@ func (*currentEvent) TableName() string {
 	return "events"
 }
 
+// v4 イベントの作成者を管理者にする。
 func v4() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "4",

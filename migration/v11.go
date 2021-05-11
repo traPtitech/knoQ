@@ -7,6 +7,7 @@ import (
 	newModel "github.com/traPtitech/knoQ/migration/v8"
 )
 
+// v11 特権ユーザーを verifed = true な room の管理者にする
 func v11() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "11",
