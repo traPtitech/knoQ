@@ -12,13 +12,13 @@ func v11() *gormigrate.Migration {
 		ID: "11",
 		Migrate: func(db *gorm.DB) error {
 			previlegedUsers := make([]*newModel.User, 0)
-			err := db.Where("previlege = ?", true).Find(&previlegedUsers).Error
+			err := db.Where("privilege = ?", true).Find(&previlegedUsers).Error
 			if err != nil {
 				return err
 			}
 
 			publicRooms := make([]*newModel.Room, 0)
-			err = db.Where("public = ?", true).Find(&publicRooms).Error
+			err = db.Where("verifed = ?", true).Find(&publicRooms).Error
 			if err != nil {
 				return err
 			}
