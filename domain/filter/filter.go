@@ -14,14 +14,14 @@ const (
 type Attr int
 
 const (
-	Event Attr = iota
-	Group
-	Room
-	User
-	Tag
-	Name
-	TimeStart
-	TimeEnd
+	AttrEvent Attr = iota
+	AttrGroup
+	AttrRoom
+	AttrUser
+	AttrTag
+	AttrName
+	AttrTimeStart
+	AttrTimeEnd
 )
 
 type LogicOp int

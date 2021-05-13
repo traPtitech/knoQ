@@ -13,14 +13,14 @@ func FilterRoomIDs(roomIDs ...uuid.UUID) Expr {
 
 	var expr Expr
 	expr = &CmpExpr{
-		Attr:     Room,
+		Attr:     AttrRoom,
 		Relation: Eq,
 		Value:    roomIDs[0],
 	}
 	for _, id := range roomIDs[1:] {
 		lhs := expr
 		rhs := &CmpExpr{
-			Attr:     Room,
+			Attr:     AttrRoom,
 			Relation: Eq,
 			Value:    id,
 		}
@@ -36,14 +36,14 @@ func FilterGroupIDs(groupIDs ...uuid.UUID) Expr {
 
 	var expr Expr
 	expr = &CmpExpr{
-		Attr:     Group,
+		Attr:     AttrGroup,
 		Relation: Eq,
 		Value:    groupIDs[0],
 	}
 	for _, id := range groupIDs[1:] {
 		lhs := expr
 		rhs := &CmpExpr{
-			Attr:     Group,
+			Attr:     AttrGroup,
 			Relation: Eq,
 			Value:    id,
 		}
@@ -59,14 +59,14 @@ func FilterUserIDs(userIDs ...uuid.UUID) Expr {
 
 	var expr Expr
 	expr = &CmpExpr{
-		Attr:     User,
+		Attr:     AttrUser,
 		Relation: Eq,
 		Value:    userIDs[0],
 	}
 	for _, id := range userIDs[1:] {
 		lhs := expr
 		rhs := &CmpExpr{
-			Attr:     User,
+			Attr:     AttrUser,
 			Relation: Eq,
 			Value:    id,
 		}
@@ -80,12 +80,12 @@ func FilterTime(start, end time.Time) Expr {
 		return nil
 	}
 	timeStart := &CmpExpr{
-		Attr:     TimeStart,
+		Attr:     AttrTimeStart,
 		Relation: GreterEq,
 		Value:    start,
 	}
 	timeEnd := &CmpExpr{
-		Attr:     TimeEnd,
+		Attr:     AttrTimeEnd,
 		Relation: LessEq,
 		Value:    end,
 	}

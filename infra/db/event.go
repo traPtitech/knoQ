@@ -124,14 +124,14 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 	}
 
 	attrMap := map[filter.Attr]string{
-		filter.User:      "group_id",
-		filter.Name:      "name",
-		filter.Group:     "group_id",
-		filter.Room:      "room_id",
-		filter.Tag:       "event_tags.tag_id",
-		filter.Event:     "id",
-		filter.TimeStart: "time_start",
-		filter.TimeEnd:   "time_end",
+		filter.AttrUser:      "group_id",
+		filter.AttrName:      "name",
+		filter.AttrGroup:     "group_id",
+		filter.AttrRoom:      "room_id",
+		filter.AttrTag:       "event_tags.tag_id",
+		filter.AttrEvent:     "id",
+		filter.AttrTimeStart: "time_start",
+		filter.AttrTimeEnd:   "time_end",
 	}
 	defaultRelationMap := map[filter.Relation]string{
 		filter.Eq:       "=",
@@ -150,7 +150,7 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 		switch e := e.(type) {
 		case *filter.CmpExpr:
 			switch e.Attr {
-			case filter.User:
+			case filter.AttrUser:
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {
 					return "", nil, ErrExpression
@@ -167,7 +167,7 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 				filterFormat = fmt.Sprintf("%s %v (?)", attrMap[e.Attr], rel)
 				filterArgs = []interface{}{ids}
 
-			case filter.Name:
+			case filter.AttrName:
 				name, ok := e.Value.(string)
 				if !ok {
 					return "", nil, ErrExpression
@@ -178,9 +178,9 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 				}[e.Relation]
 				filterFormat = fmt.Sprintf("name %v ?", rel)
 				filterArgs = []interface{}{name}
-			case filter.TimeStart:
+			case filter.AttrTimeStart:
 				fallthrough
-			case filter.TimeEnd:
+			case filter.AttrTimeEnd:
 				t, ok := e.Value.(time.Time)
 				if !ok {
 					return "", nil, ErrExpression

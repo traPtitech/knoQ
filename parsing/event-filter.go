@@ -202,10 +202,10 @@ func advanceToken(b *[]byte) (Token, error) {
 /*---------------------------------------------------------------------------*/
 
 var MapSupportedAttributes = map[string]filter.Attr{
-	"user":  filter.User,
-	"group": filter.Group,
-	"tag":   filter.Tag,
-	"event": filter.Event,
+	"user":  filter.AttrUser,
+	"group": filter.AttrGroup,
+	"tag":   filter.AttrTag,
+	"event": filter.AttrEvent,
 }
 
 func createParseError(found tokenKind, expected ...tokenKind) error {
