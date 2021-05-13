@@ -59,7 +59,10 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 		return nil, err
 	}
 	cmd := eventFullPreload(repo.db)
-	es, err := getAllEvents(cmd.Joins("LEFT JOIN event_tags ON id = event_tags.event_id"),
+	es, err := getAllEvents(cmd.Joins(
+		"LEFT JOIN event_tags ON id = event_tags.event_id "+
+			"LEFT JOIN group_members ON group_id = group_members.group_id "+
+			"LEFT JOIN event_admins ON id = event_admins.event_id "),
 		filterFormat, filterArgs)
 	return es, defaultErrorHandling(err)
 }
@@ -124,7 +127,10 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 	}
 
 	attrMap := map[filter.Attr]string{
-		filter.AttrUser:      "group_id",
+		filter.AttrUser:   "group_members.user_id",
+		filter.AttrBelong: "group_members.user_id",
+		filter.AttrAdmin:  "event_admins.user_id",
+
 		filter.AttrName:      "name",
 		filter.AttrGroup:     "group_id",
 		filter.AttrRoom:      "room_id",
@@ -150,23 +156,6 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 		switch e := e.(type) {
 		case *filter.CmpExpr:
 			switch e.Attr {
-			case filter.AttrUser:
-				id, ok := e.Value.(uuid.UUID)
-				if !ok {
-					return "", nil, ErrExpression
-				}
-				rel := map[filter.Relation]string{
-					filter.Eq:  "IN",
-					filter.Neq: "NOT IN",
-				}[e.Relation]
-				ids, err := getUserBelongingGroupIDs(db, id)
-				if err != nil {
-					return "", nil, err
-				}
-
-				filterFormat = fmt.Sprintf("%s %v (?)", attrMap[e.Attr], rel)
-				filterArgs = []interface{}{ids}
-
 			case filter.AttrName:
 				name, ok := e.Value.(string)
 				if !ok {

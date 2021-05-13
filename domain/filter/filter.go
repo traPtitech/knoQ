@@ -22,6 +22,8 @@ const (
 	AttrName
 	AttrTimeStart
 	AttrTimeEnd
+	AttrAdmin
+	AttrBelong
 )
 
 type LogicOp int
