@@ -16,8 +16,10 @@ func ConvPv3UserToPdomainUser(src *v3.User) (dst *domain.User) {
 func ConvSPv3UserGroupToSPdomainGroup(src []*v3.UserGroup) (dst []*domain.Group) {
 	dst = make([]*domain.Group, len(src))
 	for i := range src {
-		dst[i] = new(domain.Group)
-		(*dst[i]) = Convv3UserGroupTodomainGroup((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(domain.Group)
+			(*dst[i]) = Convv3UserGroupTodomainGroup((*src[i]))
+		}
 	}
 	return
 }

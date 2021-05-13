@@ -125,8 +125,10 @@ func ConvSEventAdminToSRoomAdmin(src []EventAdmin) (dst []RoomAdmin) {
 func ConvSPEventToSPdomainEvent(src []*Event) (dst []*domain.Event) {
 	dst = make([]*domain.Event, len(src))
 	for i := range src {
-		dst[i] = new(domain.Event)
-		(*dst[i]) = ConvEventTodomainEvent((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(domain.Event)
+			(*dst[i]) = ConvEventTodomainEvent((*src[i]))
+		}
 	}
 	return
 }
@@ -134,6 +136,8 @@ func ConvSPGroupMemberToSuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
 	dst = make([]uuid.UUID, len(src))
 	for i := range src {
 		dst[i] = (*src[i]).GroupID
+		if src[i] != nil {
+		}
 	}
 	return
 }
@@ -141,16 +145,20 @@ func ConvSPGroupMemberToSuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
 func ConvSPGroupToSPdomainGroup(src []*Group) (dst []*domain.Group) {
 	dst = make([]*domain.Group, len(src))
 	for i := range src {
-		dst[i] = new(domain.Group)
-		(*dst[i]) = ConvGroupTodomainGroup((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(domain.Group)
+			(*dst[i]) = ConvGroupTodomainGroup((*src[i]))
+		}
 	}
 	return
 }
 func ConvSPRoomToSPdomainRoom(src []*Room) (dst []*domain.Room) {
 	dst = make([]*domain.Room, len(src))
 	for i := range src {
-		dst[i] = new(domain.Room)
-		(*dst[i]) = ConvRoomTodomainRoom((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(domain.Room)
+			(*dst[i]) = ConvRoomTodomainRoom((*src[i]))
+		}
 	}
 	return
 }
@@ -158,8 +166,10 @@ func ConvSPRoomToSPdomainRoom(src []*Room) (dst []*domain.Room) {
 func ConvSPTagToSPdomainTag(src []*Tag) (dst []*domain.Tag) {
 	dst = make([]*domain.Tag, len(src))
 	for i := range src {
-		dst[i] = new(domain.Tag)
-		(*dst[i]) = ConvTagTodomainTag((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(domain.Tag)
+			(*dst[i]) = ConvTagTodomainTag((*src[i]))
+		}
 	}
 	return
 }

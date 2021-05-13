@@ -1,6 +1,6 @@
 .PHONY: init
 init: dist
-	go install github.com/fuji8/gotypeconverter/cmd/gotypeconverter@v0.1.8
+	go install github.com/fuji8/gotypeconverter/cmd/gotypeconverter@v0.1.10
 	touch service.json
 	mkdir phpmyadmin
 	mkdir mariadb

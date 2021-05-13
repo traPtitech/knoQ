@@ -35,26 +35,28 @@ func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams
 func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 	dst = make([]EventRes, len(src))
 	for i := range src {
-		dst[i].ID = (*src[i]).ID
-		dst[i].Name = (*src[i]).Name
-		dst[i].Description = (*src[i]).Description
-		dst[i].AllowTogether = (*src[i]).AllowTogether
-		dst[i].TimeStart = (*src[i]).TimeStart
-		dst[i].TimeEnd = (*src[i]).TimeEnd
-		dst[i].RoomID = ConvdomainRoomTouuidUUID((*src[i]).Room)
-		dst[i].GroupID = ConvdomainGroupTouuidUUID((*src[i]).Group)
-		dst[i].Place = (*src[i]).Room.Place
-		dst[i].GroupName = (*src[i]).Group.Name
-		dst[i].Admins = make([]uuid.UUID, len((*src[i]).Admins))
-		for j := range (*src[i]).Admins {
-			dst[i].Admins[j] = ConvdomainUserTouuidUUID((*src[i]).Admins[j])
+		if src[i] != nil {
+			dst[i].ID = (*src[i]).ID
+			dst[i].Name = (*src[i]).Name
+			dst[i].Description = (*src[i]).Description
+			dst[i].AllowTogether = (*src[i]).AllowTogether
+			dst[i].TimeStart = (*src[i]).TimeStart
+			dst[i].TimeEnd = (*src[i]).TimeEnd
+			dst[i].RoomID = ConvdomainRoomTouuidUUID((*src[i]).Room)
+			dst[i].GroupID = ConvdomainGroupTouuidUUID((*src[i]).Group)
+			dst[i].Place = (*src[i]).Room.Place
+			dst[i].GroupName = (*src[i]).Group.Name
+			dst[i].Admins = make([]uuid.UUID, len((*src[i]).Admins))
+			for j := range (*src[i]).Admins {
+				dst[i].Admins[j] = ConvdomainUserTouuidUUID((*src[i]).Admins[j])
+			}
+			dst[i].Tags = make([]EventTagRes, len((*src[i]).Tags))
+			for j := range (*src[i]).Tags {
+				dst[i].Tags[j] = ConvdomainEventTagToEventTagRes((*src[i]).Tags[j])
+			}
+			dst[i].CreatedBy = ConvdomainUserTouuidUUID((*src[i]).CreatedBy)
+			dst[i].Model = Model((*src[i]).Model)
 		}
-		dst[i].Tags = make([]EventTagRes, len((*src[i]).Tags))
-		for j := range (*src[i]).Tags {
-			dst[i].Tags[j] = ConvdomainEventTagToEventTagRes((*src[i]).Tags[j])
-		}
-		dst[i].CreatedBy = ConvdomainUserTouuidUUID((*src[i]).CreatedBy)
-		dst[i].Model = Model((*src[i]).Model)
 	}
 	return
 }
@@ -62,8 +64,10 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 func ConvSPdomainGroupToSPGroupRes(src []*domain.Group) (dst []*GroupRes) {
 	dst = make([]*GroupRes, len(src))
 	for i := range src {
-		dst[i] = new(GroupRes)
-		(*dst[i]) = ConvdomainGroupToGroupRes((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(GroupRes)
+			(*dst[i]) = ConvdomainGroupToGroupRes((*src[i]))
+		}
 	}
 	return
 }
@@ -71,8 +75,10 @@ func ConvSPdomainGroupToSPGroupRes(src []*domain.Group) (dst []*GroupRes) {
 func ConvSPdomainRoomToSPRoomRes(src []*domain.Room) (dst []*RoomRes) {
 	dst = make([]*RoomRes, len(src))
 	for i := range src {
-		dst[i] = new(RoomRes)
-		(*dst[i]) = ConvdomainRoomToRoomRes((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(RoomRes)
+			(*dst[i]) = ConvdomainRoomToRoomRes((*src[i]))
+		}
 	}
 	return
 }
@@ -80,8 +86,10 @@ func ConvSPdomainRoomToSPRoomRes(src []*domain.Room) (dst []*RoomRes) {
 func ConvSPdomainTagToSPTagRes(src []*domain.Tag) (dst []*TagRes) {
 	dst = make([]*TagRes, len(src))
 	for i := range src {
-		dst[i] = new(TagRes)
-		(*dst[i]) = ConvdomainTagToTagRes((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(TagRes)
+			(*dst[i]) = ConvdomainTagToTagRes((*src[i]))
+		}
 	}
 	return
 }
@@ -89,8 +97,10 @@ func ConvSPdomainTagToSPTagRes(src []*domain.Tag) (dst []*TagRes) {
 func ConvSPdomainUserToSPUserRes(src []*domain.User) (dst []*UserRes) {
 	dst = make([]*UserRes, len(src))
 	for i := range src {
-		dst[i] = new(UserRes)
-		(*dst[i]) = ConvdomainUserToUserRes((*src[i]))
+		if src[i] != nil {
+			dst[i] = new(UserRes)
+			(*dst[i]) = ConvdomainUserToUserRes((*src[i]))
+		}
 	}
 	return
 }
