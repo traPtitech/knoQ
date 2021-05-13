@@ -1,7 +1,7 @@
 package migration
 
 import (
-	"gopkg.in/gormigrate.v1"
+	gormigrate "github.com/go-gormigrate/gormigrate/v2"
 )
 
 // Migrations is all db migrations
@@ -11,5 +11,12 @@ func Migrations() []*gormigrate.Migration {
 		v2(),
 		v3(),
 		v4(),
+		v5(),
+		v6(),
+		v7(),
+		v8(),
+		v9(),
+		v10(),
+		v11(),
 	}
 }

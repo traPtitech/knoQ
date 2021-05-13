@@ -56,7 +56,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: knoQ
-    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    # command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
     volumes:
       - "./mariadb:/var/lib/mysql"
     expose:

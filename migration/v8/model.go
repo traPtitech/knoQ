@@ -1,4 +1,5 @@
-package db
+// Package v8 7db45ee2fea28db8308b72488bc18519cdf2b55f infra/db/model.go
+package v8
 
 import (
 	"time"
@@ -7,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var tables = []interface{}{
+var Tables = []interface{}{
 	User{},
 	UserBody{},
 	Token{},
