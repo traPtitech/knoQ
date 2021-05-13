@@ -97,7 +97,9 @@ func ConvSPdomainUserToSPUserRes(src []*domain.User) (dst []*UserRes) {
 func ConvSPdomainUserToSUserRes(src []*domain.User) (dst []UserRes) {
 	dst = make([]UserRes, len(src))
 	for i := range src {
-		dst[i] = UserRes((*src[i]))
+		if src[i] != nil {
+			dst[i] = UserRes((*src[i]))
+		}
 	}
 	return
 }
