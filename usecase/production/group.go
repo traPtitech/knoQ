@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var traPGroupID = uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
+
 func (repo *Repository) CreateGroup(params domain.WriteGroupParams, info *domain.ConInfo) (*domain.Group, error) {
 	p := db.WriteGroupParams{
 		WriteGroupParams: params,
@@ -69,6 +71,12 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 	g, err := repo.GormRepo.GetGroup(groupID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// trap
+			if groupID == traPGroupID {
+				return repo.getTraPGroup(info), nil
+			}
+
+			// traq group
 			t, err := repo.GormRepo.GetToken(info.ReqUserID)
 			if err != nil {
 				return nil, defaultErrorHandling(err)
@@ -108,7 +116,8 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 	for i := range dg {
 		dg[i].IsTraQGroup = true
 	}
-	groups = append(groups, dg...)
+	// add trap
+	groups = append(append(groups, repo.getTraPGroup(info)), dg...)
 
 	return groups, nil
 }
@@ -126,7 +135,8 @@ func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	return append(ggIDs, tgIDs...), nil
+	// add trap
+	return append(append(ggIDs, traPGroupID), tgIDs...), nil
 }
 
 func (repo *Repository) GetUserAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
@@ -152,4 +162,33 @@ func (repo *Repository) IsGroupJoinFreely(groupID uuid.UUID) bool {
 		return false
 	}
 	return group.JoinFreely
+}
+
+func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
+	users, err := repo.GetAllUsers(false, info)
+	if err != nil {
+		return nil
+	}
+
+	return &domain.Group{
+		ID:          traPGroupID,
+		Name:        "traP",
+		Description: "traP全体グループ",
+		JoinFreely:  false,
+		Members:     convSPdomainUserToSdomainUser(users),
+		Admins:      []domain.User{},
+		IsTraQGroup: true,
+		CreatedBy:   domain.User{},
+		Model:       domain.Model{},
+	}
+}
+
+func convSPdomainUserToSdomainUser(src []*domain.User) (dst []domain.User) {
+	dst = make([]domain.User, len(src))
+	for i := range src {
+		if src[i] != nil {
+			dst[i] = (*src[i])
+		}
+	}
+	return
 }
