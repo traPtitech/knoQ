@@ -88,11 +88,11 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 	}
 
 	/*
-		a: s####e-------
-		b: -------s####e
-		-> s####e
+		a: s####e-------    a: -------s####e
+		b: -------s####e    b: s####e-------
+		-> s####e-------    -> -------s####e
 	*/
-	if a.TimeStart.Unix() >= b.TimeEnd.Unix() || a.TimeEnd.Unix() <= b.TimeEnd.Unix() {
+	if a.TimeEnd.Unix() <= b.TimeStart.Unix() || b.TimeEnd.Unix() <= a.TimeStart.Unix() {
 		return []StartEndTime{a}
 	}
 
@@ -101,7 +101,28 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 		b: ----s####e---
 		-> s###e----s##e
 	*/
-	if a.TimeStart.Unix() < b.TimeStart.Unix() && b.TimeEnd.Unix() < a.TimeEnd.Unix() {
+	if a.TimeStart.Unix() <= b.TimeStart.Unix() && b.TimeEnd.Unix() <= a.TimeEnd.Unix() {
+		/*
+			a: --s######e---
+			b: --s#####e----
+			-> --------se---
+		*/
+		if a.TimeStart.Unix() == b.TimeStart.Unix() {
+			return []StartEndTime{
+				{b.TimeEnd, a.TimeEnd},
+			}
+		}
+
+		/*
+			a: --s######e---
+			b: ----s###e----
+			-> --s#e--------
+		*/
+		if a.TimeEnd.Unix() == b.TimeStart.Unix() {
+			return []StartEndTime{
+				{a.TimeStart, b.TimeStart},
+			}
+		}
 		return []StartEndTime{
 			{a.TimeStart, b.TimeStart},
 			{b.TimeEnd, a.TimeEnd},
@@ -129,6 +150,7 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 			{b.TimeEnd, a.TimeEnd},
 		}
 	}
+
 	return nil
 }
 
