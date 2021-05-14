@@ -589,7 +589,7 @@ components:
           type: integer
           description: 'ユーザーアカウント状態 0: 停止 1: 有効 2: 一時停止'
       required:
-        - id
+        - userId
         - name
         - displayName
         - icon
