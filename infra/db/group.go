@@ -142,7 +142,11 @@ func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
 
 func getGroups(db *gorm.DB, query string, args []interface{}) ([]*Group, error) {
 	groups := make([]*Group, 0)
-	err := db.Where(query, args).Group("id").Find(&groups).Error
+	cmd := db
+	if query != "" && args != nil {
+		cmd = cmd.Where(query, args)
+	}
+	err := cmd.Group("id").Find(&groups).Error
 	return groups, err
 }
 
