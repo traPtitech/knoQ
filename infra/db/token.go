@@ -17,6 +17,9 @@ func (repo *GormRepository) GetToken(userID uuid.UUID) (*oauth2.Token, error) {
 func getToken(db *gorm.DB, userID uuid.UUID) (*oauth2.Token, error) {
 	token := Token{}
 	err := db.Take(&token, userID).Error
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
 
 	// decrypt
 	if token.AccessToken != "" {
