@@ -117,7 +117,7 @@ func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
 
 func getEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, error) {
 	events := make([]*Event, 0)
-	err := db.Debug().Where(query, args...).Group("id").Order("time_start").Find(&events).Error
+	err := db.Where(query, args...).Group("id").Order("time_start").Find(&events).Error
 	return events, err
 }
 
