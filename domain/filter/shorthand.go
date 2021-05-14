@@ -6,73 +6,47 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-func FilterRoomIDs(roomIDs ...uuid.UUID) Expr {
-	if len(roomIDs) == 0 {
+func filterIDs(attr Attr, ids []uuid.UUID) Expr {
+	if len(ids) == 0 {
 		return nil
 	}
 
 	var expr Expr
 	expr = &CmpExpr{
-		Attr:     AttrRoom,
+		Attr:     attr,
 		Relation: Eq,
-		Value:    roomIDs[0],
+		Value:    ids[0],
 	}
-	for _, id := range roomIDs[1:] {
+	for _, id := range ids[1:] {
 		lhs := expr
 		rhs := &CmpExpr{
-			Attr:     AttrRoom,
+			Attr:     attr,
 			Relation: Eq,
 			Value:    id,
 		}
 		expr = &LogicOpExpr{Or, lhs, rhs}
 	}
 	return expr
+}
+
+func FilterRoomIDs(roomIDs ...uuid.UUID) Expr {
+	return filterIDs(AttrRoom, roomIDs)
 }
 
 func FilterGroupIDs(groupIDs ...uuid.UUID) Expr {
-	if len(groupIDs) == 0 {
-		return nil
-	}
-
-	var expr Expr
-	expr = &CmpExpr{
-		Attr:     AttrGroup,
-		Relation: Eq,
-		Value:    groupIDs[0],
-	}
-	for _, id := range groupIDs[1:] {
-		lhs := expr
-		rhs := &CmpExpr{
-			Attr:     AttrGroup,
-			Relation: Eq,
-			Value:    id,
-		}
-		expr = &LogicOpExpr{Or, lhs, rhs}
-	}
-	return expr
+	return filterIDs(AttrGroup, groupIDs)
 }
 
 func FilterUserIDs(userIDs ...uuid.UUID) Expr {
-	if len(userIDs) == 0 {
-		return nil
-	}
+	return filterIDs(AttrUser, userIDs)
+}
 
-	var expr Expr
-	expr = &CmpExpr{
-		Attr:     AttrUser,
-		Relation: Eq,
-		Value:    userIDs[0],
-	}
-	for _, id := range userIDs[1:] {
-		lhs := expr
-		rhs := &CmpExpr{
-			Attr:     AttrUser,
-			Relation: Eq,
-			Value:    id,
-		}
-		expr = &LogicOpExpr{Or, lhs, rhs}
-	}
-	return expr
+func FilterBelongs(userIDs ...uuid.UUID) Expr {
+	return filterIDs(AttrBelong, userIDs)
+}
+
+func FilterAdmins(userIDs ...uuid.UUID) Expr {
+	return filterIDs(AttrAdmin, userIDs)
 }
 
 func FilterTime(start, end time.Time) Expr {
