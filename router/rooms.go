@@ -46,7 +46,7 @@ func (h *Handlers) HandleGetRoom(c echo.Context) error {
 // HandleGetRooms traPで確保した部屋情報を取得
 func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	values := c.QueryParams()
-	start, end, err := getTiemRange(values)
+	start, end, err := presentation.GetTiemRange(values)
 	if err != nil {
 		return notFound(err)
 	}
