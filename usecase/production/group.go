@@ -118,7 +118,7 @@ func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	ggIDs, err := repo.GormRepo.GetUserBelongingGroupIDs(userID)
+	ggIDs, err := repo.GormRepo.GetBelongGroupIDs(userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -127,6 +127,10 @@ func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.
 		return nil, defaultErrorHandling(err)
 	}
 	return append(ggIDs, tgIDs...), nil
+}
+
+func (repo *Repository) GetUserAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+	return repo.GormRepo.GetAdminGroupIDs(userID)
 }
 
 func (repo *Repository) IsGroupAdmins(groupID uuid.UUID, info *domain.ConInfo) bool {
