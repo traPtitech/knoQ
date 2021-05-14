@@ -570,7 +570,7 @@ components:
     ResponseUser:
       type: object
       properties:
-        id: &uuid
+        userId: &uuid
           type: string
           format: uuid
         name: &userName
