@@ -254,6 +254,8 @@ paths:
     get:
       tags:
         - events
+      parameters:
+        - $ref: '#/components/parameters/userRelation'
       operationId: getMyEvents
       description: 所属しているイベントを返す
       responses:
@@ -265,6 +267,8 @@ paths:
     get:
       tags:
         - events
+      parameters:
+        - $ref: '#/components/parameters/userRelation'
       operationId: getUserEvents
       description: 所属しているイベントを返す
       responses:
@@ -387,6 +391,8 @@ paths:
     get:
       tags:
         - groups
+      parameters:
+        - $ref: '#/components/parameters/userRelation'
       operationId: getMyGroups
       description: 自分の所属しているグループのIDを返す
       responses:
@@ -398,6 +404,8 @@ paths:
     get:
       tags:
         - groups
+      parameters:
+        - $ref: '#/components/parameters/userRelation'
       operationId: getUserGroups
       description: ユーザーが所属しているグループのIDを返す
 
@@ -866,8 +874,8 @@ components:
 
     RequestEvent:
       oneOf:
-        - $ref: "#/components/schemas/RequestEventInstant"
-        - $ref: "#/components/schemas/RequestEventStock"
+        - $ref: '#/components/schemas/RequestEventInstant'
+        - $ref: '#/components/schemas/RequestEventStock'
 
     duration:
       type: object
@@ -1098,6 +1106,19 @@ components:
       schema:
         type: boolean
         example: false
+
+    userRelation:
+      name: relation
+      in: query
+      required: false
+      description: どのような関係性でユーザーと結びつけるか。|
+        取り得る値は、admins(ユーザーが管理者), belongs(ユーザーが所属している) |
+        値がない場合は、belongs として振る舞う
+      schema:
+        type: string
+        example:
+          - admins
+          - belongs
 
     userID:
       name: userID

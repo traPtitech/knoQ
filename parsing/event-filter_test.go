@@ -66,29 +66,29 @@ var parseCasesSuccess = []struct {
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000",
-		&filter.CmpExpr{filter.User, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+		&filter.CmpExpr{filter.AttrUser, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 	},
 	{
 		"(((user==123e4567-e89b-12d3-a456-426652340000)))",
-		&filter.CmpExpr{filter.User, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+		&filter.CmpExpr{filter.AttrUser, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&tag!=123e4567-e89b-12d3-a456-426652340000",
 		&filter.LogicOpExpr{
 			filter.And,
-			&filter.CmpExpr{filter.User, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
-			&filter.CmpExpr{filter.Tag, filter.Neq, "123e4567-e89b-12d3-a456-426652340000"},
+			&filter.CmpExpr{filter.AttrUser, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+			&filter.CmpExpr{filter.AttrTag, filter.Neq, "123e4567-e89b-12d3-a456-426652340000"},
 		},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&(tag!=123e4567-e89b-12d3-a456-426652340000||event==123e4567-e89b-12d3-a456-426652340000)",
 		&filter.LogicOpExpr{
 			filter.And,
-			&filter.CmpExpr{filter.User, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+			&filter.CmpExpr{filter.AttrUser, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 			&filter.LogicOpExpr{
 				filter.Or,
-				&filter.CmpExpr{filter.Tag, filter.Neq, "123e4567-e89b-12d3-a456-426652340000"},
-				&filter.CmpExpr{filter.Event, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
+				&filter.CmpExpr{filter.AttrTag, filter.Neq, "123e4567-e89b-12d3-a456-426652340000"},
+				&filter.CmpExpr{filter.AttrEvent, filter.Eq, "123e4567-e89b-12d3-a456-426652340000"},
 			},
 		},
 	},
