@@ -88,7 +88,7 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 		return badRequest(err, message("parse error"))
 	}
 
-	start, end, err := getTiemRange(values)
+	start, end, err := presentation.GetTiemRange(values)
 	if err != nil {
 		return badRequest(err, message("invalid time"))
 	}
@@ -158,7 +158,7 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 	}
 
 	events, err := h.Repo.GetEvents(
-		filter.FilterUserIDs(userID),
+		getUserRelationFilter(c.QueryParams(), userID),
 		getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
@@ -173,7 +173,7 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 	}
 
 	events, err := h.Repo.GetEvents(
-		filter.FilterUserIDs(userID),
+		getUserRelationFilter(c.QueryParams(), userID),
 		getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
