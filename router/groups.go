@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 
+	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/presentation"
 
 	"github.com/labstack/echo/v4"
@@ -115,10 +116,21 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 	userID, _ := getRequestUserID(c)
 
-	groupIDs, err := h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
-	if err != nil {
-		return judgeErrorResponse(err)
+	var groupIDs []uuid.UUID
+	var err error
+	switch presentation.GetUserRelationQuery(c.QueryParams()) {
+	case presentation.RelationBelongs:
+		groupIDs, err = h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+	case presentation.RelationAdmins:
+		groupIDs, err = h.Repo.GetUserAdminGroupIDs(userID)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
 	}
+
 	return c.JSON(http.StatusOK, groupIDs)
 }
 
@@ -127,10 +139,18 @@ func (h *Handlers) HandleGetGroupIDsByUserID(c echo.Context) error {
 	if err != nil {
 		return notFound(err, message(err.Error()))
 	}
-
-	groupIDs, err := h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
-	if err != nil {
-		return judgeErrorResponse(err)
+	var groupIDs []uuid.UUID
+	switch presentation.GetUserRelationQuery(c.QueryParams()) {
+	case presentation.RelationBelongs:
+		groupIDs, err = h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+	case presentation.RelationAdmins:
+		groupIDs, err = h.Repo.GetUserAdminGroupIDs(userID)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
 	}
 
 	return c.JSON(http.StatusOK, groupIDs)
