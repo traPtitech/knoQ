@@ -54,12 +54,12 @@ func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 }
 
 func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
-	filterFormat, filterArgs, err := createFilter(repo.db, expr)
+	filterFormat, filterArgs, err := createEventFilter(expr)
 	if err != nil {
 		return nil, err
 	}
 	cmd := eventFullPreload(repo.db)
-	es, err := getAllEvents(cmd.Joins(
+	es, err := getEvents(cmd.Joins(
 		"LEFT JOIN event_tags ON id = event_tags.event_id "+
 			"LEFT JOIN group_members ON group_id = group_members.group_id "+
 			"LEFT JOIN event_admins ON id = event_admins.event_id "),
@@ -115,13 +115,13 @@ func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
 	return &event, err
 }
 
-func getAllEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, error) {
+func getEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, error) {
 	events := make([]*Event, 0)
 	err := db.Where(query, args...).Group("id").Order("time_start").Find(&events).Error
 	return events, err
 }
 
-func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) {
+func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 	if expr == nil {
 		return "", []interface{}{}, nil
 	}
@@ -148,8 +148,8 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 		filter.LessEq:   "<=",
 	}
 
-	var cf func(tx *gorm.DB, e filter.Expr) (string, []interface{}, error)
-	cf = func(tx *gorm.DB, e filter.Expr) (string, []interface{}, error) {
+	var cf func(e filter.Expr) (string, []interface{}, error)
+	cf = func(e filter.Expr) (string, []interface{}, error) {
 		var filterFormat string
 		var filterArgs []interface{}
 
@@ -190,8 +190,8 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 				filter.And: "AND",
 				filter.Or:  "OR",
 			}[e.LogicOp]
-			lFilter, lFilterArgs, lerr := cf(db, e.Lhs)
-			rFilter, rFilterArgs, rerr := cf(db, e.Rhs)
+			lFilter, lFilterArgs, lerr := cf(e.Lhs)
+			rFilter, rFilterArgs, rerr := cf(e.Rhs)
 
 			if lerr != nil && rerr != nil {
 				return "", nil, ErrExpression
@@ -212,5 +212,5 @@ func createFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) 
 
 		return filterFormat, filterArgs, nil
 	}
-	return cf(db, expr)
+	return cf(expr)
 }
