@@ -60,9 +60,9 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 	}
 	cmd := eventFullPreload(repo.db)
 	es, err := getEvents(cmd.Joins(
-		"LEFT JOIN event_tags ON id = event_tags.event_id "+
-			"LEFT JOIN group_members ON group_id = group_members.group_id "+
-			"LEFT JOIN event_admins ON id = event_admins.event_id "),
+		"LEFT JOIN event_tags ON events.id = event_tags.event_id "+
+			"LEFT JOIN group_members ON events.group_id = group_members.group_id "+
+			"LEFT JOIN event_admins ON events.id = event_admins.event_id "),
 		filterFormat, filterArgs)
 	return es, defaultErrorHandling(err)
 }
@@ -117,7 +117,7 @@ func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
 
 func getEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, error) {
 	events := make([]*Event, 0)
-	err := db.Where(query, args...).Group("id").Order("time_start").Find(&events).Error
+	err := db.Debug().Where(query, args...).Group("id").Order("time_start").Find(&events).Error
 	return events, err
 }
 
@@ -131,13 +131,13 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 		filter.AttrBelong: "group_members.user_id",
 		filter.AttrAdmin:  "event_admins.user_id",
 
-		filter.AttrName:      "name",
-		filter.AttrGroup:     "group_id",
-		filter.AttrRoom:      "room_id",
-		filter.AttrTag:       "event_tags.tag_id",
-		filter.AttrEvent:     "id",
-		filter.AttrTimeStart: "time_start",
-		filter.AttrTimeEnd:   "time_end",
+		filter.AttrName:      "events.name",
+		filter.AttrGroup:     "events.group_id",
+		filter.AttrRoom:      "events.room_id",
+		filter.AttrTag:       "events.event_tags.tag_id",
+		filter.AttrEvent:     "events.id",
+		filter.AttrTimeStart: "events.time_start",
+		filter.AttrTimeEnd:   "events.time_end",
 	}
 	defaultRelationMap := map[filter.Relation]string{
 		filter.Eq:       "=",
@@ -165,7 +165,7 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 					filter.Eq:  "=",
 					filter.Neq: "!=",
 				}[e.Relation]
-				filterFormat = fmt.Sprintf("name %v ?", rel)
+				filterFormat = fmt.Sprintf("events.name %v ?", rel)
 				filterArgs = []interface{}{name}
 			case filter.AttrTimeStart:
 				fallthrough

@@ -51,36 +51,36 @@ func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
 	cmd := groupFullPreload(repo.db)
 	gs, err := getGroups(cmd.Joins(
-		"LEFT JOIN events ON id = events.group_id "+
-			"LEFT JOIN group_members ON id = group_members.group_id "+
-			"LEFT JOIN group_admins On id = group_admins.group_id "), "", nil)
+		"LEFT JOIN events ON groups.id = events.group_id "+
+			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
+			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), "", nil)
 	return gs, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	cmd := groupFullPreload(repo.db)
-	filterFormat, filterArgs, err := createEventFilter(filter.FilterBelongs(userID))
+	filterFormat, filterArgs, err := createGroupFilter(filter.FilterBelongs(userID))
 	if err != nil {
 		return nil, err
 	}
 	gs, err := getGroups(cmd.Joins(
-		"LEFT JOIN events ON id = events.group_id "+
-			"LEFT JOIN group_members ON id = group_members.group_id "+
-			"LEFT JOIN group_admins On id = group_admins.group_id "), filterFormat, filterArgs)
+		"LEFT JOIN events ON groups.id = events.group_id "+
+			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
+			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), filterFormat, filterArgs)
 
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	cmd := groupFullPreload(repo.db)
-	filterFormat, filterArgs, err := createEventFilter(filter.FilterAdmins(userID))
+	filterFormat, filterArgs, err := createGroupFilter(filter.FilterAdmins(userID))
 	if err != nil {
 		return nil, err
 	}
 	gs, err := getGroups(cmd.Joins(
-		"LEFT JOIN events ON id = events.group_id "+
-			"LEFT JOIN group_members ON id = group_members.group_id "+
-			"LEFT JOIN group_admins On id = group_admins.group_id "), filterFormat, filterArgs)
+		"LEFT JOIN events ON groups.id = events.group_id "+
+			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
+			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), filterFormat, filterArgs)
 
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
@@ -146,7 +146,7 @@ func getGroups(db *gorm.DB, query string, args []interface{}) ([]*Group, error) 
 	return groups, err
 }
 
-func createGroupFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, error) {
+func createGroupFilter(expr filter.Expr) (string, []interface{}, error) {
 	if expr == nil {
 		return "", []interface{}{}, nil
 	}
@@ -156,8 +156,8 @@ func createGroupFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, er
 		filter.AttrBelong: "group_members.user_id",
 		filter.AttrAdmin:  "group_admins.user_id",
 
-		filter.AttrName:  "name",
-		filter.AttrGroup: "id",
+		filter.AttrName:  "groups.name",
+		filter.AttrGroup: "groups.id",
 		filter.AttrEvent: "events.id",
 	}
 	defaultRelationMap := map[filter.Relation]string{
@@ -169,8 +169,8 @@ func createGroupFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, er
 		filter.LessEq:   "<=",
 	}
 
-	var cf func(tx *gorm.DB, e filter.Expr) (string, []interface{}, error)
-	cf = func(tx *gorm.DB, e filter.Expr) (string, []interface{}, error) {
+	var cf func(e filter.Expr) (string, []interface{}, error)
+	cf = func(e filter.Expr) (string, []interface{}, error) {
 		var filterFormat string
 		var filterArgs []interface{}
 
@@ -186,7 +186,7 @@ func createGroupFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, er
 					filter.Eq:  "=",
 					filter.Neq: "!=",
 				}[e.Relation]
-				filterFormat = fmt.Sprintf("name %v ?", rel)
+				filterFormat = fmt.Sprintf("groups.name %v ?", rel)
 				filterArgs = []interface{}{name}
 			default:
 				id, ok := e.Value.(uuid.UUID)
@@ -202,8 +202,8 @@ func createGroupFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, er
 				filter.And: "AND",
 				filter.Or:  "OR",
 			}[e.LogicOp]
-			lFilter, lFilterArgs, lerr := cf(db, e.Lhs)
-			rFilter, rFilterArgs, rerr := cf(db, e.Rhs)
+			lFilter, lFilterArgs, lerr := cf(e.Lhs)
+			rFilter, rFilterArgs, rerr := cf(e.Rhs)
 
 			if lerr != nil && rerr != nil {
 				return "", nil, ErrExpression
@@ -224,5 +224,5 @@ func createGroupFilter(db *gorm.DB, expr filter.Expr) (string, []interface{}, er
 
 		return filterFormat, filterArgs, nil
 	}
-	return cf(db, expr)
+	return cf(expr)
 }
