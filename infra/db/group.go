@@ -107,7 +107,8 @@ func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {
 func updateGroup(db *gorm.DB, groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
 	group := ConvWriteGroupParamsToGroup(params)
 	group.ID = groupID
-	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&group).Error
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
+		Omit("CreatedAt").Save(&group).Error
 	return &group, err
 }
 
@@ -116,6 +117,7 @@ func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 		GroupID: groupID,
 		UserID:  userID,
 	}
+	// TODO fix CreatedAt
 	return db.Save(&groupMember).Error
 }
 

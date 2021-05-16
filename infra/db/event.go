@@ -78,7 +78,8 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Even
 	event := ConvWriteEventParamsToEvent(params)
 	event.ID = eventID
 
-	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&event).Error
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
+		Omit("CreatedAt").Save(&event).Error
 	return &event, err
 }
 
