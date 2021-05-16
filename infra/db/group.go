@@ -116,7 +116,7 @@ func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 		GroupID: groupID,
 		UserID:  userID,
 	}
-	return db.Create(&groupMember).Error
+	return db.Save(&groupMember).Error
 }
 
 func deleteGroup(db *gorm.DB, groupID uuid.UUID) error {
