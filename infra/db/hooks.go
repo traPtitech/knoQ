@@ -94,6 +94,11 @@ func (e *Event) AfterSave(tx *gorm.DB) (err error) {
 	if !Devent.AdminsValidation() {
 		return NewValueError(ErrNoAdmins, "admins")
 	}
+	event, err = getEvent(eventFullPreload(tx), e.ID)
+	if err != nil {
+		return err
+	}
+	*e = *event
 	return nil
 }
 
@@ -228,6 +233,11 @@ func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 	if !Dgroup.AdminsValidation() {
 		return NewValueError(ErrNoAdmins, "admins")
 	}
+	group, err = getGroup(groupFullPreload(tx), g.ID)
+	if err != nil {
+		return err
+	}
+	*g = *group
 	return nil
 }
 
