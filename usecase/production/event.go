@@ -5,7 +5,6 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/infra/db"
-	traQ "github.com/traPtitech/traQ/router/v3"
 )
 
 func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
@@ -81,11 +80,28 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 		return nil, defaultErrorHandling(err)
 	}
 	event := db.ConvEventTodomainEvent(*e)
+	// add traQ groups and users
 	g, err := repo.GetGroup(e.GroupID, info)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	event.Group = *g
+	users, err := repo.GetAllUsers(false, info)
+	if err != nil {
+		return &event, err
+	}
+	userMap := createUserMap(users)
+	c, ok := userMap[e.CreatedByRefer]
+	if ok {
+		event.CreatedBy = *c
+	}
+	for j, eventAdmin := range e.Admins {
+		a, ok := userMap[eventAdmin.UserID]
+		if ok {
+			event.Admins[j] = *a
+		}
+	}
+
 	return &event, nil
 }
 
@@ -97,23 +113,35 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 		return nil, defaultErrorHandling(err)
 	}
 	events := db.ConvSPEventToSPdomainEvent(es)
-	t, err := repo.GormRepo.GetToken(info.ReqUserID)
-	if err != nil {
-		return nil, defaultErrorHandling(err)
-	}
-	traQgroups, err := repo.TraQRepo.GetAllGroups(t)
+
+	// add traQ groups and users
+	groups, err := repo.GetAllGroups(info)
 	if err != nil {
 		return events, nil
 	}
-	groupMap := traQGroupMap(traQgroups)
-
-	for i, e := range events {
-		g, ok := groupMap[e.Group.ID]
-		if !ok {
-			continue
-		}
-		events[i].Group = Convv3UserGroupTodomainGroup(*g)
+	groupMap := createGroupMap(groups)
+	users, err := repo.GetAllUsers(false, info)
+	if err != nil {
+		return events, err
 	}
+	userMap := createUserMap(users)
+	for i := range events {
+		g, ok := groupMap[es[i].GroupID]
+		if ok {
+			events[i].Group = *g
+		}
+		c, ok := userMap[es[i].CreatedByRefer]
+		if ok {
+			events[i].CreatedBy = *c
+		}
+		for j, eventAdmin := range es[i].Admins {
+			a, ok := userMap[eventAdmin.UserID]
+			if ok {
+				events[i].Admins[j] = *a
+			}
+		}
+	}
+
 	return events, nil
 }
 
@@ -132,12 +160,19 @@ func (repo *Repository) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) b
 
 //go:generate gotypeconverter -s v3.UserGroup -d domain.Group -o converter.go .
 
-func traQGroupMap(groups []*traQ.UserGroup) map[uuid.UUID]*traQ.UserGroup {
-	groupMap := make(map[uuid.UUID]*traQ.UserGroup)
+func createGroupMap(groups []*domain.Group) map[uuid.UUID]*domain.Group {
+	groupMap := make(map[uuid.UUID]*domain.Group)
 	for _, group := range groups {
 		groupMap[group.ID] = group
 	}
 	return groupMap
+}
+func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
+	userMap := make(map[uuid.UUID]*domain.User)
+	for _, group := range users {
+		userMap[group.ID] = group
+	}
+	return userMap
 }
 
 func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filter.Expr {
