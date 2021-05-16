@@ -6,7 +6,7 @@
 
 ### 必要要件
 
-- go 1.15
+- go 1.16
 - make
 - docker
 - docker-compose
@@ -14,7 +14,7 @@
 ### サーバーの起動
 
 ```
-> cd development
+> cd ./development
 > make init
 > docker-compose up -d
 ```
@@ -46,12 +46,12 @@ knoQ の全ての機能を動作させるためには、追加の情報が必要
 テストするために、db(`localhost:3306`), traQ(`localhost:3000`)を起動します。
 
 ```
-> cd development/test
+> cd ./development/test
 > docker-compose up -d
 ```
 
 #### 実行
 
 ```
-> go test ./repository
+> go test ./infra...
 ```
