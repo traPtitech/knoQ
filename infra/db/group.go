@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gofrs/uuid"
@@ -117,8 +118,11 @@ func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 		GroupID: groupID,
 		UserID:  userID,
 	}
-	// TODO fix CreatedAt
-	return db.Save(&groupMember).Error
+	err := db.Create(&groupMember).Error
+	if errors.Is(defaultErrorHandling(err), ErrDuplicateEntry) {
+		return db.Omit("CreatedAt").Save(&groupMember).Error
+	}
+	return err
 }
 
 func deleteGroup(db *gorm.DB, groupID uuid.UUID) error {

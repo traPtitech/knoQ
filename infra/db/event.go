@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -86,7 +87,11 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Even
 func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
 	eventTag := ConvdomainEventTagParamsToEventTag(params)
 	eventTag.EventID = eventID
-	return db.Create(&eventTag).Error
+	err := db.Create(&eventTag).Error
+	if errors.Is(defaultErrorHandling(err), ErrDuplicateEntry) {
+		return db.Omit("CreatedAt").Save(&eventTag).Error
+	}
+	return err
 }
 
 func deleteEvent(db *gorm.DB, eventID uuid.UUID) error {
