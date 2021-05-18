@@ -24,13 +24,15 @@ func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
 	// cache codeVerifier
 	sess, err := session.Get("session", c)
 	if err != nil {
-		return internalServerError(err)
+		setMaxAgeMinus(c)
+		time.Sleep(10 * time.Second)
+		return unauthorized(err, needAuthorization(true),
+			message("please try again"))
 	}
 
 	sessionID, ok := sess.Values["ID"].(string)
 	if !ok {
 		sessionID = traQrandom.SecureAlphaNumeric(10)
-
 		sess.Values["ID"] = sessionID
 		sess.Options = &h.SessionOption
 		sess.Save(c.Request(), c.Response())

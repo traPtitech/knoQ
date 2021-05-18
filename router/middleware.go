@@ -14,8 +14,6 @@ import (
 	"strings"
 	"time"
 
-	traQrandom "github.com/traPtitech/traQ/utils/random"
-
 	log "github.com/traPtitech/knoQ/logging"
 	"github.com/traPtitech/knoQ/presentation"
 
@@ -84,17 +82,6 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 // TODO funcname fix
 func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		sess, err := session.Get("session", c)
-		if err != nil {
-			return unauthorized(err)
-		}
-		_, ok := sess.Values["ID"].(string)
-		if !ok {
-			sess.Options = &h.SessionOption
-			sess.Values["ID"] = traQrandom.SecureAlphaNumeric(10)
-			sess.Save(c.Request(), c.Response())
-			return unauthorized(err, needAuthorization(true))
-		}
 		userID, err := getRequestUserID(c)
 		if err != nil || userID == uuid.Nil {
 			return unauthorized(err, needAuthorization(true))
@@ -257,6 +244,7 @@ func calcSignature(message, secret string) string {
 func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	sess, err := session.Get("session", c)
 	if err != nil {
+		setMaxAgeMinus(c)
 		return uuid.Nil, err
 	}
 	userID, _ := sess.Values["userID"].(string)
@@ -297,4 +285,16 @@ func getPathUserID(c echo.Context) (uuid.UUID, error) {
 		return uuid.Nil, errors.New("UserID is not uuid")
 	}
 	return userID, nil
+}
+
+func setMaxAgeMinus(c echo.Context) error {
+	sess := &http.Cookie{
+		Path:     "/",
+		Name:     "session",
+		HttpOnly: true,
+		MaxAge:   -1,
+	}
+	c.SetCookie(sess)
+	c.Response().Header().Set("Cache-Control", "no-store")
+	return nil
 }
