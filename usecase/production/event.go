@@ -169,8 +169,8 @@ func createGroupMap(groups []*domain.Group) map[uuid.UUID]*domain.Group {
 }
 func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 	userMap := make(map[uuid.UUID]*domain.User)
-	for _, group := range users {
-		userMap[group.ID] = group
+	for _, user := range users {
+		userMap[user.ID] = user
 	}
 	return userMap
 }
