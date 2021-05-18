@@ -95,6 +95,10 @@ func Convv7currentUserMetaTov7newUser(src v7currentUserMeta) (dst v7newUser) {
 	dst.IcalSecret = src.IcalSecret
 	dst.Privilege = src.Admin
 	dst.State = 1
+
+	dst.Provider.UserID = src.ID
+	dst.Provider.Issuer = "traQ"
+	dst.Provider.Subject = src.ID.String()
 	return
 }
 
