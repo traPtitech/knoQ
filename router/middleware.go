@@ -287,7 +287,7 @@ func getPathUserID(c echo.Context) (uuid.UUID, error) {
 	return userID, nil
 }
 
-func setMaxAgeMinus(c echo.Context) error {
+func setMaxAgeMinus(c echo.Context) {
 	sess := &http.Cookie{
 		Path:     "/",
 		Name:     "session",
@@ -295,6 +295,4 @@ func setMaxAgeMinus(c echo.Context) error {
 		MaxAge:   -1,
 	}
 	c.SetCookie(sess)
-	c.Response().Header().Set("Cache-Control", "no-store")
-	return nil
 }
