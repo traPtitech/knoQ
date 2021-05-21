@@ -1119,7 +1119,7 @@ components:
         値がない場合は、belongs として振る舞う
       schema:
         type: string
-        example:
+        enum:
           - admins
           - belongs
 
