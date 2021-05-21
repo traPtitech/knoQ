@@ -786,6 +786,7 @@ components:
               userId: *uuid
               schedule: &schedule
                 type: string
+                enum: [pending, absent, attendance]
                 description: pending or absent or attendance
         createdBy: *uuid
         createdAt: *time
