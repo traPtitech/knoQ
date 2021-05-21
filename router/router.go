@@ -4,21 +4,20 @@ package router
 import (
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/traPtitech/knoQ/router/service"
+	"github.com/gofrs/uuid"
+	"github.com/traPtitech/knoQ/domain"
 
+	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
-	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/wader/gormstore"
 	"go.uber.org/zap"
 )
 
 type Handlers struct {
-	service.Dao
+	Repo              domain.Repository
 	Logger            *zap.Logger
 	SessionKey        []byte
 	SessionOption     sessions.Options
@@ -29,7 +28,7 @@ type Handlers struct {
 	Origin            string
 }
 
-func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
+func (h *Handlers) SetupRoute() *echo.Echo {
 	echo.NotFoundHandler = NotFoundHandler
 	// echo初期化
 	e := echo.New()
@@ -38,15 +37,10 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	e.Use(middleware.Secure())
 	e.Use(AccessLoggingMiddleware(h.Logger))
 
-	store := gormstore.New(db, h.SessionKey)
-	e.Use(session.Middleware(store))
-	// db cleanup every hour
-	// close quit channel to stop cleanup
-	quit := make(chan struct{})
-	// defer close(quit)
-	go store.PeriodicCleanup(1*time.Hour, quit)
-
-	e.Use(h.WatchCallbackMiddleware())
+	if len(h.SessionKey) == 0 {
+		h.SessionKey = securecookie.GenerateRandomKey(32)
+	}
+	e.Use(session.Middleware(sessions.NewCookieStore(h.SessionKey)))
 
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -58,7 +52,7 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	// API定義 (/api)
 	api := e.Group("/api", h.TraQUserMiddleware)
 	{
-		adminMiddle := h.AdminUserMiddleware
+		previlegeMiddle := h.PrevilegeUserMiddleware
 
 		apiGroups := api.Group("/groups")
 		{
@@ -97,24 +91,23 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 		apiRooms := api.Group("/rooms")
 		{
 			apiRooms.GET("", h.HandleGetRooms)
-			apiRooms.POST("", h.HandlePostRoom, adminMiddle)
-			apiRooms.POST("/all", h.HandleSetRooms, adminMiddle)
-
-			apiRooms.POST("/private", h.HandlePostPrivateRoom)
+			apiRooms.POST("", h.HandlePostRoom)
+			apiRooms.POST("/all", h.HandleCreateVerifedRooms, previlegeMiddle)
 
 			apiRoom := apiRooms.Group("/:roomid")
 			{
 				apiRoom.GET("", h.HandleGetRoom)
-				apiRoom.DELETE("", h.HandleDeleteRoom, adminMiddle)
-				apiRoom.GET("/events", h.HandleGetEventsByRoomID)
+				apiRoom.DELETE("", h.HandleDeleteRoom)
+
+				apiRooms.POST("/verified", h.HandleVerifyRoom, previlegeMiddle)
+				apiRooms.DELETE("/verified", h.HandleUnVerifyRoom, previlegeMiddle)
 			}
-			apiRooms.DELETE("/private/:roomid", h.HandleDeletePrivateRoom, h.RoomCreatedUserMiddleware)
 		}
 
 		apiUsers := api.Group("/users")
 		{
 			apiUsers.GET("", h.HandleGetUsers)
-			apiUsers.POST("/sync", h.HandleSyncUser, h.AdminUserMiddleware)
+			apiUsers.POST("/sync", h.HandleSyncUser, previlegeMiddle)
 
 			apiUsers.GET("/me", h.HandleGetUserMe)
 			apiUsers.GET("/me/ical", h.HandleGetiCal)
@@ -135,13 +128,14 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 			apiTags.GET("", h.HandleGetTags)
 		}
 
-		apiActivity := api.Group("/activity")
-		{
-			apiActivity.GET("/events", h.HandleGetEventActivities)
-		}
+		// apiActivity := api.Group("/activity")
+		// {
+		// apiActivity.GET("/events", h.HandleGetEventActivities)
+		// }
 
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
+	e.GET("/api/callback", h.HandleCallback)
 	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
@@ -153,4 +147,12 @@ func (h *Handlers) SetupRoute(db *gorm.DB) *echo.Echo {
 	}))
 
 	return e
+}
+
+func getConinfo(c echo.Context) *domain.ConInfo {
+	info := new(domain.ConInfo)
+	sess, _ := session.Get("session", c)
+	str := sess.Values["userID"].(string)
+	info.ReqUserID = uuid.FromStringOrNil(str)
+	return info
 }

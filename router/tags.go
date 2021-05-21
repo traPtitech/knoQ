@@ -3,22 +3,13 @@ package router
 import (
 	"net/http"
 
-	"github.com/traPtitech/knoQ/router/service"
+	"github.com/traPtitech/knoQ/presentation"
 
-	"github.com/gofrs/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-type tagAddDelete interface {
-	Read() error
-	// add unlocked tag
-	AddTag(tagID uuid.UUID, locked bool) error
-	// delete unlocked tag
-	DeleteTag(tagID uuid.UUID) error
-}
-
 func (h *Handlers) HandlePostTag(c echo.Context) error {
-	req := new(service.TagReq)
+	var req presentation.TagReq
 	if err := c.Bind(&req); err != nil {
 		return badRequest(err)
 	}
@@ -28,7 +19,7 @@ func (h *Handlers) HandlePostTag(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 
-	return c.JSON(http.StatusOK, service.FormatTagRes(tag))
+	return c.JSON(http.StatusOK, presentation.ConvdomainTagToTagRes(*tag))
 }
 
 func (h *Handlers) HandleGetTags(c echo.Context) error {
@@ -37,9 +28,5 @@ func (h *Handlers) HandleGetTags(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 
-	res := make([]*service.TagRes, len(tags))
-	for i, tag := range tags {
-		res[i] = service.FormatTagRes(tag)
-	}
-	return c.JSON(http.StatusOK, res)
+	return c.JSON(http.StatusOK, presentation.ConvSPdomainTagToSPTagRes(tags))
 }

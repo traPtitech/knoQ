@@ -2,79 +2,52 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/traPtitech/knoQ/infra/db"
+	"github.com/traPtitech/knoQ/infra/traq"
+	"github.com/traPtitech/knoQ/usecase/production"
 	"github.com/traPtitech/knoQ/utils"
+	"golang.org/x/oauth2"
 
 	"github.com/traPtitech/knoQ/router"
-	"github.com/traPtitech/knoQ/router/service"
-
-	repo "github.com/traPtitech/knoQ/repository"
 
 	"github.com/carlescere/scheduler"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/calendar/v3"
-)
-
-var (
-	SESSION_KEY = []byte(os.Getenv("SESSION_KEY")[:32])
 )
 
 func main() {
-	db, err := repo.SetupDatabase()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	googleAPI := &repo.GoogleAPIRepository{
-		CalendarID: os.Getenv("TRAQ_CALENDARID"),
-	}
-	bytes, _ := ioutil.ReadFile("service.json")
-	googleAPI.Config, err = google.JWTConfigFromJSON(bytes, calendar.CalendarReadonlyScope)
-	if err == nil {
-		googleAPI.Setup()
-	}
-
 	logger, _ := zap.NewDevelopment()
-	handler := &router.Handlers{
-		Dao: service.Dao{
-			Repo: &repo.GormRepository{
-				DB:       db,
-				TokenKey: SESSION_KEY,
+	gormRepo := db.GormRepository{}
+	err := gormRepo.Setup(os.Getenv("MARIADB_HOSTNAME"), os.Getenv("MARIADB_USERNAME"),
+		os.Getenv("MARIADB_PASSWORD"), os.Getenv("MARIADB_DATABASE"), os.Getenv("TOKEN_KEY"))
+	if err != nil {
+		panic(err)
+	}
+	traqRepo := traq.TraQRepository{
+		Config: &oauth2.Config{
+			ClientID:    os.Getenv("CLIENT_ID"),
+			RedirectURL: os.Getenv("ORIGIN") + "/api/callback",
+			Scopes:      []string{"read"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://q.trap.jp/api/v3/oauth2/authorize",
+				TokenURL: "https://q.trap.jp/api/v3/oauth2/token",
 			},
-			InitExternalUserGroupRepo: func(token string, ver repo.TraQVersion) interface {
-				repo.UserBodyRepository
-				repo.GroupRepository
-			} {
-				traQRepo := new(repo.TraQRepository)
-				traQRepo.Token = token
-				traQRepo.Version = ver
-				traQRepo.Host = "https://q.trap.jp/api"
-				traQRepo.NewRequest = traQRepo.DefaultNewRequest
-				return traQRepo
-			},
-			InitTraPGroupRepo: func(token string, ver repo.TraQVersion) interface {
-				repo.GroupRepository
-			} {
-				traPGroupRepo := new(repo.TraPGroupRepository)
-				traPGroupRepo.Token = token
-				traPGroupRepo.Version = ver
-				traPGroupRepo.Host = "https://q.trap.jp/api"
-				traPGroupRepo.NewRequest = traPGroupRepo.DefaultNewRequest
-				return traPGroupRepo
-			},
-			ExternalRoomRepo: googleAPI,
 		},
+		URL: "https://q.trap.jp/api/v3",
+	}
+	repo := &production.Repository{
+		GormRepo: gormRepo,
+		TraQRepo: traqRepo,
+	}
+	handler := &router.Handlers{
+		Repo:       repo,
 		Logger:     logger,
-		SessionKey: SESSION_KEY,
+		SessionKey: []byte(os.Getenv("SESSION_KEY")),
 		ClientID:   os.Getenv("CLIENT_ID"),
 		SessionOption: sessions.Options{
 			Path:     "/",
@@ -88,10 +61,10 @@ func main() {
 		Origin:            os.Getenv("ORIGIN"),
 	}
 
-	e := handler.SetupRoute(db)
+	e := handler.SetupRoute()
 
 	// webhook
-	job := utils.InitPostEventToTraQ(handler.Repo, handler.WebhookSecret,
+	job := utils.InitPostEventToTraQ(&repo.GormRepo, handler.WebhookSecret,
 		handler.ActivityChannelID, handler.WebhookID, handler.Origin)
 	scheduler.Every().Day().At("08:00").Run(job)
 

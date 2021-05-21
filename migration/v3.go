@@ -1,9 +1,9 @@
 package migration
 
 import (
+	gormigrate "github.com/go-gormigrate/gormigrate/v2"
 	"github.com/gofrs/uuid"
-	"github.com/jinzhu/gorm"
-	"gopkg.in/gormigrate.v1"
+	"gorm.io/gorm"
 )
 
 type newGroupAdmins struct {
@@ -27,11 +27,12 @@ func (*currentGroup) TableName() string {
 	return "groups"
 }
 
+// v3 グループの作成者を管理者にする
 func v3() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "3",
 		Migrate: func(db *gorm.DB) error {
-			err := db.CreateTable(&newGroupAdmins{}).Error
+			err := db.Migrator().CreateTable(&newGroupAdmins{})
 			if err != nil {
 				return err
 			}
