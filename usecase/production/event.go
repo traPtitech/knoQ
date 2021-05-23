@@ -175,6 +175,7 @@ func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 	return userMap
 }
 
+// add traQ group and traP(111...)
 func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filter.Expr {
 	t, err := repo.GormRepo.GetToken(userID)
 	if err != nil {
@@ -194,6 +195,14 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filte
 				groupIDs, err := repo.TraQRepo.GetUserBelongingGroupIDs(t, id)
 				if err != nil {
 					return e
+				}
+				// add traP
+				user, err := repo.GormRepo.GetUser(id)
+				if err != nil {
+					return e
+				}
+				if user.Provider.Issuer == traQIssuerName {
+					groupIDs = append(groupIDs, traPGroupID)
 				}
 				return &filter.LogicOpExpr{
 					LogicOp: filter.Or,
