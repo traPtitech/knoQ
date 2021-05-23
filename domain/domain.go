@@ -18,6 +18,13 @@ type ConInfo struct {
 	ReqUserID uuid.UUID
 }
 
+func (c *ConInfo) GetUserID() uuid.UUID {
+	if c == nil {
+		return uuid.Nil
+	}
+	return c.ReqUserID
+}
+
 type Repository interface {
 	EventRepository
 	GroupRepository

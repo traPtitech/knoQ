@@ -64,9 +64,13 @@ func main() {
 	e := handler.SetupRoute()
 
 	// webhook
-	job := utils.InitPostEventToTraQ(repo, handler.WebhookSecret,
+	schedulerJob := utils.InitPostEventToTraQ(repo, handler.WebhookSecret,
 		handler.ActivityChannelID, handler.WebhookID, handler.Origin)
-	scheduler.Every().Day().At("08:00").Run(job)
+	scheduler.Every().Day().At("08:00").Run(schedulerJob)
+
+	remindJob := utils.InitRemindEvent(repo, handler.WebhookSecret,
+		handler.ActivityChannelID, handler.WebhookID, handler.Origin)
+	scheduler.Every(1).Minutes().Run(remindJob)
 
 	// サーバースタート
 	go func() {

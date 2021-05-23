@@ -98,7 +98,7 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 
 func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, error) {
 	groups := make([]*domain.Group, 0)
-	t, err := repo.GormRepo.GetToken(info.ReqUserID)
+	t, err := repo.GormRepo.GetToken(info.GetUserID())
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}

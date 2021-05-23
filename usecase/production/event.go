@@ -106,7 +106,7 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 }
 
 func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
-	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
+	expr = addTraQGroupIDs(repo, info.GetUserID(), expr)
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
 	if err != nil {
