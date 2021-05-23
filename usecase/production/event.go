@@ -83,7 +83,7 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 	// add traQ groups and users
 	g, err := repo.GetGroup(e.GroupID, info)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return &event, defaultErrorHandling(err)
 	}
 	event.Group = *g
 	users, err := repo.GetAllUsers(false, info)
@@ -117,7 +117,7 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 	// add traQ groups and users
 	groups, err := repo.GetAllGroups(info)
 	if err != nil {
-		return events, nil
+		return events, err
 	}
 	groupMap := createGroupMap(groups)
 	users, err := repo.GetAllUsers(false, info)

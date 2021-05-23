@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -186,20 +185,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 
-	jst, _ := time.LoadLocation("Asia/Tokyo")
-	timeFormat := "01/02(Mon) 15:04"
-	var content string
-	if c.Request().Method == http.MethodPost {
-		content = "## イベントが作成されました" + "\n"
-	} else if c.Request().Method == http.MethodPut {
-		content = "## イベントが更新されました" + "\n"
-	}
-	content += fmt.Sprintf("### [%s](%s/events/%s)", e.Name, h.Origin, e.ID) + "\n"
-	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", e.GroupName, h.Origin, e.Group.ID) + "\n"
-	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
-	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
-	content += "\n"
-	content += e.Description
+	content := presentation.WebhookMessageFormat(*e, c.Request().Method, h.Origin)
 
 	_ = RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }
