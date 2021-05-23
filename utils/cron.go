@@ -1,12 +1,16 @@
 package utils
 
 import (
+	"os"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/presentation"
 )
+
+var tokenValidUserID = uuid.Must(uuid.FromString(os.Getenv("TOKEN_VALID_USER_ID")))
 
 // InitPostEventToTraQ 現在(job実行)から24時間以内に始まるイベントを取得し、
 // webhookでtraQに送るjobを作成。
@@ -42,7 +46,7 @@ func InitRemindEvent(repo domain.EventRepository, secret, channelID, webhookID, 
 				Relation: filter.Less,
 				Value:    now.Add(1 * time.Minute),
 			},
-		), nil)
+		), &domain.ConInfo{ReqUserID: tokenValidUserID})
 		for _, event := range events {
 			message := "## 【リマインド】\n"
 			content := presentation.WebhookMessageFormat(
