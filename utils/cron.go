@@ -30,7 +30,19 @@ func InitPostEventToTraQ(repo interface {
 func InitRemindEvent(repo domain.EventRepository, secret, channelID, webhookID, origin string) func() {
 	job := func() {
 		now := time.Now()
-		events, _ := repo.GetEvents(filter.FilterTime(now, now.Add(1*time.Minute)), nil)
+		now = time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), 0, 0, time.Local)
+		events, _ := repo.GetEvents(filter.AddAnd(
+			&filter.CmpExpr{
+				Attr:     filter.AttrTimeStart,
+				Relation: filter.GreterEq,
+				Value:    now,
+			},
+			&filter.CmpExpr{
+				Attr:     filter.AttrTimeStart,
+				Relation: filter.Less,
+				Value:    now.Add(1 * time.Minute),
+			},
+		), nil)
 		for _, event := range events {
 			message := "## 【リマインド】\n"
 			content := presentation.WebhookMessageFormat(
