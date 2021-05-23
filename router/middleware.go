@@ -195,7 +195,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		content = "## イベントが更新されました" + "\n"
 	}
 	content += fmt.Sprintf("### [%s](%s/events/%s)", e.Name, h.Origin, e.ID) + "\n"
-	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", e.GroupName, h.Origin, e.Group.ID) + "\n"
+	content += fmt.Sprintf("- イベントグループ: [%s](%s/groups/%s)", e.GroupName, h.Origin, e.Group.ID) + "\n"
 	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
 	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
 	content += "\n"
