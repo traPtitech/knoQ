@@ -68,7 +68,7 @@ func (repo *Repository) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) err
 // DeleteTagInEvent delete a tag in that Event
 func (repo *Repository) DeleteEventTag(eventID uuid.UUID, tagName string, info *domain.ConInfo) error {
 	deleteLocked := false
-	if !repo.IsEventAdmins(eventID, info) {
+	if repo.IsEventAdmins(eventID, info) {
 		deleteLocked = true
 	}
 	return repo.GormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
