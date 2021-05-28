@@ -9,7 +9,7 @@ import (
 
 func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
 	// groupの確認
-	_, err := repo.GetGroup(params.GroupID, info)
+	group, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -23,6 +23,7 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 		return nil, defaultErrorHandling(err)
 	}
 	e := db.ConvEventTodomainEvent(*event)
+	e.Group = *group
 	return &e, nil
 }
 
@@ -31,7 +32,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 		return nil, domain.ErrForbidden
 	}
 	// groupの確認
-	_, err := repo.GetGroup(params.GroupID, info)
+	group, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -45,6 +46,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 		return nil, defaultErrorHandling(err)
 	}
 	e := db.ConvEventTodomainEvent(*event)
+	e.Group = *group
 	return &e, nil
 }
 
