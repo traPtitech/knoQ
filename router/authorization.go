@@ -24,13 +24,14 @@ func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
 	// cache codeVerifier
 	sess, err := session.Get("session", c)
 	if err != nil {
-		return internalServerError(err)
+		setMaxAgeMinus(c)
+		return unauthorized(err, needAuthorization(true),
+			message("please try again"))
 	}
 
 	sessionID, ok := sess.Values["ID"].(string)
 	if !ok {
 		sessionID = traQrandom.SecureAlphaNumeric(10)
-
 		sess.Values["ID"] = sessionID
 		sess.Options = &h.SessionOption
 		sess.Save(c.Request(), c.Response())
@@ -47,7 +48,12 @@ func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
 }
 
 func (h *Handlers) HandleCallback(c echo.Context) error {
-	sess, _ := session.Get("session", c)
+	sess, err := session.Get("session", c)
+	if err != nil {
+		setMaxAgeMinus(c)
+		return unauthorized(err, needAuthorization(true),
+			message("please try again"))
+	}
 	sessionID, ok := sess.Values["ID"].(string)
 	if !ok {
 		return internalServerError(errors.New("session error"))
@@ -66,6 +72,7 @@ func (h *Handlers) HandleCallback(c echo.Context) error {
 	}
 
 	sess.Values["userID"] = user.ID.String()
+	sess.Options = &h.SessionOption
 	err = sess.Save(c.Request(), c.Response())
 	if err != nil {
 		return internalServerError(err)

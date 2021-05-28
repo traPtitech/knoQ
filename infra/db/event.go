@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -78,14 +79,19 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Even
 	event := ConvWriteEventParamsToEvent(params)
 	event.ID = eventID
 
-	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&event).Error
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
+		Omit("CreatedAt").Save(&event).Error
 	return &event, err
 }
 
 func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
 	eventTag := ConvdomainEventTagParamsToEventTag(params)
 	eventTag.EventID = eventID
-	return db.Create(&eventTag).Error
+	err := db.Create(&eventTag).Error
+	if errors.Is(defaultErrorHandling(err), ErrDuplicateEntry) {
+		return db.Omit("CreatedAt").Save(&eventTag).Error
+	}
+	return err
 }
 
 func deleteEvent(db *gorm.DB, eventID uuid.UUID) error {

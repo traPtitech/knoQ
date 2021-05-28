@@ -90,7 +90,7 @@ func Test_updateGroup(t *testing.T) {
 func Test_addMemberToGroup(t *testing.T) {
 	r, assert, require, _, group := setupRepoWithUserGroup(t, common)
 
-	t.Run("add member", func(t *testing.T) {
+	t.Run("add a member", func(t *testing.T) {
 		user := mustMakeUser(t, r, false)
 		err := addMemberToGroup(r.db, group.ID, user.ID)
 		require.NoError(err)
@@ -100,7 +100,7 @@ func Test_addMemberToGroup(t *testing.T) {
 		assert.Len(g.Members, 1)
 	})
 
-	t.Run("add member to random groupID", func(t *testing.T) {
+	t.Run("add a member to random groupID", func(t *testing.T) {
 		user := mustMakeUser(t, r, false)
 		err := addMemberToGroup(r.db, mustNewUUIDV4(t), user.ID)
 		var me *mysql.MySQLError
@@ -108,22 +108,32 @@ func Test_addMemberToGroup(t *testing.T) {
 		assert.Equal(uint16(1452), me.Number)
 	})
 
-	t.Run("add invalid member", func(t *testing.T) {
+	t.Run("add a invalid member", func(t *testing.T) {
 		err := addMemberToGroup(r.db, group.ID, mustNewUUIDV4(t))
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
 		assert.Equal(uint16(1452), me.Number)
 	})
 
-	t.Run("add duplicate member", func(t *testing.T) {
+	t.Run("add a duplicate member", func(t *testing.T) {
 		user := mustMakeUser(t, r, false)
 		err := addMemberToGroup(r.db, group.ID, user.ID)
 		require.NoError(err)
 
 		err = addMemberToGroup(r.db, group.ID, user.ID)
-		var me *mysql.MySQLError
-		require.ErrorAs(err, &me)
-		assert.Equal(uint16(1062), me.Number)
+		assert.NoError(err)
+	})
+
+	t.Run("add a member who had deleted", func(t *testing.T) {
+		user := mustMakeUser(t, r, false)
+		err := addMemberToGroup(r.db, group.ID, user.ID)
+		require.NoError(err)
+
+		err = deleteMemberOfGroup(r.db, group.ID, user.ID)
+		require.NoError(err)
+
+		err = addMemberToGroup(r.db, group.ID, user.ID)
+		assert.NoError(err)
 	})
 }
 

@@ -1,4 +1,4 @@
-FROM golang:1.15.6-alpine as server-build
+FROM golang:1.16.4-alpine as server-build
 
 WORKDIR /github.com/traPtitech/knoq
 
@@ -9,7 +9,7 @@ COPY ./ ./
 
 RUN go build -o knoq
 
-FROM alpine:3.13.2
+FROM alpine:3.13.5
 
 WORKDIR /app
 

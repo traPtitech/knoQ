@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gofrs/uuid"
@@ -107,7 +108,8 @@ func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {
 func updateGroup(db *gorm.DB, groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
 	group := ConvWriteGroupParamsToGroup(params)
 	group.ID = groupID
-	err := db.Session(&gorm.Session{FullSaveAssociations: true}).Save(&group).Error
+	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
+		Omit("CreatedAt").Save(&group).Error
 	return &group, err
 }
 
@@ -116,7 +118,11 @@ func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 		GroupID: groupID,
 		UserID:  userID,
 	}
-	return db.Create(&groupMember).Error
+	err := db.Create(&groupMember).Error
+	if errors.Is(defaultErrorHandling(err), ErrDuplicateEntry) {
+		return db.Omit("CreatedAt").Save(&groupMember).Error
+	}
+	return err
 }
 
 func deleteGroup(db *gorm.DB, groupID uuid.UUID) error {
@@ -142,7 +148,11 @@ func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
 
 func getGroups(db *gorm.DB, query string, args []interface{}) ([]*Group, error) {
 	groups := make([]*Group, 0)
-	err := db.Where(query, args).Group("id").Find(&groups).Error
+	cmd := db
+	if query != "" && args != nil {
+		cmd = cmd.Where(query, args)
+	}
+	err := cmd.Group("id").Find(&groups).Error
 	return groups, err
 }
 

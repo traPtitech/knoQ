@@ -370,8 +370,9 @@ paths:
       description: グループの削除
       operationId: deleteGroup
       responses:
-        '200':
+        '204':
           description: successful operation
+          $ref: '#/components/responses/Nocontent'
         '403':
           description: Forbidden
         '404':
@@ -388,8 +389,8 @@ paths:
       description: 自分をメンバーに追加する
 
       responses:
-        '200':
-          $ref: '#/components/responses/Group'
+        '204':
+          $ref: '#/components/responses/Nocontent'
     delete:
       tags:
         - groups
@@ -397,8 +398,8 @@ paths:
       summary: 自分しか削除出来ない。open=true
       description: 自分しか削除出来ない。open=true
       responses:
-        '200':
-          $ref: '#/components/responses/Group'
+        '204':
+          $ref: '#/components/responses/Nocontent'
 
   /users/me/groups:
     get:
@@ -583,7 +584,7 @@ components:
     ResponseUser:
       type: object
       properties:
-        id: &uuid
+        userId: &uuid
           type: string
           format: uuid
         name: &userName
@@ -602,7 +603,7 @@ components:
           type: integer
           description: 'ユーザーアカウント状態 0: 停止 1: 有効 2: 一時停止'
       required:
-        - id
+        - userId
         - name
         - displayName
         - icon
@@ -618,7 +619,7 @@ components:
           example: S516
         timeStart: &time
           type: string
-          example: '2006-01-02T15:04Z'
+          example: '2006-01-02T15:04:05Z'
         timeEnd: *time
         verified: &verified
           type: boolean
@@ -986,8 +987,8 @@ components:
               name: イベント
               description: これはイベントです。
               sharedRoom: true
-              timeStart: 2006-01-02T15:04Z
-              timeEnd: 2006-01-02T15:04Z
+              timeStart: '2006-01-02T15:04:05Z'
+              timeEnd: '2006-01-02T15:04:05Z'
               place: Discord
               groupId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
               admins:
@@ -1132,19 +1133,21 @@ components:
     dateBegin:
       name: dateBegin
       in: query
-      description: 特定の日から。(iso8601)
+      description: 特定の日時から。
       required: false
       schema:
         type: string
         format: datetime
+      example: '2006-01-02T15:04:05Z'
     dateEnd:
       name: dateEnd
       in: query
-      description: 特定の日まで。(iso8601)
+      description: 特定の日時まで。
       required: false
       schema:
         type: string
         format: datetime
+      example: '2006-01-02T15:04:05Z'
 
     include-suspended:
       name: include-suspended
@@ -1167,7 +1170,7 @@ components:
         値がない場合は、belongs として振る舞う
       schema:
         type: string
-        example:
+        enum:
           - admins
           - belongs
           - attendees

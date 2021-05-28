@@ -126,6 +126,7 @@ func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) (
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
+	// TODO fix
 	traQUserBodys, err := repo.TraQRepo.GetUsers(t, includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -137,9 +138,13 @@ func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) (
 		if !ok {
 			continue
 		}
-		user, _ := repo.mergeUser(userMeta, userBody)
+		user, err := repo.mergeUser(userMeta, userBody)
+		if err != nil {
+			continue
+		}
 		users = append(users, user)
 	}
+
 	return users, nil
 }
 
@@ -153,6 +158,9 @@ func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 	user, err := repo.GormRepo.GetUser(info.ReqUserID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
+	}
+	if user.State != 1 {
+		return "", domain.ErrForbidden
 	}
 	if user.IcalSecret == "" {
 		return "", domain.ErrNotFound
