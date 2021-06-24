@@ -27,7 +27,7 @@ func TestMain(m *testing.M) {
 	)
 	ring := redis.NewRing(&redis.RingOptions{
 		Addrs: map[string]string{
-			host: ":" + port,
+			"server": host + ":" + port,
 		},
 	})
 	ctx := context.Background()

@@ -28,7 +28,7 @@ type RedisRepository struct {
 
 func Setup(host, port string) *RedisRepository {
 	addrs := map[string]string{
-		host: ":" + port,
+		"server": host + ":" + port,
 	}
 
 	rings := make([]*redis.Ring, 16)
