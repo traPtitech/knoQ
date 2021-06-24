@@ -50,7 +50,7 @@ func Setup(host, port string) *RedisRepository {
 	return repo
 }
 
-func (repo *RedisRepository) SetValidUser(userID uuid.UUID) error {
+func (repo *RedisRepository) setValidUser(userID uuid.UUID) error {
 	ctx := context.TODO()
 	return repo.validCache.Set(&cache.Item{
 		Ctx:   ctx,
