@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -63,5 +64,32 @@ func TestRedisRepository_GetUser(t *testing.T) {
 		time.Sleep(2 * time.Second)
 		_, err = r.GetUser(user.ID, i)
 		assert.ErrorIs(err, ErrValidationExpired)
+	})
+}
+
+func TestRedisRepository_GetUsers(t *testing.T) {
+	r, assert, require := setupRepo(t, common)
+
+	users := []*domain.User{
+		{
+			ID:   mustNewUUIDV4(t),
+			Name: random.AlphaNumeric(10),
+		},
+		{
+			ID:   mustNewUUIDV4(t),
+			Name: random.AlphaNumeric(10),
+		},
+	}
+	i := &domain.ConInfo{
+		ReqUserID: users[0].ID,
+	}
+	err := r.SetUsers(users, i)
+	require.NoError(err)
+
+	t.Run("get a user", func(t *testing.T) {
+		u, err := r.GetUsers(i)
+		require.NoError(err)
+
+		assert.True(reflect.DeepEqual(users, u))
 	})
 }

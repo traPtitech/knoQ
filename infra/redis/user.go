@@ -30,3 +30,26 @@ func (repo *RedisRepository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*d
 	err := repo.usersCache.Get(ctx, userID.String(), &user)
 	return &user, err
 }
+
+func (repo *RedisRepository) SetUsers(users []*domain.User, info *domain.ConInfo) error {
+	repo.setValidUser(info.ReqUserID)
+
+	ctx := context.TODO()
+	return repo.usersCache.Set(&cache.Item{
+		Ctx:   ctx,
+		Key:   "users",
+		Value: users,
+		TTL:   repo.usersCacheTime,
+	})
+}
+
+func (repo *RedisRepository) GetUsers(info *domain.ConInfo) ([]*domain.User, error) {
+	if !repo.isValidUser(info.ReqUserID) {
+		return nil, ErrValidationExpired
+	}
+
+	ctx := context.TODO()
+	var users []*domain.User
+	err := repo.usersCache.Get(ctx, "users", &users)
+	return users, err
+}
