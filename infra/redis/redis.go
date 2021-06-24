@@ -18,9 +18,12 @@ var (
 type RedisRepository struct {
 	usersCache  *cache.Cache
 	groupsCache *cache.Cache
-
 	// キャッシュを許可するユーザーキャッシュ
 	validCache *cache.Cache
+
+	usersCacheTime  time.Duration
+	groupsCacheTime time.Duration
+	validCacheTime  time.Duration
 }
 
 func Setup(host, port string) *RedisRepository {
@@ -47,6 +50,10 @@ func Setup(host, port string) *RedisRepository {
 		Redis: rings[2],
 	})
 
+	repo.usersCacheTime = usersCacheTime
+	repo.groupsCacheTime = groupsCacheTime
+	repo.validCacheTime = validCacheTime
+
 	return repo
 }
 
@@ -56,7 +63,7 @@ func (repo *RedisRepository) setValidUser(userID uuid.UUID) error {
 		Ctx:   ctx,
 		Key:   userID.String(),
 		Value: true,
-		TTL:   validCacheTime,
+		TTL:   repo.validCacheTime,
 	})
 }
 

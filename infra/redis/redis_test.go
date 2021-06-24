@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gofrs/uuid"
@@ -12,6 +13,7 @@ import (
 
 const (
 	common = "common"
+	onesec = "onesec"
 )
 
 var (
@@ -33,6 +35,14 @@ func TestMain(m *testing.M) {
 	ring.FlushAll(ctx)
 
 	repositories[common] = Setup(host, port)
+
+	r := Setup(host, port)
+	r.usersCacheTime = 1 * time.Second
+	r.groupsCacheTime = 1 * time.Second
+	r.validCacheTime = 1 * time.Second
+	repositories[onesec] = r
+
+	m.Run()
 }
 
 func assertAndRequire(t *testing.T) (*assert.Assertions, *require.Assertions) {
@@ -45,9 +55,9 @@ func mustNewUUIDV4(t *testing.T) uuid.UUID {
 	return id
 }
 
-func setupRepo(t *testing.T) (*RedisRepository, *assert.Assertions, *require.Assertions) {
+func setupRepo(t *testing.T, repo string) (*RedisRepository, *assert.Assertions, *require.Assertions) {
 	t.Helper()
-	r, ok := repositories[common]
+	r, ok := repositories[repo]
 	if !ok {
 		t.FailNow()
 	}

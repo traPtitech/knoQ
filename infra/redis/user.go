@@ -16,6 +16,7 @@ func (repo *RedisRepository) SetUser(user *domain.User, info *domain.ConInfo) er
 		Ctx:   ctx,
 		Key:   user.ID.String(),
 		Value: user,
+		TTL:   repo.usersCacheTime,
 	})
 }
 
