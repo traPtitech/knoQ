@@ -49,3 +49,8 @@ services:
       - PMA_HOST=mysql
       - PMA_USER=root
       - PMA_PASSWORD=password
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379

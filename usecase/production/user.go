@@ -43,6 +43,8 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 		users = append(users, user)
 	}
 
+	repo.RedisRepo.DeleteUsers()
+
 	err = repo.GormRepo.SyncUsers(users)
 	return defaultErrorHandling(err)
 }
@@ -89,6 +91,10 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 }
 
 func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
+	if user, err := repo.RedisRepo.GetUser(userID, info); err == nil {
+		return user, nil
+	}
+
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -105,6 +111,7 @@ func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain
 			return nil, defaultErrorHandling(err)
 		}
 		user, _ := repo.mergeUser(userMeta, userBody)
+		repo.RedisRepo.SetUser(user, info)
 		return user, nil
 	}
 	// userBody, err := repo.gormRepo.GetUserBody(userID)
@@ -117,6 +124,10 @@ func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 }
 
 func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) ([]*domain.User, error) {
+	if users, err := repo.RedisRepo.GetUsers(info); !includeSuspend && err == nil {
+		return users, nil
+	}
+
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -145,6 +156,9 @@ func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) (
 		users = append(users, user)
 	}
 
+	if !includeSuspend {
+		repo.RedisRepo.SetUsers(users, info)
+	}
 	return users, nil
 }
 

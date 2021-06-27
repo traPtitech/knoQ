@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/traPtitech/knoQ/infra/db"
+	"github.com/traPtitech/knoQ/infra/redis"
 	"github.com/traPtitech/knoQ/infra/traq"
 	"github.com/traPtitech/knoQ/usecase/production"
 	"github.com/traPtitech/knoQ/utils"
@@ -40,9 +41,11 @@ func main() {
 		},
 		URL: "https://q.trap.jp/api/v3",
 	}
+	redisRepo := redis.Setup(os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
 	repo := &production.Repository{
-		GormRepo: gormRepo,
-		TraQRepo: traqRepo,
+		GormRepo:  gormRepo,
+		TraQRepo:  traqRepo,
+		RedisRepo: *redisRepo,
 	}
 	handler := &router.Handlers{
 		Repo:       repo,

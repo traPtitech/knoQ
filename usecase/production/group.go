@@ -20,6 +20,7 @@ func (repo *Repository) CreateGroup(params domain.WriteGroupParams, info *domain
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
+	repo.RedisRepo.DeleteGroups(info)
 	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
 }
@@ -36,6 +37,8 @@ func (repo *Repository) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupP
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
+	// delete cache
+	repo.RedisRepo.DeleteGroup(groupID)
 	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
 }
@@ -45,6 +48,8 @@ func (repo *Repository) AddMeToGroup(groupID uuid.UUID, info *domain.ConInfo) er
 	if !repo.IsGroupJoinFreely(groupID) {
 		return domain.ErrForbidden
 	}
+	// delete cache
+	repo.RedisRepo.DeleteGroup(groupID)
 	return repo.GormRepo.AddMemberToGroup(groupID, info.ReqUserID)
 }
 
@@ -52,6 +57,10 @@ func (repo *Repository) DeleteGroup(groupID uuid.UUID, info *domain.ConInfo) err
 	if !repo.IsGroupAdmins(groupID, info) {
 		return domain.ErrForbidden
 	}
+	// delete cache
+	repo.RedisRepo.DeleteGroup(groupID)
+	repo.RedisRepo.DeleteGroups(info)
+
 	return repo.GormRepo.DeleteGroup(groupID)
 }
 
@@ -60,6 +69,8 @@ func (repo *Repository) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) e
 	if !repo.IsGroupJoinFreely(groupID) {
 		return domain.ErrForbidden
 	}
+	// delete cache
+	repo.RedisRepo.DeleteGroup(groupID)
 	return repo.GormRepo.DeleteMemberOfGroup(groupID, info.ReqUserID)
 }
 
@@ -67,13 +78,19 @@ func (repo *Repository) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) e
 //go:generate gotypeconverter -s []*v3.UserGroup -d []*domain.Group -o converter.go .
 
 func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*domain.Group, error) {
+	if g, err := repo.RedisRepo.GetGroup(groupID, info); err == nil {
+		return g, nil
+	}
+
 	var group domain.Group
 	g, err := repo.GormRepo.GetGroup(groupID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// trap
 			if groupID == traPGroupID {
-				return repo.getTraPGroup(info), nil
+				g := repo.getTraPGroup(info)
+				repo.RedisRepo.SetGroup(g, info)
+				return g, nil
 			}
 
 			// traq group
@@ -93,10 +110,15 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 	} else {
 		group = db.ConvGroupTodomainGroup(*g)
 	}
+	repo.RedisRepo.SetGroup(&group, info)
 	return &group, nil
 }
 
 func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, error) {
+	if groups, err := repo.RedisRepo.GetGroups(info); err == nil {
+		return groups, nil
+	}
+
 	groups := make([]*domain.Group, 0)
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
@@ -119,6 +141,7 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 	// add trap
 	groups = append(append(groups, repo.getTraPGroup(info)), dg...)
 
+	repo.RedisRepo.SetGroups(groups, info)
 	return groups, nil
 }
 
