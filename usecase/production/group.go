@@ -20,6 +20,7 @@ func (repo *Repository) CreateGroup(params domain.WriteGroupParams, info *domain
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
+	repo.RedisRepo.DeleteGroups(info)
 	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
 }
@@ -36,6 +37,8 @@ func (repo *Repository) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupP
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
+	// delete cache
+	repo.RedisRepo.DeleteGroup(groupID, info)
 	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
 }
@@ -45,6 +48,8 @@ func (repo *Repository) AddMeToGroup(groupID uuid.UUID, info *domain.ConInfo) er
 	if !repo.IsGroupJoinFreely(groupID) {
 		return domain.ErrForbidden
 	}
+	// delete cache
+	repo.RedisRepo.DeleteGroup(groupID, info)
 	return repo.GormRepo.AddMemberToGroup(groupID, info.ReqUserID)
 }
 
@@ -52,6 +57,10 @@ func (repo *Repository) DeleteGroup(groupID uuid.UUID, info *domain.ConInfo) err
 	if !repo.IsGroupAdmins(groupID, info) {
 		return domain.ErrForbidden
 	}
+	// delete cache
+	repo.RedisRepo.DeleteGroup(groupID, info)
+	repo.RedisRepo.DeleteGroups(info)
+
 	return repo.GormRepo.DeleteGroup(groupID)
 }
 
@@ -60,6 +69,8 @@ func (repo *Repository) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) e
 	if !repo.IsGroupJoinFreely(groupID) {
 		return domain.ErrForbidden
 	}
+	// delete cache
+	repo.RedisRepo.DeleteGroup(groupID, info)
 	return repo.GormRepo.DeleteMemberOfGroup(groupID, info.ReqUserID)
 }
 
