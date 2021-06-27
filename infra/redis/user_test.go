@@ -93,3 +93,52 @@ func TestRedisRepository_GetUsers(t *testing.T) {
 		assert.True(reflect.DeepEqual(users, u))
 	})
 }
+
+func TestRedisRepository_DeleteUser(t *testing.T) {
+	t.Parallel()
+	r, assert, require := setupRepo(t, common)
+
+	user := &domain.User{
+		ID:   mustNewUUIDV4(t),
+		Name: random.AlphaNumeric(10),
+	}
+	i := &domain.ConInfo{
+		ReqUserID: user.ID,
+	}
+	err := r.SetUser(user, i)
+	require.NoError(err)
+
+	t.Run("delete a user", func(t *testing.T) {
+		err := r.DeleteUser(user.ID)
+		require.NoError(err)
+
+		_, err = r.GetUser(mustNewUUIDV4(t), i)
+		assert.ErrorIs(err, cache.ErrCacheMiss)
+	})
+
+	t.Run("delete a random user", func(t *testing.T) {
+		err := r.DeleteUser(mustNewUUIDV4(t))
+		assert.NoError(err)
+	})
+
+	// 1sec test
+	r, assert, require = setupRepo(t, onesec)
+
+	user = &domain.User{
+		ID:   mustNewUUIDV4(t),
+		Name: random.AlphaNumeric(10),
+	}
+	i = &domain.ConInfo{
+		ReqUserID: user.ID,
+	}
+	err = r.SetUser(user, i)
+	require.NoError(err)
+
+	t.Run("wait 2 sec", func(t *testing.T) {
+		t.Parallel()
+
+		time.Sleep(2 * time.Second)
+		err := r.DeleteUser(user.ID)
+		assert.NoError(err)
+	})
+}
