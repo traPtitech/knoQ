@@ -43,7 +43,7 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 		users = append(users, user)
 	}
 
-	repo.RedisRepo.DeleteUsers(info)
+	repo.RedisRepo.DeleteUsers()
 
 	err = repo.GormRepo.SyncUsers(users)
 	return defaultErrorHandling(err)

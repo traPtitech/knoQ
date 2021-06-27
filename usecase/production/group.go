@@ -38,7 +38,7 @@ func (repo *Repository) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupP
 		return nil, defaultErrorHandling(err)
 	}
 	// delete cache
-	repo.RedisRepo.DeleteGroup(groupID, info)
+	repo.RedisRepo.DeleteGroup(groupID)
 	group := db.ConvGroupTodomainGroup(*g)
 	return &group, nil
 }
@@ -49,7 +49,7 @@ func (repo *Repository) AddMeToGroup(groupID uuid.UUID, info *domain.ConInfo) er
 		return domain.ErrForbidden
 	}
 	// delete cache
-	repo.RedisRepo.DeleteGroup(groupID, info)
+	repo.RedisRepo.DeleteGroup(groupID)
 	return repo.GormRepo.AddMemberToGroup(groupID, info.ReqUserID)
 }
 
@@ -58,7 +58,7 @@ func (repo *Repository) DeleteGroup(groupID uuid.UUID, info *domain.ConInfo) err
 		return domain.ErrForbidden
 	}
 	// delete cache
-	repo.RedisRepo.DeleteGroup(groupID, info)
+	repo.RedisRepo.DeleteGroup(groupID)
 	repo.RedisRepo.DeleteGroups(info)
 
 	return repo.GormRepo.DeleteGroup(groupID)
@@ -70,7 +70,7 @@ func (repo *Repository) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) e
 		return domain.ErrForbidden
 	}
 	// delete cache
-	repo.RedisRepo.DeleteGroup(groupID, info)
+	repo.RedisRepo.DeleteGroup(groupID)
 	return repo.GormRepo.DeleteMemberOfGroup(groupID, info.ReqUserID)
 }
 
