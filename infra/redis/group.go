@@ -31,11 +31,10 @@ func (repo *RedisRepository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (
 	return &group, err
 }
 
-func (repo *RedisRepository) DeleteGroup(groupID uuid.UUID, info *domain.ConInfo) (*domain.Group, error) {
+func (repo *RedisRepository) DeleteGroup(groupID uuid.UUID) error {
 	ctx := context.TODO()
-	var group domain.Group
 	err := repo.groupsCache.Delete(ctx, groupID.String())
-	return &group, err
+	return err
 }
 
 func (repo *RedisRepository) SetGroups(groups []*domain.Group, info *domain.ConInfo) error {
@@ -61,9 +60,8 @@ func (repo *RedisRepository) GetGroups(info *domain.ConInfo) ([]*domain.Group, e
 	return groups, err
 }
 
-func (repo *RedisRepository) DeleteGroups(info *domain.ConInfo) (*domain.Group, error) {
+func (repo *RedisRepository) DeleteGroups(info *domain.ConInfo) error {
 	ctx := context.TODO()
-	var group domain.Group
 	err := repo.groupsCache.Delete(ctx, "groups")
-	return &group, err
+	return err
 }

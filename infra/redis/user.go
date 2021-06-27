@@ -31,11 +31,10 @@ func (repo *RedisRepository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*d
 	return &user, err
 }
 
-func (repo *RedisRepository) DeleteUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
+func (repo *RedisRepository) DeleteUser(userID uuid.UUID) error {
 	ctx := context.TODO()
-	var user domain.User
 	err := repo.usersCache.Delete(ctx, userID.String())
-	return &user, err
+	return err
 }
 
 func (repo *RedisRepository) SetUsers(users []*domain.User, info *domain.ConInfo) error {
@@ -61,9 +60,8 @@ func (repo *RedisRepository) GetUsers(info *domain.ConInfo) ([]*domain.User, err
 	return users, err
 }
 
-func (repo *RedisRepository) DeleteUsers(info *domain.ConInfo) ([]*domain.User, error) {
+func (repo *RedisRepository) DeleteUsers() error {
 	ctx := context.TODO()
-	var users []*domain.User
 	err := repo.usersCache.Delete(ctx, "users")
-	return users, err
+	return err
 }
