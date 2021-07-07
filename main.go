@@ -9,7 +9,7 @@ import (
 
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/infra/traq"
-	"github.com/traPtitech/knoQ/usecase/production"
+	"github.com/traPtitech/knoQ/usecase/traP"
 	"github.com/traPtitech/knoQ/utils"
 	"golang.org/x/oauth2"
 
@@ -40,7 +40,7 @@ func main() {
 		},
 		URL: "https://q.trap.jp/api/v3",
 	}
-	repo := &production.Repository{
+	repo := &traP.Repository{
 		GormRepo: gormRepo,
 		TraQRepo: traqRepo,
 	}
