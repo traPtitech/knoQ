@@ -18,7 +18,7 @@ const baseURL = "https://q.trap.jp/api/v3"
 
 // RequestWebhook q.trap/jp にメッセージを送信します。
 func RequestWebhook(message, secret, channelID, webhookID string, embed int) error {
-	u, err := url.Parse(baseURL)
+	u, err := url.Parse(baseURL + "/webhooks")
 	if err != nil {
 		return err
 	}
