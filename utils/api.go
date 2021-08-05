@@ -15,7 +15,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const baseURL = "https://q.trap.jp/api/1.0"
+const baseURL = "https://q.trap.jp/api/v3"
 
 func GetUserMe(token string) ([]byte, error) {
 	return APIGetRequest(token, "/users/me")
@@ -47,7 +47,7 @@ func APIGetRequest(token, endpoint string) ([]byte, error) {
 
 // RequestWebhook q.trap/jp にメッセージを送信します。
 func RequestWebhook(message, secret, channelID, webhookID string, embed int) error {
-	u, err := url.Parse("https://q.trap.jp/api/1.0/webhooks")
+	u, err := url.Parse(baseURL)
 	if err != nil {
 		return err
 	}
