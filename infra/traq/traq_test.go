@@ -43,12 +43,22 @@ func TestMain(m *testing.M) {
 	client := &http.Client{
 		Jar: jar,
 	}
+
+	// traQのサーバーが起動するのを5*3秒間待つ
+	cnt := 0
+WaitServer:
 	res, err := client.Do(req)
 	if err != nil {
 		panic(err)
 	}
 	if res.StatusCode >= 300 {
-		panic("unexpected status code")
+		if cnt > 2 {
+			panic("unexpected status code")
+		}
+		cnt++
+		time.Sleep(5 * time.Second)
+		goto WaitServer
+
 	}
 
 	res, err = client.Get(URL + "/users/me")
