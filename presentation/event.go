@@ -32,6 +32,10 @@ type EventTagReq struct {
 	Name string `json:"name"`
 }
 
+type EventScheduleStatusReq struct {
+	Schedule string `json:"schedule"`
+}
+
 // EventDetailRes is experimental
 //go:generate gotypeconverter -s domain.Event -d EventDetailRes -o converter.go .
 type EventDetailRes struct {

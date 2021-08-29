@@ -9,6 +9,7 @@ import (
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/parsing"
 	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
 
@@ -144,6 +145,30 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 	tagName := c.Param("tagName")
 
 	err = h.Repo.DeleteEventTag(eventID, tagName, getConinfo(c))
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *Handlers) HandleUpsertMeEventSchedule(c echo.Context) error {
+	userID, err := getRequestUserID(c)
+	if err != nil {
+		return notFound(err)
+	}
+	eventID, err := getPathEventID(c)
+	if err != nil {
+		return notFound(err, message(err.Error()))
+	}
+
+	var req presentation.EventScheduleStatusReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(err)
+	}
+	params := utils.ConvSchedule(req)
+
+	err = h.Repo.UpsertEventSchedule(eventID, userID, params)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

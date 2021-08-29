@@ -7,6 +7,14 @@ import (
 	"github.com/traPtitech/knoQ/domain/filter"
 )
 
+type ScheduleStatus int
+
+const (
+	Pending ScheduleStatus = iota + 1
+	Attedance
+	Absent
+)
+
 type Event struct {
 	ID            uuid.UUID
 	Name          string
@@ -19,12 +27,18 @@ type Event struct {
 	Admins        []User
 	Tags          []EventTag
 	AllowTogether bool
+	Attendees     []Attendee
 	Model
 }
 
 type EventTag struct {
 	Tag    Tag
 	Locked bool
+}
+
+type Attendee struct {
+	UserID   uuid.UUID
+	Schedule ScheduleStatus
 }
 
 // for repository
@@ -58,6 +72,8 @@ type EventRepository interface {
 	DeleteEvent(eventID uuid.UUID, info *ConInfo) error
 	// DeleteTagInEvent delete a tag in that Event
 	DeleteEventTag(eventID uuid.UUID, tagName string, info *ConInfo) error
+
+	UpsertEventSchedule(eventID uuid.UUID, userID uuid.UUID, schedule ScheduleStatus) error
 
 	GetEvent(eventID uuid.UUID, info *ConInfo) (*Event, error)
 	GetEvents(expr filter.Expr, info *ConInfo) ([]*Event, error)

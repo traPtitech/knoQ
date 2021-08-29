@@ -107,6 +107,10 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 	return &event, nil
 }
 
+func (repo *Repository) UpsertEventSchedule(eventID uuid.UUID, userID uuid.UUID, schedule domain.ScheduleStatus) error {
+	return nil
+}
+
 func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 

@@ -82,6 +82,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 				apiEvent.GET("", h.HandleGetEvent)
 				apiEvent.PUT("", h.HandleUpdateEvent, h.EventAdminsMiddleware, middleware.BodyDump(h.WebhookEventHandler))
 				apiEvent.DELETE("", h.HandleDeleteEvent, h.EventAdminsMiddleware)
+				apiEvent.PUT("/attendees/me", h.HandleUpsertMeEventSchedule)
 
 				apiEvent.POST("/tags", h.HandleAddEventTag)
 				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)
