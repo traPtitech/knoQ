@@ -99,8 +99,8 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 				apiRoom.GET("", h.HandleGetRoom)
 				apiRoom.DELETE("", h.HandleDeleteRoom)
 
-				apiRooms.POST("/verified", h.HandleVerifyRoom, previlegeMiddle)
-				apiRooms.DELETE("/verified", h.HandleUnVerifyRoom, previlegeMiddle)
+				apiRoom.POST("/verified", h.HandleVerifyRoom, previlegeMiddle)
+				apiRoom.DELETE("/verified", h.HandleUnVerifyRoom, previlegeMiddle)
 			}
 		}
 

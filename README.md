@@ -2,6 +2,10 @@
 
 イベント管理システム
 
+## docs
+
+[wiki](https://github.com/traPtitech/knoQ/wiki)
+
 ## 開発
 
 ### 必要要件
