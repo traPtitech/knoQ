@@ -142,6 +142,7 @@ paths:
                   End time: *csvTime
                   Location:
                     type: string
+            example: "Subject, Start date, End date, Start time, End time, Location\n, 2006-01-02, 2006-01-02, 15:04, 15:04, S516\n"
       responses:
         '201':
           $ref: '#/components/responses/RoomArray'
