@@ -1,8 +1,13 @@
 package router
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 
+	"github.com/gofrs/uuid"
+	"github.com/jszwec/csvutil"
+	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/presentation"
 
 	"github.com/labstack/echo/v4"
@@ -26,7 +31,37 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 
 // HandleCreateVerifedRooms csvを解析し、進捗部屋を作成
 func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
-	return c.NoContent(501)
+	var req []presentation.RoomCSVReq
+	userID, err := getRequestUserID(c)
+	if err != nil {
+		return notFound(err)
+	}
+	buf := new(bytes.Buffer)
+	io.Copy(buf, c.Request().Body)
+	data := buf.Bytes()
+
+	if err := csvutil.Unmarshal(data, &req); err != nil {
+		return badRequest(err)
+	}
+
+	//構造体の変換
+
+	for _, v := range req {
+		var params domain.WriteRoomParams
+
+		params.Place = v.Location
+
+		params.Admins = []uuid.UUID{userID}
+
+		_, err := h.Repo.CreateVerifiedRoom(params, getConinfo(c))
+
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+
+	}
+
+	return c.NoContent(200)
 }
 
 // HandleGetRoom get one room

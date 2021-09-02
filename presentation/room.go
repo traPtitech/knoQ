@@ -14,6 +14,15 @@ type RoomReq struct {
 	Admins    []uuid.UUID `json:"admins"`
 }
 
+type RoomCSVReq struct {
+	Subject   string `csv:"Subject"`
+	StartDate string `csv:"Start date"`
+	EndDate   string `csv:"End date"`
+	StartTime string `csv:"Start time"`
+	EndTime   string `csv:"End time"`
+	Location  string `csv:"Location"`
+}
+
 type StartEndTime struct {
 	TimeStart time.Time `json:"timeStart"`
 	TimeEnd   time.Time `json:"timeEnd"`

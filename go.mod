@@ -11,6 +11,7 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
+	github.com/jszwec/csvutil v1.5.1 // indirect
 	github.com/labstack/echo-contrib v0.8.1-0.20200115200653-2d4a7f3c41d8
 	github.com/labstack/echo/v4 v4.2.0
 	github.com/lestrrat-go/bufferpool v0.0.0-20180220091733-e7784e1b3e37 // indirect
