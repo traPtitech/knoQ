@@ -9,7 +9,6 @@ import (
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/parsing"
 	"github.com/traPtitech/knoQ/presentation"
-	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
 
@@ -162,7 +161,7 @@ func (h *Handlers) HandleUpsertMeEventSchedule(c echo.Context) error {
 	if err := c.Bind(&req); err != nil {
 		return badRequest(err)
 	}
-	params := utils.ConvSchedule(req)
+	params := domain.ScheduleStatus(req.Schedule)
 
 	err = h.Repo.UpsertMeEventSchedule(eventID, params, getConinfo(c))
 	if err != nil {
