@@ -190,6 +190,7 @@ type Event struct {
 	Admins         []EventAdmin
 	AllowTogether  bool
 	Tags           []EventTag
+	Open           bool
 	Attendees      []EventAttendee
 	Model          `cvt:"->"`
 }

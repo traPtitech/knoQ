@@ -63,11 +63,11 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 	for i := range src.Attendees {
 		dst.Attendees[i] = ConvEventAttendeeTodomainAttendee(src.Attendees[i])
 	}
+	dst.Open = src.Open
 	dst.Model.CreatedAt = src.Model.CreatedAt
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
 	dst.Model.DeletedAt = new(time.Time)
 	(*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
-	dst.Open = src.Model.DeletedAt.Valid
 	return
 }
 
@@ -237,6 +237,7 @@ func ConvWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	for i := range src.WriteEventParams.Tags {
 		dst.Tags[i] = ConvdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
 	}
+	dst.Open = src.WriteEventParams.Open
 	return
 }
 func ConvWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
