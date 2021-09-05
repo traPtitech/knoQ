@@ -9,6 +9,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func eventFullPreload(tx *gorm.DB) *gorm.DB {
@@ -46,6 +47,11 @@ func (repo *GormRepository) DeleteEvent(eventID uuid.UUID) error {
 
 func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
 	err := deleteEventTag(repo.db, eventID, tagName, deleteLocked)
+	return defaultErrorHandling(err)
+}
+
+func (repo *GormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
+	err := upsertEventSchedule(repo.db, eventID, userID, scheduleStatus)
 	return defaultErrorHandling(err)
 }
 
@@ -113,6 +119,22 @@ func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string, deleteLocked
 	}
 
 	return db.Delete(&eventTag).Error
+}
+
+func upsertEventSchedule(tx *gorm.DB, eventID, userID uuid.UUID, schedule domain.ScheduleStatus) error {
+	if eventID == uuid.Nil {
+		return NewValueError(gorm.ErrRecordNotFound, "eventID")
+	}
+	eventAttendee := EventAttendee{
+		UserID:   userID,
+		EventID:  eventID,
+		Schedule: int(schedule),
+	}
+
+	return tx.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "user_id"}, {Name: "event_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"schedule"}),
+	}).Create(&eventAttendee).Error
 }
 
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {

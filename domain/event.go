@@ -28,6 +28,7 @@ type Event struct {
 	Tags          []EventTag
 	AllowTogether bool
 	Attendees     []Attendee
+	Open          bool
 	Model
 }
 
@@ -73,7 +74,7 @@ type EventRepository interface {
 	// DeleteTagInEvent delete a tag in that Event
 	DeleteEventTag(eventID uuid.UUID, tagName string, info *ConInfo) error
 
-	UpsertEventSchedule(eventID uuid.UUID, userID uuid.UUID, schedule ScheduleStatus) error
+	UpsertMeEventSchedule(eventID uuid.UUID, schedule ScheduleStatus, info *ConInfo) error
 
 	GetEvent(eventID uuid.UUID, info *ConInfo) (*Event, error)
 	GetEvents(expr filter.Expr, info *ConInfo) ([]*Event, error)

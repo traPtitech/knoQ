@@ -153,10 +153,6 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 }
 
 func (h *Handlers) HandleUpsertMeEventSchedule(c echo.Context) error {
-	userID, err := getRequestUserID(c)
-	if err != nil {
-		return notFound(err)
-	}
 	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err, message(err.Error()))
@@ -168,7 +164,7 @@ func (h *Handlers) HandleUpsertMeEventSchedule(c echo.Context) error {
 	}
 	params := utils.ConvSchedule(req)
 
-	err = h.Repo.UpsertEventSchedule(eventID, userID, params)
+	err = h.Repo.UpsertMeEventSchedule(eventID, params, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

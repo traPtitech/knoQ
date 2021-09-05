@@ -107,8 +107,17 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 	return &event, nil
 }
 
-func (repo *Repository) UpsertEventSchedule(eventID uuid.UUID, userID uuid.UUID, schedule domain.ScheduleStatus) error {
-	return nil
+func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain.ScheduleStatus, info *domain.ConInfo) error {
+	event, err := repo.GetEvent(eventID, info)
+	if err != nil {
+		return err
+	}
+	if !repo.IsGroupMember(info.ReqUserID, event.Group.ID, info) && !event.Open {
+		return domain.ErrForbidden
+	}
+
+	err = repo.GormRepo.UpsertEventSchedule(eventID, info.ReqUserID, schedule)
+	return defaultErrorHandling(err)
 }
 
 func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
