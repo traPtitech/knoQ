@@ -54,8 +54,9 @@ type WriteEventParams struct {
 	TimeStart     time.Time
 	TimeEnd       time.Time
 	Admins        []uuid.UUID
-	AllowTogether bool
 	Tags          []EventTagParams
+	AllowTogether bool
+	Open          bool
 }
 
 type EventTagParams struct {
