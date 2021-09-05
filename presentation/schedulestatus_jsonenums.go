@@ -9,15 +9,15 @@ import (
 
 var (
 	_ScheduleStatusNameToValue = map[string]ScheduleStatus{
-		"Pending":   Pending,
-		"Attedance": Attedance,
-		"Absent":    Absent,
+		"pending":   Pending,
+		"attedance": Attedance,
+		"absent":    Absent,
 	}
 
 	_ScheduleStatusValueToName = map[ScheduleStatus]string{
-		Pending:   "Pending",
-		Attedance: "Attedance",
-		Absent:    "Absent",
+		Pending:   "pending",
+		Attedance: "attedance",
+		Absent:    "absent",
 	}
 )
 
