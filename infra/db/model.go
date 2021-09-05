@@ -167,6 +167,7 @@ type EventAdmin struct {
 type EventAttendee struct {
 	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
 	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	User     User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 	Schedule int
 }
 
@@ -189,6 +190,6 @@ type Event struct {
 	Admins         []EventAdmin
 	AllowTogether  bool
 	Tags           []EventTag
-	Attendee       []EventAttendee
+	Attendees      []EventAttendee
 	Model          `cvt:"->"`
 }

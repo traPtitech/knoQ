@@ -17,6 +17,7 @@ func eventFullPreload(tx *gorm.DB) *gorm.DB {
 		Preload("Room").Preload("Room.Events").Preload("Room.Admins").Preload("Room.CreatedBy").
 		Preload("Admins").Preload("Admins.User").
 		Preload("Tags").Preload("Tags.Tag").
+		Preload("Attendees").Preload("Attendees.User").
 		Preload("CreatedBy")
 }
 
