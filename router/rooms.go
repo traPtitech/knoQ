@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/jszwec/csvutil"
@@ -36,6 +37,9 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
+
+	layout := "2006/01/02 15:04"
+
 	buf := new(bytes.Buffer)
 	io.Copy(buf, c.Request().Body)
 	data := buf.Bytes()
@@ -49,8 +53,10 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 	for _, v := range req {
 		var params domain.WriteRoomParams
 
+		jst, _ := time.LoadLocation("Asia/Tokyo")
 		params.Place = v.Location
-
+		params.TimeStart, _ = time.ParseInLocation(layout, v.StartDate+""+v.StartTime, jst)
+		params.TimeEnd, _ = time.ParseInLocation(layout, v.EndDate+""+v.EndTime, jst)
 		params.Admins = []uuid.UUID{userID}
 
 		_, err := h.Repo.CreateVerifiedRoom(params, getConinfo(c))
