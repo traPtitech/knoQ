@@ -34,7 +34,7 @@ services:
       - ../presentation:/srv/knoq/presentation
       - ../usecase:/srv/knoq/usecase
       - ../parsing:/srv/knoq/parsing
-      - ./dist:/srv/knoq/web/dist/:ro
+      - ./dist:/srv/knoq/web/dist
       - ./service.json:/srv/knoq/service.json
     ports:
       - "6006:3000"
@@ -77,7 +77,7 @@ services:
       - PMA_HOST=mysql
       - PMA_USER=root
       - PMA_PASSWORD=password
-    depends_on: 
+    depends_on:
       - mysql
     networks:
       - default
