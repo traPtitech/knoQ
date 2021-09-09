@@ -48,6 +48,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 	}
 
 	//構造体の変換
+	var RoomsRes []presentation.RoomRes
 
 	for _, v := range req {
 		var params domain.WriteRoomParams
@@ -65,15 +66,16 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 			return badRequest(err)
 		}
 		params.Admins = []uuid.UUID{userID}
-		_, err := h.Repo.CreateVerifiedRoom(params, getConinfo(c))
+		room, err := h.Repo.CreateVerifiedRoom(params, getConinfo(c))
 
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
 
-	}
+		RoomsRes = append(RoomsRes, presentation.ConvdomainRoomToRoomRes(*room))
 
-	return c.NoContent(200)
+	}
+	return c.JSON(http.StatusCreated, RoomsRes)
 }
 
 // HandleGetRoom get one room
