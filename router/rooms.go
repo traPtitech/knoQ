@@ -43,7 +43,6 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 	buf := new(bytes.Buffer)
 	io.Copy(buf, c.Request().Body)
 	data := buf.Bytes()
-
 	if err := csvutil.Unmarshal(data, &req); err != nil {
 		return badRequest(err)
 	}
@@ -55,10 +54,17 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 
 		jst, _ := time.LoadLocation("Asia/Tokyo")
 		params.Place = v.Location
-		params.TimeStart, _ = time.ParseInLocation(layout, v.StartDate+""+v.StartTime, jst)
-		params.TimeEnd, _ = time.ParseInLocation(layout, v.EndDate+""+v.EndTime, jst)
-		params.Admins = []uuid.UUID{userID}
 
+		params.TimeStart, err = time.ParseInLocation(layout, v.StartDate+" "+v.StartTime, jst)
+		if err != nil {
+			return badRequest(err)
+		}
+
+		params.TimeEnd, err = time.ParseInLocation(layout, v.EndDate+" "+v.EndTime, jst)
+		if err != nil {
+			return badRequest(err)
+		}
+		params.Admins = []uuid.UUID{userID}
 		_, err := h.Repo.CreateVerifiedRoom(params, getConinfo(c))
 
 		if err != nil {
