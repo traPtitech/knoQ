@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-	"time"
 
-	"github.com/gofrs/uuid"
 	"github.com/jszwec/csvutil"
-	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/presentation"
 
 	"github.com/labstack/echo/v4"
@@ -38,8 +35,6 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 		return notFound(err)
 	}
 
-	layout := "2006/01/02 15:04"
-
 	buf := new(bytes.Buffer)
 	io.Copy(buf, c.Request().Body)
 	data := buf.Bytes()
@@ -51,22 +46,13 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 	var RoomsRes []presentation.RoomRes
 
 	for _, v := range req {
-		var params domain.WriteRoomParams
 
-		jst, _ := time.LoadLocation("Asia/Tokyo")
-		params.Place = v.Location
-
-		params.TimeStart, err = time.ParseInLocation(layout, v.StartDate+" "+v.StartTime, jst)
+		params, err := presentation.ConvRoomCSVReqTodomainWriteRoomParams(v, userID)
 		if err != nil {
 			return badRequest(err)
 		}
 
-		params.TimeEnd, err = time.ParseInLocation(layout, v.EndDate+" "+v.EndTime, jst)
-		if err != nil {
-			return badRequest(err)
-		}
-		params.Admins = []uuid.UUID{userID}
-		room, err := h.Repo.CreateVerifiedRoom(params, getConinfo(c))
+		room, err := h.Repo.CreateVerifiedRoom(*params, getConinfo(c))
 
 		if err != nil {
 			return judgeErrorResponse(err)
