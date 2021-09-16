@@ -4,7 +4,6 @@ package presentation
 import (
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"time"
 )
 
 func ConvEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain.WriteEventParams) {
@@ -32,28 +31,6 @@ func ConvGroupReqTodomainWriteGroupParams(src GroupReq) (dst domain.WriteGroupPa
 func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams) {
 	dst = domain.WriteRoomParams(src)
 	return
-}
-func ConvRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (dst *domain.WriteRoomParams, err error) {
-
-	layout := "2006/01/02 15:04"
-	jst, _ := time.LoadLocation("Asia/Tokyo")
-
-	var params domain.WriteRoomParams
-	params.Place = src.Location
-	params.TimeStart, err = time.ParseInLocation(layout, src.StartDate+" "+src.StartTime, jst)
-	if err != nil {
-		return nil, err
-	}
-
-	params.TimeEnd, err = time.ParseInLocation(layout, src.StartDate+" "+src.StartTime, jst)
-	if err != nil {
-		return nil, err
-	}
-
-	params.Admins = []uuid.UUID{userID}
-
-	return
-
 }
 
 func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {

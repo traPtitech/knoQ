@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/traPtitech/knoQ/domain"
 )
 
 //go:generate gotypeconverter -s RoomReq -d domain.WriteRoomParams -o converter.go .
@@ -40,4 +41,28 @@ type RoomRes struct {
 	SharedTimes []StartEndTime `json:"sharedTimes" cvt:"-"`
 	CreatedBy   uuid.UUID      `json:"createdBy"`
 	Model
+}
+
+func ChangeRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (*domain.WriteRoomParams, error) {
+
+	layout := "2006/01/02 15:04"
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	var params domain.WriteRoomParams
+	var err error = nil
+
+	params.Place = src.Location
+	params.TimeStart, err = time.ParseInLocation(layout, src.StartDate+" "+src.StartTime, jst)
+	if err != nil {
+		return nil, err
+	}
+
+	params.TimeEnd, err = time.ParseInLocation(layout, src.EndDate+" "+src.EndTime, jst)
+	if err != nil {
+		return nil, err
+	}
+
+	params.Admins = []uuid.UUID{userID}
+
+	return &params, err
+
 }

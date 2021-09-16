@@ -2,6 +2,7 @@ package router
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -47,10 +48,12 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 
 	for _, v := range req {
 
-		params, err := presentation.ConvRoomCSVReqTodomainWriteRoomParams(v, userID)
+		params, err := presentation.ChangeRoomCSVReqTodomainWriteRoomParams(v, userID)
 		if err != nil {
 			return badRequest(err)
 		}
+
+		fmt.Println(*params)
 
 		room, err := h.Repo.CreateVerifiedRoom(*params, getConinfo(c))
 
