@@ -2,7 +2,6 @@ package router
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -52,8 +51,6 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 		if err != nil {
 			return badRequest(err)
 		}
-
-		fmt.Println(*params)
 
 		room, err := h.Repo.CreateVerifiedRoom(*params, getConinfo(c))
 
