@@ -70,7 +70,8 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 	es, err := getEvents(cmd.Joins(
 		"LEFT JOIN event_tags ON events.id = event_tags.event_id "+
 			"LEFT JOIN group_members ON events.group_id = group_members.group_id "+
-			"LEFT JOIN event_admins ON events.id = event_admins.event_id "),
+			"LEFT JOIN event_admins ON events.id = event_admins.event_id "+
+			"LEFT JOIN event_attendees ON events.id = event_attendees.event_id"),
 		filterFormat, filterArgs)
 	return es, defaultErrorHandling(err)
 }
@@ -156,9 +157,10 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 	}
 
 	attrMap := map[filter.Attr]string{
-		filter.AttrUser:   "group_members.user_id",
-		filter.AttrBelong: "group_members.user_id",
-		filter.AttrAdmin:  "event_admins.user_id",
+		filter.AttrUser:     "event_attendees.user_id",
+		filter.AttrBelong:   "group_members.user_id",
+		filter.AttrAdmin:    "event_admins.user_id",
+		filter.AttrAttendee: "event_attendees.user_id",
 
 		filter.AttrName:      "events.name",
 		filter.AttrGroup:     "events.group_id",
@@ -205,6 +207,15 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 				}
 				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
 				filterArgs = []interface{}{t}
+			case filter.AttrUser:
+				fallthrough
+			case filter.AttrAttendee:
+				id, ok := e.Value.(uuid.UUID)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				filterFormat = fmt.Sprintf("%v %v ? AND event_attendees.schedule != %v", attrMap[e.Attr], defaultRelationMap[e.Relation], domain.Absent)
+				filterArgs = []interface{}{id}
 			default:
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {

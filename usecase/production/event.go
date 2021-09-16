@@ -216,7 +216,7 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filte
 	fixExpr = func(expr filter.Expr) filter.Expr {
 		switch e := expr.(type) {
 		case *filter.CmpExpr:
-			if e.Attr == filter.AttrUser {
+			if e.Attr == filter.AttrBelong {
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {
 					return e
