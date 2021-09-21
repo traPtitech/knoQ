@@ -2,10 +2,13 @@
 package router
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"strings"
 
 	"github.com/gofrs/uuid"
+	"github.com/jszwec/csvutil"
 	"github.com/traPtitech/knoQ/domain"
 
 	"github.com/gorilla/securecookie"
@@ -32,6 +35,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	echo.NotFoundHandler = NotFoundHandler
 	// echo初期化
 	e := echo.New()
+	e.Binder = &CustomBinder{}
 	e.HTTPErrorHandler = HTTPErrorHandler
 	e.Use(middleware.Recover())
 	e.Use(middleware.Secure())
@@ -155,4 +159,31 @@ func getConinfo(c echo.Context) *domain.ConInfo {
 	str := sess.Values["userID"].(string)
 	info.ReqUserID = uuid.FromStringOrNil(str)
 	return info
+}
+
+type CustomBinder struct{}
+
+func (cb *CustomBinder) Bind(i interface{}, c echo.Context) error {
+	// You may use default binder
+	db := new(echo.DefaultBinder)
+	if err := db.Bind(i, c); err != echo.ErrUnsupportedMediaType {
+		return err
+	}
+
+	// Define your custom implementation here
+	rq := c.Request()
+	ctype := rq.Header.Get(echo.HeaderContentType)
+
+	if strings.HasPrefix(ctype, "text/csv") {
+
+		buf := new(bytes.Buffer)
+		io.Copy(buf, c.Request().Body)
+		data := buf.Bytes()
+		if err := csvutil.Unmarshal(data, i); err != nil {
+			return badRequest(err)
+		}
+		return nil
+	}
+
+	return badRequest(nil)
 }

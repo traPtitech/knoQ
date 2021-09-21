@@ -1,11 +1,8 @@
 package router
 
 import (
-	"bytes"
-	"io"
 	"net/http"
 
-	"github.com/jszwec/csvutil"
 	"github.com/traPtitech/knoQ/presentation"
 
 	"github.com/labstack/echo/v4"
@@ -29,16 +26,14 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 
 // HandleCreateVerifedRooms csvを解析し、進捗部屋を作成
 func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
-	var req []presentation.RoomCSVReq
+
 	userID, err := getRequestUserID(c)
 	if err != nil {
 		return notFound(err)
 	}
 
-	buf := new(bytes.Buffer)
-	io.Copy(buf, c.Request().Body)
-	data := buf.Bytes()
-	if err := csvutil.Unmarshal(data, &req); err != nil {
+	var req []presentation.RoomCSVReq
+	if err := c.Bind(&req); err != nil {
 		return badRequest(err)
 	}
 
