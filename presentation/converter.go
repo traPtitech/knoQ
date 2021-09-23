@@ -32,6 +32,7 @@ func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams
 	dst = domain.WriteRoomParams(src)
 	return
 }
+
 func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 	dst = make([]EventRes, len(src))
 	for i := range src {
