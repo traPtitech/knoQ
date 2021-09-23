@@ -180,10 +180,10 @@ func (cb *CustomBinder) Bind(i interface{}, c echo.Context) error {
 		io.Copy(buf, c.Request().Body)
 		data := buf.Bytes()
 		if err := csvutil.Unmarshal(data, i); err != nil {
-			return badRequest(err)
+			return err
 		}
 		return nil
 	}
 
-	return badRequest(nil)
+	return echo.ErrUnsupportedMediaType
 }
