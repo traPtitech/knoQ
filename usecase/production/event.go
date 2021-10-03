@@ -24,8 +24,8 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	for _, groupMember := range event.Group.Members {
-		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.UserID, domain.Pending)
+	for _, groupMember := range group.Members {
+		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
 
 	}
 	e := db.ConvEventTodomainEvent(*event)
@@ -51,8 +51,8 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	for _, groupMember := range event.Group.Members {
-		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.UserID, domain.Pending)
+	for _, groupMember := range group.Members {
+		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
 
 	}
 	e := db.ConvEventTodomainEvent(*event)
