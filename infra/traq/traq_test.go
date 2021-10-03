@@ -33,6 +33,10 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
+
+	// traQのサーバーが起動するのを5*3秒間待つ
+	cnt := 0
+WaitServer:
 	req, err := http.NewRequest(http.MethodPost, URL+"/login", bytes.NewBuffer(body))
 	if err != nil {
 		panic(err)
@@ -43,15 +47,8 @@ func TestMain(m *testing.M) {
 	client := &http.Client{
 		Jar: jar,
 	}
-
-	// traQのサーバーが起動するのを5*3秒間待つ
-	cnt := 0
-WaitServer:
 	res, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	if res.StatusCode >= 300 {
+	if err != nil || res.StatusCode >= 300 {
 		if cnt > 2 {
 			panic("unexpected status code")
 		}
