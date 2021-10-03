@@ -9,15 +9,15 @@ import (
 
 var (
 	_ScheduleStatusNameToValue = map[string]ScheduleStatus{
-		"pending":   Pending,
-		"attedance": Attedance,
-		"absent":    Absent,
+		"pending":    Pending,
+		"attendance": Attendance,
+		"absent":     Absent,
 	}
 
 	_ScheduleStatusValueToName = map[ScheduleStatus]string{
-		Pending:   "pending",
-		Attedance: "attedance",
-		Absent:    "absent",
+		Pending:    "pending",
+		Attendance: "attendance",
+		Absent:     "absent",
 	}
 )
 
@@ -25,9 +25,9 @@ func init() {
 	var v ScheduleStatus
 	if _, ok := interface{}(v).(fmt.Stringer); ok {
 		_ScheduleStatusNameToValue = map[string]ScheduleStatus{
-			interface{}(Pending).(fmt.Stringer).String():   Pending,
-			interface{}(Attedance).(fmt.Stringer).String(): Attedance,
-			interface{}(Absent).(fmt.Stringer).String():    Absent,
+			interface{}(Pending).(fmt.Stringer).String():    Pending,
+			interface{}(Attendance).(fmt.Stringer).String(): Attendance,
+			interface{}(Absent).(fmt.Stringer).String():     Absent,
 		}
 	}
 }

@@ -14,7 +14,7 @@ type ScheduleStatus int
 
 const (
 	Pending ScheduleStatus = iota + 1
-	Attedance
+	Attendance
 	Absent
 )
 
