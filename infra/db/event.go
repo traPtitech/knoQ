@@ -80,7 +80,11 @@ func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
 	event := ConvWriteEventParamsToEvent(params)
 
 	err := db.Create(&event).Error
-	return &event, err
+	if err != nil {
+		return nil, err
+	}
+	e, err := getEvent(eventFullPreload(db), event.ID)
+	return e, err
 }
 
 func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Event, error) {
@@ -89,7 +93,11 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Even
 
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
 		Omit("CreatedAt").Save(&event).Error
-	return &event, err
+	if err != nil {
+		return nil, err
+	}
+	e, err := getEvent(eventFullPreload(db), event.ID)
+	return e, err
 }
 
 func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
