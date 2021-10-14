@@ -204,7 +204,6 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 
 	if e.TimeStart.After(time.Now()) {
 		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
-		fmt.Println(e.Attendees)
 		for _, attendee := range e.Attendees {
 			if attendee.Schedule == presentation.Pending {
 				user, ok := usersMap[attendee.ID]
