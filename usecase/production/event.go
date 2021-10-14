@@ -37,6 +37,12 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	if !repo.IsEventAdmins(eventID, info) {
 		return nil, domain.ErrForbidden
 	}
+
+	currentEvent, err := repo.GetEvent(eventID, info)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+
 	// groupの確認
 	group, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
@@ -52,7 +58,15 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 		return nil, defaultErrorHandling(err)
 	}
 	for _, groupMember := range group.Members {
-		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
+		exist := false
+		for _, currentGroupMember := range currentEvent.Group.Members {
+			if currentGroupMember == groupMember {
+				exist = true
+			}
+		}
+		if !exist {
+			_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
+		}
 
 	}
 	e := db.ConvEventTodomainEvent(*event)
