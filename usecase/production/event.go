@@ -126,7 +126,7 @@ func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain
 		return domain.ErrForbidden
 	}
 	now := time.Now()
-	if event.TimeStart.After(now) {
+	if event.TimeStart.Before(now) {
 		return domain.ErrTimeHasPassed
 	}
 
