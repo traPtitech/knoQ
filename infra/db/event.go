@@ -9,6 +9,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func eventFullPreload(tx *gorm.DB) *gorm.DB {
@@ -16,6 +17,7 @@ func eventFullPreload(tx *gorm.DB) *gorm.DB {
 		Preload("Room").Preload("Room.Events").Preload("Room.Admins").Preload("Room.CreatedBy").
 		Preload("Admins").Preload("Admins.User").
 		Preload("Tags").Preload("Tags.Tag").
+		Preload("Attendees").Preload("Attendees.User").
 		Preload("CreatedBy")
 }
 
@@ -49,6 +51,11 @@ func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, de
 	return defaultErrorHandling(err)
 }
 
+func (repo *GormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
+	err := upsertEventSchedule(repo.db, eventID, userID, scheduleStatus)
+	return defaultErrorHandling(err)
+}
+
 func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 	es, err := getEvent(eventFullPreload(repo.db), eventID)
 	return es, defaultErrorHandling(err)
@@ -63,7 +70,8 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 	es, err := getEvents(cmd.Joins(
 		"LEFT JOIN event_tags ON events.id = event_tags.event_id "+
 			"LEFT JOIN group_members ON events.group_id = group_members.group_id "+
-			"LEFT JOIN event_admins ON events.id = event_admins.event_id "),
+			"LEFT JOIN event_admins ON events.id = event_admins.event_id "+
+			"LEFT JOIN event_attendees ON events.id = event_attendees.event_id"),
 		filterFormat, filterArgs)
 	return es, defaultErrorHandling(err)
 }
@@ -115,6 +123,22 @@ func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string, deleteLocked
 	return db.Delete(&eventTag).Error
 }
 
+func upsertEventSchedule(tx *gorm.DB, eventID, userID uuid.UUID, schedule domain.ScheduleStatus) error {
+	if eventID == uuid.Nil {
+		return NewValueError(gorm.ErrRecordNotFound, "eventID")
+	}
+	eventAttendee := EventAttendee{
+		UserID:   userID,
+		EventID:  eventID,
+		Schedule: int(schedule),
+	}
+
+	return tx.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "user_id"}, {Name: "event_id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"schedule"}),
+	}).Create(&eventAttendee).Error
+}
+
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
 	event := Event{}
 	err := db.Take(&event, eventID).Error
@@ -133,9 +157,10 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 	}
 
 	attrMap := map[filter.Attr]string{
-		filter.AttrUser:   "group_members.user_id",
-		filter.AttrBelong: "group_members.user_id",
-		filter.AttrAdmin:  "event_admins.user_id",
+		filter.AttrUser:     "event_attendees.user_id",
+		filter.AttrBelong:   "group_members.user_id",
+		filter.AttrAdmin:    "event_admins.user_id",
+		filter.AttrAttendee: "event_attendees.user_id",
 
 		filter.AttrName:      "events.name",
 		filter.AttrGroup:     "events.group_id",
@@ -182,6 +207,15 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 				}
 				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
 				filterArgs = []interface{}{t}
+			case filter.AttrUser:
+				fallthrough
+			case filter.AttrAttendee:
+				id, ok := e.Value.(uuid.UUID)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				filterFormat = fmt.Sprintf("%v %v ? AND event_attendees.schedule != %v", attrMap[e.Attr], defaultRelationMap[e.Relation], domain.Absent)
+				filterArgs = []interface{}{id}
 			default:
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {

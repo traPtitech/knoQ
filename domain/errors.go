@@ -7,7 +7,8 @@ import (
 
 var (
 	// ErrBadRequest is 400
-	ErrBadRequest = errors.New("bad request")
+	ErrBadRequest    = errors.New("bad request")
+	ErrTimeHasPassed = fmt.Errorf("%w: time has passed", ErrBadRequest)
 
 	// ErrUnAuthorized is 401
 	ErrUnAuthorized = errors.New("unauthroized")

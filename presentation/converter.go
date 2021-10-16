@@ -15,11 +15,12 @@ func ConvEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain.Wr
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.Admins = src.Admins
-	dst.AllowTogether = src.AllowTogether
 	dst.Tags = make([]domain.EventTagParams, len(src.Tags))
 	for i := range src.Tags {
 		dst.Tags[i] = domain.EventTagParams(src.Tags[i])
 	}
+	dst.AllowTogether = src.AllowTogether
+	dst.Open = src.Open
 	return
 }
 
@@ -56,6 +57,11 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 				dst[i].Tags[j] = ConvdomainEventTagToEventTagRes((*src[i]).Tags[j])
 			}
 			dst[i].CreatedBy = ConvdomainUserTouuidUUID((*src[i]).CreatedBy)
+			dst[i].Open = (*src[i]).Open
+			dst[i].Attendees = make([]EventAttendeeRes, len((*src[i]).Attendees))
+			for j := range (*src[i]).Attendees {
+				dst[i].Attendees[j] = ConvdomainAttendeeToEventAttendeeRes((*src[i]).Attendees[j])
+			}
 			dst[i].Model = Model((*src[i]).Model)
 		}
 	}
@@ -122,6 +128,11 @@ func ConvSdomainStartEndTimeToSStartEndTime(src []domain.StartEndTime) (dst []St
 	}
 	return
 }
+func ConvdomainAttendeeToEventAttendeeRes(src domain.Attendee) (dst EventAttendeeRes) {
+	dst.ID = src.UserID
+	dst.Schedule = ConvdomainScheduleStatusToScheduleStatus(src.Schedule)
+	return
+}
 func ConvdomainEventTagToEventTagRes(src domain.EventTag) (dst EventTagRes) {
 	dst.ID = ConvdomainTagTouuidUUID(src.Tag)
 	dst.Name = src.Tag.Name
@@ -148,6 +159,11 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 		dst.Tags[i] = ConvdomainEventTagToEventTagRes(src.Tags[i])
 	}
 	dst.AllowTogether = src.AllowTogether
+	dst.Open = src.Open
+	dst.Attendees = make([]EventAttendeeRes, len(src.Attendees))
+	for i := range src.Attendees {
+		dst.Attendees[i] = ConvdomainAttendeeToEventAttendeeRes(src.Attendees[i])
+	}
 	dst.Model = Model(src.Model)
 	return
 }
@@ -172,6 +188,11 @@ func ConvdomainEventToEventRes(src domain.Event) (dst EventRes) {
 		dst.Tags[i] = ConvdomainEventTagToEventTagRes(src.Tags[i])
 	}
 	dst.CreatedBy = ConvdomainUserTouuidUUID(src.CreatedBy)
+	dst.Open = src.Open
+	dst.Attendees = make([]EventAttendeeRes, len(src.Attendees))
+	for i := range src.Attendees {
+		dst.Attendees[i] = ConvdomainAttendeeToEventAttendeeRes(src.Attendees[i])
+	}
 	dst.Model = Model(src.Model)
 	return
 }
@@ -217,6 +238,11 @@ func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 }
 func ConvdomainRoomTouuidUUID(src domain.Room) (dst uuid.UUID) {
 	dst = src.ID
+	return
+}
+
+func ConvdomainScheduleStatusToScheduleStatus(src domain.ScheduleStatus) (dst ScheduleStatus) {
+	dst = ScheduleStatus(src)
 	return
 }
 

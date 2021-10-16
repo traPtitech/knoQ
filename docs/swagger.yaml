@@ -4,7 +4,7 @@ info:
   title: traP knoQ
   description: |
     This is a sample knoQ server.
-  version: 2.0.0
+  version: 2.1.0
 
 servers:
   - url: http://knoq.trap.jp/api
@@ -218,6 +218,19 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
+  /events/{eventID}/attendees/me:
+    parameters:
+      - $ref: '#/components/parameters/eventID'
+    put:
+      tags:
+        - events
+      operationId: updateSchedule
+      summary: 自分の参加予定を編集
+      requestBody:
+        $ref: '#/components/requestBodies/Schedule'
+      responses:
+        '204':
+          $ref: '#/components/responses/Nocontent'
 
   /events/{eventID}/tags:
     parameters:
@@ -749,6 +762,9 @@ components:
         groupName: *groupName
         roomId: *uuid
         groupId: *uuid
+        open: &eventOpen
+          type: boolean
+          description: グループ外のユーザーが参加予定を出来るか
         admins: *admins
         tags: &eventTags
           type: array
@@ -763,6 +779,20 @@ components:
             required:
               - tagId
               - name
+        attendees: &attendees
+          type: array
+          items:
+            type: object
+            description: ユーザの参加状況
+            properties:
+              userId: *uuid
+              schedule: &schedule
+                type: string
+                enum: [pending, absent, attendance]
+                description: pending or absent or attendance
+            required:
+              - userId
+              - schedule
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
@@ -775,10 +805,12 @@ components:
         - timeEnd
         - place
         - groupName
+        - open
         - roomId
         - groupId
         - admins
         - tags
+        - attendees
         - createdBy
         - createdAt
         - updatedAt
@@ -794,12 +826,14 @@ components:
         timeEnd: *time
         place: *place
         groupName: *groupName
+        open: *eventOpen
         room:
           $ref: '#/components/schemas/ResponseRoom'
         group:
           $ref: '#/components/schemas/ResponseGroup'
         admins: *admins
         tags: *eventTags
+        attendees: *attendees
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
@@ -812,10 +846,12 @@ components:
         - timeEnd
         - place
         - groupName
+        - open
         - room
         - group
         - admins
         - tags
+        - attendees
         - createdBy
         - createdAt
         - updatedAt
@@ -831,6 +867,7 @@ components:
         timeEnd: *time
         place: *place
         groupId: *uuid
+        open: *eventOpen
         admins: *admins
         tags: &reqEventTags
           type: array
@@ -862,6 +899,7 @@ components:
         timeEnd: *time
         roomId: *uuid
         groupId: *uuid
+        open: *eventOpen
         admins: *admins
         tags: *reqEventTags
       required:
@@ -878,6 +916,13 @@ components:
       oneOf:
         - $ref: '#/components/schemas/RequestEventInstant'
         - $ref: '#/components/schemas/RequestEventStock'
+
+    RequestSchedule:
+      type: object
+      properties:
+        schedule: *schedule
+      required:
+        - schedule
 
     duration:
       type: object
@@ -963,6 +1008,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RequestTag'
+
+    Schedule:
+      description: イベントの参加予定を更新
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RequestSchedule'
 
   responses:
     Nocontent:
@@ -1117,12 +1170,14 @@ components:
       required: false
       description: どのような関係性でユーザーと結びつけるか。|
         取り得る値は、admins(ユーザーが管理者), belongs(ユーザーが所属している) |
+        イベントはさらに、attendees(not absent)|
         値がない場合は、belongs として振る舞う
       schema:
         type: string
         enum:
           - admins
           - belongs
+          - attendees
 
     userID:
       name: userID

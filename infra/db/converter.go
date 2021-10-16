@@ -31,6 +31,11 @@ func ConvEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
 	return
 }
 
+func ConvEventAttendeeTodomainAttendee(src EventAttendee) (dst domain.Attendee) {
+	dst.UserID = src.UserID
+	dst.Schedule = domain.ScheduleStatus(src.Schedule)
+	return
+}
 func ConvEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
 	dst.Tag = ConvTagTodomainTag(src.Tag)
 	dst.Locked = src.Locked
@@ -54,6 +59,11 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 		dst.Tags[i] = ConvEventTagTodomainEventTag(src.Tags[i])
 	}
 	dst.AllowTogether = src.AllowTogether
+	dst.Attendees = make([]domain.Attendee, len(src.Attendees))
+	for i := range src.Attendees {
+		dst.Attendees[i] = ConvEventAttendeeTodomainAttendee(src.Attendees[i])
+	}
+	dst.Open = src.Open
 	dst.Model.CreatedAt = src.Model.CreatedAt
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
 	dst.Model.DeletedAt = new(time.Time)
@@ -135,8 +145,8 @@ func ConvSPEventToSPdomainEvent(src []*Event) (dst []*domain.Event) {
 func ConvSPGroupMemberToSuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
 	dst = make([]uuid.UUID, len(src))
 	for i := range src {
-		dst[i] = (*src[i]).GroupID
 		if src[i] != nil {
+			dst[i] = (*src[i]).GroupID
 		}
 	}
 	return
@@ -227,6 +237,7 @@ func ConvWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	for i := range src.WriteEventParams.Tags {
 		dst.Tags[i] = ConvdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
 	}
+	dst.Open = src.WriteEventParams.Open
 	return
 }
 func ConvWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {

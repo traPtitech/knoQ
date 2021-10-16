@@ -164,6 +164,20 @@ func (repo *Repository) IsGroupJoinFreely(groupID uuid.UUID) bool {
 	return group.JoinFreely
 }
 
+func (repo *Repository) IsGroupMember(userID, groupID uuid.UUID, info *domain.ConInfo) bool {
+	group, err := repo.GetGroup(groupID, info)
+	if err != nil {
+		return false
+	}
+	for _, member := range group.Members {
+		if userID == member.ID {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
 	users, err := repo.GetAllUsers(false, info)
 	if err != nil {

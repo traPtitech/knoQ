@@ -21,6 +21,7 @@ var tables = []interface{}{
 	Event{},
 	EventTag{}, // Eventより下にないと、overrideされる
 	EventAdmin{},
+	EventAttendee{},
 }
 
 type Model struct {
@@ -163,6 +164,13 @@ type EventAdmin struct {
 	Model   `cvt:"-"`
 }
 
+type EventAttendee struct {
+	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
+	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	User     User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Schedule int
+}
+
 // Event is event for gorm
 //go:generate gotypeconverter -s WriteEventParams -d Event -o converter.go .
 //go:generate gotypeconverter -s Event -d domain.Event -o converter.go .
@@ -182,5 +190,7 @@ type Event struct {
 	Admins         []EventAdmin
 	AllowTogether  bool
 	Tags           []EventTag
+	Open           bool
+	Attendees      []EventAttendee
 	Model          `cvt:"->"`
 }

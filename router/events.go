@@ -151,6 +151,26 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func (h *Handlers) HandleUpsertMeEventSchedule(c echo.Context) error {
+	eventID, err := getPathEventID(c)
+	if err != nil {
+		return notFound(err, message(err.Error()))
+	}
+
+	var req presentation.EventScheduleStatusReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(err)
+	}
+	params := domain.ScheduleStatus(req.Schedule)
+
+	err = h.Repo.UpsertMeEventSchedule(eventID, params, getConinfo(c))
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 	userID, err := getRequestUserID(c)
 	if err != nil {
