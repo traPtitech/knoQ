@@ -15,8 +15,6 @@ services:
       MARIADB_PASSWORD: password
       MARIADB_HOSTNAME: mysql
       MARIADB_DATABASE: knoQ
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
       ORIGIN: http://localhost:6006
       SESSION_KEY: ${SESSION_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
       TRAQ_CALENDARID: ${TRAQ_CALENDARID}
@@ -49,7 +47,6 @@ services:
     command: fresh -c development/fresh.conf
     depends_on:
       - mysql
-      - redis
     networks:
       - default
 
@@ -80,14 +77,7 @@ services:
       - PMA_HOST=mysql
       - PMA_USER=root
       - PMA_PASSWORD=password
-    depends_on:
+    depends_on: 
       - mysql
-    networks:
-      - default
-
-  redis:
-    image: redis:alpine
-    expose:
-      - "6379"
     networks:
       - default

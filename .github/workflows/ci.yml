@@ -38,7 +38,7 @@ jobs:
       - name: build traQ and DB environment
         run: |
           cd development/test
-          docker-compose up -d traQ-backend traQ-frontend mysql redis
+          docker-compose up -d traQ-backend traQ-frontend mysql
           cd
 
       - uses: actions/setup-go@v1
