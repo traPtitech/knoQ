@@ -1,6 +1,8 @@
 package production
 
 import (
+	"time"
+
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
@@ -22,15 +24,23 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	e := db.ConvEventTodomainEvent(*event)
-	e.Group = *group
-	return &e, nil
+	for _, groupMember := range group.Members {
+		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
+
+	}
+	return repo.GetEvent(event.ID, info)
 }
 
 func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
 	if !repo.IsEventAdmins(eventID, info) {
 		return nil, domain.ErrForbidden
 	}
+
+	currentEvent, err := repo.GetEvent(eventID, info)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+
 	// groupの確認
 	group, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
@@ -45,9 +55,19 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	e := db.ConvEventTodomainEvent(*event)
-	e.Group = *group
-	return &e, nil
+	for _, groupMember := range group.Members {
+		exist := false
+		for _, currentGroupMember := range currentEvent.Group.Members {
+			if currentGroupMember == groupMember {
+				exist = true
+			}
+		}
+		if !exist {
+			_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
+		}
+
+	}
+	return repo.GetEvent(event.ID, info)
 }
 
 func (repo *Repository) AddEventTag(eventID uuid.UUID, tagName string, locked bool, info *domain.ConInfo) error {
@@ -105,6 +125,23 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 	}
 
 	return &event, nil
+}
+
+func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain.ScheduleStatus, info *domain.ConInfo) error {
+	event, err := repo.GetEvent(eventID, info)
+	if err != nil {
+		return err
+	}
+	if !repo.IsGroupMember(info.ReqUserID, event.Group.ID, info) && !event.Open {
+		return domain.ErrForbidden
+	}
+	now := time.Now()
+	if event.TimeStart.Before(now) {
+		return domain.ErrTimeHasPassed
+	}
+
+	err = repo.GormRepo.UpsertEventSchedule(eventID, info.ReqUserID, schedule)
+	return defaultErrorHandling(err)
 }
 
 func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
@@ -189,7 +226,7 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filte
 	fixExpr = func(expr filter.Expr) filter.Expr {
 		switch e := expr.(type) {
 		case *filter.CmpExpr:
-			if e.Attr == filter.AttrUser {
+			if e.Attr == filter.AttrBelong {
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {
 					return e

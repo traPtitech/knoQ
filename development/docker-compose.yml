@@ -54,7 +54,7 @@ services:
       - default
 
   mysql:
-    image: mariadb:10.3.9
+    image: mariadb:10.6.4
     container_name: knoq_development_mysql
     environment:
       MYSQL_ROOT_PASSWORD: password

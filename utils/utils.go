@@ -1,6 +1,8 @@
 package utils
 
-import "github.com/cheekybits/genny/generic"
+import (
+	"github.com/cheekybits/genny/generic"
+)
 
 //go:generate genny -in=$GOFILE -out=gen-$GOFILE gen "Type=uuid.UUID"
 

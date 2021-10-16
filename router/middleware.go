@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	log "github.com/traPtitech/knoQ/logging"
@@ -181,6 +182,12 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 
+	users, err := h.Repo.GetAllUsers(false, getConinfo(c))
+	if err != nil {
+		return
+	}
+	usersMap := createUserMap(users)
+
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	timeFormat := "01/02(Mon) 15:04"
 	var content string
@@ -194,7 +201,21 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
 	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
 	content += "\n"
-	content += e.Description
+
+	if e.TimeStart.After(time.Now()) {
+		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
+		for _, attendee := range e.Attendees {
+			if attendee.Schedule == presentation.Pending {
+				user, ok := usersMap[attendee.ID]
+				if ok {
+					content += "@" + user.Name + " "
+				}
+			}
+		}
+		content += "\n\n\n"
+	}
+
+	content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
 
 	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }

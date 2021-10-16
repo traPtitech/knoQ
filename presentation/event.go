@@ -10,6 +10,14 @@ import (
 	"github.com/lestrrat-go/ical"
 )
 
+type ScheduleStatus int
+
+const (
+	Pending ScheduleStatus = iota + 1
+	Attendance
+	Absent
+)
+
 // EventReqWrite is
 //go:generate gotypeconverter -s EventReqWrite -d domain.WriteEventParams -o converter.go .
 type EventReqWrite struct {
@@ -26,28 +34,35 @@ type EventReqWrite struct {
 		Name   string `json:"name"`
 		Locked bool   `json:"locked"`
 	} `json:"tags"`
+	Open bool `json:"open"`
 }
 
 type EventTagReq struct {
 	Name string `json:"name"`
 }
 
+type EventScheduleStatusReq struct {
+	Schedule ScheduleStatus `json:"schedule"`
+}
+
 // EventDetailRes is experimental
 //go:generate gotypeconverter -s domain.Event -d EventDetailRes -o converter.go .
 type EventDetailRes struct {
-	ID            uuid.UUID     `json:"eventId"`
-	Name          string        `json:"name"`
-	Description   string        `json:"description"`
-	Room          RoomRes       `json:"room"`
-	Group         GroupRes      `json:"group"`
-	Place         string        `json:"place" cvt:"Room"`
-	GroupName     string        `json:"groupName" cvt:"Group"`
-	TimeStart     time.Time     `json:"timeStart"`
-	TimeEnd       time.Time     `json:"timeEnd"`
-	CreatedBy     uuid.UUID     `json:"createdBy"`
-	Admins        []uuid.UUID   `json:"admins"`
-	Tags          []EventTagRes `json:"tags"`
-	AllowTogether bool          `json:"sharedRoom"`
+	ID            uuid.UUID          `json:"eventId"`
+	Name          string             `json:"name"`
+	Description   string             `json:"description"`
+	Room          RoomRes            `json:"room"`
+	Group         GroupRes           `json:"group"`
+	Place         string             `json:"place" cvt:"Room"`
+	GroupName     string             `json:"groupName" cvt:"Group"`
+	TimeStart     time.Time          `json:"timeStart"`
+	TimeEnd       time.Time          `json:"timeEnd"`
+	CreatedBy     uuid.UUID          `json:"createdBy"`
+	Admins        []uuid.UUID        `json:"admins"`
+	Tags          []EventTagRes      `json:"tags"`
+	AllowTogether bool               `json:"sharedRoom"`
+	Open          bool               `json:"open"`
+	Attendees     []EventAttendeeRes `json:"attendees"`
 	Model
 }
 
@@ -57,23 +72,30 @@ type EventTagRes struct {
 	Locked bool      `json:"locked"`
 }
 
+type EventAttendeeRes struct {
+	ID       uuid.UUID      `json:"userId" cvt:"UserID"`
+	Schedule ScheduleStatus `json:"schedule"`
+}
+
 // EventRes is for multiple response
 //go:generate gotypeconverter -s domain.Event -d EventRes -o converter.go .
 //go:generate gotypeconverter -s []*domain.Event -d []EventRes -o converter.go .
 type EventRes struct {
-	ID            uuid.UUID     `json:"eventId"`
-	Name          string        `json:"name"`
-	Description   string        `json:"description"`
-	AllowTogether bool          `json:"sharedRoom"`
-	TimeStart     time.Time     `json:"timeStart"`
-	TimeEnd       time.Time     `json:"timeEnd"`
-	RoomID        uuid.UUID     `json:"roomId" cvt:"Room"`
-	GroupID       uuid.UUID     `json:"groupId" cvt:"Group"`
-	Place         string        `json:"place" cvt:"Room"`
-	GroupName     string        `json:"groupName" cvt:"Group"`
-	Admins        []uuid.UUID   `json:"admins"`
-	Tags          []EventTagRes `json:"tags"`
-	CreatedBy     uuid.UUID     `json:"createdBy"`
+	ID            uuid.UUID          `json:"eventId"`
+	Name          string             `json:"name"`
+	Description   string             `json:"description"`
+	AllowTogether bool               `json:"sharedRoom"`
+	TimeStart     time.Time          `json:"timeStart"`
+	TimeEnd       time.Time          `json:"timeEnd"`
+	RoomID        uuid.UUID          `json:"roomId" cvt:"Room"`
+	GroupID       uuid.UUID          `json:"groupId" cvt:"Group"`
+	Place         string             `json:"place" cvt:"Room"`
+	GroupName     string             `json:"groupName" cvt:"Group"`
+	Admins        []uuid.UUID        `json:"admins"`
+	Tags          []EventTagRes      `json:"tags"`
+	CreatedBy     uuid.UUID          `json:"createdBy"`
+	Open          bool               `json:"open"`
+	Attendees     []EventAttendeeRes `json:"attendees"`
 	Model
 }
 
