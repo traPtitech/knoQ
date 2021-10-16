@@ -26,7 +26,37 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 
 // HandleCreateVerifedRooms csvを解析し、進捗部屋を作成
 func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
-	return c.NoContent(501)
+
+	userID, err := getRequestUserID(c)
+	if err != nil {
+		return notFound(err)
+	}
+
+	var req []presentation.RoomCSVReq
+	if err := c.Bind(&req); err != nil {
+		return badRequest(err)
+	}
+
+	//構造体の変換
+	var RoomsRes []presentation.RoomRes
+
+	for _, v := range req {
+
+		params, err := presentation.ChangeRoomCSVReqTodomainWriteRoomParams(v, userID)
+		if err != nil {
+			return badRequest(err)
+		}
+
+		room, err := h.Repo.CreateVerifiedRoom(*params, getConinfo(c))
+
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+
+		RoomsRes = append(RoomsRes, presentation.ConvdomainRoomToRoomRes(*room))
+
+	}
+	return c.JSON(http.StatusCreated, RoomsRes)
 }
 
 // HandleGetRoom get one room
