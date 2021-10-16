@@ -57,8 +57,8 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	}
 	for _, groupMember := range group.Members {
 		exist := false
-		for _, currentGroupMember := range currentEvent.Group.Members {
-			if currentGroupMember == groupMember {
+		for _, currentAttendee := range currentEvent.Attendees {
+			if currentAttendee.UserID == groupMember.ID {
 				exist = true
 			}
 		}
