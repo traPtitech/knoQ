@@ -7,13 +7,15 @@ import (
 )
 
 type v12Event struct {
-	Open bool `gorm:"default:false"`
+	ID   uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Open bool      `gorm:"default:false"`
 }
 
 type v12EventAttendee struct {
 	UserID   uuid.UUID `gorm:"type:char(36); primaryKey"`
 	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	User     v12User   `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Event    v12Event  `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
 	Schedule int
 }
 
