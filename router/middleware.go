@@ -215,7 +215,11 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		content += "\n\n\n"
 	}
 
-	content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
+	if strings.TrimSpace(e.Description) != "" {
+		content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
+	} else {
+		content = strings.TrimRight(content, "\n")
+	}
 
 	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }
