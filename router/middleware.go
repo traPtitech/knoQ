@@ -209,9 +209,19 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
 		prefix := "@"
 		if e.Group.ID == traPGroupID {
-			gradeGroups := []string{"21B", "20B", "19B", "18B", "17B", "16B", "21M", "20M"}
-			for _, gg := range gradeGroups {
-				content += prefix + gg + " "
+			repo, ok := h.Repo.(*production.Repository)
+			if !ok {
+				return
+			}
+			t, err := repo.GormRepo.GetToken(getConinfo(c).ReqUserID)
+			if err != nil {
+				return
+			}
+			groups, _ := repo.TraQRepo.GetAllGroups(t)
+			for _, g := range groups {
+				if g.Type == "grade" {
+					content += prefix + g.Name + " "
+				}
 			}
 		} else {
 			for _, attendee := range e.Attendees {
