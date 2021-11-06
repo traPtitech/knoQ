@@ -182,7 +182,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 
-	users, err := h.Repo.GetAllUsers(false, getConinfo(c))
+	users, err := h.Repo.GetAllUsers(false, true, getConinfo(c))
 	if err != nil {
 		return
 	}
