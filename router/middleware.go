@@ -202,15 +202,27 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
 	content += "\n"
 
+	// TODO fix: IDを環境変数などで定義すべき
+	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
+
 	if e.TimeStart.After(time.Now()) {
 		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
-		for _, attendee := range e.Attendees {
-			if attendee.Schedule == presentation.Pending {
-				user, ok := usersMap[attendee.ID]
-				if ok {
-					content += "@" + user.Name + " "
+		prefix := "@"
+		if e.Group.ID == traPGroupID {
+			gradeGroups := []string{"21B", "20B", "19B", "18B", "17B", "16B", "21M", "20M"}
+			for _, gg := range gradeGroups {
+				content += prefix + gg + " "
+			}
+		} else {
+			for _, attendee := range e.Attendees {
+				if attendee.Schedule == presentation.Pending {
+					user, ok := usersMap[attendee.ID]
+					if ok {
+						content += prefix + user.Name + " "
+					}
 				}
 			}
+
 		}
 		content += "\n\n\n"
 	}
