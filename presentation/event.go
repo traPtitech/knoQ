@@ -139,3 +139,7 @@ func ICalFormat(events []*domain.Event, host string) *ical.Calendar {
 	}
 	return c
 }
+
+func GenerateEventWebhookContent(isMention bool) {
+
+}
