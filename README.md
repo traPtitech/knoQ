@@ -41,6 +41,7 @@ knoQ の全ての機能を動作させるためには、追加の情報が必要
 | WEBHOOK_SECRET  | 環境変数 |                                        | Bot 情報                                                                   |
 | CHANNEL_ID      | 環境変数 |                                        | Bot の送信先チャンネル                                                     |
 | TOKEN_KEY       | 環境変数 | `random32wordsXXXXXXXXXXXXXXXXXXX`     | Token を暗号化する。長さ 32 文字のランダム文字列。存在しない場合はエラー。 |
+| DEVELOPMENT     | 環境変数 |                                        | 開発時かどうか                                                             |
 | service.json    | ファイル | 空のファイル                           | google calendar api に必要（権限は必要なし）                               |
 
 ### テスト
