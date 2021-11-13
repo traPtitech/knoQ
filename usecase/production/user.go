@@ -116,7 +116,7 @@ func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 	return repo.GetUser(info.ReqUserID, info)
 }
 
-func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) ([]*domain.User, error) {
+func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, info *domain.ConInfo) ([]*domain.User, error) {
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -136,6 +136,9 @@ func (repo *Repository) GetAllUsers(includeSuspend bool, info *domain.ConInfo) (
 	for _, userMeta := range userMetas {
 		userBody, ok := traQUserBodsMap[userMeta.ID]
 		if !ok {
+			continue
+		}
+		if !includeBot && userBody.Bot {
 			continue
 		}
 		user, err := repo.mergeUser(userMeta, userBody)
