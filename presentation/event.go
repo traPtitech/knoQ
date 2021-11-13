@@ -175,5 +175,5 @@ func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationT
 
 	content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
 
-	return ""
+	return content
 }
