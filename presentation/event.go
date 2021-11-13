@@ -173,7 +173,12 @@ func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationT
 		content += "\n\n\n"
 	}
 
-	content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
+	// delete ">" if no description
+	if strings.TrimSpace(e.Description) != "" {
+		content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
+	} else {
+		content = strings.TrimRight(content, "\n")
+	}
 
 	return content
 }
