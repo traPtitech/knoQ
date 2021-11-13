@@ -179,7 +179,7 @@ func (repo *Repository) IsGroupMember(userID, groupID uuid.UUID, info *domain.Co
 }
 
 func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
-	users, err := repo.GetAllUsers(false, info)
+	members, err := repo.GetAllUsers(false, false, info)
 	if err != nil {
 		return nil
 	}
@@ -189,7 +189,7 @@ func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
 		Name:        "traP",
 		Description: "traP全体グループ",
 		JoinFreely:  false,
-		Members:     convSPdomainUserToSdomainUser(users),
+		Members:     convSPdomainUserToSdomainUser(members),
 		Admins:      []domain.User{},
 		IsTraQGroup: true,
 		CreatedBy:   domain.User{},

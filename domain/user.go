@@ -18,7 +18,7 @@ type UserRepository interface {
 
 	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)
 	GetUserMe(info *ConInfo) (*User, error)
-	GetAllUsers(includeSuspend bool, info *ConInfo) ([]*User, error)
+	GetAllUsers(includeSuspend, includeBot bool, info *ConInfo) ([]*User, error)
 	//ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error
 	//GetToken(info *ConInfo) (string, error)
 	ReNewMyiCalSecret(info *ConInfo) (string, error)

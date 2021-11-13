@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	log "github.com/traPtitech/knoQ/logging"
 	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/usecase/production"
 	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
@@ -182,7 +184,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 
-	users, err := h.Repo.GetAllUsers(false, getConinfo(c))
+	users, err := h.Repo.GetAllUsers(false, true, getConinfo(c))
 	if err != nil {
 		return
 	}
@@ -202,15 +204,42 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
 	content += "\n"
 
+	// TODO fix: IDを環境変数などで定義すべき
+	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
+
 	if e.TimeStart.After(time.Now()) {
 		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
-		for _, attendee := range e.Attendees {
-			if attendee.Schedule == presentation.Pending {
-				user, ok := usersMap[attendee.ID]
-				if ok {
-					content += "@" + user.Name + " "
+		prefix := "@"
+
+		nofiticationTargets := make([]string, 0)
+		if e.Group.ID == traPGroupID {
+			repo, ok := h.Repo.(*production.Repository)
+			if !ok {
+				return
+			}
+			t, err := repo.GormRepo.GetToken(getConinfo(c).ReqUserID)
+			if err != nil {
+				return
+			}
+			groups, _ := repo.TraQRepo.GetAllGroups(t)
+			for _, g := range groups {
+				if g.Type == "grade" {
+					nofiticationTargets = append(nofiticationTargets, g.Name)
 				}
 			}
+		} else {
+			for _, attendee := range e.Attendees {
+				if attendee.Schedule == presentation.Pending {
+					user, ok := usersMap[attendee.ID]
+					if ok {
+						nofiticationTargets = append(nofiticationTargets, user.Name)
+					}
+				}
+			}
+		}
+		sort.Strings(nofiticationTargets)
+		for _, nt := range nofiticationTargets {
+			content += prefix + nt + " "
 		}
 		content += "\n\n\n"
 	}

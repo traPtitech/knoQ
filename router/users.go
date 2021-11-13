@@ -29,7 +29,7 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 func (h *Handlers) HandleGetUsers(c echo.Context) error {
 	includeSuspend, _ := strconv.ParseBool(c.QueryParam("include-suspended"))
 
-	users, err := h.Repo.GetAllUsers(includeSuspend, getConinfo(c))
+	users, err := h.Repo.GetAllUsers(includeSuspend, true, getConinfo(c))
 	if err != nil {
 		if errors.Is(domain.ErrInvalidToken, err) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
