@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/infra/traq"
 	"github.com/traPtitech/knoQ/usecase/production"
@@ -21,13 +22,9 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	DEVELOPMENT bool
-)
-
 func main() {
 	logger, _ := zap.NewDevelopment()
-	DEVELOPMENT, _ = strconv.ParseBool(os.Getenv("DEVELOPMENT"))
+	domain.DEVELOPMENT, _ = strconv.ParseBool(os.Getenv("DEVELOPMENT"))
 
 	gormRepo := db.GormRepository{}
 	err := gormRepo.Setup(os.Getenv("MARIADB_HOSTNAME"), os.Getenv("MARIADB_USERNAME"),

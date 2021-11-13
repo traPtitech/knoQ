@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/traPtitech/knoQ/domain"
 	log "github.com/traPtitech/knoQ/logging"
 	"github.com/traPtitech/knoQ/presentation"
 	"github.com/traPtitech/knoQ/usecase/production"
@@ -218,7 +219,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		}
 	}
 
-	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, nofiticationTargets, h.Origin, false)
+	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, nofiticationTargets, h.Origin, !domain.DEVELOPMENT)
 
 	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }
