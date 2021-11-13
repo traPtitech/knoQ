@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
 
 	log "github.com/traPtitech/knoQ/logging"
 	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/usecase/production"
 	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
@@ -208,6 +210,8 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	if e.TimeStart.After(time.Now()) {
 		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
 		prefix := "@"
+
+		nofiticationTargets := make([]string, 0)
 		if e.Group.ID == traPGroupID {
 			repo, ok := h.Repo.(*production.Repository)
 			if !ok {
@@ -220,7 +224,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 			groups, _ := repo.TraQRepo.GetAllGroups(t)
 			for _, g := range groups {
 				if g.Type == "grade" {
-					content += prefix + g.Name + " "
+					nofiticationTargets = append(nofiticationTargets, g.Name)
 				}
 			}
 		} else {
@@ -228,11 +232,14 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 				if attendee.Schedule == presentation.Pending {
 					user, ok := usersMap[attendee.ID]
 					if ok {
-						content += prefix + user.Name + " "
+						nofiticationTargets = append(nofiticationTargets, user.Name)
 					}
 				}
 			}
-
+		}
+		sort.Strings(nofiticationTargets)
+		for _, nt := range nofiticationTargets {
+			content += prefix + nt + " "
 		}
 		content += "\n\n\n"
 	}
