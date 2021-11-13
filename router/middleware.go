@@ -3,11 +3,8 @@ package router
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
-	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	log "github.com/traPtitech/knoQ/logging"
@@ -189,29 +186,11 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 	usersMap := createUserMap(users)
-
-	jst, _ := time.LoadLocation("Asia/Tokyo")
-	timeFormat := "01/02(Mon) 15:04"
-	var content string
-	if c.Request().Method == http.MethodPost {
-		content = "## イベントが作成されました" + "\n"
-	} else if c.Request().Method == http.MethodPut {
-		content = "## イベントが更新されました" + "\n"
-	}
-	content += fmt.Sprintf("### [%s](%s/events/%s)", e.Name, h.Origin, e.ID) + "\n"
-	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", e.GroupName, h.Origin, e.Group.ID) + "\n"
-	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
-	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
-	content += "\n"
-
-	// TODO fix: IDを環境変数などで定義すべき
-	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
+	nofiticationTargets := make([]string, 0)
 
 	if e.TimeStart.After(time.Now()) {
-		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
-		prefix := "@"
-
-		nofiticationTargets := make([]string, 0)
+		// TODO fix: IDを環境変数などで定義すべき
+		traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 		if e.Group.ID == traPGroupID {
 			repo, ok := h.Repo.(*production.Repository)
 			if !ok {
@@ -237,14 +216,9 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 				}
 			}
 		}
-		sort.Strings(nofiticationTargets)
-		for _, nt := range nofiticationTargets {
-			content += prefix + nt + " "
-		}
-		content += "\n\n\n"
 	}
 
-	content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
+	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, nofiticationTargets, h.Origin, false)
 
 	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }
