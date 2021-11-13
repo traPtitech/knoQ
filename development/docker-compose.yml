@@ -78,7 +78,7 @@ services:
       - PMA_HOST=mysql
       - PMA_USER=root
       - PMA_PASSWORD=password
-    depends_on: 
+    depends_on:
       - mysql
     networks:
       - default
