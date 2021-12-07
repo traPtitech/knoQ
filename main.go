@@ -24,6 +24,8 @@ import (
 
 func main() {
 	logger, _ := zap.NewDevelopment()
+	domain.VERSION = os.Getenv("KNOQ_VERSION")
+	domain.REVISION = os.Getenv("KNOQ_REVISION")
 	domain.DEVELOPMENT, _ = strconv.ParseBool(os.Getenv("DEVELOPMENT"))
 
 	gormRepo := db.GormRepository{}
