@@ -74,6 +74,16 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 	}
 }
 
+// ServerVersionMiddleware X-KNOQ-VERSIONをレスポンスヘッダーを追加するミドルウェア
+func ServerVersionMiddleware(version string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Response().Header().Set("X-KNOQ-VERSION", version)
+			return next(c)
+		}
+	}
+}
+
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 // TODO funcname fix
 func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {

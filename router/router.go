@@ -46,6 +46,8 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	}
 	e.Use(session.Middleware(sessions.NewCookieStore(h.SessionKey)))
 
+	e.Use(ServerVersionMiddleware(domain.VERSION))
+
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://portal.trap.jp", "http://localhost:8080"},
