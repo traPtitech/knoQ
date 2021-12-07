@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Set KNOQ_VERSION env
+        run: echo "KNOQ_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+      - name: Set KNOQ_REVISION env
+        run: echo "KNOQ_REVISION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -28,5 +32,8 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            KNOQ_VERSION=${{ env.KNOQ_VERSION }}
+            KNOQ_REVISION=${{ env.KNOQ_REVISION }}
           tags: |
             ghcr.io/traptitech/${{ env.IMAGE_NAME }}:beta
