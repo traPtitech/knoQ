@@ -165,7 +165,7 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 		filter.AttrName:      "events.name",
 		filter.AttrGroup:     "events.group_id",
 		filter.AttrRoom:      "events.room_id",
-		filter.AttrTag:       "events.event_tags.tag_id",
+		filter.AttrTag:       "event_tags.tag_id",
 		filter.AttrEvent:     "events.id",
 		filter.AttrTimeStart: "events.time_start",
 		filter.AttrTimeEnd:   "events.time_end",
