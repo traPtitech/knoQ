@@ -142,6 +142,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	e.POST("/api/authParams", h.HandlePostAuthParams)
 	e.GET("/api/callback", h.HandleCallback)
 	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
+	e.GET("/api/version", h.HandleGetVersion)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {

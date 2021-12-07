@@ -4,7 +4,7 @@ info:
   title: traP knoQ
   description: |
     This is a sample knoQ server.
-  version: 2.1.0
+  version: 2.1.3
 
 servers:
   - url: http://knoq.trap.jp/api
@@ -29,6 +29,8 @@ tags:
     description: 認証
   - name: iCal
     description: ics出力
+  - name: public
+    description: 外部公開API
 
 paths:
   /rooms:
@@ -525,6 +527,7 @@ paths:
     post:
       tags:
         - authentication
+        - public
       operationId: getAuthParams
       description: リクエストに必要な情報を返す
       responses:
@@ -572,6 +575,26 @@ paths:
                 type: string
               example: "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:github.com/lestrrat-go/ical\nBEGIN:VTIMEZONE\nTZID:Asia/Tokyo\nBEGIN:STANDARD\nDTSTART:19700101T000000\nTZNAME:JST\nTZOFFSETFROM:+9000\nTZOFFSETTO:+9000\nEND:STANDARD\nEND:VTIMEZONE\nBEGIN:VEVENT\nCREATED:20'200'827T09'400'8Z\nDESCRIPTION:asd¥n-----------------------------------¥nイベント詳細ページ¥nhttp://loc\nalhost:'400'0/events/855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nDTEND:20'200'828T1'400'00Z\nDTSTAMP:20'200'904T145144Z\nDTSTART:20'200'828T050000Z\nLAST-MODIFIED:20'200'827T09'400'8Z\nLOCATION:dfaaa\nORGANIZER:18984a38-4dc7-41ab-9c8d-f5469a8e30a9\nSUMMARY:sadfwe\nUID:855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nEND:VEVENT\nBEGIN:VEVENT\nCREATED:20'200'827T09'400'8Z\nDESCRIPTION:asd¥n-----------------------------------¥nイベント詳細ページ¥nhttp://loc\nalhost:'400'0/events/855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nDTEND:20'200'828T1'400'00Z\nDTSTAMP:20'200'904T145144Z\nDTSTART:20'200'828T050000Z\nLAST-MODIFIED:20'200'827T09'400'8Z\nLOCATION:dfaaa\nORGANIZER:18984a38-4dc7-41ab-9c8d-f5469a8e30a9\nSUMMARY:sadfwe\nUID:855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nEND:VEVENT\nEND:VCALENDAR"
 
+  /version:
+    get:
+      tags:
+        - public
+      operationId: getVersion
+      description: version情報を取得
+      responses:
+        '200':
+          description: versionを出力
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                    example: v2.1.3
+                  revision:
+                    type: string
+                    example: 587c185
 components:
   schemas:
     # will delete
