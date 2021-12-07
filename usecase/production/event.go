@@ -108,7 +108,7 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 		return nil, defaultErrorHandling(err)
 	}
 	event.Group = *g
-	users, err := repo.GetAllUsers(false, info)
+	users, err := repo.GetAllUsers(false, true, info)
 	if err != nil {
 		return &event, err
 	}
@@ -159,7 +159,7 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 		return events, nil
 	}
 	groupMap := createGroupMap(groups)
-	users, err := repo.GetAllUsers(false, info)
+	users, err := repo.GetAllUsers(false, true, info)
 	if err != nil {
 		return events, err
 	}
