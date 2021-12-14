@@ -2,6 +2,9 @@ package presentation
 
 import (
 	"fmt"
+	"net/http"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/traPtitech/knoQ/domain"
@@ -138,4 +141,44 @@ func ICalFormat(events []*domain.Event, host string) *ical.Calendar {
 		c.AddEntry(vevent)
 	}
 	return c
+}
+
+func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationTargets []string, origin string, isMention bool) string {
+	jst, _ := time.LoadLocation("Asia/Tokyo")
+	timeFormat := "01/02(Mon) 15:04"
+	var content string
+	switch method {
+	case http.MethodPost:
+		content = "## イベントが作成されました" + "\n"
+	case http.MethodPut:
+		content = "## イベントが更新されました" + "\n"
+	}
+	content += fmt.Sprintf("### [%s](%s/events/%s)", e.Name, origin, e.ID) + "\n"
+	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", e.GroupName, origin, e.Group.ID) + "\n"
+	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
+	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
+	content += "\n"
+
+	if e.TimeStart.After(time.Now()) {
+		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
+		prefix := "@"
+		if !isMention {
+			prefix = "@."
+		}
+
+		sort.Strings(nofiticationTargets)
+		for _, nt := range nofiticationTargets {
+			content += prefix + nt + " "
+		}
+		content += "\n\n\n"
+	}
+
+	// delete ">" if no description
+	if strings.TrimSpace(e.Description) != "" {
+		content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
+	} else {
+		content = strings.TrimRight(content, "\n")
+	}
+
+	return content
 }

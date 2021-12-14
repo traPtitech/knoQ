@@ -5,8 +5,10 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
+	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/infra/traq"
 	"github.com/traPtitech/knoQ/usecase/production"
@@ -22,6 +24,10 @@ import (
 
 func main() {
 	logger, _ := zap.NewDevelopment()
+	domain.VERSION = os.Getenv("KNOQ_VERSION")
+	domain.REVISION = os.Getenv("KNOQ_REVISION")
+	domain.DEVELOPMENT, _ = strconv.ParseBool(os.Getenv("DEVELOPMENT"))
+
 	gormRepo := db.GormRepository{}
 	err := gormRepo.Setup(os.Getenv("MARIADB_HOSTNAME"), os.Getenv("MARIADB_USERNAME"),
 		os.Getenv("MARIADB_PASSWORD"), os.Getenv("MARIADB_DATABASE"), os.Getenv("TOKEN_KEY"))

@@ -3,14 +3,14 @@ package router
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
+	"github.com/traPtitech/knoQ/domain"
 	log "github.com/traPtitech/knoQ/logging"
 	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/usecase/production"
 	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
@@ -70,6 +70,16 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 				logger.Info("success", zap.Object("field", tmp))
 			}
 			return nil
+		}
+	}
+}
+
+// ServerVersionMiddleware X-KNOQ-VERSIONをレスポンスヘッダーを追加するミドルウェア
+func ServerVersionMiddleware(version string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Response().Header().Set("X-KNOQ-VERSION", version)
+			return next(c)
 		}
 	}
 }
@@ -182,40 +192,44 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 
-	users, err := h.Repo.GetAllUsers(false, getConinfo(c))
+	users, err := h.Repo.GetAllUsers(false, true, getConinfo(c))
 	if err != nil {
 		return
 	}
 	usersMap := createUserMap(users)
-
-	jst, _ := time.LoadLocation("Asia/Tokyo")
-	timeFormat := "01/02(Mon) 15:04"
-	var content string
-	if c.Request().Method == http.MethodPost {
-		content = "## イベントが作成されました" + "\n"
-	} else if c.Request().Method == http.MethodPut {
-		content = "## イベントが更新されました" + "\n"
-	}
-	content += fmt.Sprintf("### [%s](%s/events/%s)", e.Name, h.Origin, e.ID) + "\n"
-	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", e.GroupName, h.Origin, e.Group.ID) + "\n"
-	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
-	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
-	content += "\n"
+	nofiticationTargets := make([]string, 0)
 
 	if e.TimeStart.After(time.Now()) {
-		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
-		for _, attendee := range e.Attendees {
-			if attendee.Schedule == presentation.Pending {
-				user, ok := usersMap[attendee.ID]
-				if ok {
-					content += "@" + user.Name + " "
+		// TODO fix: IDを環境変数などで定義すべき
+		traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
+		if e.Group.ID == traPGroupID {
+			repo, ok := h.Repo.(*production.Repository)
+			if !ok {
+				return
+			}
+			t, err := repo.GormRepo.GetToken(getConinfo(c).ReqUserID)
+			if err != nil {
+				return
+			}
+			groups, _ := repo.TraQRepo.GetAllGroups(t)
+			for _, g := range groups {
+				if g.Type == "grade" {
+					nofiticationTargets = append(nofiticationTargets, g.Name)
+				}
+			}
+		} else {
+			for _, attendee := range e.Attendees {
+				if attendee.Schedule == presentation.Pending {
+					user, ok := usersMap[attendee.ID]
+					if ok {
+						nofiticationTargets = append(nofiticationTargets, user.Name)
+					}
 				}
 			}
 		}
-		content += "\n\n\n"
 	}
 
-	content += "> " + strings.ReplaceAll(e.Description, "\n", "\n> ")
+	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, nofiticationTargets, h.Origin, !domain.DEVELOPMENT)
 
 	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }

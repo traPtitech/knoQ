@@ -6,6 +6,12 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+var (
+	VERSION     string = "UNKNOWN"
+	REVISION    string = "UNKNOWN"
+	DEVELOPMENT bool
+)
+
 type Model struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time

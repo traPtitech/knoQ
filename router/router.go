@@ -46,6 +46,8 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	}
 	e.Use(session.Middleware(sessions.NewCookieStore(h.SessionKey)))
 
+	e.Use(ServerVersionMiddleware(domain.VERSION))
+
 	// TODO fix "portal origin"
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://portal.trap.jp", "http://localhost:8080"},
@@ -142,6 +144,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	e.POST("/api/authParams", h.HandlePostAuthParams)
 	e.GET("/api/callback", h.HandleCallback)
 	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
+	e.GET("/api/version", h.HandleGetVersion)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {

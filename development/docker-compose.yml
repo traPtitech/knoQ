@@ -23,6 +23,8 @@ services:
       WEBHOOK_SECRET: ${WEBHOOK_SECRET}
       CHANNEL_ID: ${CHANNEL_ID}
       TOKEN_KEY: ${TOKEN_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
+      KNOQ_VERSION: ${KNOQ_VERSION:-dev}
+      DEVELOPMENT: true
     volumes:
       - ../main.go:/srv/knoq/main.go
       - ../logging:/srv/knoq/logging
@@ -77,7 +79,7 @@ services:
       - PMA_HOST=mysql
       - PMA_USER=root
       - PMA_PASSWORD=password
-    depends_on: 
+    depends_on:
       - mysql
     networks:
       - default
