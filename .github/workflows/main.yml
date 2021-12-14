@@ -35,8 +35,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            KNOQ_VERSION=${{ env.KNOQ_VERSION }}
-            KNOQ_REVISION=${{ env.KNOQ_REVISION }}
+            knoq_version=${{ env.KNOQ_VERSION }}
+            knoq_revision=${{ env.KNOQ_REVISION }}
           tags: |
             ghcr.io/traptitech/${{ env.IMAGE_NAME }}:latest
             ghcr.io/traptitech/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}

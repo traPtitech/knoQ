@@ -26,4 +26,9 @@ RUN apk --update add tzdata \
 
 COPY --from=server-build /github.com/traPtitech/knoq/knoq ./
 
+ARG knoq_version=dev
+ARG knoq_revision=local
+ENV KNOQ_VERSION=${knoq_version}
+ENV KNOQ_REVISION=${knoq_revision}
+
 ENTRYPOINT ./knoq
