@@ -5,6 +5,7 @@ type Relation int
 const (
 	Eq Relation = iota
 	Neq
+	Like
 	Greter
 	Less
 	GreterEq

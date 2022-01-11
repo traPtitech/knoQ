@@ -148,6 +148,7 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 	defaultRelationMap := map[filter.Relation]string{
 		filter.Eq:       "=",
 		filter.Neq:      "!=",
+		filter.Like:     "Like",
 		filter.Greter:   ">",
 		filter.GreterEq: ">=",
 		filter.Less:     "<",
@@ -168,8 +169,9 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 					return "", nil, ErrExpression
 				}
 				rel := map[filter.Relation]string{
-					filter.Eq:  "=",
-					filter.Neq: "!=",
+					filter.Eq:   "=",
+					filter.Neq:  "!=",
+					filter.Like: "Like",
 				}[e.Relation]
 				filterFormat = fmt.Sprintf("events.name %v ?", rel)
 				filterArgs = []interface{}{name}
