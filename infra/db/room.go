@@ -8,8 +8,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func roomFullPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Events").Preload("Admins").Preload("CreatedBy")
+func roomFullPreload(tx *gorm.DB, excludeEventID *uuid.UUID) *gorm.DB {
+	if excludeEventID == nil {
+		return tx.Preload("Events").Preload("Admins").Preload("CreatedBy")
+	}
+	return tx.Preload("Events", "ID NOT IN (?)", *excludeEventID).Preload("Admins").Preload("CreatedBy")
 }
 
 type CreateRoomParams struct {
@@ -51,8 +54,8 @@ func (repo GormRepository) DeleteRoom(roomID uuid.UUID) error {
 	return deleteRoom(repo.db, roomID)
 }
 
-func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
-	room, err := getRoom(roomFullPreload(repo.db), roomID)
+func (repo GormRepository) GetRoom(roomID uuid.UUID, excludeEventID *uuid.UUID) (*domain.Room, error) {
+	room, err := getRoom(roomFullPreload(repo.db, excludeEventID), roomID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -61,7 +64,7 @@ func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
 }
 
 func (repo GormRepository) GetAllRooms(start, end time.Time) ([]*domain.Room, error) {
-	rooms, err := getAllRooms(roomFullPreload(repo.db), start, end)
+	rooms, err := getAllRooms(roomFullPreload(repo.db, nil), start, end)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
