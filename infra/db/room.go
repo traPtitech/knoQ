@@ -100,7 +100,7 @@ func deleteRoom(db *gorm.DB, roomID uuid.UUID) error {
 
 func getRoom(db *gorm.DB, roomID uuid.UUID) (*Room, error) {
 	room := Room{}
-	err := db.Debug().Take(&room, roomID).Error
+	err := db.Take(&room, roomID).Error
 	return &room, err
 }
 
@@ -112,6 +112,6 @@ func getAllRooms(db *gorm.DB, start, end time.Time) ([]*Room, error) {
 	if !end.IsZero() {
 		db = db.Where("time_end <= ?", end)
 	}
-	err := db.Debug().Order("time_start").Find(&rooms).Error
+	err := db.Order("time_start").Find(&rooms).Error
 	return rooms, err
 }
