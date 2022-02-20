@@ -74,8 +74,8 @@ func (repo *Repository) GetRoom(roomID uuid.UUID, excludeEventID *uuid.UUID) (*d
 	return rs, defaultErrorHandling(err)
 }
 
-func (repo *Repository) GetAllRooms(start time.Time, end time.Time) ([]*domain.Room, error) {
-	rs, err := repo.GormRepo.GetAllRooms(start, end)
+func (repo *Repository) GetAllRooms(start time.Time, end time.Time, excludeEventID *uuid.UUID) ([]*domain.Room, error) {
+	rs, err := repo.GormRepo.GetAllRooms(start, end, excludeEventID)
 	return rs, defaultErrorHandling(err)
 }
 

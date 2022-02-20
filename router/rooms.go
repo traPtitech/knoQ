@@ -85,7 +85,11 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	rooms, err := h.Repo.GetAllRooms(start, end)
+	excludeEventID, err := presentation.GetExcludeEventID(values)
+	if err != nil {
+		return badRequest(err)
+	}
+	rooms, err := h.Repo.GetAllRooms(start, end, excludeEventID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

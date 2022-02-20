@@ -63,8 +63,8 @@ func (repo GormRepository) GetRoom(roomID uuid.UUID, excludeEventID *uuid.UUID) 
 	return &r, nil
 }
 
-func (repo GormRepository) GetAllRooms(start, end time.Time) ([]*domain.Room, error) {
-	rooms, err := getAllRooms(roomFullPreload(repo.db, nil), start, end)
+func (repo GormRepository) GetAllRooms(start, end time.Time, excludeEventID *uuid.UUID) ([]*domain.Room, error) {
+	rooms, err := getAllRooms(roomFullPreload(repo.db, excludeEventID), start, end)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -100,7 +100,7 @@ func deleteRoom(db *gorm.DB, roomID uuid.UUID) error {
 
 func getRoom(db *gorm.DB, roomID uuid.UUID) (*Room, error) {
 	room := Room{}
-	err := db.Take(&room, roomID).Error
+	err := db.Debug().Take(&room, roomID).Error
 	return &room, err
 }
 
@@ -112,6 +112,6 @@ func getAllRooms(db *gorm.DB, start, end time.Time) ([]*Room, error) {
 	if !end.IsZero() {
 		db = db.Where("time_end <= ?", end)
 	}
-	err := db.Order("time_start").Find(&rooms).Error
+	err := db.Debug().Order("time_start").Find(&rooms).Error
 	return rooms, err
 }

@@ -16,7 +16,7 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 		now := time.Now().AddDate(0, 0, 0)
 		tomorrow := now.AddDate(0, 0, 1)
 
-		rooms, _ := repo.GetAllRooms(now, tomorrow)
+		rooms, _ := repo.GetAllRooms(now, tomorrow, nil)
 		events, _ := repo.GetAllEvents(filter.FilterTime(now, tomorrow))
 		message := createMessage(now, rooms, events, origin)
 		RequestWebhook(message, secret, channelID, webhookID, 1)
