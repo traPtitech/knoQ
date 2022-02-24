@@ -57,7 +57,7 @@ func Test_updateRoom(t *testing.T) {
 		_, err := updateRoom(r.db, room.ID, params)
 		require.NoError(err)
 
-		ro, err := getRoom(roomFullPreload(r.db, nil), room.ID)
+		ro, err := getRoom(roomFullPreload(r.db), room.ID)
 		require.NoError(err)
 
 		assert.Equal(params.Place, ro.Place)
