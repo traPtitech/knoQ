@@ -39,8 +39,8 @@ type RoomRepository interface {
 
 	DeleteRoom(roomID uuid.UUID, info *ConInfo) error
 
-	GetRoom(roomID uuid.UUID, excludeEventID *uuid.UUID) (*Room, error)
-	GetAllRooms(start time.Time, end time.Time, excludeEventID *uuid.UUID) ([]*Room, error)
+	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
+	GetAllRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
 	IsRoomAdmins(roomID uuid.UUID, info *ConInfo) bool
 }
 

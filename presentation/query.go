@@ -43,14 +43,14 @@ func GetUserRelationQuery(values url.Values) UserRelation {
 	return RelationBelongs
 }
 
-func GetExcludeEventID(values url.Values) (*uuid.UUID, error) {
+func GetExcludeEventID(values url.Values) (uuid.UUID, error) {
 	strExcludeEventID := values.Get("excludeEventID")
 	if strExcludeEventID == "" {
-		return nil, nil
+		return uuid.Nil, nil
 	}
 	excludeEventID, err := uuid.FromString(strExcludeEventID)
 	if err != nil {
-		return nil, err
+		return uuid.Nil, err
 	}
-	return &excludeEventID, nil
+	return excludeEventID, nil
 }
