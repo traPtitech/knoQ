@@ -776,14 +776,24 @@ components:
         description: &eventDescription
           type: string
           example: 第n回の進捗会です。
-        sharedRoom: &sharedRoom
-          type: boolean
           description: 部屋の共用をするか
         timeStart: *time
         timeEnd: *time
-        place: *place
         groupName: *groupName
-        roomId: *uuid
+        rooms:
+          type: array
+          items:
+            type: object
+            description: 部屋の配列
+            properties:
+              roomId: *uuid
+              place: *place
+              sharedRoom: &sharedRoom
+                type: boolean
+            required:
+              - roomId
+              - place
+              - sharedRoom
         groupId: *uuid
         open: &eventOpen
           type: boolean
@@ -823,13 +833,11 @@ components:
         - eventId
         - name
         - description
-        - sharedRoom
         - timeStart
         - timeEnd
-        - place
         - groupName
         - open
-        - roomId
+        - rooms
         - groupId
         - admins
         - tags
@@ -850,8 +858,10 @@ components:
         place: *place
         groupName: *groupName
         open: *eventOpen
-        room:
-          $ref: '#/components/schemas/ResponseRoom'
+        rooms:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponseRoom'
         group:
           $ref: '#/components/schemas/ResponseGroup'
         admins: *admins
@@ -870,7 +880,7 @@ components:
         - place
         - groupName
         - open
-        - room
+        - rooms
         - group
         - admins
         - tags
@@ -883,12 +893,29 @@ components:
       type: object
       description: 部屋を作る
       properties:
+        place: *place
+        sharedRoom: *sharedRoom
+      required:
+        - place
+        - sharedRoom
+
+    RequestEventStock:
+      type: object
+      description: 既存の部屋を使う
+      properties:
+        roomId: *uuid
+        sharedRoom: *sharedRoom
+      required:
+        - roomId
+        - sharedRoom
+
+    RequestEvent:
+      type: object
+      properties:
         name: *eventName
         description: *eventDescription
-        sharedRoom: *sharedRoom
         timeStart: *time
         timeEnd: *time
-        place: *place
         groupId: *uuid
         open: *eventOpen
         admins: *admins
@@ -901,44 +928,20 @@ components:
               locked: *locked
             required:
               - tagName
+        rooms:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/RequestEventInstant'
+              - $ref: '#/components/schemas/RequestEventStock'
       required:
         - name
         - description
-        - sharedRoom
         - timeStart
         - timeEnd
-        - place
         - groupId
         - admins
-
-    RequestEventStock:
-      type: object
-      description: 既存の部屋を使う
-      properties:
-        name: *eventName
-        description: *eventDescription
-        sharedRoom: *sharedRoom
-        timeStart: *time
-        timeEnd: *time
-        roomId: *uuid
-        groupId: *uuid
-        open: *eventOpen
-        admins: *admins
-        tags: *reqEventTags
-      required:
-        - name
-        - description
-        - sharedRoom
-        - timeStart
-        - timeEnd
-        - roomId
-        - groupId
-        - admins
-
-    RequestEvent:
-      oneOf:
-        - $ref: '#/components/schemas/RequestEventInstant'
-        - $ref: '#/components/schemas/RequestEventStock'
+        - rooms
 
     RequestSchedule:
       type: object
