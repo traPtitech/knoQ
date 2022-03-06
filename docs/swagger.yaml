@@ -855,7 +855,6 @@ components:
         sharedRoom: *sharedRoom
         timeStart: *time
         timeEnd: *time
-        place: *place
         groupName: *groupName
         open: *eventOpen
         rooms:
@@ -877,7 +876,6 @@ components:
         - sharedRoom
         - timeStart
         - timeEnd
-        - place
         - groupName
         - open
         - rooms
