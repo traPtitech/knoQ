@@ -641,6 +641,8 @@ components:
         place: &place
           type: string
           example: S516
+        sharedRoom: &sharedRoom
+                type: boolean
         timeStart: &time
           type: string
           example: '2006-01-02T15:04:05Z'
@@ -788,8 +790,7 @@ components:
             properties:
               roomId: *uuid
               place: *place
-              sharedRoom: &sharedRoom
-                type: boolean
+              sharedRoom: *sharedRoom
             required:
               - roomId
               - place
