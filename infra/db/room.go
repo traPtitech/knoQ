@@ -8,9 +8,14 @@ import (
 	"gorm.io/gorm"
 )
 
+func roomExcludeEventPreload(tx *gorm.DB, excludeEventID uuid.UUID) *gorm.DB {
+	return tx.Preload("Events", "ID != ?", excludeEventID).Preload("Admins").Preload("CreatedBy")
+}
+
 func roomFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Events").Preload("Admins").Preload("CreatedBy")
 }
+
 
 type CreateRoomParams struct {
 	domain.WriteRoomParams
@@ -51,8 +56,14 @@ func (repo GormRepository) DeleteRoom(roomID uuid.UUID) error {
 	return deleteRoom(repo.db, roomID)
 }
 
-func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
-	room, err := getRoom(roomFullPreload(repo.db), roomID)
+func (repo GormRepository) GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
+	var room *Room
+	var err error
+	if excludeEventID == uuid.Nil {
+		room, err = getRoom(roomFullPreload(repo.db), roomID)
+	} else {
+		room, err = getRoom(roomExcludeEventPreload(repo.db, excludeEventID), roomID)
+	}
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -60,8 +71,14 @@ func (repo GormRepository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
 	return &r, nil
 }
 
-func (repo GormRepository) GetAllRooms(start, end time.Time) ([]*domain.Room, error) {
-	rooms, err := getAllRooms(roomFullPreload(repo.db), start, end)
+func (repo GormRepository) GetAllRooms(start, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
+	var rooms []*Room
+	var err error
+	if excludeEventID == uuid.Nil {
+		rooms, err = getAllRooms(roomFullPreload(repo.db), start, end)
+	} else {
+		rooms, err = getAllRooms(roomExcludeEventPreload(repo.db, excludeEventID), start, end)
+	}
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -97,7 +114,7 @@ func deleteRoom(db *gorm.DB, roomID uuid.UUID) error {
 
 func getRoom(db *gorm.DB, roomID uuid.UUID) (*Room, error) {
 	room := Room{}
-	err := db.Take(&room, roomID).Error
+	err := db.Debug().Take(&room, roomID).Error
 	return &room, err
 }
 
@@ -109,6 +126,6 @@ func getAllRooms(db *gorm.DB, start, end time.Time) ([]*Room, error) {
 	if !end.IsZero() {
 		db = db.Where("time_end <= ?", end)
 	}
-	err := db.Order("time_start").Find(&rooms).Error
+	err := db.Debug().Order("time_start").Find(&rooms).Error
 	return rooms, err
 }

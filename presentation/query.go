@@ -3,6 +3,8 @@ package presentation
 import (
 	"net/url"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 // getTimeRange ?dateBegin=2020-03-27T00:00:00Z
@@ -39,4 +41,16 @@ func GetUserRelationQuery(values url.Values) UserRelation {
 	}
 
 	return RelationBelongs
+}
+
+func GetExcludeEventID(values url.Values) (uuid.UUID, error) {
+	strExcludeEventID := values.Get("excludeEventID")
+	if strExcludeEventID == "" {
+		return uuid.Nil, nil
+	}
+	excludeEventID, err := uuid.FromString(strExcludeEventID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return excludeEventID, nil
 }

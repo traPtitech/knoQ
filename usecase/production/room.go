@@ -69,18 +69,18 @@ func (repo *Repository) DeleteRoom(roomID uuid.UUID, info *domain.ConInfo) error
 	return defaultErrorHandling(err)
 }
 
-func (repo *Repository) GetRoom(roomID uuid.UUID) (*domain.Room, error) {
-	rs, err := repo.GormRepo.GetRoom(roomID)
+func (repo *Repository) GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
+	rs, err := repo.GormRepo.GetRoom(roomID, excludeEventID)
 	return rs, defaultErrorHandling(err)
 }
 
-func (repo *Repository) GetAllRooms(start time.Time, end time.Time) ([]*domain.Room, error) {
-	rs, err := repo.GormRepo.GetAllRooms(start, end)
+func (repo *Repository) GetAllRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
+	rs, err := repo.GormRepo.GetAllRooms(start, end, excludeEventID)
 	return rs, defaultErrorHandling(err)
 }
 
 func (repo *Repository) IsRoomAdmins(roomID uuid.UUID, info *domain.ConInfo) bool {
-	room, err := repo.GetRoom(roomID)
+	room, err := repo.GetRoom(roomID, uuid.Nil)
 	if err != nil {
 		return false
 	}

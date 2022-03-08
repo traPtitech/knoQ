@@ -43,6 +43,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/dateBegin'
         - $ref: '#/components/parameters/dateEnd'
+        - $ref: '#/components/parameters/excludeEventID'
       responses:
         '200':
           $ref: '#/components/responses/RoomArray'
@@ -64,6 +65,7 @@ paths:
 
   /rooms/{roomID}:
     parameters:
+      - $ref: '#/components/parameters/excludeEventID'
       - $ref: '#/components/parameters/roomID'
     get:
       tags:
@@ -1175,6 +1177,15 @@ components:
         type: string
         format: datetime
       example: '2006-01-02T15:04:05Z'
+    excludeEventID:
+      name: excludeEventID
+      in: query
+      description: 除外するイベントのID。
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
 
     include-suspended:
       name: include-suspended
