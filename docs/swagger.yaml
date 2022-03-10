@@ -791,6 +791,7 @@ components:
               roomId: *uuid
               place: *place
               sharedRoom: *sharedRoom
+              verified: *verified
             required:
               - roomId
               - place
@@ -888,7 +889,7 @@ components:
         - createdAt
         - updatedAt
 
-    RequestEventInstant:
+    RequestEventRoomInstant:
       type: object
       description: 部屋を作る
       properties:
@@ -898,7 +899,7 @@ components:
         - place
         - sharedRoom
 
-    RequestEventStock:
+    RequestEventRoomStock:
       type: object
       description: 既存の部屋を使う
       properties:
@@ -931,8 +932,8 @@ components:
           type: array
           items:
             oneOf:
-              - $ref: '#/components/schemas/RequestEventInstant'
-              - $ref: '#/components/schemas/RequestEventStock'
+              - $ref: '#/components/schemas/RequestEventRoomInstant'
+              - $ref: '#/components/schemas/RequestEventRoomStock'
       required:
         - name
         - description
