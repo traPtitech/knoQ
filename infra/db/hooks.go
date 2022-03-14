@@ -66,7 +66,7 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	// できれば一度にもってきたい
 	for i := range e.Rooms {
 		if e.Rooms[i].RoomID != uuid.Nil {
-			r, err := getRoom(tx.Preload("Events", "id != ?", e.ID).Preload("Events.Event"), e.Rooms[i].RoomID)
+			r, err := getRoom(tx.Preload("Events", "event_id != ?", e.ID).Preload("Events.Event"), e.Rooms[i].RoomID)
 			if err != nil {
 				return err
 			}
