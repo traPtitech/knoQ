@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -14,7 +15,8 @@ import (
 
 func eventFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Group").Preload("Group.Members").Preload("Group.Admins").Preload("Group.CreatedBy").
-		Preload("Room").Preload("Room.Events").Preload("Room.Admins").Preload("Room.CreatedBy").
+		Preload("Rooms").Preload("Rooms.Room").Preload("Rooms.Room.Admins").Preload("Rooms.Room.CreatedBy").
+		Preload("Rooms.Room.Events").Preload("Rooms.Room.Events.Event").
 		Preload("Admins").Preload("Admins.User").
 		Preload("Tags").Preload("Tags.Tag").
 		Preload("Attendees").Preload("Attendees.User").
@@ -77,9 +79,11 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 }
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
+	log.Print(params)
 	event := ConvWriteEventParamsToEvent(params)
 
-	err := db.Create(&event).Error
+	log.Print(event)
+	err := db.Debug().Create(&event).Error
 	return &event, err
 }
 
@@ -141,7 +145,7 @@ func upsertEventSchedule(tx *gorm.DB, eventID, userID uuid.UUID, schedule domain
 
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
 	event := Event{}
-	err := db.Take(&event, eventID).Error
+	err := db.Debug().Take(&event, eventID).Error
 	return &event, err
 }
 

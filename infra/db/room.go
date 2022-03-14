@@ -97,7 +97,7 @@ func deleteRoom(db *gorm.DB, roomID uuid.UUID) error {
 
 func getRoom(db *gorm.DB, roomID uuid.UUID) (*Room, error) {
 	room := Room{}
-	err := db.Take(&room, roomID).Error
+	err := db.Debug().Take(&room, roomID).Error
 	return &room, err
 }
 
