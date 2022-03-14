@@ -132,7 +132,7 @@ func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 	require.NoError(t, err)
 	return &user
 }
-
+// もともと
 //func mustMakeUserBody(t *testing.T, repo *GormRepository, name, password string) *UserBody {
 //t.Helper()
 //user, err := saveUser(repo.db, userID uuid.UUID, privilege bool)
@@ -157,7 +157,7 @@ func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *Us
 	require.NoError(t, err)
 	return group, user
 }
-
+// もともと
 //func mustAddGroupMember(t *testing.T, repo *GormRepository, groupID uuid.UUID, userID uuid.UUID) {
 //t.Helper()
 //err := repo.AddUserToGroup(groupID, userID)
@@ -201,10 +201,11 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Gr
 		WriteEventParams: domain.WriteEventParams{
 			Name:          name,
 			GroupID:       group.ID,
-			RoomID:        room.ID,
+			// TODO:
+			// RoomID:        room.ID,
 			TimeStart:     time.Now(),
 			TimeEnd:       time.Now().Add(1 * time.Minute),
-			AllowTogether: true,
+			// AllowTogether: true,
 			Admins:        []uuid.UUID{user.ID},
 			Tags: []domain.EventTagParams{
 				{Name: "gin"},

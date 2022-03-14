@@ -28,10 +28,11 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	date := t.In(jst).Format("01/02(Mon)")
-	combined := map[bool]string{
-		true:  "(併用可)",
-		false: "",
-	}
+	// TODO:
+	// combined := map[bool]string{
+	// 	true:  "(併用可)",
+	// 	false: "",
+	// }
 	roomMessage := ""
 	publicRoomN := 0
 	eventMessage := "本日開催されるイベントは、\n"
@@ -54,12 +55,13 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 	if len(events) == 0 {
 		eventMessage = "本日開催予定のイベントはありません。\n"
 
-	} else {
-		for _, event := range events {
-			eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s ~ %s @%s %s\n", event.Name, origin, event.ID,
-				event.TimeStart.In(jst).Format("15:04"), event.TimeEnd.In(jst).Format("15:04"),
-				event.Room.Place, combined[event.AllowTogether])
-		}
+	// TODO:
+	// } else {
+	// 	for _, event := range events {
+	// 		eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s ~ %s @%s %s\n", event.Name, origin, event.ID,
+	// 			event.TimeStart.In(jst).Format("15:04"), event.TimeEnd.In(jst).Format("15:04"),
+	// 			event.Room.Place, combined[event.AllowTogether])
+	// 	}
 
 	}
 	return roomMessage + eventMessage
