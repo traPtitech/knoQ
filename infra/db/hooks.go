@@ -30,6 +30,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 	}
 
 	// 時間整合性
+	// roomのid=Nilのとき時間整合性はokにしてるけど依存関係おかしいと思う
 	Devent := ConvEventTodomainEvent(*e)
 	if !Devent.TimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
@@ -40,6 +41,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 // BeforeCreate is hook
 func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 	// 時間整合性
+	// できれば一度にもってきたい
 	for i := range e.Rooms {
 		if e.Rooms[i].RoomID != uuid.Nil {
 			r, err := getRoom(tx.Preload("Events").Preload("Events.Event"), e.Rooms[i].RoomID)
@@ -61,20 +63,21 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 // BeforeUpdate is hook
 func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	// 時間整合性
-	// TODO:
-	// r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.Rooms[0].ID)
-	// if err == nil {
-	// 	// TODO
-	// 	e.Rooms[0] = *r
-	// 	Devent := ConvEventTodomainEvent(*e)
-	// 	if !Devent.RoomTimeConsistency() {
-	// 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
-	// 	}
-	// } else if !errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
-	// 	// 後で作られる
-	// 	return err
-	// }
+	// できれば一度にもってきたい
+	for i := range e.Rooms {
+		if e.Rooms[i].RoomID != uuid.Nil {
+			r, err := getRoom(tx.Preload("Events", "id != ?", e.ID).Preload("Events.Event"), e.Rooms[i].RoomID)
+			if err != nil {
+				return err
+			}
+			e.Rooms[i].Room = *r
+		}
+	}
+
+	Devent := ConvEventTodomainEvent(*e)
+	if !Devent.RoomTimeConsistency() {
+		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
+	}
 
 	// delete current m2m
 	err = tx.Where("event_id = ?", e.ID).Delete(&EventTag{}).Error
@@ -84,6 +87,10 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	err = tx.Where("event_id = ?", e.ID).Delete(&EventAdmin{}).Error
 	if err != nil {
 		return err
+	}
+	err = tx.Where("event_id = ?", e.ID).Delete(&EventRoom{}).Error
+	if err != nil {
+		return nil
 	}
 
 	return nil
