@@ -22,6 +22,7 @@ var tables = []interface{}{
 	EventTag{}, // Eventより下にないと、overrideされる
 	EventAdmin{},
 	EventAttendee{},
+	EventRoom{},
 }
 
 type Model struct {
@@ -96,12 +97,17 @@ type RoomAdmin struct {
 //go:generate gotypeconverter -s Room -d domain.Room -o converter.go .
 //go:generate gotypeconverter -s []*Room -d []*domain.Room -o converter.go .
 type Room struct {
-	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Place          string    `gorm:"type:varchar(32);"`
-	Verified       bool
-	TimeStart      time.Time `gorm:"type:DATETIME; index"`
-	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
-	Events         []Event   `gorm:"->; constraint:-"` // readOnly
+	ID       uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Place    string    `gorm:"type:varchar(32);"`
+	Verified bool
+	// AllowTogether bool
+	TimeStart time.Time `gorm:"type:DATETIME; index"`
+	TimeEnd   time.Time `gorm:"type:DATETIME; index"`
+	// TODO:
+	// Events         []Event `gorm:"->; foreignKey:ID"` // readOnly
+	// Events         []Event
+	// 相互からアクセス可能だから名前変えた方がいいかも
+	Events         []EventRoom
 	Admins         []RoomAdmin
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
@@ -171,6 +177,19 @@ type EventAttendee struct {
 	Schedule int
 }
 
+// TODO
+type EventRoom struct {
+	// 実際のカラムは構造体じゃないやつのみ
+	RoomID        uuid.UUID `gorm:"type:char(36); primaryKey"`
+	EventID       uuid.UUID `gorm:"type:char(36); primaryKey"`
+	AllowTogether bool
+	// このレコードに書いてあるEventIDに対応するEventが消されたらこのレコードが消される
+	// 無限にネストしないように->になってる？
+	Event Event `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
+	Room  Room  `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;"`
+	Model
+}
+
 // Event is event for gorm
 //go:generate gotypeconverter -s WriteEventParams -d Event -o converter.go .
 //go:generate gotypeconverter -s Event -d domain.Event -o converter.go .
@@ -181,16 +200,17 @@ type Event struct {
 	Description    string    `gorm:"type:TEXT"`
 	GroupID        uuid.UUID `gorm:"type:char(36); not null; index"`
 	Group          Group     `gorm:"->; foreignKey:GroupID; constraint:-"`
-	RoomID         uuid.UUID `gorm:"type:char(36); not null; index"`
-	Room           Room      `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"`
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
 	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Admins         []EventAdmin
-	AllowTogether  bool
-	Tags           []EventTag
-	Open           bool
-	Attendees      []EventAttendee
-	Model          `cvt:"->"`
+	// TODO:
+	// 相互からアクセス可能だから名前変えた方がいいかも
+	Rooms []EventRoom
+	// Rooms      []Room
+	Admins    []EventAdmin
+	Tags      []EventTag
+	Open      bool
+	Attendees []EventAttendee
+	Model     `cvt:"->"`
 }

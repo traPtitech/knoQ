@@ -36,6 +36,31 @@ func ConvEventAttendeeTodomainAttendee(src EventAttendee) (dst domain.Attendee) 
 	dst.Schedule = domain.ScheduleStatus(src.Schedule)
 	return
 }
+// fixed
+func ConvEventRoomTodomainEvent(src EventRoom) (dst domain.Event) {
+	// dst.Model.CreatedAt = src.Model.CreatedAt
+	// dst.Model.UpdatedAt = src.Model.UpdatedAt
+	// dst.Model.DeletedAt = new(time.Time)
+	// (*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	// dst.Rooms = make([]domain.Room, 1)
+	// dst.Rooms[0].Model.CreatedAt = src.Model.CreatedAt
+	// dst.Rooms[0].Model.UpdatedAt = src.Model.UpdatedAt
+	// dst.Rooms[0].Model.DeletedAt = new(time.Time)
+	// (*dst.Rooms[0].Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst = ConvEventTodomainEvent(src.Event)
+	return
+}
+// fixed
+func ConvEventRoomTodomainRoom(src EventRoom) (dst domain.Room) {
+	dst = ConvRoomTodomainRoom(src.Room)
+	// dst.Model.CreatedAt = src.Model.CreatedAt
+	// dst.Model.UpdatedAt = src.Model.UpdatedAt
+	// dst.Model.DeletedAt = new(time.Time)
+	// (*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	// dst.AllowTogether = src.Model.DeletedAt.Valid
+	return
+}
+
 func ConvEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
 	dst.Tag = ConvTagTodomainTag(src.Tag)
 	dst.Locked = src.Locked
@@ -45,7 +70,12 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	dst.Room = ConvRoomTodomainRoom(src.Room)
+	// fixed
+	dst.Rooms = make([]domain.EventRoom, len(src.Rooms))
+	for i := range src.Rooms {
+		dst.Rooms[i] = ConvEventRoomTodomainEventRoom(src.Rooms[i])
+	}
+	//
 	dst.Group = ConvGroupTodomainGroup(src.Group)
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
@@ -58,7 +88,6 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 	for i := range src.Tags {
 		dst.Tags[i] = ConvEventTagTodomainEventTag(src.Tags[i])
 	}
-	dst.AllowTogether = src.AllowTogether
 	dst.Attendees = make([]domain.Attendee, len(src.Attendees))
 	for i := range src.Attendees {
 		dst.Attendees[i] = ConvEventAttendeeTodomainAttendee(src.Attendees[i])
@@ -70,6 +99,13 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 	(*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
+// fixed
+func ConvEventRoomTodomainEventRoom(src EventRoom) (dst domain.EventRoom) {
+	dst.AllowTogether = src.AllowTogether
+	dst.Room = ConvRoomTodomainRoom(src.Room)
+	return
+}
+//
 
 func ConvGroupAdminTodomainUser(src GroupAdmin) (dst domain.User) {
 	dst.ID = src.UserID
@@ -109,10 +145,12 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.Verified = src.Verified
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
-	dst.Events = make([]domain.Event, len(src.Events))
+	//fixed
+	dst.Events = make([]domain.RoomEvent, len(src.Events))
 	for i := range src.Events {
-		dst.Events[i] = ConvEventTodomainEvent(src.Events[i])
+		dst.Events[i] = ConvEventRoomTodomainRoomEvent(src.Events[i])
 	}
+	//
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
 		dst.Admins[i] = ConvRoomAdminTodomainUser(src.Admins[i])
@@ -124,6 +162,13 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	(*dst.Model.DeletedAt) = ConvgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
+// fixed
+func ConvEventRoomTodomainRoomEvent(src EventRoom) (dst domain.RoomEvent) {
+	dst.AllowTogether = src.AllowTogether
+	dst.Event = ConvEventTodomainEvent(src.Event)
+	return
+}
+//
 func ConvSEventAdminToSRoomAdmin(src []EventAdmin) (dst []RoomAdmin) {
 	dst = make([]RoomAdmin, len(src))
 	for i := range src {
@@ -224,15 +269,18 @@ func ConvWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	dst.Name = src.WriteEventParams.Name
 	dst.Description = src.WriteEventParams.Description
 	dst.GroupID = src.WriteEventParams.GroupID
-	dst.RoomID = src.WriteEventParams.RoomID
-	dst.Room.Place = src.WriteEventParams.Place
 	dst.TimeStart = src.WriteEventParams.TimeStart
 	dst.TimeEnd = src.WriteEventParams.TimeEnd
+	// fixed
+	dst.Rooms = make([]EventRoom, len(src.WriteEventParams.Rooms))
+	for i := range src.WriteEventParams.Rooms {
+		dst.Rooms[i] = ConvdomainEventRoomParamsToEventRoom(src.WriteEventParams.Rooms[i])
+	}
+	//
 	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
 	for i := range src.WriteEventParams.Admins {
 		dst.Admins[i] = ConvuuidUUIDToEventAdmin(src.WriteEventParams.Admins[i])
 	}
-	dst.AllowTogether = src.WriteEventParams.AllowTogether
 	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
 	for i := range src.WriteEventParams.Tags {
 		dst.Tags[i] = ConvdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
@@ -255,6 +303,22 @@ func ConvWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
 	}
 	return
 }
+
+func ConvdomainEventRoomParamsToEventRoom(src domain.EventRoomParams) (dst EventRoom) {
+	// TODO: RoomIDこれでいいんか
+	dst.RoomID = src.RoomID
+	dst.Room.ID = src.RoomID
+	dst.Room.Place = src.Place
+	dst.AllowTogether = src.AllowTogether
+	return
+}
+// fixed
+// func ConvdomainEventRoomParamsToRoom(src domain.EventRoomParams) (dst Room) {
+// 	dst.ID = src.RoomID
+// 	dst.Place = src.Place
+// 	dst.AllowTogether = src.AllowTogether
+// 	return
+// }
 
 func ConvdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst EventTag) {
 	dst.Tag.Name = src.Name
