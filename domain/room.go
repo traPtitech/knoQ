@@ -13,10 +13,15 @@ type Room struct {
 	Verified  bool
 	TimeStart time.Time
 	TimeEnd   time.Time
-	Events    []Event
+	Events    []RoomEvent
 	Admins    []User
 	CreatedBy User
 	Model
+}
+
+type RoomEvent struct {
+	AllowTogether bool
+	Event         Event
 }
 
 type WriteRoomParams struct {
@@ -64,7 +69,7 @@ func (r *Room) CalcAvailableTime(allowTogether bool) []StartEndTime {
 		if allowTogether && e.AllowTogether {
 			continue
 		}
-		availabletime = timeRangesSub(availabletime, StartEndTime{e.TimeStart, e.TimeEnd})
+		availabletime = timeRangesSub(availabletime, StartEndTime{e.Event.TimeStart, e.Event.TimeEnd})
 	}
 	return availabletime
 }

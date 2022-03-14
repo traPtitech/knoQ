@@ -16,20 +16,24 @@ const (
 )
 
 type Event struct {
-	ID            uuid.UUID
-	Name          string
-	Description   string
-	Room          Room
-	Group         Group
-	TimeStart     time.Time
-	TimeEnd       time.Time
-	CreatedBy     User
-	Admins        []User
-	Tags          []EventTag
-	AllowTogether bool
-	Attendees     []Attendee
-	Open          bool
+	ID          uuid.UUID
+	Name        string
+	Description string
+	Rooms       []EventRoom
+	Group       Group
+	TimeStart   time.Time
+	TimeEnd     time.Time
+	CreatedBy   User
+	Admins      []User
+	Tags        []EventTag
+	Attendees   []Attendee
+	Open        bool
 	Model
+}
+
+type EventRoom struct {
+	AllowTogether bool
+	Room          Room
 }
 
 type EventTag struct {
@@ -46,17 +50,21 @@ type Attendee struct {
 
 // WriteEventParams is used create and update
 type WriteEventParams struct {
-	Name          string
-	Description   string
-	GroupID       uuid.UUID
+	Name        string
+	Description string
+	GroupID     uuid.UUID
+	Rooms       []EventRoomParams
+	TimeStart   time.Time
+	TimeEnd     time.Time
+	Admins      []uuid.UUID
+	Tags        []EventTagParams
+	Open        bool
+}
+
+type EventRoomParams struct {
 	RoomID        uuid.UUID
-	Place         string // option
-	TimeStart     time.Time
-	TimeEnd       time.Time
-	Admins        []uuid.UUID
-	Tags          []EventTagParams
+	Place         string //option
 	AllowTogether bool
-	Open          bool
 }
 
 type EventTagParams struct {
@@ -89,16 +97,28 @@ func (e *Event) TimeConsistency() bool {
 }
 
 func (e *Event) RoomTimeConsistency() bool {
-	times := e.Room.CalcAvailableTime(e.AllowTogether)
-	for _, t := range times {
-		start := t.TimeStart
-		end := t.TimeEnd
-		if start.Equal(e.TimeStart) || start.Before(e.TimeStart) &&
-			(end.Equal(e.TimeEnd) || end.After(e.TimeEnd)) {
-			return true
+	for _, room := range e.Rooms {
+		// placeで作る場合はここで時間整合性を調べる必要はない。
+		if room.Room.ID == uuid.Nil {
+			continue
 		}
+		times := room.Room.CalcAvailableTime(room.AllowTogether)
+		isConsistant := false
+		for _, t := range times {
+			start := t.TimeStart
+			end := t.TimeEnd
+			if start.Equal(e.TimeStart) || start.Before(e.TimeStart) &&
+				(end.Equal(e.TimeEnd) || end.After(e.TimeEnd)) {
+				isConsistant = true
+				break
+			}
+		}
+		if isConsistant {
+			continue
+		}
+		return false
 	}
-	return false
+	return true
 }
 
 func (e *Event) AdminsValidation() bool {
