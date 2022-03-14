@@ -15,3 +15,15 @@ clean:
 	rm -rf mariadb
 	rm -rf phpmyadmin
 	rm -f service.json
+
+.PHONY: up
+up:
+	docker-compose up
+
+.PHONY: up-b
+up-b:
+	docker-compose up --build
+
+.PHONY: down
+down:
+	docker-compose down

@@ -854,7 +854,6 @@ components:
         eventId: *uuid
         name: *eventName
         description: *eventDescription
-        sharedRoom: *sharedRoom
         timeStart: *time
         timeEnd: *time
         groupName: *groupName
