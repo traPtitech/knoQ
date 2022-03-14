@@ -10,8 +10,12 @@ func ConvEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain.Wr
 	dst.Name = src.Name
 	dst.Description = src.Description
 	dst.GroupID = src.GroupID
-	dst.RoomID = src.RoomID
-	dst.Place = src.Place
+	// fixed
+	dst.Rooms = make([]domain.EventRoomParams, len(src.Rooms))
+	for i := range src.Rooms {
+		dst.Rooms[i] = ConvEventRoomTodomainEventRoomParams(src.Rooms[i])
+	}
+	//
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.Admins = src.Admins
@@ -19,10 +23,15 @@ func ConvEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain.Wr
 	for i := range src.Tags {
 		dst.Tags[i] = domain.EventTagParams(src.Tags[i])
 	}
-	dst.AllowTogether = src.AllowTogether
 	dst.Open = src.Open
 	return
 }
+// fixed
+func ConvEventRoomTodomainEventRoomParams(src EventRoom) (dst domain.EventRoomParams) {
+	dst = domain.EventRoomParams(src)
+	return
+}
+//
 
 func ConvGroupReqTodomainWriteGroupParams(src GroupReq) (dst domain.WriteGroupParams) {
 	dst = domain.WriteGroupParams(src)
@@ -33,7 +42,6 @@ func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams
 	dst = domain.WriteRoomParams(src)
 	return
 }
-
 func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 	dst = make([]EventRes, len(src))
 	for i := range src {
@@ -41,12 +49,9 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 			dst[i].ID = (*src[i]).ID
 			dst[i].Name = (*src[i]).Name
 			dst[i].Description = (*src[i]).Description
-			dst[i].AllowTogether = (*src[i]).AllowTogether
 			dst[i].TimeStart = (*src[i]).TimeStart
 			dst[i].TimeEnd = (*src[i]).TimeEnd
-			dst[i].RoomID = ConvdomainRoomTouuidUUID((*src[i]).Room)
 			dst[i].GroupID = ConvdomainGroupTouuidUUID((*src[i]).Group)
-			dst[i].Place = (*src[i]).Room.Place
 			dst[i].GroupName = (*src[i]).Group.Name
 			dst[i].Admins = make([]uuid.UUID, len((*src[i]).Admins))
 			for j := range (*src[i]).Admins {
@@ -143,9 +148,13 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	dst.Room = ConvdomainRoomToRoomRes(src.Room)
+	// fixed
+	dst.Rooms = make([]RoomRes, len(src.Rooms))
+	for i := range src.Rooms {
+		dst.Rooms[i] = ConvdomainEventRoomToRoomRes(src.Rooms[i])
+	}
+	//
 	dst.Group = ConvdomainGroupToGroupRes(src.Group)
-	dst.Place = src.Room.Place
 	dst.GroupName = src.Group.Name
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
@@ -158,7 +167,6 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	for i := range src.Tags {
 		dst.Tags[i] = ConvdomainEventTagToEventTagRes(src.Tags[i])
 	}
-	dst.AllowTogether = src.AllowTogether
 	dst.Open = src.Open
 	dst.Attendees = make([]EventAttendeeRes, len(src.Attendees))
 	for i := range src.Attendees {
@@ -172,12 +180,9 @@ func ConvdomainEventToEventRes(src domain.Event) (dst EventRes) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	dst.AllowTogether = src.AllowTogether
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
-	dst.RoomID = ConvdomainRoomTouuidUUID(src.Room)
 	dst.GroupID = ConvdomainGroupTouuidUUID(src.Group)
-	dst.Place = src.Room.Place
 	dst.GroupName = src.Group.Name
 	dst.Admins = make([]uuid.UUID, len(src.Admins))
 	for i := range src.Admins {
@@ -219,10 +224,31 @@ func ConvdomainGroupTouuidUUID(src domain.Group) (dst uuid.UUID) {
 	dst = src.ID
 	return
 }
-
+// fixed
+func ConvdomainEventRoomToRoomRes(src domain.EventRoom) (dst RoomRes) {
+	dst.ID = src.Room.ID
+	dst.Verified = src.Room.Verified
+	dst.AllowTogether = src.AllowTogether
+	dst.RoomReq.Place = src.Room.Place
+	dst.RoomReq.TimeStart = src.Room.TimeStart
+	dst.RoomReq.TimeEnd = src.Room.TimeEnd
+	dst.RoomReq.Admins = make([]uuid.UUID, len(src.Room.Admins))
+	for i := range src.Room.Admins {
+		dst.RoomReq.Admins[i] = ConvdomainUserTouuidUUID(src.Room.Admins[i])
+	}
+	dst.CreatedBy = ConvdomainUserTouuidUUID(src.Room.CreatedBy)
+	dst.FreeTimes = ConvSdomainStartEndTimeToSStartEndTime(src.Room.CalcAvailableTime(false))
+	dst.SharedTimes = ConvSdomainStartEndTimeToSStartEndTime(src.Room.CalcAvailableTime(true))
+	dst.Model = Model(src.Room.Model)
+	return
+}
+//
+// TODO: この関数使ってるやつ全部修正したほうがいい
 func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 	dst.ID = src.ID
 	dst.Verified = src.Verified
+	// allowtogetherがdomain.Roomから得られないからこの関数いらなそう
+	// dst.AllowTogether = src.AllowTogether
 	dst.RoomReq.Place = src.Place
 	dst.RoomReq.TimeStart = src.TimeStart
 	dst.RoomReq.TimeEnd = src.TimeEnd
