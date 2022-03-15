@@ -18,10 +18,6 @@ clean:
 
 .PHONY: up
 up:
-	docker-compose up
-
-.PHONY: up-b
-up-b:
 	docker-compose up --build
 
 .PHONY: down

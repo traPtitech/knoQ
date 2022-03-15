@@ -641,8 +641,6 @@ components:
         place: &place
           type: string
           example: S516
-        sharedRoom: &sharedRoom
-                type: boolean
         timeStart: &time
           type: string
           example: '2006-01-02T15:04:05Z'
@@ -650,12 +648,12 @@ components:
         verified: &verified
           type: boolean
           description: 部屋が使えることを保証する
-        freeTimes:
+        freeTimes: &freeTimes
           description: どのイベントも使用していない時間帯
           type: array
           items:
             $ref: '#/components/schemas/duration'
-        sharedTimes:
+        sharedTimes: &sharedTimes
           description: 部屋を共用すれば、使用できる時間帯
           type: array
           items:
@@ -790,7 +788,8 @@ components:
             properties:
               roomId: *uuid
               place: *place
-              sharedRoom: *sharedRoom
+              sharedRoom: &sharedRoom
+                type: boolean
               verified: *verified
             required:
               - roomId
@@ -861,7 +860,34 @@ components:
         rooms:
           type: array
           items:
-            $ref: '#/components/schemas/ResponseRoom'
+            type: object
+            description: 部屋の配列
+            properties:
+              roomId: *uuid
+              place: *place
+              sharedRoom: *sharedRoom
+              timeStart: *time
+              timeEnd: *time
+              verified: *verified
+              freeTimes: *freeTimes
+              sharedTimes: *sharedRoom
+              admins: *admins
+              createdBy: *uuid
+              createdAt: *time
+              updatedAt: *time
+            required:
+              - roomId
+              - place
+              - sharedRoom
+              - timeStart
+              - timeEnd
+              - verified
+              - freeTimes
+              - sharedTimes
+              - admins
+              - createdBy
+              - createdAt
+              - updatedAt            
         group:
           $ref: '#/components/schemas/ResponseGroup'
         admins: *admins
@@ -893,7 +919,6 @@ components:
       description: 部屋を作る
       properties:
         place: *place
-        sharedRoom: *sharedRoom
       required:
         - place
         - sharedRoom
