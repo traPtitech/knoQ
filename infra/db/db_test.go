@@ -133,7 +133,6 @@ func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 	return &user
 }
 
-// もともと
 //func mustMakeUserBody(t *testing.T, repo *GormRepository, name, password string) *UserBody {
 //t.Helper()
 //user, err := saveUser(repo.db, userID uuid.UUID, privilege bool)
@@ -159,7 +158,6 @@ func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *Us
 	return group, user
 }
 
-// もともと
 //func mustAddGroupMember(t *testing.T, repo *GormRepository, groupID uuid.UUID, userID uuid.UUID) {
 //t.Helper()
 //err := repo.AddUserToGroup(groupID, userID)

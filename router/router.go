@@ -81,8 +81,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 		apiEvents := api.Group("/events")
 		{
 			apiEvents.GET("", h.HandleGetEvents)
-			apiEvents.POST("", h.HandlePostEvent)
-			// apiEvents.POST("", h.HandlePostEvent, middleware.BodyDump(h.WebhookEventHandler))
+			apiEvents.POST("", h.HandlePostEvent, middleware.BodyDump(h.WebhookEventHandler))
 
 			apiEvent := apiEvents.Group("/:eventid")
 			{
