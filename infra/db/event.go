@@ -3,7 +3,6 @@ package db
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -79,11 +78,9 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 }
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
-	log.Print(params)
 	event := ConvWriteEventParamsToEvent(params)
 
-	log.Print(event)
-	err := db.Debug().Create(&event).Error
+	err := db.Create(&event).Error
 	return &event, err
 }
 
@@ -145,7 +142,7 @@ func upsertEventSchedule(tx *gorm.DB, eventID, userID uuid.UUID, schedule domain
 
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {
 	event := Event{}
-	err := db.Debug().Take(&event, eventID).Error
+	err := db.Take(&event, eventID).Error
 	return &event, err
 }
 

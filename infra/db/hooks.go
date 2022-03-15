@@ -30,7 +30,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 	}
 
 	// 時間整合性
-	// roomのid=Nilのとき時間整合性はokにしてるけど依存関係おかしいと思う
+	// roomのid=Nilのとき時間整合性はokにしてるけどおかしい？
 	Devent := ConvEventTodomainEvent(*e)
 	if !Devent.TimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
@@ -123,6 +123,10 @@ func (e *Event) BeforeDelete(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
+	err = tx.Where("event_id = ?", e.ID).Delete(&EventRoom{}).Error
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -183,11 +187,10 @@ func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
 	}
 
 	// 時間整合性
-	// TODO:
-	// Droom := ConvRoomTodomainRoom(*r)
-	// if !Droom.TimeConsistency() {
-	// 	return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
-	// }
+	Droom := ConvRoomTodomainRoom(*r)
+	if !Droom.TimeConsistency() {
+		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
+	}
 	return nil
 }
 
@@ -207,6 +210,15 @@ func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 	Droom := ConvRoomTodomainRoom(*room)
 	if !Droom.AdminsValidation() {
 		return NewValueError(ErrNoAdmins, "admins")
+	}
+	return nil
+}
+
+// room消すときの警告、動作は要検討
+func (r *Room) BeforeDelete(tx *gorm.DB) (err error) {
+	err = tx.Where("room_id = ?", r.ID).Delete(&EventRoom{}).Error
+	if err != nil {
+		return err
 	}
 	return nil
 }

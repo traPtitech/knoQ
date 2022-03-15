@@ -156,6 +156,8 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 		dst.Admins[i] = ConvRoomAdminTodomainUser(src.Admins[i])
 	}
 	dst.CreatedBy = ConvUserTodomainUser(src.CreatedBy)
+	// POSTだとcreatedByRefererしかsrcにない
+	dst.CreatedBy.ID = src.CreatedByRefer
 	dst.Model.CreatedAt = src.Model.CreatedAt
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
 	dst.Model.DeletedAt = new(time.Time)

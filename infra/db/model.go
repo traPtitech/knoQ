@@ -106,7 +106,6 @@ type Room struct {
 	// TODO:
 	// Events         []Event `gorm:"->; foreignKey:ID"` // readOnly
 	// Events         []Event
-	// 相互からアクセス可能だから名前変えた方がいいかも
 	Events         []EventRoom
 	Admins         []RoomAdmin
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
@@ -177,14 +176,13 @@ type EventAttendee struct {
 	Schedule int
 }
 
-// TODO
+// TODO:
 type EventRoom struct {
 	// 実際のカラムは構造体じゃないやつのみ
 	RoomID        uuid.UUID `gorm:"type:char(36); primaryKey"`
 	EventID       uuid.UUID `gorm:"type:char(36); primaryKey"`
 	AllowTogether bool
 	// このレコードに書いてあるEventIDに対応するEventが消されたらこのレコードが消される
-	// 無限にネストしないように->になってる？
 	Event Event `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
 	Room  Room  `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;"`
 	Model
