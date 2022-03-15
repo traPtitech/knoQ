@@ -49,6 +49,10 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 			dst[i].ID = (*src[i]).ID
 			dst[i].Name = (*src[i]).Name
 			dst[i].Description = (*src[i]).Description
+			dst[i].Rooms = make([]EventRoomRes, len((*src[i]).Rooms))
+			for j := range (*&src[i]).Rooms {
+				dst[i].Rooms[j] = ConvdomainEventRoomToEventRoomRes((*src[i]).Rooms[j])
+			}
 			dst[i].TimeStart = (*src[i]).TimeStart
 			dst[i].TimeEnd = (*src[i]).TimeEnd
 			dst[i].GroupID = ConvdomainGroupTouuidUUID((*src[i]).Group)
@@ -72,6 +76,15 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 	}
 	return
 }
+//fixed
+func ConvdomainEventRoomToEventRoomRes(src domain.EventRoom) (dst EventRoomRes) {
+	dst.RoomID = src.Room.ID
+	dst.Place = src.Room.Place
+	dst.AllowTogether = src.AllowTogether
+	dst.Verified = src.Room.Verified
+	return
+}
+//
 
 func ConvSPdomainGroupToSPGroupRes(src []*domain.Group) (dst []*GroupRes) {
 	dst = make([]*GroupRes, len(src))
@@ -149,9 +162,10 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	dst.Name = src.Name
 	dst.Description = src.Description
 	// fixed
-	dst.Rooms = make([]RoomRes, len(src.Rooms))
+	dst.Rooms = make([]EventRoomDetail, len(src.Rooms))
 	for i := range src.Rooms {
-		dst.Rooms[i] = ConvdomainEventRoomToRoomRes(src.Rooms[i])
+		dst.Rooms[i].AllowTogether = src.Rooms[i].AllowTogether
+		dst.Rooms[i].RoomRes = ConvdomainEventRoomToRoomRes(src.Rooms[i])
 	}
 	//
 	dst.Group = ConvdomainGroupToGroupRes(src.Group)
@@ -228,7 +242,6 @@ func ConvdomainGroupTouuidUUID(src domain.Group) (dst uuid.UUID) {
 func ConvdomainEventRoomToRoomRes(src domain.EventRoom) (dst RoomRes) {
 	dst.ID = src.Room.ID
 	dst.Verified = src.Room.Verified
-	dst.AllowTogether = src.AllowTogether
 	dst.RoomReq.Place = src.Room.Place
 	dst.RoomReq.TimeStart = src.Room.TimeStart
 	dst.RoomReq.TimeEnd = src.Room.TimeEnd
@@ -243,11 +256,10 @@ func ConvdomainEventRoomToRoomRes(src domain.EventRoom) (dst RoomRes) {
 	return
 }
 //
-// TODO: この関数使ってるやつ全部修正したほうがいい
 func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 	dst.ID = src.ID
 	dst.Verified = src.Verified
-	// allowtogetherがdomain.Roomから得られないからこの関数いらなそう
+	// fixed
 	// dst.AllowTogether = src.AllowTogether
 	dst.RoomReq.Place = src.Place
 	dst.RoomReq.TimeStart = src.TimeStart

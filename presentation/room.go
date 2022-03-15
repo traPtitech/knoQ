@@ -36,7 +36,6 @@ type RoomRes struct {
 	ID uuid.UUID `json:"roomId"`
 	// Verifeid indicates if the room has been verified by privileged users.
 	Verified      bool `json:"verified"`
-	AllowTogether bool `json:"sharedRoom"`
 	RoomReq
 	FreeTimes   []StartEndTime `json:"freeTimes" cvt:"-"`
 	SharedTimes []StartEndTime `json:"sharedTimes" cvt:"-"`

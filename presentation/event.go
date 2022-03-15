@@ -51,6 +51,11 @@ type EventRoomRes struct {
 	Verified      bool      `json:"verified"`
 }
 
+type EventRoomDetail struct {
+	AllowTogether bool `json:"sharedRoom"`
+	RoomRes
+}
+
 type EventTagReq struct {
 	Name string `json:"name"`
 }
@@ -65,7 +70,7 @@ type EventDetailRes struct {
 	ID          uuid.UUID          `json:"eventId"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
-	Rooms       []RoomRes          `json:"rooms"`
+	Rooms       []EventRoomDetail  `json:"rooms"`
 	Group       GroupRes           `json:"group"`
 	GroupName   string             `json:"groupName" cvt:"Group"`
 	TimeStart   time.Time          `json:"timeStart"`
@@ -164,9 +169,11 @@ func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationT
 	content += fmt.Sprintf("### [%s](%s/events/%s)", e.Name, origin, e.ID) + "\n"
 	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", e.GroupName, origin, e.Group.ID) + "\n"
 	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
-	// TODO
-	// content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
-	content += "\n"
+	content += fmt.Sprintf("- 場所: %s", e.Rooms[0].Place)
+	for i := 1; i < len(e.Rooms); i++ {
+		content += fmt.Sprintf(", %s", e.Rooms[i].Place)
+	}
+	content += "\n\n"
 
 	if e.TimeStart.After(time.Now()) {
 		content += "以下の方は参加予定の入力をお願いします:pray:" + "\n"
