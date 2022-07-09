@@ -78,6 +78,7 @@ const (
 	OrOp
 	AndOp
 	EqOp
+	Like
 	NeqOp
 	LParen
 	RParen
@@ -96,6 +97,8 @@ func (k tokenKind) String() (s string) {
 		s = "&&"
 	case EqOp:
 		s = "=="
+	case Like:
+		s = "Like"
 	case NeqOp:
 		s = "!="
 	case LParen:
@@ -181,6 +184,10 @@ func advanceToken(b *[]byte) (Token, error) {
 	case bytes.HasPrefix(*b, []byte("!=")):
 		token = Token{NeqOp, ""}
 		*b = (*b)[2:]
+
+	case bytes.HasPrefix(*b, []byte("Like")):
+		token = Token{Like, ""}
+		*b = (*b)[4:]
 
 	case (*b)[0] == '(':
 		token = Token{LParen, ""}
@@ -319,12 +326,13 @@ func ParseCmp(ts *TokenStream) (filter.Expr, error) {
 	attr = tok.Value
 
 	tok = ts.Next()
-	if tok.Kind != EqOp && tok.Kind != NeqOp {
+	if tok.Kind != EqOp && tok.Kind != NeqOp && tok.Kind != Like {
 		return nil, createParseError(tok.Kind, EqOp, NeqOp)
 	}
 	rel = map[tokenKind]filter.Relation{
 		EqOp:  filter.Eq,
 		NeqOp: filter.Neq,
+		Like:  filter.Like,
 	}[tok.Kind]
 
 	tok = ts.Next()
