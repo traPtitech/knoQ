@@ -20,7 +20,7 @@
 ```
 > cd ./development
 > make init
-> docker-compose up -d
+> docker compose up -d
 ```
 
 `http://localhost:6006`に knoQ が起動します。
