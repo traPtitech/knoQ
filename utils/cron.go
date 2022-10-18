@@ -49,6 +49,8 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		}
 		if publicRoomN == 0 {
 			roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
+		} else {
+			roomMessage += "\n"
 		}
 	}
 
