@@ -813,8 +813,8 @@ components:
               userId: *uuid
               schedule: &schedule
                 type: string
-                enum: [pending, absent, attendance]
-                description: pending or absent or attendance
+                enum: [pending, absent, attendance, unconfirmed]
+                description: pending or absent or attendance or unconfirmed
             required:
               - userId
               - schedule

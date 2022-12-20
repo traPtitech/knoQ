@@ -19,6 +19,7 @@ const (
 	Pending ScheduleStatus = iota + 1
 	Attendance
 	Absent
+	Unconfirmed
 )
 
 // EventReqWrite is

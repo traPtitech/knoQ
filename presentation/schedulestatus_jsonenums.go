@@ -9,15 +9,17 @@ import (
 
 var (
 	_ScheduleStatusNameToValue = map[string]ScheduleStatus{
-		"pending":    Pending,
-		"attendance": Attendance,
-		"absent":     Absent,
+		"pending":     Pending,
+		"attendance":  Attendance,
+		"absent":      Absent,
+		"unconfirmed": Unconfirmed,
 	}
 
 	_ScheduleStatusValueToName = map[ScheduleStatus]string{
-		Pending:    "pending",
-		Attendance: "attendance",
-		Absent:     "absent",
+		Pending:     "pending",
+		Attendance:  "attendance",
+		Absent:      "absent",
+		Unconfirmed: "unconfirmed",
 	}
 )
 
@@ -25,9 +27,10 @@ func init() {
 	var v ScheduleStatus
 	if _, ok := interface{}(v).(fmt.Stringer); ok {
 		_ScheduleStatusNameToValue = map[string]ScheduleStatus{
-			interface{}(Pending).(fmt.Stringer).String():    Pending,
-			interface{}(Attendance).(fmt.Stringer).String(): Attendance,
-			interface{}(Absent).(fmt.Stringer).String():     Absent,
+			interface{}(Pending).(fmt.Stringer).String():     Pending,
+			interface{}(Attendance).(fmt.Stringer).String():  Attendance,
+			interface{}(Absent).(fmt.Stringer).String():      Absent,
+			interface{}(Unconfirmed).(fmt.Stringer).String(): Unconfirmed,
 		}
 	}
 }
@@ -41,6 +44,7 @@ func (r ScheduleStatus) MarshalJSON() ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid ScheduleStatus: %d", r)
 	}
+	println("Marshal was called")
 	return json.Marshal(s)
 }
 
@@ -55,5 +59,6 @@ func (r *ScheduleStatus) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("invalid ScheduleStatus %q", s)
 	}
 	*r = v
+	println("Unmarshal was called")
 	return nil
 }
