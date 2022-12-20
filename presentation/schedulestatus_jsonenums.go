@@ -44,7 +44,6 @@ func (r ScheduleStatus) MarshalJSON() ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid ScheduleStatus: %d", r)
 	}
-	println("Marshal was called")
 	return json.Marshal(s)
 }
 
@@ -59,6 +58,5 @@ func (r *ScheduleStatus) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("invalid ScheduleStatus %q", s)
 	}
 	*r = v
-	println("Unmarshal was called")
 	return nil
 }
