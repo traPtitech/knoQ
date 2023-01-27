@@ -20,8 +20,8 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/traPtitech/traQ v1.0.0-rc.2.0.20210303003208-f712c5cb8389
 	go.uber.org/zap v1.24.0
-	golang.org/x/oauth2 v0.0.0-20210113205817-d3ed898aa8a3
-	google.golang.org/api v0.39.0
+	golang.org/x/oauth2 v0.0.0-20221014153046-6fdb5e3db783
+	google.golang.org/api v0.108.0
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/gorm v1.20.12
 )
