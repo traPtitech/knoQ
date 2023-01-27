@@ -13,7 +13,7 @@ jobs:
     name: go mod
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v1
+      - uses: actions/setup-go@v3
         with:
           go-version-file: ./go.mod
       - uses: actions/checkout@v2
@@ -41,7 +41,7 @@ jobs:
           docker-compose up -d traQ-backend traQ-frontend mysql
           cd
 
-      - uses: actions/setup-go@v1
+      - uses: actions/setup-go@v3
         with:
           go-version-file: ./go.mod
       - uses: actions/cache@v1
