@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/carlescere/scheduler v0.0.0-20170109141437-ee74d2f83d82
 	github.com/cheekybits/genny v1.0.0
-	github.com/go-gormigrate/gormigrate/v2 v2.0.2
+	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gorilla/securecookie v1.1.1
@@ -21,8 +21,8 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.4.0
 	google.golang.org/api v0.107.0
-	gorm.io/driver/mysql v1.4.5
-	gorm.io/gorm v1.24.3
+	gorm.io/driver/mysql v1.0.3
+	gorm.io/gorm v1.20.12
 )
 
 require (
