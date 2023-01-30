@@ -1,4 +1,4 @@
-FROM golang:1.15.6-alpine
+FROM golang:1.19.5-alpine
 WORKDIR /srv/knoq
 
 ENV DOCKERIZE_VERSION v0.6.1
@@ -8,7 +8,7 @@ RUN apk add --no-cache openssl \
  && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz
 
 RUN apk add --update --no-cache git \
-  &&  go get -u github.com/pilu/fresh
+  &&  go install github.com/pilu/fresh@latest
 
 COPY go.mod ./
 COPY go.sum ./
