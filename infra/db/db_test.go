@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/traQ/migration"
 	"github.com/traPtitech/traQ/utils/random"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -32,12 +32,18 @@ func TestMain(m *testing.M) {
 		host     = "localhost"
 	)
 
-	dbs := []string{
-		common,
-		ex,
-	}
-	if err := migration.CreateDatabasesIfNotExists("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?charset=utf8mb4&parseTime=true&loc=Local", user, password, host), "knoq-test-", dbs...); err != nil {
+	conn, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?charset=utf8mb4&parseTime=true&loc=Local", user, password, host))
+	if err != nil {
 		panic(err)
+	}
+	defer conn.Close()
+
+	dbs := []string{common, ex}
+	for _, v := range dbs {
+		_, err = conn.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s%s`", "knoq-test-", v))
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	tokenKey = []byte(random.AlphaNumeric(32))
