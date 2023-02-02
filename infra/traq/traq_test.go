@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/traQ/model"
-	traQ "github.com/traPtitech/traQ/router/v3"
 	"github.com/traPtitech/traQ/utils/random"
 	"golang.org/x/oauth2"
 	"gorm.io/driver/mysql"
@@ -67,7 +67,7 @@ WaitServer:
 		panic(err)
 	}
 
-	user := new(traQ.User)
+	user := new(traq.User)
 	err = json.Unmarshal(data, &user)
 	if err != nil {
 		panic(err)
@@ -89,7 +89,7 @@ WaitServer:
 	scopes.Add("read")
 	newToken := &model.OAuth2Token{
 		ID:           uuid.Must(uuid.NewV4()),
-		UserID:       user.ID,
+		UserID:       uuid.Must(uuid.FromString(user.GetId())),
 		AccessToken:  token,
 		RefreshToken: random.SecureAlphaNumeric(36),
 		CreatedAt:    time.Now(),

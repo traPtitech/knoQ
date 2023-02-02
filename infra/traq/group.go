@@ -8,10 +8,10 @@ import (
 	"github.com/gofrs/uuid"
 	"golang.org/x/oauth2"
 
-	traQ "github.com/traPtitech/traQ/router/v3"
+	"github.com/traPtitech/go-traq"
 )
 
-func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*traQ.UserGroup, error) {
+func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*traq.UserGroup, error) {
 	URL := fmt.Sprintf("%s/groups/%s", repo.URL, groupID)
 	req, err := http.NewRequest(http.MethodGet, URL, nil)
 	if err != nil {
@@ -22,12 +22,12 @@ func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*t
 		return nil, err
 	}
 
-	group := new(traQ.UserGroup)
+	group := new(traq.UserGroup)
 	err = json.Unmarshal(data, &group)
 	return group, err
 }
 
-func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traQ.UserGroup, error) {
+func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traq.UserGroup, error) {
 	URL := fmt.Sprintf("%s/groups", repo.URL)
 	req, err := http.NewRequest(http.MethodGet, URL, nil)
 	if err != nil {
@@ -38,7 +38,7 @@ func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traQ.UserGroup
 		return nil, err
 	}
 
-	groups := make([]*traQ.UserGroup, 0)
+	groups := make([]*traq.UserGroup, 0)
 	err = json.Unmarshal(data, &groups)
 	return groups, err
 }
@@ -53,7 +53,18 @@ func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID
 	if err != nil {
 		return nil, err
 	}
-	user := new(traQ.UserDetail)
-	err = json.Unmarshal(data, &user)
-	return user.Groups, err
+	user := new(traq.UserDetail)
+	if err := json.Unmarshal(data, &user); err != nil {
+		return nil, err
+	}
+	groups := make([]uuid.UUID, 0, len(user.Groups))
+	for _, gid := range user.Groups {
+		groupUUID, err := uuid.FromString(gid)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, groupUUID)
+	}
+
+	return groups, err
 }

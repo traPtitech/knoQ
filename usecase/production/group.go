@@ -63,9 +63,6 @@ func (repo *Repository) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) e
 	return repo.GormRepo.DeleteMemberOfGroup(groupID, info.ReqUserID)
 }
 
-//go:generate gotypeconverter -s v3.UserGroup -d domain.Group -o converter.go .
-//go:generate gotypeconverter -s []*v3.UserGroup -d []*domain.Group -o converter.go .
-
 func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*domain.Group, error) {
 	var group domain.Group
 	g, err := repo.GormRepo.GetGroup(groupID)
@@ -85,7 +82,7 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 			if err != nil {
 				return nil, defaultErrorHandling(err)
 			}
-			group = Convv3UserGroupTodomainGroup(*g)
+			group = ConvtraqUserGroupTodomainGroup(*g)
 			group.IsTraQGroup = true
 		} else {
 			return nil, defaultErrorHandling(err)
@@ -111,7 +108,7 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	dg := ConvSPv3UserGroupToSPdomainGroup(tg)
+	dg := ConvSPtraqUserGroupToSPdomainGroup(tg)
 	// add IsTraQGroup
 	for i := range dg {
 		dg[i].IsTraQGroup = true

@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"github.com/gofrs/uuid"
+	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
-	traQ "github.com/traPtitech/traQ/router/v3"
 	"github.com/traPtitech/traQ/utils/random"
 )
 
@@ -31,13 +31,14 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 			continue
 		}
 
+		uid := uuid.Must(uuid.FromString(u.GetId()))
 		user := &db.User{
-			ID:    u.ID,
-			State: u.State,
+			ID:    uid,
+			State: int(u.State),
 			Provider: db.Provider{
-				UserID:  u.ID,
+				UserID:  uid,
 				Issuer:  traQIssuerName,
-				Subject: u.ID.String(),
+				Subject: u.GetId(),
 			},
 		}
 		users = append(users, user)
@@ -60,11 +61,12 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
+	uid := uuid.Must(uuid.FromString(traQUser.GetId()))
 	user := db.User{
-		ID:    traQUser.ID,
+		ID:    uid,
 		State: 1,
 		Token: db.Token{
-			UserID: traQUser.ID,
+			UserID: uid,
 			Oauth2Token: &db.Oauth2Token{
 				AccessToken:  t.AccessToken,
 				TokenType:    t.TokenType,
@@ -73,9 +75,9 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 			},
 		},
 		Provider: db.Provider{
-			UserID:  traQUser.ID,
+			UserID:  uid,
 			Issuer:  traQIssuerName,
-			Subject: traQUser.ID.String(),
+			Subject: traQUser.GetId(),
 		},
 	}
 	_, err = repo.GormRepo.SaveUser(user)
@@ -179,16 +181,16 @@ func (repo *Repository) IsPrevilege(info *domain.ConInfo) bool {
 	return user.Privilege
 }
 
-func traQUserMap(users []*traQ.User) map[uuid.UUID]*traQ.User {
-	userMap := make(map[uuid.UUID]*traQ.User)
+func traQUserMap(users []*traq.User) map[uuid.UUID]*traq.User {
+	userMap := make(map[uuid.UUID]*traq.User)
 	for _, user := range users {
-		userMap[user.ID] = user
+		userMap[uuid.Must(uuid.FromString(user.GetId()))] = user
 	}
 	return userMap
 }
 
-func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*domain.User, error) {
-	if userMeta.ID != userBody.ID {
+func (repo *Repository) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.User, error) {
+	if userMeta.ID != uuid.Must(uuid.FromString(userBody.GetId())) {
 		return nil, errors.New("id does not match")
 	}
 	if userMeta.Provider.Issuer != traQIssuerName {
