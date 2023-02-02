@@ -20,7 +20,7 @@ require (
 	github.com/traPtitech/traQ v1.0.0-rc.2.0.20210303003208-f712c5cb8389
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.4.0
-	google.golang.org/api v0.107.0
+	google.golang.org/api v0.109.0
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/gorm v1.20.12
 )
