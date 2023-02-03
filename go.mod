@@ -22,7 +22,7 @@ require (
 	golang.org/x/oauth2 v0.4.0
 	google.golang.org/api v0.109.0
 	gorm.io/driver/mysql v1.0.3
-	gorm.io/gorm v1.20.12
+	gorm.io/gorm v1.24.4
 )
 
 require (
