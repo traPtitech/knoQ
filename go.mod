@@ -21,8 +21,8 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.4.0
 	google.golang.org/api v0.109.0
-	gorm.io/driver/mysql v1.0.3
-	gorm.io/gorm v1.24.4
+	gorm.io/driver/mysql v1.4.5
+	gorm.io/gorm v1.24.5
 )
 
 require (
