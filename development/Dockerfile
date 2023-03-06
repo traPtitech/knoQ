@@ -1,4 +1,4 @@
-FROM golang:1.20.0-alpine
+FROM golang:1.20.1-alpine
 WORKDIR /srv/knoq
 
 ENV DOCKERIZE_VERSION v0.6.1
