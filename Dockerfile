@@ -1,4 +1,4 @@
-FROM golang:1.20.0-alpine as server-build
+FROM golang:1.20.1-alpine as server-build
 
 WORKDIR /github.com/traPtitech/knoq
 
