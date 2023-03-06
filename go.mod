@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/sessions v1.2.1
 	github.com/jinzhu/copier v0.3.5
 	github.com/jszwec/csvutil v1.8.0
-	github.com/labstack/echo-contrib v0.13.1
+	github.com/labstack/echo-contrib v0.14.1
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/lestrrat-go/ical v0.0.0-20201229070544-61f83f92eaf4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -74,7 +74,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
-	github.com/prometheus/common v0.39.0 // indirect
+	github.com/prometheus/common v0.40.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
 	github.com/spf13/afero v1.9.3 // indirect
