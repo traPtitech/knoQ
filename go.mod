@@ -16,7 +16,7 @@ require (
 	github.com/labstack/echo/v4 v4.10.1
 	github.com/lestrrat-go/ical v0.0.0-20201229070544-61f83f92eaf4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/traPtitech/traQ v1.0.0-rc.2.0.20210303003208-f712c5cb8389
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.5.0
