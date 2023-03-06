@@ -486,6 +486,21 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/icalSecret'
+  /users/{userID}/privileged:
+    parameters:
+      - $ref: '#/components/parameters/userID'
+    patch:
+      tags:
+        - users
+      operationId: grantPrivilege
+      description: 管理者権限を付与したいuserのuserIDをパラメータに入れる. APIを叩く本人が管理者権限を持っている必要がある.
+      responses:
+        '204':
+          $ref: '#/components/responses/Nocontent'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
 
   /tags:
     get:

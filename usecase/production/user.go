@@ -205,6 +205,13 @@ func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*doma
 }
 
 func (repo *Repository) GrantPrivilege(userID uuid.UUID) error {
-	err := repo.GormRepo.GrantPrivilege(userID)
+	user, err := repo.GormRepo.GetUser(userID)
+	if err != nil {
+		return err
+	}
+	if user.Privilege {
+		return errors.New("user has been already privileged")
+	}
+	err = repo.GormRepo.GrantPrivilege(userID)
 	return err
 }

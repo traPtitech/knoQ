@@ -116,15 +116,6 @@ func (repo *GormRepository) GrantPrivilege(userID uuid.UUID) error {
 }
 
 func grantPrivilege(db *gorm.DB, userID uuid.UUID) error {
-	u, err := getUser(db, userID)
-	if err != nil {
-		return err
-	}
-	if u.Privilege {
-		return errors.New("User has been already privileged")
-	}
-	u.Privilege = true
-	err = db.Session(&gorm.Session{FullSaveAssociations: true}).
-		Omit("CreatedAt").Save(u).Error
+	err := db.Model(&User{ID: userID}).Update("privilege", true).Error
 	return err
 }
