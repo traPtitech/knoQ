@@ -203,3 +203,8 @@ func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*doma
 		State:       userMeta.State,
 	}, nil
 }
+
+func (repo *Repository) GrantPrivilege(userID uuid.UUID) error {
+	err := repo.GormRepo.GrantPrivilege(userID)
+	return err
+}

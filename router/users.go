@@ -79,3 +79,16 @@ func (h *Handlers) HandleSyncUser(c echo.Context) error {
 
 	return c.NoContent(http.StatusCreated)
 }
+
+// 権限のあるユーザーがないユーザに権限を付与
+func (h *Handlers) HandleGrantPrivlege(c echo.Context) error {
+	userID, err := getPathUserID(c)
+	if err != nil {
+		return notFound(err)
+	}
+	err = h.Repo.GrantPrivilege(userID)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+	return c.NoContent(http.StatusCreated)
+}

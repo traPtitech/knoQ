@@ -109,3 +109,22 @@ func getAllUsers(db *gorm.DB, onlyActive bool) ([]*User, error) {
 	err := db.Find(&users).Error
 	return users, err
 }
+
+func (repo *GormRepository) GrantPrivilege(userID uuid.UUID) error {
+	err := grantPrivilege(repo.db, userID)
+	return defaultErrorHandling(err)
+}
+
+func grantPrivilege(db *gorm.DB, userID uuid.UUID) error {
+	u, err := getUser(db, userID)
+	if err != nil {
+		return err
+	}
+	if u.Privilege {
+		return errors.New("User has been already privileged")
+	}
+	u.Privilege = true
+	err = db.Session(&gorm.Session{FullSaveAssociations: true}).
+		Omit("CreatedAt").Save(u).Error
+	return err
+}
