@@ -197,8 +197,6 @@ func (repo *Repository) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) b
 	return false
 }
 
-//go:generate gotypeconverter -s v3.UserGroup -d domain.Group -o converter.go .
-
 func createGroupMap(groups []*domain.Group) map[uuid.UUID]*domain.Group {
 	groupMap := make(map[uuid.UUID]*domain.Group)
 	for _, group := range groups {
@@ -206,6 +204,7 @@ func createGroupMap(groups []*domain.Group) map[uuid.UUID]*domain.Group {
 	}
 	return groupMap
 }
+
 func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 	userMap := make(map[uuid.UUID]*domain.User)
 	for _, user := range users {
