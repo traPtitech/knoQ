@@ -24,7 +24,7 @@ updates:
   - package-ecosystem: docker
     directory: "/development/test"
     schedule:
-      interval:  monthly
+      interval: monthly
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
