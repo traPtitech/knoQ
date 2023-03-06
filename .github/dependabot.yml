@@ -3,21 +3,21 @@ updates:
   - package-ecosystem: gomod
     directory: "/"
     schedule:
-      interval: daily
+      interval: monthly
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
   - package-ecosystem: docker
     directory: "/"
     schedule:
-      interval: daily
+      interval: monthly
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
   - package-ecosystem: docker
     directory: "/development"
     schedule:
-      interval: daily
+      interval: monthly
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
