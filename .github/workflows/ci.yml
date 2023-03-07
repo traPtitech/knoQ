@@ -9,8 +9,8 @@ on:
       - "**"
 
 jobs:
-  build:
-    name: Build
+  build-go:
+    name: Build Go
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,6 +20,18 @@ jobs:
           cache: true
       - run: go mod download
       - run: go build -v ./...
+
+  build-docker:
+    name: Build Docker
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login GitHub Registry
+        run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Docker images
+        run: docker compose build traQ-backend traQ-frontend mysql
+        working-directory: ./development/test
 
   test-unit:
     name: Unit Test
@@ -36,21 +48,14 @@ jobs:
   test-repo:
     name: Repository Test
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - build
+      - build-docker
     steps:
       - uses: actions/checkout@v3
-
-      - name: Login GitHub Registry
-        run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
-      - name: Pull images
-        run: docker compose pull traQ-backend traQ-frontend mysql
-        working-directory: ./development/test
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
       - name: build traQ and DB environment
-        run: docker compose up --build -d traQ-backend traQ-frontend mysql
+        run: docker compose up -d traQ-backend traQ-frontend mysql
         working-directory: ./development/test
-
       - uses: actions/setup-go@v3
         with:
           go-version-file: ./go.mod
