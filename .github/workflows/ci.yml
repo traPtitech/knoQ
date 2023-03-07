@@ -42,11 +42,11 @@ jobs:
 
       - name: Login GitHub Registry
         run: docker login docker.pkg.github.com -u traPtitech -p ${{ secrets.GITHUB_TOKEN }}
+      - run: docker compose pull
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
       - name: build traQ and DB environment
-        run: |
-          cd development/test
-          docker-compose up -d traQ-backend traQ-frontend mysql
-          cd
+        run: docker compose up --build -d -f ./development/test/docker-compose.yml traQ-backend traQ-frontend mysql
 
       - uses: actions/setup-go@v3
         with:
