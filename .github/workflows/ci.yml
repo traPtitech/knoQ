@@ -40,7 +40,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: build traQ and DB environment
-        run: docker compose up --build -d -f ./development/test/docker-compose.yml mysql
+        run: docker compose up --build -d mysql
+        working-directory: ./development/test
       - uses: actions/setup-go@v3
         with:
           go-version-file: ./go.mod
