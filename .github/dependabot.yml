@@ -7,6 +7,15 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 10
+    reviewers:
+      - "ras0q"
+
   - package-ecosystem: docker
     directory: "/"
     schedule:
@@ -14,6 +23,7 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
+
   - package-ecosystem: docker
     directory: "/development"
     schedule:
@@ -21,6 +31,7 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
+
   - package-ecosystem: docker
     directory: "/development/test"
     schedule:
