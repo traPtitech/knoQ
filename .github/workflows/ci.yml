@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: ./go.mod
-      - uses: actions/cache@v1
+      - uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
@@ -44,13 +44,13 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version-file: ./go.mod
-      - uses: actions/cache@v1
+      - uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-gomod-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-gomod-
-      - uses: actions/cache@v1
+      - uses: actions/cache@v3
         with:
           path: /tmp/go/cache
           key: ${{ runner.os }}-go-build-${{ github.ref }}-${{ github.sha }}
