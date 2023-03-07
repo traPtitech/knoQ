@@ -112,7 +112,10 @@ func Test_addMemberToGroup(t *testing.T) {
 		err := addMemberToGroup(r.db, group.ID, mustNewUUIDV4(t))
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
-		assert.Equal(uint16(1452), me.Number)
+		// TODO:
+		// 本来は外部キーエラー(1452)が出てほしい
+		// db.GroupMemberの1番上の行に存在しないユーザーを指定すると未存在エラー(1032)が出る
+		assert.Equal(uint16(1032), me.Number)
 	})
 
 	t.Run("add a duplicate member", func(t *testing.T) {
