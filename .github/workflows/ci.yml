@@ -24,7 +24,6 @@ jobs:
   build-docker:
     name: Build Docker
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - uses: actions/checkout@v3
       - name: Login GitHub Registry
@@ -36,7 +35,8 @@ jobs:
   test-unit:
     name: Unit Test
     runs-on: ubuntu-latest
-    needs: build
+    needs:
+      - build-go
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
