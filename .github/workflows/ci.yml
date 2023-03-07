@@ -49,7 +49,7 @@ jobs:
     name: Repository Test
     runs-on: ubuntu-latest
     needs:
-      - build
+      - build-go
       - build-docker
     steps:
       - uses: actions/checkout@v3
