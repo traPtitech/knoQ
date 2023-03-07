@@ -9,7 +9,6 @@ import (
 
 var tables = []interface{}{
 	User{},
-	UserBody{},
 	Token{},
 	Provider{},
 	Group{},
