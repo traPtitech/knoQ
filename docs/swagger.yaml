@@ -497,6 +497,8 @@ paths:
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
+        '400':
+          description: Bad Request
         '403':
           description: Forbidden
         '404':
