@@ -2,6 +2,7 @@ package production
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
@@ -207,11 +208,11 @@ func (repo *Repository) mergeUser(userMeta *db.User, userBody *traQ.User) (*doma
 func (repo *Repository) GrantPrivilege(userID uuid.UUID) error {
 	user, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
-		return err
+		return defaultErrorHandling(err)
 	}
 	if user.Privilege {
-		return errors.New("user has been already privileged")
+		return fmt.Errorf("%w: user has been already privileged", domain.ErrBadRequest)
 	}
 	err = repo.GormRepo.GrantPrivilege(userID)
-	return err
+	return defaultErrorHandling(err)
 }
