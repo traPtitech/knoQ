@@ -17,7 +17,6 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: ./go.mod
-          cache: true
       - run: go mod download
       - run: go build -v ./...
 
@@ -30,7 +29,6 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: ./go.mod
-          cache: true
       - run: go test -v $(go list ./... | grep -v "/infra/")
 
   test-repo:
@@ -45,7 +43,6 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version-file: ./go.mod
-          cache: true
       - name: Run repository tests
         run: |
           go test -v ./infra...
