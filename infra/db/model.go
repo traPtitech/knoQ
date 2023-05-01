@@ -176,14 +176,14 @@ type EventAttendee struct {
 //go:generate gotypeconverter -s []*Event -d []*domain.Event -o converter.go .
 type Event struct {
 	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Name           string    `gorm:"type:varchar(32); not null"`
+	Name           string    `gorm:"type:varchar(32); not null; uniqueIndex:idx_name_time_start_time_end"`
 	Description    string    `gorm:"type:TEXT"`
 	GroupID        uuid.UUID `gorm:"type:char(36); not null; index"`
 	Group          Group     `gorm:"->; foreignKey:GroupID; constraint:-"`
 	RoomID         uuid.UUID `gorm:"type:char(36); not null; index"`
 	Room           Room      `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"`
-	TimeStart      time.Time `gorm:"type:DATETIME; index"`
-	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
+	TimeStart      time.Time `gorm:"type:DATETIME; index; uniqueIndex:idx_name_time_start_time_end"`
+	TimeEnd        time.Time `gorm:"type:DATETIME; index; uniqueIndex:idx_name_time_start_time_end"`
 	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	Admins         []EventAdmin
