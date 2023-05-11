@@ -9,6 +9,5 @@ room
 service.json
 
 /development/
-!/development/fresh.conf
 /web/node_modules
 /web/dist
