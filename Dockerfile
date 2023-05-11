@@ -1,3 +1,7 @@
+# syntax=docker/dockerfile:1
+
+# for production
+
 FROM golang:1.20.4-alpine as server-build
 
 WORKDIR /github.com/traPtitech/knoq

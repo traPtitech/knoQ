@@ -1,3 +1,7 @@
+# syntax=docker/dockerfile:1
+
+# for development (with live reload)
+
 FROM golang:1.20.4-alpine
 WORKDIR /srv/knoq
 
