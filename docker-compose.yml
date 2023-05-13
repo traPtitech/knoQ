@@ -53,7 +53,7 @@ services:
       MYSQL_DATABASE: knoQ
     command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
     volumes:
-      - "./development/mariadb:/var/lib/mysql"
+      - "./_development/mariadb:/var/lib/mysql"
     expose:
       - "3306"
     healthcheck:
@@ -68,7 +68,7 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: knoq_development_phpmyadmin
     volumes:
-      - "./development/phpmyadmin:/sessions"
+      - "./_development/phpmyadmin:/sessions"
     ports:
       - 8000:80
     environment:

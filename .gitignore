@@ -15,5 +15,7 @@ development/test/*
 !development/test/Caddyfile
 !development/test/docker-compose.yml
 
+_development/*
+
 tmp
 node_modules
