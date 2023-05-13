@@ -181,7 +181,7 @@ func (cb *CustomBinder) Bind(i interface{}, c echo.Context) error {
 	if strings.HasPrefix(ctype, "text/csv") {
 
 		buf := new(bytes.Buffer)
-		io.Copy(buf, c.Request().Body)
+		_, _ = io.Copy(buf, c.Request().Body)
 		data := buf.Bytes()
 		if err := csvutil.Unmarshal(data, i); err != nil {
 			return err

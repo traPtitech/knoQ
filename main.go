@@ -72,7 +72,7 @@ func main() {
 	// webhook
 	job := utils.InitPostEventToTraQ(&repo.GormRepo, handler.WebhookSecret,
 		handler.ActivityChannelID, handler.WebhookID, handler.Origin)
-	scheduler.Every().Day().At("08:00").Run(job)
+	_, _ = scheduler.Every().Day().At("08:00").Run(job)
 
 	// サーバースタート
 	go func() {
@@ -80,7 +80,7 @@ func main() {
 			e.Logger.Info("shutting down the server")
 		}
 	}()
-	quit := make(chan os.Signal)
+	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

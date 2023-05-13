@@ -122,10 +122,10 @@ func v7() *gormigrate.Migration {
 				return err
 			}
 
-			db.Migrator().CreateTable(&v7newUser{})
-			db.Migrator().CreateTable(&v7newUserBody{})
-			db.Migrator().CreateTable(&v7newToken{})
-			db.Migrator().CreateTable(&v7newProvider{})
+			_ = db.Migrator().CreateTable(&v7newUser{})
+			_ = db.Migrator().CreateTable(&v7newUserBody{})
+			_ = db.Migrator().CreateTable(&v7newToken{})
+			_ = db.Migrator().CreateTable(&v7newProvider{})
 
 			nus := ConvSPv7currentUserMetaToSPv7newUser(cums)
 			err = db.Create(&nus).Error

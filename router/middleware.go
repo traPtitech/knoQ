@@ -20,9 +20,6 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const requestUserStr string = "Request-User"
-const authScheme string = "Bearer"
-
 func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

@@ -58,3 +58,9 @@ go test ./...
 go install github.com/fuji8/gotypeconverter/cmd/gotypeconverter@v0.1.10
 go generate ./...
 ```
+
+## コードフォーマット
+
+```bash
+golangci-lint run --fix ./...
+```

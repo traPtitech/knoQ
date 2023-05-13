@@ -65,7 +65,8 @@ func (ts *TokenStream) Restore() {
 // Token has two fields: Kind and Value
 // Value is used for holding attributes or UUID
 // UUID Value has a canonical RFC-4122 string representation:
-//     xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+//
+//	xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 type Token struct {
 	Kind  tokenKind
 	Value string
@@ -271,7 +272,7 @@ Loop:
 			if err != nil {
 				return nil, err
 			}
-			expr = &filter.LogicOpExpr{op, lhs, rhs}
+			expr = &filter.LogicOpExpr{LogicOp: op, Lhs: lhs, Rhs: rhs}
 
 		default:
 			break Loop
@@ -333,5 +334,5 @@ func ParseCmp(ts *TokenStream) (filter.Expr, error) {
 	}
 	uid = uuid.Must(uuid.FromString(tok.Value))
 
-	return &filter.CmpExpr{MapSupportedAttributes[attr], rel, uid}, nil
+	return &filter.CmpExpr{Attr: MapSupportedAttributes[attr], Relation: rel, Value: uid}, nil
 }

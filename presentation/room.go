@@ -48,7 +48,7 @@ func ChangeRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (
 	layout := "2006/01/02 15:04"
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	var params domain.WriteRoomParams
-	var err error = nil
+	var err error
 
 	params.Place = src.Location
 	params.TimeStart, err = time.ParseInLocation(layout, src.StartDate+" "+src.StartTime, jst)
