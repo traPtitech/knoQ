@@ -46,19 +46,6 @@ knoQ の全ての機能を動作させるためには、追加の情報が必要
 
 ### テスト
 
-#### テスト環境の構築
-
-テストするために、db(`localhost:3306`), traQ(`localhost:3000`)を起動します。
-
-NOTE: `./development/test`は廃止予定です。
-
-```bash
-cd ./development/test
-docker-compose up -d
-```
-
-#### 実行
-
 ```bash
 go test ./...
 ```
