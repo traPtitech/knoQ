@@ -1,13 +1,14 @@
-version: "2"
+version: "3"
 
 networks:
   default:
 
+
 services:
   knoq:
     build:
-      context: ..
-      dockerfile: development/Dockerfile
+      context: .
+      dockerfile: ./Dockerfile.dev
     container_name: knoq_development_app
     environment:
       TZ: Asia/Tokyo
@@ -26,29 +27,21 @@ services:
       KNOQ_VERSION: ${KNOQ_VERSION:-dev}
       DEVELOPMENT: true
     volumes:
-      - ../main.go:/srv/knoq/main.go
-      - ../logging:/srv/knoq/logging
-      - ../router:/srv/knoq/router
-      - ../utils:/srv/knoq/utils
-      - ../migration:/srv/knoq/migration
-      - ../domain:/srv/knoq/domain
-      - ../infra:/srv/knoq/infra
-      - ../presentation:/srv/knoq/presentation
-      - ../usecase:/srv/knoq/usecase
-      - ../parsing:/srv/knoq/parsing
-      - ./dist:/srv/knoq/web/dist
-      - ./service.json:/srv/knoq/service.json
+      - ./main.go:/srv/knoq/main.go
+      - ./logging:/srv/knoq/logging
+      - ./router:/srv/knoq/router
+      - ./utils:/srv/knoq/utils
+      - ./migration:/srv/knoq/migration
+      - ./domain:/srv/knoq/domain
+      - ./infra:/srv/knoq/infra
+      - ./presentation:/srv/knoq/presentation
+      - ./usecase:/srv/knoq/usecase
+      - ./parsing:/srv/knoq/parsing
     ports:
       - "6006:3000"
-    entrypoint:
-      - dockerize
-      - -timeout
-      - 60s
-      - -wait
-      - tcp://mysql:3306
-    command: fresh -c development/fresh.conf
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - default
 
@@ -58,12 +51,16 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: knoQ
-    # command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
     command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
     volumes:
-      - "./mariadb:/var/lib/mysql"
+      - "./_development/mariadb:/var/lib/mysql"
     expose:
       - "3306"
+    healthcheck:
+      test: mysql --user=root --password=password --execute "SHOW DATABASES;"
+      interval: 1s
+      timeout: 10s
+      retries: 60
     networks:
       - default
 
@@ -71,7 +68,7 @@ services:
     image: phpmyadmin/phpmyadmin
     container_name: knoq_development_phpmyadmin
     volumes:
-      - "./phpmyadmin:/sessions"
+      - "./_development/phpmyadmin:/sessions"
     ports:
       - 8000:80
     environment:
@@ -80,6 +77,7 @@ services:
       - PMA_USER=root
       - PMA_PASSWORD=password
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     networks:
       - default
