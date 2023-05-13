@@ -1,0 +1,83 @@
+version: "3"
+
+networks:
+  default:
+
+
+services:
+  knoq:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.dev
+    container_name: knoq_development_app
+    environment:
+      TZ: Asia/Tokyo
+      MARIADB_USERNAME: root
+      MARIADB_PASSWORD: password
+      MARIADB_HOSTNAME: mysql
+      MARIADB_DATABASE: knoQ
+      ORIGIN: http://localhost:6006
+      SESSION_KEY: ${SESSION_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
+      TRAQ_CALENDARID: ${TRAQ_CALENDARID}
+      CLIENT_ID: ${CLIENT_ID:-aYj6mwyLcpBIrxZZD8jkCzH3Gsdqc9DJqle2}
+      WEBHOOK_ID: ${WEBHOOK_ID}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+      CHANNEL_ID: ${CHANNEL_ID}
+      TOKEN_KEY: ${TOKEN_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
+      KNOQ_VERSION: ${KNOQ_VERSION:-dev}
+      DEVELOPMENT: true
+    volumes:
+      - ./main.go:/srv/knoq/main.go
+      - ./logging:/srv/knoq/logging
+      - ./router:/srv/knoq/router
+      - ./utils:/srv/knoq/utils
+      - ./migration:/srv/knoq/migration
+      - ./domain:/srv/knoq/domain
+      - ./infra:/srv/knoq/infra
+      - ./presentation:/srv/knoq/presentation
+      - ./usecase:/srv/knoq/usecase
+      - ./parsing:/srv/knoq/parsing
+    ports:
+      - "6006:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - default
+
+  mysql:
+    image: mariadb:10.6.4
+    container_name: knoq_development_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: knoQ
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
+    volumes:
+      - "./_development/mariadb:/var/lib/mysql"
+    expose:
+      - "3306"
+    healthcheck:
+      test: mysql --user=root --password=password --execute "SHOW DATABASES;"
+      interval: 1s
+      timeout: 10s
+      retries: 60
+    networks:
+      - default
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: knoq_development_phpmyadmin
+    volumes:
+      - "./_development/phpmyadmin:/sessions"
+    ports:
+      - 8000:80
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - default

@@ -10,21 +10,19 @@
 
 ### 必要要件
 
-- go 1.16
+- go
 - make
 - docker
 - docker-compose
 
 ### サーバーの起動
 
-```
-> cd ./development
-> make init
-> docker compose up -d
+```bash
+docker compose up --build
 ```
 
 `http://localhost:6006`に knoQ が起動します。
-また、`http://localhost:8000`に phpmyadmin が起動します。
+`http://localhost:8000`に phpmyadmin が起動します。
 
 現在、ログインできるのは traP ユーザーのみです。
 
@@ -48,17 +46,21 @@ knoQ の全ての機能を動作させるためには、追加の情報が必要
 
 ### テスト
 
-#### テスト環境の構築
-
-テストするために、db(`localhost:3306`), traQ(`localhost:3000`)を起動します。
-
-```
-> cd ./development/test
-> docker-compose up -d
+```bash
+go test ./...
 ```
 
-#### 実行
+### コード生成
 
+事前に `gotypeconverter` をインストールしてください。
+
+```bash
+go install github.com/fuji8/gotypeconverter/cmd/gotypeconverter@v0.1.10
+go generate ./...
 ```
-> go test ./infra...
+
+## コードフォーマット
+
+```bash
+golangci-lint run --fix ./...
 ```

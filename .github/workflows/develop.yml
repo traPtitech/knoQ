@@ -1,3 +1,5 @@
+name: Release Image (staging)
+
 on:
   push:
     tags:

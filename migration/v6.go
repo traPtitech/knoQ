@@ -5,14 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type v6newRoom struct {
-	Verified bool
-}
-
-func (*v6newRoom) TableName() string {
-	return "rooms"
-}
-
 type v6currentRoom struct {
 	Public bool
 }

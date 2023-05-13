@@ -23,19 +23,3 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
-
-  - package-ecosystem: docker
-    directory: "/development"
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 10
-    reviewers:
-      - "ras0q"
-
-  - package-ecosystem: docker
-    directory: "/development/test"
-    schedule:
-      interval: monthly
-    open-pull-requests-limit: 10
-    reviewers:
-      - "ras0q"

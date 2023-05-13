@@ -1,14 +1,10 @@
-/vendor/
 .git
 .gitignore
 .gitmodules
 .dockerignore
 .DS_Store
+_development
+docs
+tmp
 README.md
-room
-service.json
 
-/development/
-!/development/fresh.conf
-/web/node_modules
-/web/dist

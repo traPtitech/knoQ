@@ -34,7 +34,7 @@ func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
 		sessionID = traQrandom.SecureAlphaNumeric(10)
 		sess.Values["ID"] = sessionID
 		sess.Options = &h.SessionOption
-		sess.Save(c.Request(), c.Response())
+		_ = sess.Save(c.Request(), c.Response())
 	}
 	// cache
 	verifierCache.Set(sessionID, codeVerifier, cache.DefaultExpiration)

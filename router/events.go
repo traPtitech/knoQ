@@ -249,6 +249,6 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 
 	cal := presentation.ICalFormat(events, h.Origin)
 	var buf bytes.Buffer
-	ical.NewEncoder(&buf).Encode(cal)
+	_ = ical.NewEncoder(&buf).Encode(cal)
 	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())
 }
