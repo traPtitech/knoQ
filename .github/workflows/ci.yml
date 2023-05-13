@@ -47,10 +47,6 @@ jobs:
   golangci-lint:
     name: Lint
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
-        with:
-          go-version-file: ./go.mod
       - uses: golangci/golangci-lint-action@v3
