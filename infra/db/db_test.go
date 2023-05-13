@@ -212,14 +212,6 @@ func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *Use
 	return room, user
 }
 
-func mustMakeTag(t *testing.T, repo *GormRepository, name string) *Tag {
-	t.Helper()
-
-	tag, err := createOrGetTag(repo.db, name)
-	require.NoError(t, err)
-	return tag
-}
-
 // mustMakeEvent make event. now ~ now + 1m
 func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Group, *Room, *User) {
 	t.Helper()

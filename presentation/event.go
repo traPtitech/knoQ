@@ -22,6 +22,7 @@ const (
 )
 
 // EventReqWrite is
+//
 //go:generate gotypeconverter -s EventReqWrite -d domain.WriteEventParams -o converter.go .
 type EventReqWrite struct {
 	Name          string      `json:"name"`
@@ -49,6 +50,7 @@ type EventScheduleStatusReq struct {
 }
 
 // EventDetailRes is experimental
+//
 //go:generate gotypeconverter -s domain.Event -d EventDetailRes -o converter.go .
 type EventDetailRes struct {
 	ID            uuid.UUID          `json:"eventId"`
@@ -81,6 +83,7 @@ type EventAttendeeRes struct {
 }
 
 // EventRes is for multiple response
+//
 //go:generate gotypeconverter -s domain.Event -d EventRes -o converter.go .
 //go:generate gotypeconverter -s []*domain.Event -d []EventRes -o converter.go .
 type EventRes struct {
@@ -105,20 +108,20 @@ type EventRes struct {
 func iCalVeventFormat(e *domain.Event, host string) *ical.Event {
 	timeLayout := "20060102T150405Z"
 	vevent := ical.NewEvent()
-	vevent.AddProperty("uid", e.ID.String())
-	vevent.AddProperty("dtstamp", time.Now().UTC().Format(timeLayout))
-	vevent.AddProperty("dtstart", e.TimeStart.UTC().Format(timeLayout))
-	vevent.AddProperty("dtend", e.TimeEnd.UTC().Format(timeLayout))
-	vevent.AddProperty("created", e.CreatedAt.UTC().Format(timeLayout))
-	vevent.AddProperty("last-modified", e.UpdatedAt.UTC().Format(timeLayout))
-	vevent.AddProperty("summary", e.Name)
+	_ = vevent.AddProperty("uid", e.ID.String())
+	_ = vevent.AddProperty("dtstamp", time.Now().UTC().Format(timeLayout))
+	_ = vevent.AddProperty("dtstart", e.TimeStart.UTC().Format(timeLayout))
+	_ = vevent.AddProperty("dtend", e.TimeEnd.UTC().Format(timeLayout))
+	_ = vevent.AddProperty("created", e.CreatedAt.UTC().Format(timeLayout))
+	_ = vevent.AddProperty("last-modified", e.UpdatedAt.UTC().Format(timeLayout))
+	_ = vevent.AddProperty("summary", e.Name)
 	e.Description += "\n\n"
 	e.Description += "-----------------------------------\n"
 	e.Description += "イベント詳細ページ\n"
 	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
-	vevent.AddProperty("description", e.Description)
-	vevent.AddProperty("location", e.Room.Place)
-	vevent.AddProperty("organizer", e.CreatedBy.DisplayName)
+	_ = vevent.AddProperty("description", e.Description)
+	_ = vevent.AddProperty("location", e.Room.Place)
+	_ = vevent.AddProperty("organizer", e.CreatedBy.DisplayName)
 
 	return vevent
 }
@@ -127,18 +130,18 @@ func ICalFormat(events []*domain.Event, host string) *ical.Calendar {
 	c := ical.New()
 	ical.NewEvent()
 	tz := ical.NewTimezone()
-	tz.AddProperty("TZID", "Asia/Tokyo")
+	_ = tz.AddProperty("TZID", "Asia/Tokyo")
 	std := ical.NewStandard()
-	std.AddProperty("TZOFFSETFROM", "+9000")
-	std.AddProperty("TZOFFSETTO", "+9000")
-	std.AddProperty("TZNAME", "JST")
-	std.AddProperty("DTSTART", "19700101T000000")
-	tz.AddEntry(std)
-	c.AddEntry(tz)
+	_ = std.AddProperty("TZOFFSETFROM", "+9000")
+	_ = std.AddProperty("TZOFFSETTO", "+9000")
+	_ = std.AddProperty("TZNAME", "JST")
+	_ = std.AddProperty("DTSTART", "19700101T000000")
+	_ = tz.AddEntry(std)
+	_ = c.AddEntry(tz)
 
 	for _, e := range events {
 		vevent := iCalVeventFormat(e, host)
-		c.AddEntry(vevent)
+		_ = c.AddEntry(vevent)
 	}
 	return c
 }

@@ -67,29 +67,29 @@ var parseCasesSuccess = []struct {
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000",
-		&filter.CmpExpr{filter.AttrUser, filter.Eq, uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+		&filter.CmpExpr{Attr: filter.AttrUser, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 	},
 	{
 		"(((user==123e4567-e89b-12d3-a456-426652340000)))",
-		&filter.CmpExpr{filter.AttrUser, filter.Eq, uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+		&filter.CmpExpr{Attr: filter.AttrUser, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&tag!=123e4567-e89b-12d3-a456-426652340000",
 		&filter.LogicOpExpr{
-			filter.And,
-			&filter.CmpExpr{filter.AttrUser, filter.Eq, uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-			&filter.CmpExpr{filter.AttrTag, filter.Neq, uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			LogicOp: filter.And,
+			Lhs:     &filter.CmpExpr{Attr: filter.AttrUser, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			Rhs:     &filter.CmpExpr{Attr: filter.AttrTag, Relation: filter.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 		},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&(tag!=123e4567-e89b-12d3-a456-426652340000||event==123e4567-e89b-12d3-a456-426652340000)",
 		&filter.LogicOpExpr{
-			filter.And,
-			&filter.CmpExpr{filter.AttrUser, filter.Eq, uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-			&filter.LogicOpExpr{
-				filter.Or,
-				&filter.CmpExpr{filter.AttrTag, filter.Neq, uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-				&filter.CmpExpr{filter.AttrEvent, filter.Eq, uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			LogicOp: filter.And,
+			Lhs:     &filter.CmpExpr{Attr: filter.AttrUser, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			Rhs: &filter.LogicOpExpr{
+				LogicOp: filter.Or,
+				Lhs:     &filter.CmpExpr{Attr: filter.AttrTag, Relation: filter.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+				Rhs:     &filter.CmpExpr{Attr: filter.AttrEvent, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 			},
 		},
 	},

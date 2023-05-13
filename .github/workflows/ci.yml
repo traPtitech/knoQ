@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - "**"
-      - "!main"
+      - '**'
+      - '!main'
     tags-ignore:
-      - "**"
+      - '**'
 
 jobs:
   build:
@@ -43,3 +43,13 @@ jobs:
       - name: Run repository tests
         run: |
           go test -v ./infra...
+
+  golangci-lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: ./go.mod
+      - uses: golangci/golangci-lint-action@v3

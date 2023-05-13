@@ -84,8 +84,7 @@ func newHTTPErrorResponse(err error, code int, options ...option) *echo.HTTPErro
 	}
 	he.Message = er
 	err = fmt.Errorf("%s: %s", er.errorRuntime, err)
-	he.SetInternal(err)
-	return he
+	return he.SetInternal(err)
 }
 
 func badRequest(err error, responses ...option) *echo.HTTPError {
