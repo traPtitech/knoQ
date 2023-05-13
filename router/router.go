@@ -126,6 +126,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			{
 				apiUser.GET("/events", h.HandleGetEventsByUserID)
 				apiUser.GET("/groups", h.HandleGetGroupIDsByUserID)
+				apiUser.PATCH("/privileged", h.HandleGrantPrivlege, previlegeMiddle)
 			}
 		}
 
