@@ -20,6 +20,10 @@ import (
 const (
 	common = "common"
 	ex     = "ex"
+
+	dbUser = "root"
+	dbPass = "password"
+	dbHost = "localhost"
 )
 
 var (
@@ -27,12 +31,6 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	const (
-		user     = "root"
-		password = "password"
-		host     = "localhost"
-	)
-
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		panic(err)
@@ -42,18 +40,10 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	resource, err := pool.Run(
-		"mariadb",
-		"10.7",
-		[]string{
-			"MYSQL_ROOT_PASSWORD=password",
-			"MYSQL_DATABASE=traq",
-		},
-	)
+	resource, err := pool.Run("mariadb", "10.7", []string{fmt.Sprintf("MYSQL_ROOT_PASSWORD=%s", dbPass)})
 	if err != nil {
 		panic(err)
 	}
-
 	defer func() {
 		if err := pool.Purge(resource); err != nil {
 			panic(err)
@@ -62,7 +52,7 @@ func TestMain(m *testing.M) {
 
 	var conn *sql.DB
 	if err := pool.Retry(func() error {
-		conn, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=true&loc=Local", user, password, host, resource.GetPort("3306/tcp")))
+		conn, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=true&loc=Local", dbUser, dbPass, dbHost, resource.GetPort("3306/tcp")))
 		if err != nil {
 			return err
 		}
@@ -83,7 +73,7 @@ func TestMain(m *testing.M) {
 
 	for _, key := range dbs {
 		db, err := gorm.Open(mysql.New(mysql.Config{
-			DSN:                       fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", user, password, host, resource.GetPort("3306/tcp"), "knoq-test-"+key),
+			DSN:                       fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", dbUser, dbPass, dbHost, resource.GetPort("3306/tcp"), "knoq-test-"+key),
 			DefaultStringSize:         256,   // default size for string fields
 			DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
 			DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
