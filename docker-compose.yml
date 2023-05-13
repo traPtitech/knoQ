@@ -3,6 +3,7 @@ version: "3"
 networks:
   default:
 
+
 services:
   knoq:
     build:
@@ -36,8 +37,6 @@ services:
       - ./presentation:/srv/knoq/presentation
       - ./usecase:/srv/knoq/usecase
       - ./parsing:/srv/knoq/parsing
-      - ./development/dist:/srv/knoq/web/dist
-      - ./development/service.json:/srv/knoq/service.json
     ports:
       - "6006:3000"
     depends_on:
