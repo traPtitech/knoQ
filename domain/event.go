@@ -13,6 +13,7 @@ const (
 	Pending ScheduleStatus = iota + 1
 	Attendance
 	Absent
+	Unconfirmed
 )
 
 type Event struct {
