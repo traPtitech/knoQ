@@ -13,12 +13,23 @@ import (
 // roomsにplace,time_start,time_endの複合ユニークインデックスを追加
 
 type v14Room struct {
+	ID        uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Place     string    `gorm:"type:varchar(32); uniqueIndex:idx_place_time_start_time_end"`
+	TimeStart time.Time `gorm:"type:DATETIME; index; uniqueIndex:idx_place_time_start_time_end"`
+	TimeEnd   time.Time `gorm:"type:DATETIME; index; uniqueIndex:idx_place_time_start_time_end"`
+}
+
+type v14UpdateRoom struct {
 	ID1       uuid.UUID
 	Place1    string
 	ID2       uuid.UUID
 	Place2    string
 	TimeStart time.Time
 	TimeEnd   time.Time
+}
+
+func (*v14Room) TableName() string {
+	return "rooms"
 }
 
 func v14() *gormigrate.Migration {
@@ -46,7 +57,7 @@ ORDER BY
 `
 
 			if err := tx.Transaction(func(tx *gorm.DB) error {
-				duplicatedRooms := []v14Room{}
+				duplicatedRooms := []v14UpdateRoom{}
 				if err := tx.Raw(query).Scan(&duplicatedRooms).Error; err != nil {
 					return err
 				}
@@ -79,6 +90,10 @@ ORDER BY
 						Error; err != nil {
 						return err
 					}
+				}
+
+				if err := tx.AutoMigrate(&v14Room{}); err != nil {
+					return err
 				}
 
 				return nil

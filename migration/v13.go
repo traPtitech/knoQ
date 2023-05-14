@@ -13,6 +13,17 @@ import (
 // eventsにname,time_start,time_endの複合ユニークインデックスを追加
 
 type v13Event struct {
+	ID        uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Name      string    `gorm:"type:varchar(32); not null; uniqueIndex:idx_name_time_start_time_end"`
+	TimeStart time.Time `gorm:"type:DATETIME; index; uniqueIndex:idx_name_time_start_time_end"`
+	TimeEnd   time.Time `gorm:"type:DATETIME; index; uniqueIndex:idx_name_time_start_time_end"`
+}
+
+func (*v13Event) TableName() string {
+	return "events"
+}
+
+type v13UpdateEvent struct {
 	ID1       uuid.UUID
 	Name1     string
 	ID2       uuid.UUID
@@ -46,7 +57,7 @@ ORDER BY
 `
 
 			if err := tx.Transaction(func(tx *gorm.DB) error {
-				duplicatedEvents := []v13Event{}
+				duplicatedEvents := []v13UpdateEvent{}
 				if err := tx.Raw(query).Scan(&duplicatedEvents).Error; err != nil {
 					return err
 				}
@@ -79,6 +90,10 @@ ORDER BY
 						Error; err != nil {
 						return err
 					}
+				}
+
+				if err := tx.AutoMigrate(&v13Event{}); err != nil {
+					return err
 				}
 
 				return nil
