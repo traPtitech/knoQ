@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -99,8 +98,7 @@ func TestMain(m *testing.M) {
 		repositories[key] = &repo
 	}
 
-	code := m.Run()
-	os.Exit(code)
+	m.Run()
 }
 
 func assertAndRequire(t *testing.T) (*assert.Assertions, *require.Assertions) {
