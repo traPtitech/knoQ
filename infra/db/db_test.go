@@ -140,7 +140,7 @@ func setupRepoWithUserGroup(t *testing.T, repo string) (*GormRepository, *assert
 func setupRepoWithUserRoom(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Room) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
-	room, user := mustMakeRoom(t, r, "here")
+	room, user := mustMakeRoom(t, r, "here_"+random.AlphaNumeric(10))
 	return r, assert, require, user, room
 }
 

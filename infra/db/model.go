@@ -96,10 +96,10 @@ type RoomAdmin struct {
 //go:generate gotypeconverter -s []*Room -d []*domain.Room -o converter.go .
 type Room struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Place          string    `gorm:"type:varchar(32);"`
+	Place          string    `gorm:"type:varchar(32); uniqueIndex:idx_place_time_start_time_end"`
 	Verified       bool
-	TimeStart      time.Time `gorm:"type:DATETIME; index"`
-	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
+	TimeStart      time.Time `gorm:"type:DATETIME; index; uniqueIndex:idx_place_time_start_time_end"`
+	TimeEnd        time.Time `gorm:"type:DATETIME; index; uniqueIndex:idx_place_time_start_time_end"`
 	Events         []Event   `gorm:"->; constraint:-"` // readOnly
 	Admins         []RoomAdmin
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
