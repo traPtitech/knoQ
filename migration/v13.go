@@ -57,12 +57,13 @@ ORDER BY
 						if err := tx.
 							Table("events").
 							Where(
-								"id = ? AND name = ? AND time_start = ? AND time_end = ?",
-								e.ID2,
+								"name = ? AND time_start = ? AND time_end = ?",
 								fmt.Sprintf("%s (%d)", e.Name2, i),
 								e.TimeStart,
 								e.TimeEnd,
-							).Take(&map[string]any{}).Error; err != nil {
+							).
+							Take(&map[string]any{}).
+							Error; err != nil {
 							if errors.Is(err, gorm.ErrRecordNotFound) {
 								break
 							}
@@ -74,7 +75,8 @@ ORDER BY
 					if err := tx.
 						Table("events").
 						Where("id = ?", e.ID2).
-						Update("name", fmt.Sprintf("%s (%d)", e.Name2, i)).Error; err != nil {
+						Update("name", fmt.Sprintf("%s (%d)", e.Name2, i)).
+						Error; err != nil {
 						return err
 					}
 				}

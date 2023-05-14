@@ -57,8 +57,7 @@ ORDER BY
 						if err := tx.
 							Table("rooms").
 							Where(
-								"id = ? AND place = ? AND time_start = ? AND time_end = ?",
-								r.ID2,
+								"place = ? AND time_start = ? AND time_end = ?",
 								fmt.Sprintf("%s (%d)", r.Place2, i),
 								r.TimeStart,
 								r.TimeEnd,
