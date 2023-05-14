@@ -79,6 +79,17 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
 	event := ConvWriteEventParamsToEvent(params)
 
+	if event.RoomID == uuid.Nil {
+		// 明示的に部屋を作成する
+		// 既存の部屋と時間が重複している場合は既存の部屋を使用する
+		if err := db.
+			Where(&Room{Place: event.Room.Place, TimeStart: event.TimeStart, TimeEnd: event.TimeEnd}).
+			FirstOrCreate(&event.Room).
+			Error; err != nil {
+			return nil, err
+		}
+	}
+
 	err := db.Create(&event).Error
 	return &event, err
 }
