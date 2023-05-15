@@ -30,7 +30,7 @@ func main() {
 
 	gormRepo := db.GormRepository{}
 	err := gormRepo.Setup(os.Getenv("MARIADB_HOSTNAME"), os.Getenv("MARIADB_USERNAME"),
-		os.Getenv("MARIADB_PASSWORD"), os.Getenv("MARIADB_DATABASE"), os.Getenv("TOKEN_KEY"))
+		os.Getenv("MARIADB_PASSWORD"), os.Getenv("MARIADB_DATABASE"), os.Getenv("TOKEN_KEY"), os.Getenv("GORM_LOG_LEVEL"))
 	if err != nil {
 		panic(err)
 	}

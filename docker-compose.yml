@@ -26,6 +26,7 @@ services:
       TOKEN_KEY: ${TOKEN_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
       KNOQ_VERSION: ${KNOQ_VERSION:-dev}
       DEVELOPMENT: true
+      GORM_LOG_LEVEL: info
     volumes:
       - ./main.go:/srv/knoq/main.go
       - ./logging:/srv/knoq/logging
