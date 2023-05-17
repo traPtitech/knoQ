@@ -6,6 +6,7 @@ import (
 	"github.com/traPtitech/knoQ/migration"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // GormRepository implements domain
@@ -15,7 +16,21 @@ type GormRepository struct {
 
 var tokenKey []byte
 
-func (repo *GormRepository) Setup(host, user, password, database, key string) error {
+func (repo *GormRepository) Setup(host, user, password, database, key, logLevel string) error {
+	loglevel := func() logger.LogLevel {
+		switch logLevel {
+		case "slient":
+			return logger.Silent
+		case "error":
+			return logger.Error
+		case "info":
+			return logger.Info
+		case "warn":
+			return logger.Warn
+		default:
+			return logger.Silent
+		}
+	}()
 	if host == "" {
 		host = "mysql"
 	}
@@ -41,7 +56,9 @@ func (repo *GormRepository) Setup(host, user, password, database, key string) er
 		DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
 		DontSupportRenameColumn:   false, // `change` when rename column, rename column not supported before MySQL 8, MariaDB
 		SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
-	}), &gorm.Config{})
+	}), &gorm.Config{
+		Logger: logger.Default.LogMode(loglevel),
+	})
 	if err != nil {
 		return err
 	}
