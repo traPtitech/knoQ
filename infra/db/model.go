@@ -81,7 +81,6 @@ type UserBody struct {
 	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []EventAdmin -d []RoomAdmin -o converter.go .
 type RoomAdmin struct {
 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	RoomID uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -89,10 +88,6 @@ type RoomAdmin struct {
 	Model  `cvt:"-"`
 }
 
-// Room is
-//
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s CreateRoomParams -d Room -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s UpdateRoomParams -d Room -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Room -d domain.Room -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Room -d []*domain.Room -o converter.go .
 type Room struct {
@@ -125,7 +120,6 @@ type GroupAdmin struct {
 
 // Group is user group
 //
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteGroupParams -d Group -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Group -d domain.Group -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Group -d []*domain.Group -o converter.go .
 type Group struct {
@@ -158,6 +152,7 @@ type EventTag struct {
 	Model   `cvt:"->"`
 }
 
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []EventAdmin -d []RoomAdmin -o converter.go .
 type EventAdmin struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -174,7 +169,6 @@ type EventAttendee struct {
 
 // Event is event for gorm
 //
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteEventParams -d Event -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Event -d domain.Event -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Event -d []*domain.Event -o converter.go .
 type Event struct {

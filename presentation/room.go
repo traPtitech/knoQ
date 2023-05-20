@@ -24,6 +24,7 @@ type RoomCSVReq struct {
 	Location  string `csv:"Location"`
 }
 
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []domain.StartEndTime -d []StartEndTime -o converter.go .
 type StartEndTime struct {
 	TimeStart time.Time `json:"timeStart"`
 	TimeEnd   time.Time `json:"timeEnd"`
@@ -31,7 +32,6 @@ type StartEndTime struct {
 
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Room -d RoomRes -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*domain.Room -d []*RoomRes -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []domain.StartEndTime -d []StartEndTime -o converter.go .
 type RoomRes struct {
 	ID uuid.UUID `json:"roomId"`
 	// Verifeid indicates if the room has been verified by privileged users.
