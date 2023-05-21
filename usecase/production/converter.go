@@ -1,5 +1,5 @@
 // FIXME: ↓が動かないので一時的に手動で作成
-// //go:generate gotypeconverter -s []*traq.UserGroup -d []*domain.Group -o converter.go .
+// //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*traq.UserGroup -d []*domain.Group -o converter.go .
 package production
 
 import (

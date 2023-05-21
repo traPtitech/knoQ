@@ -23,7 +23,7 @@ const (
 
 // EventReqWrite is
 //
-//go:generate gotypeconverter -s EventReqWrite -d domain.WriteEventParams -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s EventReqWrite -d domain.WriteEventParams -o converter.go .
 type EventReqWrite struct {
 	Name          string      `json:"name"`
 	Description   string      `json:"description"`
@@ -51,7 +51,7 @@ type EventScheduleStatusReq struct {
 
 // EventDetailRes is experimental
 //
-//go:generate gotypeconverter -s domain.Event -d EventDetailRes -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Event -d EventDetailRes -o converter.go .
 type EventDetailRes struct {
 	ID            uuid.UUID          `json:"eventId"`
 	Name          string             `json:"name"`
@@ -84,8 +84,8 @@ type EventAttendeeRes struct {
 
 // EventRes is for multiple response
 //
-//go:generate gotypeconverter -s domain.Event -d EventRes -o converter.go .
-//go:generate gotypeconverter -s []*domain.Event -d []EventRes -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Event -d EventRes -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*domain.Event -d []EventRes -o converter.go .
 type EventRes struct {
 	ID            uuid.UUID          `json:"eventId"`
 	Name          string             `json:"name"`

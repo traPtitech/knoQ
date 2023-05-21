@@ -14,6 +14,7 @@ func groupFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Members").Preload("Admins").Preload("CreatedBy")
 }
 
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteGroupParams -d Group -o converter.go .
 type WriteGroupParams struct {
 	domain.WriteGroupParams
 	CreatedBy uuid.UUID

@@ -52,10 +52,7 @@ go test ./...
 
 ### コード生成
 
-事前に `gotypeconverter` をインストールしてください。
-
 ```bash
-go install github.com/fuji8/gotypeconverter/cmd/gotypeconverter@v0.1.10
 go generate ./...
 ```
 

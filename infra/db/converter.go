@@ -126,6 +126,7 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
+
 func ConvSEventAdminToSRoomAdmin(src []EventAdmin) (dst []RoomAdmin) {
 	dst = make([]RoomAdmin, len(src))
 	for i := range src {
@@ -200,6 +201,7 @@ func ConvTagTodomainTag(src Tag) (dst domain.Tag) {
 	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
+
 func ConvUpdateRoomParamsToRoom(src UpdateRoomParams) (dst Room) {
 	dst.CreatedByRefer = src.CreatedBy
 	dst.Place = src.WriteRoomParams.Place
@@ -243,6 +245,7 @@ func ConvWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	dst.Open = src.WriteEventParams.Open
 	return
 }
+
 func ConvWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
 	dst.CreatedByRefer = src.CreatedBy
 	dst.Name = src.WriteGroupParams.Name
@@ -426,6 +429,7 @@ func convuuidUUIDToEventAdmin(src uuid.UUID) (dst EventAdmin) {
 	dst.UserID = src
 	return
 }
+
 func convuuidUUIDToGroupAdmin(src uuid.UUID) (dst GroupAdmin) {
 	dst.UserID = src
 	return
@@ -434,6 +438,7 @@ func convuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
 	dst.UserID = src
 	return
 }
+
 func convuuidUUIDToRoomAdmin(src uuid.UUID) (dst RoomAdmin) {
 	dst.UserID = src
 	return

@@ -21,6 +21,7 @@ func eventFullPreload(tx *gorm.DB) *gorm.DB {
 		Preload("CreatedBy")
 }
 
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteEventParams -d Event -o converter.go .
 type WriteEventParams struct {
 	domain.WriteEventParams
 	CreatedBy uuid.UUID
