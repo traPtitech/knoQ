@@ -675,8 +675,6 @@ components:
         - timeStart
         - timeEnd
         - verified
-        - freeTimes
-        - sharedTimes
         - admins
         - createdBy
         - createdAt
