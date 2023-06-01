@@ -20,6 +20,7 @@ require (
 	github.com/traPtitech/go-traq v0.0.0-20220822084224-d405d26bce99
 	github.com/traPtitech/traQ v1.0.0-rc.2.0.20210303003208-f712c5cb8389
 	go.uber.org/zap v1.24.0
+	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	golang.org/x/oauth2 v0.8.0
 	google.golang.org/api v0.122.0
 	gorm.io/driver/mysql v1.5.0
