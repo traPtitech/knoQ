@@ -55,7 +55,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 
 	timeTables := []timeTable{
 		{
-			name:  ":sunny: 朝",
+			name:  ":sunny:",
 			start: setTimeFromString(t, "00:00:00"),
 		},
 		{
@@ -83,7 +83,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 			start:          setTimeFromString(t, "17:30:00"),
 			displayDefault: true,
 		}, {
-			name:  ":crescent_moon: 夜",
+			name:  ":crescent_moon:",
 			start: setTimeFromString(t, "19:10:00"),
 		},
 	}
