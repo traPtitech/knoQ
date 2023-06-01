@@ -45,46 +45,66 @@ func setTimeFromString(t time.Time, str string) time.Time {
 func timeLessThanOrEqual(t1, t2 time.Time) bool {
 	return t1.Before(t2) || t1.Equal(t2)
 }
+
+func makeRoomArrayMapFromData(rooms []*domain.Room, timeTables []timeTable, t time.Time) []map[string]string {
+	roomAvailable := make([]map[string]string, len(timeTables))
+	for i := range roomAvailable {
+		roomAvailable[i] = make(map[string]string)
+	}
+	for _, room := range rooms {
+		if !room.Verified {
+			continue
+		}
+
+		for i, row := range timeTables {
+			var rowNextStart time.Time
+
+			if i != len(timeTables)-1 {
+				rowNextStart = timeTables[i+1].start
+			} else {
+				rowNextStart = setTimeFromString(t, "23:59:59")
+			}
+
+			if timeLessThanOrEqual(room.TimeStart, row.start) { // room.TimeStart <= row.start
+				switch {
+				case timeLessThanOrEqual(rowNextStart, room.TimeEnd): // row.end <= room.TimeEnd
+					roomAvailable[i][room.Place] = ":white_check_mark:"
+
+				case room.TimeEnd.After(row.start): // row.start < room.TimeEnd < row.end
+					roomAvailable[i][room.Place] = fmt.Sprintf(" - %s", room.TimeEnd.Format("15:04"))
+
+				default: // room.TimeEnd == row.start
+					if _, ok := roomAvailable[i][room.Place]; !ok {
+						roomAvailable[i][room.Place] = ":regional_indicator_null:"
+					}
+				}
+			} else { // row.start < room.TimeStart
+				if timeLessThanOrEqual(rowNextStart, room.TimeStart) { // row.end <= room.TimeStart
+					if _, ok := roomAvailable[i][room.Place]; !ok {
+						roomAvailable[i][room.Place] = ":regional_indicator_null:"
+					}
+					continue
+				}
+				// row.start < room.TimeStart < row.end
+
+				if timeLessThanOrEqual(rowNextStart, room.TimeEnd) { // row.end <= room.TimeEnd
+					roomAvailable[i][room.Place] = fmt.Sprintf("%s -", room.TimeStart.Format("15:04"))
+					continue
+				}
+
+				// row.start < room.TimeEnd < row.end
+				roomAvailable[i][room.Place] = fmt.Sprintf("%s - %s", room.TimeStart.Format("15:04"), room.TimeEnd.Format("15:04"))
+			}
+		}
+	}
+	return roomAvailable
+}
+
 func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
 	date := t.In(jst).Format("01/02(Mon)")
 	combined := map[bool]string{
 		true:  "(併用可)",
 		false: "",
-	}
-
-	timeTables := []timeTable{
-		{
-			name:  ":sunny:",
-			start: setTimeFromString(t, "00:00:00"),
-		},
-		{
-			name:           "1-2",
-			start:          setTimeFromString(t, "08:50:00"),
-			displayDefault: true,
-		}, {
-			name:           "3-4",
-			start:          setTimeFromString(t, "10:45:00"),
-			displayDefault: true,
-		}, {
-			name:           "昼",
-			start:          setTimeFromString(t, "12:25:00"),
-			displayDefault: true,
-		}, {
-			name:           "5-6",
-			start:          setTimeFromString(t, "13:45:00"),
-			displayDefault: true,
-		}, {
-			name:           "7-8",
-			start:          setTimeFromString(t, "15:40:00"),
-			displayDefault: true,
-		}, {
-			name:           "9-10",
-			start:          setTimeFromString(t, "17:30:00"),
-			displayDefault: true,
-		}, {
-			name:  ":crescent_moon:",
-			start: setTimeFromString(t, "19:10:00"),
-		},
 	}
 
 	roomMessage := ""
@@ -104,56 +124,41 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		if len(verifiedRoomNames) == 0 {
 			roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
 		} else {
-			roomAvailable := make([]map[string]string, len(timeTables))
-			for i := range roomAvailable {
-				roomAvailable[i] = make(map[string]string)
+			timeTables := []timeTable{
+				{
+					name:  ":sunny:",
+					start: setTimeFromString(t, "00:00:00"),
+				},
+				{
+					name:           "1-2",
+					start:          setTimeFromString(t, "08:50:00"),
+					displayDefault: true,
+				}, {
+					name:           "3-4",
+					start:          setTimeFromString(t, "10:45:00"),
+					displayDefault: true,
+				}, {
+					name:           "昼",
+					start:          setTimeFromString(t, "12:25:00"),
+					displayDefault: true,
+				}, {
+					name:           "5-6",
+					start:          setTimeFromString(t, "13:45:00"),
+					displayDefault: true,
+				}, {
+					name:           "7-8",
+					start:          setTimeFromString(t, "15:40:00"),
+					displayDefault: true,
+				}, {
+					name:           "9-10",
+					start:          setTimeFromString(t, "17:30:00"),
+					displayDefault: true,
+				}, {
+					name:  ":crescent_moon:",
+					start: setTimeFromString(t, "19:10:00"),
+				},
 			}
-			for _, room := range rooms {
-				if !room.Verified {
-					continue
-				}
-
-				for i, row := range timeTables {
-					var rowNextStart time.Time
-
-					if i != len(timeTables)-1 {
-						rowNextStart = timeTables[i+1].start
-					} else {
-						rowNextStart = setTimeFromString(t, "23:59:59")
-					}
-
-					if timeLessThanOrEqual(room.TimeStart, row.start) { // room.TimeStart <= row.start
-						switch {
-						case timeLessThanOrEqual(rowNextStart, room.TimeEnd): // row.end <= room.TimeEnd
-							roomAvailable[i][room.Place] = ":white_check_mark:"
-
-						case room.TimeEnd.After(row.start): // row.start < room.TimeEnd < row.end
-							roomAvailable[i][room.Place] = fmt.Sprintf(" - %s", room.TimeEnd.Format("15:04"))
-
-						default: // room.TimeEnd == row.start
-							if _, ok := roomAvailable[i][room.Place]; !ok {
-								roomAvailable[i][room.Place] = ":regional_indicator_null:"
-							}
-						}
-					} else { // row.start < room.TimeStart
-						if timeLessThanOrEqual(rowNextStart, room.TimeStart) { // row.end <= room.TimeStart
-							if _, ok := roomAvailable[i][room.Place]; !ok {
-								roomAvailable[i][room.Place] = ":regional_indicator_null:"
-							}
-							continue
-						}
-						// row.start < room.TimeStart < row.end
-
-						if timeLessThanOrEqual(rowNextStart, room.TimeEnd) { // row.end <= room.TimeEnd
-							roomAvailable[i][room.Place] = fmt.Sprintf("%s -", room.TimeStart.Format("15:04"))
-							continue
-						}
-
-						// row.start < room.TimeEnd < row.end
-						roomAvailable[i][room.Place] = fmt.Sprintf("%s - %s", room.TimeStart.Format("15:04"), room.TimeEnd.Format("15:04"))
-					}
-				}
-			}
+			roomAvailable := makeRoomArrayMapFromData(rooms, timeTables, t)
 
 			roomMessage = fmt.Sprintf("| time | %s |\n| :---: | %s \n", strings.Join(verifiedRoomNames, " | "), strings.Repeat(" :---: |", len(verifiedRoomNames)))
 			for i, row := range timeTables {
