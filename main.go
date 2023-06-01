@@ -28,6 +28,20 @@ func main() {
 	domain.REVISION = os.Getenv("KNOQ_REVISION")
 	domain.DEVELOPMENT, _ = strconv.ParseBool(os.Getenv("DEVELOPMENT"))
 
+	if os.Getenv("CHANNEL_ID_DAILY") == "" {
+		err := os.Setenv("CHANNEL_ID_DAILY", os.Getenv("CHANNEL_ID"))
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	if os.Getenv("CHANNEL_ID_ACTIVITY") == "" {
+		err := os.Setenv("CHANNEL_ID_ACTIVITY", os.Getenv("CHANNEL_ID"))
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	gormRepo := db.GormRepository{}
 	err := gormRepo.Setup(os.Getenv("MARIADB_HOSTNAME"), os.Getenv("MARIADB_USERNAME"),
 		os.Getenv("MARIADB_PASSWORD"), os.Getenv("MARIADB_DATABASE"), os.Getenv("TOKEN_KEY"), os.Getenv("GORM_LOG_LEVEL"))
@@ -63,7 +77,7 @@ func main() {
 		},
 		WebhookID:         os.Getenv("WEBHOOK_ID"),
 		WebhookSecret:     os.Getenv("WEBHOOK_SECRET"),
-		ActivityChannelID: os.Getenv("CHANNEL_ID"),
+		ActivityChannelID: os.Getenv("CHANNEL_ID_ACTIVITY"),
 		Origin:            os.Getenv("ORIGIN"),
 	}
 
@@ -71,8 +85,12 @@ func main() {
 
 	// webhook
 	job := utils.InitPostEventToTraQ(&repo.GormRepo, handler.WebhookSecret,
-		handler.ActivityChannelID, handler.WebhookID, handler.Origin)
+		os.Getenv("CHANNEL_ID_DAILY"), handler.WebhookID, handler.Origin)
 	_, _ = scheduler.Every().Day().At("08:00").Run(job)
+
+	e.Logger.Info("start")
+
+	job()
 
 	// サーバースタート
 	go func() {
