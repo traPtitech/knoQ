@@ -16,7 +16,7 @@ require (
 	github.com/lestrrat-go/ical v0.0.0-20201229070544-61f83f92eaf4
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	github.com/traPtitech/go-traq v0.0.0-20220822084224-d405d26bce99
 	github.com/traPtitech/traQ v1.0.0-rc.2.0.20210303003208-f712c5cb8389
 	go.uber.org/zap v1.24.0
