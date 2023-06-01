@@ -12,6 +12,14 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+var jst, _ = time.LoadLocation("Asia/Tokyo")
+
+type timeTable struct {
+	name           string
+	start          time.Time
+	displayDefault bool
+}
+
 // InitPostEventToTraQ 現在(job実行)から24時間以内に始まるイベントを取得し、
 // webhookでtraQに送るjobを作成。
 func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, origin string) func() {
@@ -28,14 +36,7 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 	return job
 }
 
-type timeTable struct {
-	name           string
-	start          time.Time
-	displayDefault bool
-}
-
 func setTimeFromString(t time.Time, str string) time.Time {
-	jst, _ := time.LoadLocation("Asia/Tokyo")
 	s, _ := time.Parse(time.TimeOnly, str)
 	return time.Date(t.Year(), t.Month(), t.Day(), s.Hour(), s.Minute(), s.Second(), 0, jst)
 }
@@ -44,9 +45,7 @@ func setTimeFromString(t time.Time, str string) time.Time {
 func timeLessThanOrEqual(t1, t2 time.Time) bool {
 	return t1.Before(t2) || t1.Equal(t2)
 }
-
 func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
-	jst, _ := time.LoadLocation("Asia/Tokyo")
 	date := t.In(jst).Format("01/02(Mon)")
 	combined := map[bool]string{
 		true:  "(併用可)",
