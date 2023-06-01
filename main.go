@@ -78,6 +78,7 @@ func main() {
 		WebhookID:         os.Getenv("WEBHOOK_ID"),
 		WebhookSecret:     os.Getenv("WEBHOOK_SECRET"),
 		ActivityChannelID: os.Getenv("CHANNEL_ID_ACTIVITY"),
+		DailyChannelId:    os.Getenv("CHANNEL_ID_DAILY"),
 		Origin:            os.Getenv("ORIGIN"),
 	}
 
@@ -85,7 +86,7 @@ func main() {
 
 	// webhook
 	job := utils.InitPostEventToTraQ(&repo.GormRepo, handler.WebhookSecret,
-		os.Getenv("CHANNEL_ID_DAILY"), handler.WebhookID, handler.Origin)
+		handler.DailyChannelId, handler.WebhookID, handler.Origin)
 	_, _ = scheduler.Every().Day().At("08:00").Run(job)
 
 	e.Logger.Info("start")
