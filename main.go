@@ -91,8 +91,6 @@ func main() {
 
 	e.Logger.Info("start")
 
-	job()
-
 	// サーバースタート
 	go func() {
 		if err := e.Start(":3000"); err != nil {
