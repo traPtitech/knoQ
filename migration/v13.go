@@ -1,7 +1,6 @@
 package migration
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -65,6 +64,7 @@ ORDER BY
 				for _, e := range duplicatedEvents {
 					i := 1
 					for {
+						var count int64
 						if err := tx.
 							Table("events").
 							Where(
@@ -73,13 +73,15 @@ ORDER BY
 								e.TimeStart,
 								e.TimeEnd,
 							).
-							Take(&map[string]any{}).
+							Count(&count).
 							Error; err != nil {
-							if errors.Is(err, gorm.ErrRecordNotFound) {
-								break
-							}
 							return err
 						}
+
+						if count == 0 {
+							break
+						}
+
 						i++
 					}
 
