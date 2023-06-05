@@ -41,11 +41,6 @@ func setTimeFromString(t time.Time, str string) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), s.Hour(), s.Minute(), s.Second(), 0, jst)
 }
 
-// t1 <= t2
-func timeLessThanOrEqual(t1, t2 time.Time) bool {
-	return t1.Before(t2) || t1.Equal(t2)
-}
-
 func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, t time.Time) []map[string]string {
 	roomAvailable := make([]map[string]string, len(timeTables))
 	for i := range roomAvailable {
