@@ -125,34 +125,44 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 					name:           "1-2",
 					start:          setTimeFromString(t, "08:50:00"),
 					displayDefault: true,
-				}, {
+				},
+				{
 					name:           "3-4",
 					start:          setTimeFromString(t, "10:45:00"),
 					displayDefault: true,
-				}, {
+				},
+				{
 					name:           "昼",
 					start:          setTimeFromString(t, "12:25:00"),
 					displayDefault: true,
-				}, {
+				},
+				{
 					name:           "5-6",
 					start:          setTimeFromString(t, "13:45:00"),
 					displayDefault: true,
-				}, {
+				},
+				{
 					name:           "7-8",
 					start:          setTimeFromString(t, "15:40:00"),
 					displayDefault: true,
-				}, {
+				},
+				{
 					name:           "9-10",
 					start:          setTimeFromString(t, "17:30:00"),
 					displayDefault: true,
-				}, {
+				},
+				{
 					name:  ":crescent_moon:",
 					start: setTimeFromString(t, "19:10:00"),
 				},
 			}
 			roomAvailable := makeRoomAvailableByTimeTable(rooms, timeTables, t)
 
-			roomMessage = fmt.Sprintf("| time | %s |\n| :---: | %s \n", strings.Join(verifiedRoomNames, " | "), strings.Repeat(" :---: |", len(verifiedRoomNames)))
+			roomMessage = fmt.Sprintf(
+				"| time | %s |\n| :---: | %s \n",
+				strings.Join(verifiedRoomNames, " | "),
+				strings.Repeat(" :---: |", len(verifiedRoomNames)),
+			)
 			for i, row := range timeTables {
 				f := row.displayDefault
 				for _, col := range verifiedRoomNames {
