@@ -63,8 +63,8 @@ func main() {
 		},
 		WebhookID:         os.Getenv("WEBHOOK_ID"),
 		WebhookSecret:     os.Getenv("WEBHOOK_SECRET"),
-		ActivityChannelID: os.Getenv("CHANNEL_ID_ACTIVITY"),
-		DailyChannelId:    os.Getenv("CHANNEL_ID_DAILY"),
+		ActivityChannelID: os.Getenv("ACTIVITY_CHANNEL_ID"),
+		DailyChannelId:    os.Getenv("DAILY_CHANNEL_ID"),
 		Origin:            os.Getenv("ORIGIN"),
 	}
 
