@@ -118,8 +118,9 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		} else {
 			timeTables := []timeTable{
 				{
-					name:  ":sunny:",
-					start: setTimeFromString(t, "00:00:00"),
+					name:           ":sunny:",
+					start:          setTimeFromString(t, "00:00:00"),
+					displayDefault: false,
 				},
 				{
 					name:           "1-2",
@@ -152,8 +153,9 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 					displayDefault: true,
 				},
 				{
-					name:  ":crescent_moon:",
-					start: setTimeFromString(t, "19:10:00"),
+					name:           ":crescent_moon:",
+					start:          setTimeFromString(t, "19:10:00"),
+					displayDefault: false,
 				},
 			}
 			roomAvailable := makeRoomAvailableByTimeTable(rooms, timeTables, t)
