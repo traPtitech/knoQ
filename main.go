@@ -75,8 +75,6 @@ func main() {
 		handler.DailyChannelId, handler.WebhookID, handler.Origin)
 	_, _ = scheduler.Every().Day().At("08:00").Run(job)
 
-	e.Logger.Info("start")
-
 	// サーバースタート
 	go func() {
 		if err := e.Start(":3000"); err != nil {
