@@ -41,7 +41,7 @@ func setTimeFromString(t time.Time, str string) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), s.Hour(), s.Minute(), s.Second(), 0, jst)
 }
 
-func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, t time.Time) []map[string]string {
+func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, date time.Time) []map[string]string {
 	roomAvailable := make([]map[string]string, len(timeTables))
 	for i := range roomAvailable {
 		roomAvailable[i] = make(map[string]string)
@@ -53,7 +53,7 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 
 		ts, te := room.TimeStart, room.TimeEnd
 		for i, row := range timeTables {
-			rowNextStart := setTimeFromString(t, "23:59:59")
+			rowNextStart := setTimeFromString(date, "23:59:59")
 			if i < len(timeTables)-1 {
 				rowNextStart = timeTables[i+1].start
 			}
