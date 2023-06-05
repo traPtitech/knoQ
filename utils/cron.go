@@ -164,15 +164,18 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 				strings.Repeat(" :---: |", len(verifiedRoomNames)),
 			)
 			for i, row := range timeTables {
-				f := row.displayDefault
-				for _, col := range verifiedRoomNames {
-					if roomAvailable[i][col] != ":regional_indicator_null:" {
-						f = true
-					}
-				}
 
-				if !f {
-					continue
+				if !row.displayDefault {
+					f := false
+					for _, col := range verifiedRoomNames {
+						if roomAvailable[i][col] != ":regional_indicator_null:" {
+							f = true
+							break
+						}
+					}
+					if !f {
+						continue
+					}
 				}
 
 				roomMessage += fmt.Sprintf("| %s |", row.name)
