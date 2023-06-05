@@ -46,7 +46,7 @@ func timeLessThanOrEqual(t1, t2 time.Time) bool {
 	return t1.Before(t2) || t1.Equal(t2)
 }
 
-func makeRoomArrayMapFromData(rooms []*domain.Room, timeTables []timeTable, t time.Time) []map[string]string {
+func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, t time.Time) []map[string]string {
 	roomAvailable := make([]map[string]string, len(timeTables))
 	for i := range roomAvailable {
 		roomAvailable[i] = make(map[string]string)
@@ -56,44 +56,41 @@ func makeRoomArrayMapFromData(rooms []*domain.Room, timeTables []timeTable, t ti
 			continue
 		}
 
+		ts, te := room.TimeStart, room.TimeEnd
 		for i, row := range timeTables {
-			var rowNextStart time.Time
-
-			if i != len(timeTables)-1 {
+			rowNextStart := setTimeFromString(t, "23:59:59")
+			if i < len(timeTables)-1 {
 				rowNextStart = timeTables[i+1].start
-			} else {
-				rowNextStart = setTimeFromString(t, "23:59:59")
 			}
 
-			if timeLessThanOrEqual(room.TimeStart, row.start) { // room.TimeStart <= row.start
-				switch {
-				case timeLessThanOrEqual(rowNextStart, room.TimeEnd): // row.end <= room.TimeEnd
+			rs := row.start
+			// 進捗部屋使用開始 <= n限開始 < 進捗部屋使用終了
+			if (ts.Before(rs) || ts.Equal(rs)) && rs.Before(te) {
+				if rowNextStart.Before(te) || rowNextStart.Equal(te) {
+					// n限の間全使用
 					roomAvailable[i][room.Place] = ":white_check_mark:"
-
-				case room.TimeEnd.After(row.start): // row.start < room.TimeEnd < row.end
-					roomAvailable[i][room.Place] = fmt.Sprintf(" - %s", room.TimeEnd.Format("15:04"))
-
-				default: // room.TimeEnd == row.start
-					if _, ok := roomAvailable[i][room.Place]; !ok {
-						roomAvailable[i][room.Place] = ":regional_indicator_null:"
-					}
+				} else {
+					// n限の途中で使用終了
+					roomAvailable[i][room.Place] = fmt.Sprintf(" - %s", te.Format("15:04"))
 				}
-			} else { // row.start < room.TimeStart
-				if timeLessThanOrEqual(rowNextStart, room.TimeStart) { // row.end <= room.TimeStart
-					if _, ok := roomAvailable[i][room.Place]; !ok {
-						roomAvailable[i][room.Place] = ":regional_indicator_null:"
-					}
-					continue
-				}
-				// row.start < room.TimeStart < row.end
+				continue
+			}
 
-				if timeLessThanOrEqual(rowNextStart, room.TimeEnd) { // row.end <= room.TimeEnd
-					roomAvailable[i][room.Place] = fmt.Sprintf("%s -", room.TimeStart.Format("15:04"))
-					continue
+			// n限開始 < 進捗部屋使用開始 < n+1限開始
+			if rs.Before(ts) && ts.Before(rowNextStart) {
+				if rowNextStart.Before(te) || rowNextStart.Equal(te) {
+					// n限の途中で使用開始し、n限の間は全使用
+					roomAvailable[i][room.Place] = fmt.Sprintf("%s -", ts.Format("15:04"))
+				} else {
+					// n限の途中で使用開始し、n限の途中で使用終了
+					roomAvailable[i][room.Place] = fmt.Sprintf("%s - %s", ts.Format("15:04"), te.Format("15:04"))
 				}
+				continue
+			}
 
-				// row.start < room.TimeEnd < row.end
-				roomAvailable[i][room.Place] = fmt.Sprintf("%s - %s", room.TimeStart.Format("15:04"), room.TimeEnd.Format("15:04"))
+			// n限の間は進捗部屋を使用しない
+			if _, ok := roomAvailable[i][room.Place]; !ok {
+				roomAvailable[i][room.Place] = ":regional_indicator_null:"
 			}
 		}
 	}
@@ -158,7 +155,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 					start: setTimeFromString(t, "19:10:00"),
 				},
 			}
-			roomAvailable := makeRoomArrayMapFromData(rooms, timeTables, t)
+			roomAvailable := makeRoomAvailableByTimeTable(rooms, timeTables, t)
 
 			roomMessage = fmt.Sprintf("| time | %s |\n| :---: | %s \n", strings.Join(verifiedRoomNames, " | "), strings.Repeat(" :---: |", len(verifiedRoomNames)))
 			for i, row := range timeTables {
