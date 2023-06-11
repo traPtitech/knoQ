@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/traPtitech/traQ/utils/random"
+	"github.com/traPtitech/knoQ/utils/random"
 	"golang.org/x/oauth2"
 )
 
@@ -18,7 +18,7 @@ type GoogleRepository struct {
 //var ClientFile []byte
 
 func (repo *GoogleRepository) GetOAuthURL() (url, state string) {
-	state = random.SecureAlphaNumeric(10)
+	state = random.AlphaNumeric(10, true)
 	url = repo.Config.AuthCodeURL(state)
 	return
 }
