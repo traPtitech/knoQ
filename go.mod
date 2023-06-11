@@ -18,7 +18,6 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.4
 	github.com/traPtitech/go-traq v0.0.0-20220822084224-d405d26bce99
-	github.com/traPtitech/traQ v1.0.0-rc.2.0.20210303003208-f712c5cb8389
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.8.0
 	google.golang.org/api v0.125.0
@@ -53,6 +52,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/lestrrat-go/bufferpool v0.0.0-20210118235918-2deb6a84c94c // indirect
+	github.com/lib/pq v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
