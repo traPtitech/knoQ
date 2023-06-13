@@ -30,8 +30,6 @@ type StartEndTime struct {
 	TimeEnd   time.Time `json:"timeEnd"`
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Room -d RoomRes -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*domain.Room -d []*RoomRes -o converter.go .
 type RoomRes struct {
 	ID uuid.UUID `json:"roomId"`
 	// Verifeid indicates if the room has been verified by privileged users.
@@ -41,6 +39,37 @@ type RoomRes struct {
 	SharedTimes []StartEndTime `json:"sharedTimes" cvt:"-"`
 	CreatedBy   uuid.UUID      `json:"createdBy"`
 	Model
+}
+
+// TODO: FreeTimesとShareTimesを埋めるために手動で書いている
+// //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*domain.Room -d []*RoomRes -o converter.go .
+func ConvSPdomainRoomToSPRoomRes(src []*domain.Room) (dst []*RoomRes) {
+	dst = make([]*RoomRes, len(src))
+	for i := range src {
+		if src[i] != nil {
+			dst[i] = new(RoomRes)
+			(*dst[i]) = ConvdomainRoomToRoomRes((*src[i]))
+		}
+	}
+	return
+}
+
+// //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Room -d RoomRes -o converter.go .
+func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
+	dst.ID = src.ID
+	dst.Verified = src.Verified
+	dst.RoomReq.Place = src.Place
+	dst.RoomReq.TimeStart = src.TimeStart
+	dst.RoomReq.TimeEnd = src.TimeEnd
+	dst.RoomReq.Admins = make([]uuid.UUID, len(src.Admins))
+	for i := range src.Admins {
+		dst.RoomReq.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
+	}
+	dst.CreatedBy = convdomainUserTouuidUUID(src.CreatedBy)
+	dst.FreeTimes = ConvSdomainStartEndTimeToSStartEndTime(src.CalcAvailableTime(false))
+	dst.SharedTimes = ConvSdomainStartEndTimeToSStartEndTime(src.CalcAvailableTime(true))
+	dst.Model = Model(src.Model)
+	return
 }
 
 func ChangeRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (*domain.WriteRoomParams, error) {
