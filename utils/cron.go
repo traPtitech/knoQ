@@ -117,46 +117,14 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 			roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
 		} else {
 			timeTables := []timeTable{
-				{
-					name:           ":sunny:",
-					start:          setTimeFromString(t, "00:00:00"),
-					displayDefault: false,
-				},
-				{
-					name:           "1-2",
-					start:          setTimeFromString(t, "08:50:00"),
-					displayDefault: true,
-				},
-				{
-					name:           "3-4",
-					start:          setTimeFromString(t, "10:45:00"),
-					displayDefault: true,
-				},
-				{
-					name:           "昼",
-					start:          setTimeFromString(t, "12:25:00"),
-					displayDefault: true,
-				},
-				{
-					name:           "5-6",
-					start:          setTimeFromString(t, "13:45:00"),
-					displayDefault: true,
-				},
-				{
-					name:           "7-8",
-					start:          setTimeFromString(t, "15:40:00"),
-					displayDefault: true,
-				},
-				{
-					name:           "9-10",
-					start:          setTimeFromString(t, "17:30:00"),
-					displayDefault: true,
-				},
-				{
-					name:           ":crescent_moon:",
-					start:          setTimeFromString(t, "19:10:00"),
-					displayDefault: false,
-				},
+				{":sunny:", setTimeFromString(t, "00:00:00"), false},
+				{"1-2", setTimeFromString(t, "08:50:00"), true},
+				{"3-4", setTimeFromString(t, "10:45:00"), true},
+				{"昼", setTimeFromString(t, "12:25:00"), true},
+				{"5-6", setTimeFromString(t, "13:45:00"), true},
+				{"7-8", setTimeFromString(t, "15:40:00"), true},
+				{"9-10", setTimeFromString(t, "17:30:00"), true},
+				{":crescent_moon:", setTimeFromString(t, "19:10:00"), false},
 			}
 			roomAvailable := makeRoomAvailableByTimeTable(rooms, timeTables, t)
 
