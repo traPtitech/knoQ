@@ -41,6 +41,7 @@ func setTimeFromString(t time.Time, str string) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), s.Hour(), s.Minute(), s.Second(), 0, jst)
 }
 
+// makeRoomAvailableByTimeTable timeTables の各時間帯を行、rooms の各部屋を列とする表を map 形式で作成する。 unVerified の部屋は無視する。
 func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, date time.Time) []map[string]string {
 	roomAvailable := make([]map[string]string, len(timeTables))
 	for i := range roomAvailable {
@@ -66,7 +67,7 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 					roomAvailable[i][room.Place] = ":white_check_mark:"
 				} else {
 					// n限の途中で使用終了
-					roomAvailable[i][room.Place] = fmt.Sprintf(" - %s", te.Format("15:04"))
+					roomAvailable[i][room.Place] = fmt.Sprintf("- %s", te.Format("15:04"))
 				}
 				continue
 			}
