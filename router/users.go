@@ -37,7 +37,7 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 
-	return c.JSON(http.StatusOK, presentation.ConvSPdomainUserToSUserRes(users))
+	return c.JSON(http.StatusOK, presentation.ConvSPdomainUserToSPUserRes(users))
 }
 
 func (h *Handlers) HandleGetiCal(c echo.Context) error {
