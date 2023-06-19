@@ -17,14 +17,23 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 	}
 
 	if e.RoomID == uuid.Nil {
-		if e.Room.Place != "" {
-			e.Room.Verified = false
-			e.Room.TimeStart = e.TimeStart
-			e.Room.TimeEnd = e.TimeEnd
-			e.Room.CreatedByRefer = e.CreatedByRefer
-			e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
-		} else {
+		if e.Room.Place == "" {
 			return NewValueError(ErrRoomUndefined, "roomID", "place")
+		}
+
+		if err := tx.
+			Where(&Room{Place: e.Room.Place, TimeStart: e.TimeStart, TimeEnd: e.TimeEnd}).
+			First(&e.Room).
+			Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				e.Room.Verified = false
+				e.Room.TimeStart = e.TimeStart
+				e.Room.TimeEnd = e.TimeEnd
+				e.Room.CreatedByRefer = e.CreatedByRefer
+				e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
+			} else {
+				return err
+			}
 		}
 	}
 
