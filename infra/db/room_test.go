@@ -7,7 +7,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/traQ/utils/random"
+	"github.com/traPtitech/knoQ/utils/random"
 )
 
 func Test_createRoom(t *testing.T) {
@@ -18,7 +18,7 @@ func Test_createRoom(t *testing.T) {
 			CreatedBy: user.ID,
 			Verified:  false,
 			WriteRoomParams: domain.WriteRoomParams{
-				Place:     "create room_" + random.AlphaNumeric(10),
+				Place:     "create room_" + random.AlphaNumeric(10, false),
 				TimeStart: time.Now(),
 				TimeEnd:   time.Now().Add(1 * time.Minute),
 				Admins:    []uuid.UUID{user.ID},
@@ -58,7 +58,7 @@ func Test_updateRoom(t *testing.T) {
 		return UpdateRoomParams{
 			CreatedBy: user.ID,
 			WriteRoomParams: domain.WriteRoomParams{
-				Place:     "update room_" + random.AlphaNumeric(10),
+				Place:     "update room_" + random.AlphaNumeric(10, false),
 				TimeStart: time.Now(),
 				TimeEnd:   time.Now().Add(1 * time.Minute),
 				Admins:    []uuid.UUID{user.ID},

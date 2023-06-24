@@ -18,7 +18,7 @@ func Test_createEvent(t *testing.T) {
 		return WriteEventParams{
 			CreatedBy: user.ID,
 			WriteEventParams: domain.WriteEventParams{
-				Name:          "event-" + random.AlphaNumeric(10),
+				Name:          "event-" + random.AlphaNumeric(10, false),
 				GroupID:       mustNewUUIDV4(t),
 				RoomID:        room.ID,
 				TimeStart:     time.Now(),
