@@ -136,11 +136,11 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 			)
 			for i, row := range timeTables {
 
-				toDisplay := slices.ContainsFunc(verifiedRoomNames, func(vr string) bool {
+				forceDisplay := slices.ContainsFunc(verifiedRoomNames, func(vr string) bool {
 					return roomAvailable[i][vr] != ":regional_indicator_null:"
 				})
 
-				if !row.displayDefault && !toDisplay {
+				if !row.displayDefault && !forceDisplay {
 					continue
 				}
 
