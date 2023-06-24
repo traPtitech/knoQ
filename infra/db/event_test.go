@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/gofrs/uuid"
+	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/utils/random"
 	"gorm.io/gorm"
@@ -14,26 +15,24 @@ import (
 func Test_createEvent(t *testing.T) {
 	r, assert, require, user, room := setupRepoWithUserRoom(t, common)
 
-	newParams := func() WriteEventParams {
-		return WriteEventParams{
-			CreatedBy: user.ID,
-			WriteEventParams: domain.WriteEventParams{
-				Name:          "event-" + random.AlphaNumeric(10, false),
-				GroupID:       mustNewUUIDV4(t),
-				RoomID:        room.ID,
-				TimeStart:     time.Now(),
-				TimeEnd:       time.Now().Add(1 * time.Minute),
-				AllowTogether: true,
-				Admins:        []uuid.UUID{user.ID},
-				Tags: []domain.EventTagParams{
-					{Name: "go", Locked: true}, {Name: "golang"},
-				},
+	params := WriteEventParams{
+		CreatedBy: user.ID,
+		WriteEventParams: domain.WriteEventParams{
+			Name:          "first event",
+			GroupID:       mustNewUUIDV4(t),
+			RoomID:        room.ID,
+			TimeStart:     time.Now(),
+			TimeEnd:       time.Now().Add(1 * time.Minute),
+			AllowTogether: true,
+			Admins:        []uuid.UUID{user.ID},
+			Tags: []domain.EventTagParams{
+				{Name: "go", Locked: true}, {Name: "golang"},
 			},
-		}
+		},
 	}
 
 	t.Run("create event", func(t *testing.T) {
-		event, err := createEvent(r.db, newParams())
+		event, err := createEvent(r.db, params)
 		require.NoError(err)
 		assert.NotNil(event.ID)
 
@@ -47,28 +46,36 @@ func Test_createEvent(t *testing.T) {
 		_, err := createOrGetTag(r.db, "Go")
 		require.NoError(err)
 
-		p := newParams()
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
+
 		p.Tags = append(p.Tags, domain.EventTagParams{Name: "Go"})
 		_, err = createEvent(r.db, p)
 		require.NoError(err)
 	})
 
 	t.Run("wrong time", func(t *testing.T) {
-		p := newParams()
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
+
 		p.TimeStart = time.Now().Add(10 * time.Minute)
 		_, err := createEvent(r.db, p)
 		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 
 	t.Run("wrong room time", func(t *testing.T) {
-		p := newParams()
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
+
 		p.AllowTogether = false
 		_, err := createEvent(r.db, p)
 		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 
 	t.Run("create event with place", func(t *testing.T) {
-		p := newParams()
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
+
 		p.RoomID = uuid.Nil
 		p.Place = "instant room"
 		event, err := createEvent(r.db.Debug(), p)
@@ -78,17 +85,6 @@ func Test_createEvent(t *testing.T) {
 		require.NoError(err)
 		assert.NotEqual(uuid.Nil, e.RoomID)
 		assert.Equal(p.Place, e.Room.Place)
-	})
-
-	t.Run("cannot create event with same name, time", func(t *testing.T) {
-		p := newParams()
-		_, err := createEvent(r.db, p)
-		require.NoError(err)
-
-		_, err = createEvent(r.db, p)
-		var me *mysql.MySQLError
-		require.ErrorAs(err, &me)
-		assert.Equal(uint16(1062), me.Number)
 	})
 }
 

@@ -138,7 +138,7 @@ func setupRepoWithUserGroup(t *testing.T, repo string) (*GormRepository, *assert
 func setupRepoWithUserRoom(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Room) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
-	room, user := mustMakeRoom(t, r, "here_"+random.AlphaNumeric(10, false))
+	room, user := mustMakeRoom(t, r, "here")
 	return r, assert, require, user, room
 }
 
@@ -146,7 +146,7 @@ func setupRepoWithUserGroupRoomEvent(t *testing.T, repo string) (*GormRepository
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
 
-	event, group, room, user := mustMakeEvent(t, r, "event-"+random.AlphaNumeric(10, false))
+	event, group, room, user := mustMakeEvent(t, r, "event")
 	return r, assert, require, user, group, room, event
 }
 

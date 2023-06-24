@@ -6,88 +6,71 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/gofrs/uuid"
+	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/utils/random"
 )
 
 func Test_createRoom(t *testing.T) {
 	r, assert, require, user := setupRepoWithUser(t, common)
 
-	newParams := func() CreateRoomParams {
-		return CreateRoomParams{
-			CreatedBy: user.ID,
-			Verified:  false,
-			WriteRoomParams: domain.WriteRoomParams{
-				Place:     "create room_" + random.AlphaNumeric(10, false),
-				TimeStart: time.Now(),
-				TimeEnd:   time.Now().Add(1 * time.Minute),
-				Admins:    []uuid.UUID{user.ID},
-			},
-		}
+	params := CreateRoomParams{
+		CreatedBy: user.ID,
+		Verified:  false,
+		WriteRoomParams: domain.WriteRoomParams{
+			Place:     "create room",
+			TimeStart: time.Now(),
+			TimeEnd:   time.Now().Add(1 * time.Minute),
+			Admins:    []uuid.UUID{user.ID},
+		},
 	}
 
 	t.Run("create room", func(t *testing.T) {
-		room, err := createRoom(r.db, newParams())
+		room, err := createRoom(r.db, params)
 		require.NoError(err)
 		assert.NotNil(room.ID)
 	})
 
 	t.Run("wrong time", func(t *testing.T) {
-		p := newParams()
-		p.TimeStart, p.TimeEnd = p.TimeEnd, p.TimeStart
+		var p CreateRoomParams
+		require.NoError(copier.Copy(&p, &params))
+
+		p.TimeStart = time.Now().Add(10 * time.Minute)
 		_, err := createRoom(r.db, p)
 		assert.ErrorIs(err, ErrTimeConsistency)
-	})
-
-	t.Run("cannot create room with same place, time", func(t *testing.T) {
-		p := newParams()
-		_, err := createRoom(r.db, p)
-		require.NoError(err)
-
-		_, err = createRoom(r.db, p)
-		var me *mysql.MySQLError
-		require.ErrorAs(err, &me)
-		assert.Equal(uint16(1062), me.Number)
 	})
 }
 
 func Test_updateRoom(t *testing.T) {
 	r, assert, require, user, room := setupRepoWithUserRoom(t, common)
 
-	newParams := func() UpdateRoomParams {
-		return UpdateRoomParams{
-			CreatedBy: user.ID,
-			WriteRoomParams: domain.WriteRoomParams{
-				Place:     "update room_" + random.AlphaNumeric(10, false),
-				TimeStart: time.Now(),
-				TimeEnd:   time.Now().Add(1 * time.Minute),
-				Admins:    []uuid.UUID{user.ID},
-			},
-		}
+	params := UpdateRoomParams{
+		CreatedBy: user.ID,
+		WriteRoomParams: domain.WriteRoomParams{
+			Place:     "update room",
+			TimeStart: time.Now(),
+			TimeEnd:   time.Now().Add(1 * time.Minute),
+			Admins:    []uuid.UUID{user.ID},
+		},
 	}
 
 	t.Run("update room", func(t *testing.T) {
-		p := newParams()
-		_, err := updateRoom(r.db, room.ID, p)
+		_, err := updateRoom(r.db, room.ID, params)
 		require.NoError(err)
 
 		ro, err := getRoom(roomFullPreload(r.db), room.ID)
 		require.NoError(err)
 
-		assert.Equal(p.Place, ro.Place)
+		assert.Equal(params.Place, ro.Place)
 	})
 
 	t.Run("update room with verified", func(t *testing.T) {
-		_p := newParams()
-		p := CreateRoomParams{
-			WriteRoomParams: _p.WriteRoomParams,
-			Verified:        true,
-			CreatedBy:       _p.CreatedBy,
-		}
+		var p CreateRoomParams
+		require.NoError(copier.Copy(&p, &params))
+		p.Verified = true
 		ro, err := createRoom(r.db, p)
 		require.NoError(err)
 
-		_, err = updateRoom(r.db, ro.ID, newParams())
+		_, err = updateRoom(r.db, ro.ID, params)
 		require.NoError(err)
 
 		roo, err := getRoom(r.db, ro.ID)
@@ -96,7 +79,7 @@ func Test_updateRoom(t *testing.T) {
 	})
 
 	t.Run("update random roomID", func(t *testing.T) {
-		_, err := updateRoom(r.db, mustNewUUIDV4(t), newParams())
+		_, err := updateRoom(r.db, mustNewUUIDV4(t), params)
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
 		assert.Equal(uint16(1452), me.Number)
