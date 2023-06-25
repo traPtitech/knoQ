@@ -105,34 +105,6 @@ func ConvSdomainStartEndTimeToSStartEndTime(src []domain.StartEndTime) (dst []St
 	}
 	return
 }
-func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
-	dst.ID = src.ID
-	dst.Name = src.Name
-	dst.Description = src.Description
-	dst.Room = convdomainRoomToRoomRes(src.Room)
-	dst.Group = convdomainGroupToGroupRes(src.Group)
-	dst.Place = src.Room.Place
-	dst.GroupName = src.Group.Name
-	dst.TimeStart = src.TimeStart
-	dst.TimeEnd = src.TimeEnd
-	dst.CreatedBy = convdomainUserTouuidUUID(src.CreatedBy)
-	dst.Admins = make([]uuid.UUID, len(src.Admins))
-	for i := range src.Admins {
-		dst.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
-	}
-	dst.Tags = make([]EventTagRes, len(src.Tags))
-	for i := range src.Tags {
-		dst.Tags[i] = convdomainEventTagToEventTagRes(src.Tags[i])
-	}
-	dst.AllowTogether = src.AllowTogether
-	dst.Open = src.Open
-	dst.Attendees = make([]EventAttendeeRes, len(src.Attendees))
-	for i := range src.Attendees {
-		dst.Attendees[i] = convdomainAttendeeToEventAttendeeRes(src.Attendees[i])
-	}
-	dst.Model = Model(src.Model)
-	return
-}
 
 func ConvdomainEventToEventRes(src domain.Event) (dst EventRes) {
 	dst.ID = src.ID
