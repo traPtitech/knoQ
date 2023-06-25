@@ -8,7 +8,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/traQ/utils/random"
+	"github.com/traPtitech/knoQ/utils/random"
 	"gorm.io/gorm"
 )
 
@@ -195,12 +195,12 @@ func Test_deleteEventTag(t *testing.T) {
 		err = deleteEventTag(r.db, mustNewUUIDV4(t), "gin2", false)
 		assert.NoError(err)
 
-		err = deleteEventTag(r.db, mustNewUUIDV4(t), random.AlphaNumeric(8), false)
+		err = deleteEventTag(r.db, mustNewUUIDV4(t), random.AlphaNumeric(8, false), false)
 		assert.ErrorIs(err, gorm.ErrRecordNotFound)
 	})
 
 	t.Run("delete non-tag", func(t *testing.T) {
-		err := deleteEventTag(r.db, event.ID, random.AlphaNumeric(8), false)
+		err := deleteEventTag(r.db, event.ID, random.AlphaNumeric(8, false), false)
 		assert.ErrorIs(err, gorm.ErrRecordNotFound)
 	})
 }

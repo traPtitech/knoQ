@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/traQ/utils/random"
+	"github.com/traPtitech/knoQ/utils/random"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -68,7 +68,7 @@ func TestMain(m *testing.M) {
 		}
 	}
 
-	tokenKey = []byte(random.AlphaNumeric(32))
+	tokenKey = []byte(random.AlphaNumeric(32, false))
 
 	for _, key := range dbs {
 		db, err := gorm.Open(mysql.New(mysql.Config{
@@ -131,7 +131,7 @@ func setupRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Asse
 func setupRepoWithUserGroup(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Group) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
-	group, user := mustMakeGroup(t, r, random.AlphaNumeric(10))
+	group, user := mustMakeGroup(t, r, random.AlphaNumeric(10, false))
 	return r, assert, require, user, group
 }
 
@@ -213,8 +213,8 @@ func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *Use
 // mustMakeEvent make event. now ~ now + 1m
 func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Group, *Room, *User) {
 	t.Helper()
-	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10))
-	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10))
+	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10, false))
+	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10, false))
 
 	params := WriteEventParams{
 		WriteEventParams: domain.WriteEventParams{

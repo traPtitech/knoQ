@@ -7,7 +7,7 @@ import (
 	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
-	"github.com/traPtitech/traQ/utils/random"
+	"github.com/traPtitech/knoQ/utils/random"
 )
 
 const traQIssuerName = "traQ"
@@ -154,7 +154,7 @@ func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, info *domai
 }
 
 func (repo *Repository) ReNewMyiCalSecret(info *domain.ConInfo) (secret string, err error) {
-	secret = random.SecureAlphaNumeric(16)
+	secret = random.AlphaNumeric(16, true)
 	err = repo.GormRepo.UpdateiCalSecret(info.ReqUserID, secret)
 	return
 }
