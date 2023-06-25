@@ -28,6 +28,7 @@ type Handlers struct {
 	WebhookID         string
 	WebhookSecret     string
 	ActivityChannelID string
+	DailyChannelId    string
 	Origin            string
 }
 
