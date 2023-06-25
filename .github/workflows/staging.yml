@@ -2,8 +2,8 @@ name: Release Image (staging)
 
 on:
   push:
-    tags:
-      - v*-pre[0-9]+
+    branches:
+      - main
 
 env:
   IMAGE_NAME: knoq
@@ -38,4 +38,4 @@ jobs:
             KNOQ_VERSION=${{ env.KNOQ_VERSION }}
             KNOQ_REVISION=${{ env.KNOQ_REVISION }}
           tags: |
-            ghcr.io/traptitech/${{ env.IMAGE_NAME }}:beta
+            ghcr.io/traptitech/${{ env.IMAGE_NAME }}:main
