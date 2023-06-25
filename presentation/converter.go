@@ -198,21 +198,6 @@ func convdomainGroupTouuidUUID(src domain.Group) (dst uuid.UUID) {
 	dst = src.ID
 	return
 }
-func convdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
-	dst.ID = src.ID
-	dst.Verified = src.Verified
-	dst.RoomReq.Place = src.Place
-	dst.RoomReq.TimeStart = src.TimeStart
-	dst.RoomReq.TimeEnd = src.TimeEnd
-	dst.RoomReq.Admins = make([]uuid.UUID, len(src.Admins))
-	for i := range src.Admins {
-		dst.RoomReq.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
-	}
-	dst.CreatedBy = convdomainUserTouuidUUID(src.CreatedBy)
-	dst.Model = Model(src.Model)
-	return
-}
-
 func convdomainRoomTouuidUUID(src domain.Room) (dst uuid.UUID) {
 	dst = src.ID
 	return
