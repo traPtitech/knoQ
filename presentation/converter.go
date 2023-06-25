@@ -238,6 +238,8 @@ func convdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 		dst.RoomReq.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
 	}
 	dst.CreatedBy = convdomainUserTouuidUUID(src.CreatedBy)
+	dst.FreeTimes = ConvSdomainStartEndTimeToSStartEndTime(src.CalcAvailableTime(false))
+	dst.SharedTimes = ConvSdomainStartEndTimeToSStartEndTime(src.CalcAvailableTime(true))
 	dst.Model = Model(src.Model)
 	return
 }
