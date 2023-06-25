@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - '**'
-      - '!main'
+      - main
     tags-ignore:
-      - '**'
+      - "**"
+  pull_request:
 
 jobs:
   build:
@@ -53,5 +53,5 @@ jobs:
       - uses: golangci/golangci-lint-action@v3
         with:
           version: latest
-          args: '--timeout=5m'
+          args: "--timeout=5m"
           install-mode: goinstall
