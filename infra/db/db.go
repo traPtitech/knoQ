@@ -1,8 +1,7 @@
 package db
 
 import (
-	"fmt"
-
+	gomysql "github.com/go-sql-driver/mysql"
 	"github.com/traPtitech/knoQ/migration"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -16,7 +15,7 @@ type GormRepository struct {
 
 var tokenKey []byte
 
-func (repo *GormRepository) Setup(host, user, password, database, key, logLevel string) error {
+func (repo *GormRepository) Setup(host, user, password, database, port, key, logLevel string) error {
 	loglevel := func() logger.LogLevel {
 		switch logLevel {
 		case "slient":
@@ -31,18 +30,6 @@ func (repo *GormRepository) Setup(host, user, password, database, key, logLevel 
 			return logger.Silent
 		}
 	}()
-	if host == "" {
-		host = "mysql"
-	}
-	if user == "" {
-		user = "root"
-	}
-	if password == "" {
-		password = "password"
-	}
-	if database == "" {
-		database = "knoQ"
-	}
 	if len(key) != 32 {
 		panic("token key is not 32 words")
 	}
@@ -50,7 +37,15 @@ func (repo *GormRepository) Setup(host, user, password, database, key, logLevel 
 
 	var err error
 	repo.db, err = gorm.Open(mysql.New(mysql.Config{
-		DSN:                       fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=true&loc=Local", user, password, host, database),
+		DSNConfig: &gomysql.Config{
+			User:                 user,
+			Passwd:               password,
+			Net:                  "tcp",
+			Addr:                 host + ":" + port,
+			DBName:               database,
+			AllowNativePasswords: true,
+			ParseTime:            true,
+		},
 		DefaultStringSize:         256,   // default size for string fields
 		DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
 		DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB

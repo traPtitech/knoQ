@@ -51,7 +51,7 @@ func main() {
 	domain.DEVELOPMENT, _ = strconv.ParseBool(development)
 
 	gormRepo := db.GormRepository{}
-	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, tokenKey, gormLogLevel)
+	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel)
 	if err != nil {
 		panic(err)
 	}
