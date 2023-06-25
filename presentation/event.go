@@ -51,7 +51,7 @@ type EventScheduleStatusReq struct {
 
 // EventDetailRes is experimental
 //
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Event -d EventDetailRes -o converter.go .
+// //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Event -d EventDetailRes -o converter.go .
 type EventDetailRes struct {
 	ID            uuid.UUID          `json:"eventId"`
 	Name          string             `json:"name"`
