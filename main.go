@@ -22,22 +22,43 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	version     = getenv("KNOQ_VERSION", "unknown")
+	revision    = getenv("KNOQ_REVISION", "unknown")
+	development = getenv("DEVELOPMENT", "false")
+
+	mariadbHost     = getenv("MARIADB_HOSTNAME", "mysql")
+	mariadbUser     = getenv("MARIADB_USERNAME", "root")
+	mariadbPassword = getenv("MARIADB_PASSWORD", "password")
+	mariadbDatabase = getenv("MARIADB_DATABASE", "knoQ")
+	mariadbPort     = getenv("MARIADB_PORT", "3306")
+	tokenKey        = getenv("TOKEN_KEY", "random32wordsXXXXXXXXXXXXXXXXXXX")
+	gormLogLevel    = getenv("GORM_LOG_LEVEL", "silent")
+
+	clientID          = getenv("CLIENT_ID", "client_id")
+	origin            = getenv("ORIGIN", "http://localhost:3000")
+	sessionKey        = getenv("SESSION_KEY", "random32wordsXXXXXXXXXXXXXXXXXXX")
+	webhookID         = getenv("WEBHOOK_ID", "")
+	webhookSecret     = getenv("WEBHOOK_SECRET", "")
+	activityChannelID = getenv("ACTIVITY_CHANNEL_ID", "")
+	dailyChannelID    = getenv("DAILY_CHANNEL_ID", "")
+)
+
 func main() {
 	logger, _ := zap.NewDevelopment()
-	domain.VERSION = os.Getenv("KNOQ_VERSION")
-	domain.REVISION = os.Getenv("KNOQ_REVISION")
-	domain.DEVELOPMENT, _ = strconv.ParseBool(os.Getenv("DEVELOPMENT"))
+	domain.VERSION = version
+	domain.REVISION = revision
+	domain.DEVELOPMENT, _ = strconv.ParseBool(development)
 
 	gormRepo := db.GormRepository{}
-	err := gormRepo.Setup(os.Getenv("MARIADB_HOSTNAME"), os.Getenv("MARIADB_USERNAME"),
-		os.Getenv("MARIADB_PASSWORD"), os.Getenv("MARIADB_DATABASE"), os.Getenv("TOKEN_KEY"), os.Getenv("GORM_LOG_LEVEL"))
+	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, tokenKey, gormLogLevel)
 	if err != nil {
 		panic(err)
 	}
 	traqRepo := traq.TraQRepository{
 		Config: &oauth2.Config{
-			ClientID:    os.Getenv("CLIENT_ID"),
-			RedirectURL: os.Getenv("ORIGIN") + "/api/callback",
+			ClientID:    clientID,
+			RedirectURL: origin + "/api/callback",
 			Scopes:      []string{"read"},
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://q.trap.jp/api/v3/oauth2/authorize",
@@ -53,19 +74,19 @@ func main() {
 	handler := &router.Handlers{
 		Repo:       repo,
 		Logger:     logger,
-		SessionKey: []byte(os.Getenv("SESSION_KEY")),
-		ClientID:   os.Getenv("CLIENT_ID"),
+		SessionKey: []byte(sessionKey),
+		ClientID:   clientID,
 		SessionOption: sessions.Options{
 			Path:     "/",
 			MaxAge:   86400 * 30,
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		},
-		WebhookID:         os.Getenv("WEBHOOK_ID"),
-		WebhookSecret:     os.Getenv("WEBHOOK_SECRET"),
-		ActivityChannelID: os.Getenv("ACTIVITY_CHANNEL_ID"),
-		DailyChannelId:    os.Getenv("DAILY_CHANNEL_ID"),
-		Origin:            os.Getenv("ORIGIN"),
+		WebhookID:         webhookID,
+		WebhookSecret:     webhookSecret,
+		ActivityChannelID: activityChannelID,
+		DailyChannelId:    dailyChannelID,
+		Origin:            origin,
 	}
 
 	e := handler.SetupRoute()
@@ -89,4 +110,11 @@ func main() {
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)
 	}
+}
+
+func getenv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }
