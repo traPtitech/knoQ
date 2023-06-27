@@ -42,6 +42,8 @@ var (
 	webhookSecret     = getenv("WEBHOOK_SECRET", "")
 	activityChannelID = getenv("ACTIVITY_CHANNEL_ID", "")
 	dailyChannelID    = getenv("DAILY_CHANNEL_ID", "")
+
+	jst, _ = time.LoadLocation("Asia/Tokyo")
 )
 
 func main() {
@@ -51,7 +53,7 @@ func main() {
 	domain.DEVELOPMENT, _ = strconv.ParseBool(development)
 
 	gormRepo := db.GormRepository{}
-	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel)
+	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, jst)
 	if err != nil {
 		panic(err)
 	}
