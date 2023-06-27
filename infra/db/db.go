@@ -1,6 +1,8 @@
 package db
 
 import (
+	"time"
+
 	gomysql "github.com/go-sql-driver/mysql"
 	"github.com/traPtitech/knoQ/migration"
 	"gorm.io/driver/mysql"
@@ -15,7 +17,7 @@ type GormRepository struct {
 
 var tokenKey []byte
 
-func (repo *GormRepository) Setup(host, user, password, database, port, key, logLevel string) error {
+func (repo *GormRepository) Setup(host, user, password, database, port, key, logLevel string, loc *time.Location) error {
 	loglevel := func() logger.LogLevel {
 		switch logLevel {
 		case "slient":
@@ -43,6 +45,7 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 			Net:                  "tcp",
 			Addr:                 host + ":" + port,
 			DBName:               database,
+			Loc:                  loc,
 			AllowNativePasswords: true,
 			ParseTime:            true,
 		},
