@@ -1,8 +1,6 @@
 package production
 
 import (
-	"time"
-
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
@@ -134,10 +132,6 @@ func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain
 	}
 	if !repo.IsGroupMember(info.ReqUserID, event.Group.ID, info) && !event.Open {
 		return domain.ErrForbidden
-	}
-	now := time.Now()
-	if event.TimeStart.Before(now) {
-		return domain.ErrTimeHasPassed
 	}
 
 	err = repo.GormRepo.UpsertEventSchedule(eventID, info.ReqUserID, schedule)
