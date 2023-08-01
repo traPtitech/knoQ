@@ -2,7 +2,7 @@
 
 # for production
 
-FROM golang:1.20.5-alpine as server-build
+FROM golang:1-alpine as server-build
 
 WORKDIR /github.com/traPtitech/knoq
 
@@ -13,7 +13,7 @@ COPY ./ ./
 
 RUN go build -o knoq
 
-FROM alpine:3.18.2
+FROM alpine:latest
 
 WORKDIR /app
 
