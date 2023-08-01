@@ -2,7 +2,7 @@
 
 # for development (with live reload)
 
-FROM golang:1.20.5-alpine
+FROM golang:1.20.6-alpine
 WORKDIR /srv/knoq
 
 COPY go.mod ./

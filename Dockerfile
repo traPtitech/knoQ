@@ -2,7 +2,7 @@
 
 # for production
 
-FROM golang:1.20.5-alpine as server-build
+FROM golang:1.20.6-alpine as server-build
 
 WORKDIR /github.com/traPtitech/knoq
 
