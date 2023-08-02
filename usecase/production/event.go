@@ -260,3 +260,17 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filte
 	}
 	return fixExpr(expr)
 }
+
+func (repo *Repository) GetAtendeeMap(events []*domain.Event, info *domain.ConInfo) (map[uuid.UUID]*domain.User, error) {
+	userMap := make(map[uuid.UUID]*domain.User)
+	for _, event := range events {
+		for _, attendee := range event.Attendees {
+			user, err := repo.GetUser(attendee.UserID, info)
+			if err != nil {
+				return nil, err
+			}
+			userMap[attendee.UserID] = user
+		}
+	}
+	return userMap, nil
+}

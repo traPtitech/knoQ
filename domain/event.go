@@ -82,6 +82,8 @@ type EventRepository interface {
 	IsEventAdmins(eventID uuid.UUID, info *ConInfo) bool
 
 	// GetEventActivities(day int) ([]*Event, error)
+
+	GetAtendeeMap(events []*Event, info *ConInfo) (map[uuid.UUID]*User, error)
 }
 
 func (e *Event) TimeConsistency() bool {

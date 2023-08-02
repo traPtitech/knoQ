@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"net/http"
 
-	"github.com/lestrrat-go/ical"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/parsing"
@@ -246,9 +245,13 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
+	attendeeMap, err := h.Repo.GetAtendeeMap(events, info)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
 
-	cal := presentation.ICalFormat(events, h.Origin)
+	cal := presentation.NewICalFormat(events, h.Origin, attendeeMap)
 	var buf bytes.Buffer
-	_ = ical.NewEncoder(&buf).Encode(cal)
+	cal.SerializeTo(&buf)
 	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())
 }
