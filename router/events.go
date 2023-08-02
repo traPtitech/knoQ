@@ -249,8 +249,7 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-
-	cal := presentation.NewICalFormat(events, h.Origin, attendeeMap)
+	cal := presentation.ICalFormat(events, h.Origin, attendeeMap)
 	var buf bytes.Buffer
 	cal.SerializeTo(&buf)
 	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())

@@ -3,6 +3,7 @@ module github.com/traPtitech/knoQ
 go 1.20
 
 require (
+	github.com/arran4/golang-ical v0.0.0-20230425234049-f69e132f2b0c
 	github.com/carlescere/scheduler v0.0.0-20170109141437-ee74d2f83d82
 	github.com/go-gormigrate/gormigrate/v2 v2.1.0
 	github.com/go-sql-driver/mysql v1.7.1
@@ -13,7 +14,6 @@ require (
 	github.com/jszwec/csvutil v1.8.0
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.10.2
-	github.com/lestrrat-go/ical v0.0.0-20201229070544-61f83f92eaf4
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.4
@@ -32,7 +32,6 @@ require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
-	github.com/arran4/golang-ical v0.0.0-20230425234049-f69e132f2b0c // indirect
 	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -51,9 +50,7 @@ require (
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
-	github.com/lestrrat-go/bufferpool v0.0.0-20210118235918-2deb6a84c94c // indirect
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect

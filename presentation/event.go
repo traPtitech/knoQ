@@ -11,7 +11,6 @@ import (
 
 	ics "github.com/arran4/golang-ical"
 	"github.com/gofrs/uuid"
-	"github.com/lestrrat-go/ical"
 )
 
 type ScheduleStatus int
@@ -106,47 +105,6 @@ type EventRes struct {
 	Model
 }
 
-func iCalVeventFormat(e *domain.Event, host string) *ical.Event {
-	timeLayout := "20060102T150405Z"
-	vevent := ical.NewEvent()
-	_ = vevent.AddProperty("uid", e.ID.String())
-	_ = vevent.AddProperty("dtstamp", time.Now().UTC().Format(timeLayout))
-	_ = vevent.AddProperty("dtstart", e.TimeStart.UTC().Format(timeLayout))
-	_ = vevent.AddProperty("dtend", e.TimeEnd.UTC().Format(timeLayout))
-	_ = vevent.AddProperty("created", e.CreatedAt.UTC().Format(timeLayout))
-	_ = vevent.AddProperty("last-modified", e.UpdatedAt.UTC().Format(timeLayout))
-	_ = vevent.AddProperty("summary", e.Name)
-	e.Description += "\n\n"
-	e.Description += "-----------------------------------\n"
-	e.Description += "イベント詳細ページ\n"
-	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
-	_ = vevent.AddProperty("description", e.Description)
-	_ = vevent.AddProperty("location", e.Room.Place)
-	_ = vevent.AddProperty("organizer", e.CreatedBy.DisplayName)
-
-	return vevent
-}
-
-func ICalFormat(events []*domain.Event, host string) *ical.Calendar {
-	c := ical.New()
-	ical.NewEvent()
-	tz := ical.NewTimezone()
-	_ = tz.AddProperty("TZID", "Asia/Tokyo")
-	std := ical.NewStandard()
-	_ = std.AddProperty("TZOFFSETFROM", "+9000")
-	_ = std.AddProperty("TZOFFSETTO", "+9000")
-	_ = std.AddProperty("TZNAME", "JST")
-	_ = std.AddProperty("DTSTART", "19700101T000000")
-	_ = tz.AddEntry(std)
-	_ = c.AddEntry(tz)
-
-	for _, e := range events {
-		vevent := iCalVeventFormat(e, host)
-		_ = c.AddEntry(vevent)
-	}
-	return c
-}
-
 func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationTargets []string, origin string, isMention bool) string {
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	timeFormat := "01/02(Mon) 15:04"
@@ -216,7 +174,7 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	return
 }
 
-func NewICalVeventFormat(e *domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.VEvent {
+func iCalVeventFormat(e *domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.VEvent {
 	vevent := ics.NewEvent(e.ID.String())
 	vevent.SetDtStampTime(time.Now())
 	vevent.SetStartAt(e.TimeStart)
@@ -246,7 +204,7 @@ func NewICalVeventFormat(e *domain.Event, host string, attendeeMap map[uuid.UUID
 	return vevent
 }
 
-func NewICalFormat(events []*domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.Calendar {
+func ICalFormat(events []*domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.Calendar {
 	var tz ics.VTimezone
 	var std ics.Standard
 	cal := ics.NewCalendar()
@@ -258,7 +216,7 @@ func NewICalFormat(events []*domain.Event, host string, attendeeMap map[uuid.UUI
 	tz.Components = append(tz.Components, &std)
 	cal.Components = append(cal.Components, &tz)
 	for _, e := range events {
-		vevent := NewICalVeventFormat(e, host, attendeeMap)
+		vevent := iCalVeventFormat(e, host, attendeeMap)
 		cal.AddVEvent(vevent)
 	}
 	return cal
