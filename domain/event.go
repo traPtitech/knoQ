@@ -83,7 +83,7 @@ type EventRepository interface {
 
 	// GetEventActivities(day int) ([]*Event, error)
 
-	GetAtendeeMap(events []*Event, info *ConInfo) (map[uuid.UUID]*User, error)
+	GetUserMap(info *ConInfo) (map[uuid.UUID]*User, error)
 }
 
 func (e *Event) TimeConsistency() bool {

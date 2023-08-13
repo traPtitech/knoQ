@@ -245,11 +245,11 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	attendeeMap, err := h.Repo.GetAtendeeMap(events, info)
+	userMap, err := h.Repo.GetUserMap(info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	cal := presentation.ICalFormat(events, h.Origin, attendeeMap)
+	cal := presentation.ICalFormat(events, h.Origin, userMap)
 	var buf bytes.Buffer
 	cal.SerializeTo(&buf)
 	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())

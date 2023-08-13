@@ -105,6 +105,54 @@ type EventRes struct {
 	Model
 }
 
+func iCalVeventFormat(e *domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.VEvent {
+	vevent := ics.NewEvent(e.ID.String())
+	vevent.SetDtStampTime(time.Now())
+	vevent.SetStartAt(e.TimeStart.UTC())
+	vevent.SetEndAt(e.TimeEnd.UTC())
+	vevent.SetCreatedTime(e.CreatedAt.UTC())
+	vevent.SetModifiedAt(e.UpdatedAt.UTC())
+	vevent.SetSummary(e.Name)
+	e.Description += "\n\n"
+	e.Description += "-----------------------------------\n"
+	e.Description += "イベント詳細ページ\n"
+	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
+	vevent.SetDescription(e.Description)
+	vevent.SetLocation(e.Room.Place)
+	vevent.SetOrganizer(e.CreatedBy.DisplayName)
+	for _, v := range e.Attendees {
+		userName := fmt.Sprintf("@%s", attendeeMap[v.UserID].Name)
+		userDisplayName := ics.WithCN(attendeeMap[v.UserID].DisplayName)
+		switch v.Schedule {
+		case domain.Attendance:
+			vevent.AddAttendee(userName, ics.ParticipationStatusAccepted, userDisplayName)
+		case domain.Absent:
+			vevent.AddAttendee(userName, ics.ParticipationStatusDeclined, userDisplayName)
+		default:
+			vevent.AddAttendee(userName, userDisplayName)
+		}
+	}
+	return vevent
+}
+
+func ICalFormat(events []*domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.Calendar {
+	var tz ics.VTimezone
+	var std ics.Standard
+	cal := ics.NewCalendar()
+	tz.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzid), "Asia/Tokyo")
+	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetfrom), "+0900")
+	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetto), "+0900")
+	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzname), "JST")
+	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyDtstart), "19700101T000000")
+	tz.Components = append(tz.Components, &std)
+	cal.Components = append(cal.Components, &tz)
+	for _, e := range events {
+		vevent := iCalVeventFormat(e, host, attendeeMap)
+		cal.AddVEvent(vevent)
+	}
+	return cal
+}
+
 func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationTargets []string, origin string, isMention bool) string {
 	jst, _ := time.LoadLocation("Asia/Tokyo")
 	timeFormat := "01/02(Mon) 15:04"
@@ -172,52 +220,4 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	}
 	dst.Model = Model(src.Model)
 	return
-}
-
-func iCalVeventFormat(e *domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.VEvent {
-	vevent := ics.NewEvent(e.ID.String())
-	vevent.SetDtStampTime(time.Now())
-	vevent.SetStartAt(e.TimeStart)
-	vevent.SetEndAt(e.TimeEnd)
-	vevent.SetCreatedTime(e.CreatedAt)
-	vevent.SetModifiedAt(e.UpdatedAt)
-	vevent.SetSummary(e.Name)
-	e.Description += "\n\n"
-	e.Description += "-----------------------------------\n"
-	e.Description += "イベント詳細ページ\n"
-	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
-	vevent.SetDescription(e.Description)
-	vevent.SetLocation(e.Room.Place)
-	vevent.SetOrganizer(e.CreatedBy.DisplayName)
-	for _, v := range e.Attendees {
-		userName := attendeeMap[v.UserID].Name
-		userDisplayName := attendeeMap[v.UserID].DisplayName
-		switch v.Schedule {
-		case domain.Attendance:
-			vevent.AddAttendee(fmt.Sprintf("@%s", userName), ics.ParticipationStatusAccepted, ics.WithCN(userDisplayName))
-		case domain.Absent:
-			vevent.AddAttendee(fmt.Sprintf("@%s", userName), ics.ParticipationStatusDeclined, ics.WithCN(userDisplayName))
-		default:
-			vevent.AddAttendee(fmt.Sprintf("@%s", userName), ics.WithCN(userDisplayName))
-		}
-	}
-	return vevent
-}
-
-func ICalFormat(events []*domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.Calendar {
-	var tz ics.VTimezone
-	var std ics.Standard
-	cal := ics.NewCalendar()
-	tz.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzid), "Asia/Tokyo")
-	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetfrom), "+0900")
-	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetto), "+0900")
-	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzname), "JST")
-	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyDtstart), "19700101T000000")
-	tz.Components = append(tz.Components, &std)
-	cal.Components = append(cal.Components, &tz)
-	for _, e := range events {
-		vevent := iCalVeventFormat(e, host, attendeeMap)
-		cal.AddVEvent(vevent)
-	}
-	return cal
 }
