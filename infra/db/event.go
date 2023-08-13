@@ -57,6 +57,11 @@ func (repo *GormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, sched
 	return defaultErrorHandling(err)
 }
 
+func (repo *GormRepository) DeleteEventSchedule(eventID uuid.UUID, userID uuid.UUID) error {
+	err := deleteEventSchedule(repo.db, eventID, userID)
+	return defaultErrorHandling(err)
+}
+
 func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 	es, err := getEvent(eventFullPreload(repo.db), eventID)
 	return es, defaultErrorHandling(err)
@@ -138,6 +143,13 @@ func upsertEventSchedule(tx *gorm.DB, eventID, userID uuid.UUID, schedule domain
 		Columns:   []clause.Column{{Name: "user_id"}, {Name: "event_id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"schedule"}),
 	}).Create(&eventAttendee).Error
+}
+
+func deleteEventSchedule(tx *gorm.DB, eventID uuid.UUID, userID uuid.UUID) error {
+	if eventID == uuid.Nil {
+		return NewValueError(gorm.ErrRecordNotFound, "eventID")
+	}
+	return tx.Where("event_id = ? AND user_id = ?", eventID, userID).Delete(&EventAttendee{}).Error
 }
 
 func getEvent(db *gorm.DB, eventID uuid.UUID) (*Event, error) {

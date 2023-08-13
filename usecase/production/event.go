@@ -5,6 +5,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/infra/db"
+	"golang.org/x/exp/slices"
 )
 
 func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
@@ -49,22 +50,31 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 		WriteEventParams: params,
 		CreatedBy:        info.ReqUserID,
 	}
+
 	event, err := repo.GormRepo.UpdateEvent(eventID, p)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
+
+	attendeesMap := make(map[uuid.UUID]domain.ScheduleStatus)
+	for _, attendee := range currentEvent.Attendees {
+		attendeesMap[attendee.UserID] = attendee.Schedule
+	}
+
 	for _, groupMember := range group.Members {
-		exist := false
-		for _, currentAttendee := range currentEvent.Attendees {
-			if currentAttendee.UserID == groupMember.ID {
-				exist = true
-			}
-		}
-		if !exist {
+		_, ok := attendeesMap[groupMember.ID]
+		if !ok {
 			_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
 		}
-
 	}
+
+	for attendeeUserId, schedule := range attendeesMap {
+		ok := slices.ContainsFunc(group.Members, func(m domain.User) bool { return m.ID == attendeeUserId })
+		if !ok && (!event.AllowTogether || schedule == domain.Pending) {
+			_ = repo.GormRepo.DeleteEventSchedule(event.ID, attendeeUserId)
+		}
+	}
+
 	return repo.GetEvent(event.ID, info)
 }
 
