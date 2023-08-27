@@ -105,7 +105,7 @@ type EventRes struct {
 	Model
 }
 
-func iCalVeventFormat(e *domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.VEvent {
+func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.VEvent {
 	vevent := ics.NewEvent(e.ID.String())
 	vevent.SetDtStampTime(time.Now())
 	vevent.SetStartAt(e.TimeStart.UTC())
@@ -121,8 +121,9 @@ func iCalVeventFormat(e *domain.Event, host string, attendeeMap map[uuid.UUID]*d
 	vevent.SetLocation(e.Room.Place)
 	vevent.SetOrganizer(e.CreatedBy.DisplayName)
 	for _, v := range e.Attendees {
-		userName := fmt.Sprintf("@%s", attendeeMap[v.UserID].Name)
-		userDisplayName := ics.WithCN(attendeeMap[v.UserID].DisplayName)
+		user := userMap[v.UserID]
+		userName := fmt.Sprintf("@%s", user.Name)
+		userDisplayName := ics.WithCN(user.DisplayName)
 		switch v.Schedule {
 		case domain.Attendance:
 			vevent.AddAttendee(userName, ics.ParticipationStatusAccepted, userDisplayName)
@@ -135,7 +136,7 @@ func iCalVeventFormat(e *domain.Event, host string, attendeeMap map[uuid.UUID]*d
 	return vevent
 }
 
-func ICalFormat(events []*domain.Event, host string, attendeeMap map[uuid.UUID]*domain.User) *ics.Calendar {
+func ICalFormat(events []*domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.Calendar {
 	var tz ics.VTimezone
 	var std ics.Standard
 	cal := ics.NewCalendar()
@@ -147,7 +148,7 @@ func ICalFormat(events []*domain.Event, host string, attendeeMap map[uuid.UUID]*
 	tz.Components = append(tz.Components, &std)
 	cal.Components = append(cal.Components, &tz)
 	for _, e := range events {
-		vevent := iCalVeventFormat(e, host, attendeeMap)
+		vevent := iCalVeventFormat(e, host, userMap)
 		cal.AddVEvent(vevent)
 	}
 	return cal
