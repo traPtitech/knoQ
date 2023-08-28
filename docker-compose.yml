@@ -31,7 +31,6 @@ services:
       GORM_LOG_LEVEL: info
     volumes:
       - ./main.go:/srv/knoq/main.go
-      - ./logging:/srv/knoq/logging
       - ./router:/srv/knoq/router
       - ./utils:/srv/knoq/utils
       - ./migration:/srv/knoq/migration
@@ -39,7 +38,6 @@ services:
       - ./infra:/srv/knoq/infra
       - ./presentation:/srv/knoq/presentation
       - ./repository:/srv/knoq/repository
-      - ./parsing:/srv/knoq/parsing
     ports:
       - "6006:3000"
     depends_on:

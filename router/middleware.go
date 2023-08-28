@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/traPtitech/knoQ/domain"
-	log "github.com/traPtitech/knoQ/logging"
 	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/router/logging"
 	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
@@ -30,7 +30,7 @@ func AccessLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 
 			req := c.Request()
 			res := c.Response()
-			tmp := &log.HTTPPayload{
+			tmp := &logging.HTTPPayload{
 				RequestMethod: req.Method,
 				Status:        res.Status,
 				UserAgent:     req.UserAgent(),
