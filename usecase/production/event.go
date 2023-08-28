@@ -5,6 +5,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/infra/db"
+	"golang.org/x/exp/slices"
 )
 
 func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
@@ -49,22 +50,43 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 		WriteEventParams: params,
 		CreatedBy:        info.ReqUserID,
 	}
+
 	event, err := repo.GormRepo.UpdateEvent(eventID, p)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	for _, groupMember := range group.Members {
-		exist := false
-		for _, currentAttendee := range currentEvent.Attendees {
-			if currentAttendee.UserID == groupMember.ID {
-				exist = true
-			}
-		}
-		if !exist {
-			_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
-		}
 
+	attendeesMap := make(map[uuid.UUID]domain.ScheduleStatus)
+	for _, attendee := range currentEvent.Attendees {
+		attendeesMap[attendee.UserID] = attendee.Schedule
 	}
+
+	count := 0
+	for _, groupMember := range group.Members {
+		if _, ok := attendeesMap[groupMember.ID]; !ok {
+			// 新しく主催者メンバーになった人をPendingにする
+			_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
+			count++
+		}
+	}
+
+	// 変更前の主催者メンバー全員が変更後の主催者メンバーであるとき
+	// (変更前主催者メンバーの数) = (変更後主催者メンバーの数) - (変更後主催者メンバーの中で新規主催者メンバーの数)
+	if len(attendeesMap) == (len(group.Members) - count) {
+		return repo.GetEvent(event.ID, info)
+	}
+
+	for attendeeUserId, schedule := range attendeesMap {
+		ok := slices.ContainsFunc(group.Members, func(m domain.User) bool {
+			return m.ID == attendeeUserId
+		})
+		// グループ外参加不可で主催者メンバーから外れた人を削除
+		// グループ外参加可で主催者メンバーから外れた人でPendingだった人を削除
+		if !ok && (!event.AllowTogether || schedule == domain.Pending) {
+			_ = repo.GormRepo.DeleteEventSchedule(event.ID, attendeeUserId)
+		}
+	}
+
 	return repo.GetEvent(event.ID, info)
 }
 
