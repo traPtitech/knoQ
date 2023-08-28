@@ -9,8 +9,8 @@ import (
 
 	"github.com/traPtitech/knoQ/domain"
 
+	ics "github.com/arran4/golang-ical"
 	"github.com/gofrs/uuid"
-	"github.com/lestrrat-go/ical"
 )
 
 type ScheduleStatus int
@@ -105,45 +105,55 @@ type EventRes struct {
 	Model
 }
 
-func iCalVeventFormat(e *domain.Event, host string) *ical.Event {
-	timeLayout := "20060102T150405Z"
-	vevent := ical.NewEvent()
-	_ = vevent.AddProperty("uid", e.ID.String())
-	_ = vevent.AddProperty("dtstamp", time.Now().UTC().Format(timeLayout))
-	_ = vevent.AddProperty("dtstart", e.TimeStart.UTC().Format(timeLayout))
-	_ = vevent.AddProperty("dtend", e.TimeEnd.UTC().Format(timeLayout))
-	_ = vevent.AddProperty("created", e.CreatedAt.UTC().Format(timeLayout))
-	_ = vevent.AddProperty("last-modified", e.UpdatedAt.UTC().Format(timeLayout))
-	_ = vevent.AddProperty("summary", e.Name)
+func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.VEvent {
+	vevent := ics.NewEvent(e.ID.String())
+	vevent.SetDtStampTime(time.Now().UTC())
+	vevent.SetStartAt(e.TimeStart.UTC())
+	vevent.SetEndAt(e.TimeEnd.UTC())
+	vevent.SetCreatedTime(e.CreatedAt.UTC())
+	vevent.SetModifiedAt(e.UpdatedAt.UTC())
+	vevent.SetSummary(e.Name)
 	e.Description += "\n\n"
 	e.Description += "-----------------------------------\n"
 	e.Description += "イベント詳細ページ\n"
 	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
-	_ = vevent.AddProperty("description", e.Description)
-	_ = vevent.AddProperty("location", e.Room.Place)
-	_ = vevent.AddProperty("organizer", e.CreatedBy.DisplayName)
-
+	vevent.SetDescription(e.Description)
+	vevent.SetLocation(e.Room.Place)
+	vevent.SetOrganizer(e.CreatedBy.DisplayName)
+	for _, v := range e.Attendees {
+		user := userMap[v.UserID]
+		userName := fmt.Sprintf("@%s", user.Name)
+		userDisplayName := ics.WithCN(user.DisplayName)
+		var ps ics.ParticipationStatus
+		switch v.Schedule {
+		case domain.Attendance:
+			ps = ics.ParticipationStatusAccepted
+		case domain.Absent:
+			ps = ics.ParticipationStatusDeclined
+		default:
+			ps = ics.ParticipationStatusNeedsAction
+		}
+		vevent.AddAttendee(userName, ps, userDisplayName)
+	}
 	return vevent
 }
 
-func ICalFormat(events []*domain.Event, host string) *ical.Calendar {
-	c := ical.New()
-	ical.NewEvent()
-	tz := ical.NewTimezone()
-	_ = tz.AddProperty("TZID", "Asia/Tokyo")
-	std := ical.NewStandard()
-	_ = std.AddProperty("TZOFFSETFROM", "+9000")
-	_ = std.AddProperty("TZOFFSETTO", "+9000")
-	_ = std.AddProperty("TZNAME", "JST")
-	_ = std.AddProperty("DTSTART", "19700101T000000")
-	_ = tz.AddEntry(std)
-	_ = c.AddEntry(tz)
-
+func ICalFormat(events []*domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.Calendar {
+	var tz ics.VTimezone
+	var std ics.Standard
+	cal := ics.NewCalendar()
+	tz.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzid), "Asia/Tokyo")
+	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetfrom), "+0900")
+	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetto), "+0900")
+	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzname), "JST")
+	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyDtstart), "19700101T000000")
+	tz.Components = append(tz.Components, &std)
+	cal.Components = append(cal.Components, &tz)
 	for _, e := range events {
-		vevent := iCalVeventFormat(e, host)
-		_ = c.AddEntry(vevent)
+		vevent := iCalVeventFormat(e, host, userMap)
+		cal.AddVEvent(vevent)
 	}
-	return c
+	return cal
 }
 
 func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationTargets []string, origin string, isMention bool) string {
