@@ -13,7 +13,7 @@ require (
 	github.com/jinzhu/copier v0.3.5
 	github.com/jszwec/csvutil v1.8.0
 	github.com/labstack/echo-contrib v0.15.0
-	github.com/labstack/echo/v4 v4.10.2
+	github.com/labstack/echo/v4 v4.11.1
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/stretchr/testify v1.8.4
@@ -53,7 +53,7 @@ require (
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
