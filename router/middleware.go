@@ -196,7 +196,11 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	usersMap := createUserMap(users)
 	nofiticationTargets := make([]string, 0)
 
-	if e.TimeStart.After(time.Now()) {
+	if e.TimeEnd.Before(time.Now()) {
+		return
+	}
+
+	if e.TimeEnd.After(time.Now()) {
 		// TODO fix: IDを環境変数などで定義すべき
 		traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 		if e.Group.ID == traPGroupID {
