@@ -200,7 +200,6 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 
-
 	// TODO fix: IDを環境変数などで定義すべき
 	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 	if e.Group.ID == traPGroupID {
@@ -228,7 +227,6 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 			}
 		}
 	}
-
 
 	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, nofiticationTargets, h.Origin, !domain.DEVELOPMENT)
 
