@@ -1,6 +1,6 @@
 // FIXME: ↓が動かないので一時的に手動で作成
 // //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*traq.UserGroup -d []*domain.Group -o converter.go .
-package production
+package repository
 
 import (
 	"github.com/gofrs/uuid"
