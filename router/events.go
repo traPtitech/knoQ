@@ -2,6 +2,7 @@ package router
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 
 	"github.com/traPtitech/knoQ/domain"
@@ -245,12 +246,25 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	userMap, err := h.Repo.GetUserMap(info)
+	users, err := h.Repo.GetAllUsers(false, true, info)
+
+	if err != nil {
+		if errors.Is(domain.ErrInvalidToken, err) {
+			return forbidden(err, message("token is invalid."), needAuthorization(true))
+		}
+		return judgeErrorResponse(err)
+	}
+
+	userMap := make(map[uuid.UUID]*domain.User)
+	for _, user := range users {
+		userMap[user.ID] = user
+	}
+
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
 	cal := presentation.ICalFormat(events, h.Origin, userMap)
 	var buf bytes.Buffer
-	cal.SerializeTo(&buf)
+	_ = cal.SerializeTo(&buf)
 	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())
 }

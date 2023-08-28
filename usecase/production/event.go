@@ -260,12 +260,3 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filte
 	}
 	return fixExpr(expr)
 }
-
-func (repo *Repository) GetUserMap(info *domain.ConInfo) (map[uuid.UUID]*domain.User, error) {
-	users, err := repo.GetAllUsers(false, true, info)
-	if err != nil {
-		return nil, err
-	}
-	userMap := createUserMap(users)
-	return userMap, nil
-}
