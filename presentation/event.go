@@ -107,7 +107,7 @@ type EventRes struct {
 
 func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.VEvent {
 	vevent := ics.NewEvent(e.ID.String())
-	vevent.SetDtStampTime(time.Now())
+	vevent.SetDtStampTime(time.Now().UTC())
 	vevent.SetStartAt(e.TimeStart.UTC())
 	vevent.SetEndAt(e.TimeEnd.UTC())
 	vevent.SetCreatedTime(e.CreatedAt.UTC())
@@ -124,14 +124,16 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 		user := userMap[v.UserID]
 		userName := fmt.Sprintf("@%s", user.Name)
 		userDisplayName := ics.WithCN(user.DisplayName)
+		var ps ics.ParticipationStatus
 		switch v.Schedule {
 		case domain.Attendance:
-			vevent.AddAttendee(userName, ics.ParticipationStatusAccepted, userDisplayName)
+			ps = ics.ParticipationStatusAccepted
 		case domain.Absent:
-			vevent.AddAttendee(userName, ics.ParticipationStatusDeclined, userDisplayName)
+			ps = ics.ParticipationStatusDeclined
 		default:
-			vevent.AddAttendee(userName, userDisplayName)
+			ps = ics.ParticipationStatusNeedsAction
 		}
+		vevent.AddAttendee(userName, ps, userDisplayName)
 	}
 	return vevent
 }
