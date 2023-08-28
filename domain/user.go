@@ -25,4 +25,5 @@ type UserRepository interface {
 	GetMyiCalSecret(info *ConInfo) (string, error)
 
 	IsPrevilege(info *ConInfo) bool
+	SyncUsers(info *ConInfo) error
 }

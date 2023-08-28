@@ -10,7 +10,6 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	log "github.com/traPtitech/knoQ/logging"
 	"github.com/traPtitech/knoQ/presentation"
-	"github.com/traPtitech/knoQ/usecase/production"
 	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
@@ -194,7 +193,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 	usersMap := createUserMap(users)
-	nofiticationTargets := make([]string, 0)
+	notificationTargets := make([]string, 0)
 
 	if e.TimeEnd.Before(time.Now()) {
 		return
@@ -203,32 +202,25 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	// TODO fix: IDを環境変数などで定義すべき
 	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 	if e.Group.ID == traPGroupID {
-		repo, ok := h.Repo.(*production.Repository)
-		if !ok {
-			return
-		}
-		t, err := repo.GormRepo.GetToken(getConinfo(c).ReqUserID)
+		groups, err := h.Repo.GetGradeGroupNames(getConinfo(c))
 		if err != nil {
+			h.Logger.Error("failed to get groups", zap.Error(err))
 			return
 		}
-		groups, _ := repo.TraQRepo.GetAllGroups(t)
-		for _, g := range groups {
-			if g.Type == "grade" {
-				nofiticationTargets = append(nofiticationTargets, g.Name)
-			}
-		}
+
+		notificationTargets = append(notificationTargets, groups...)
 	} else {
 		for _, attendee := range e.Attendees {
 			if attendee.Schedule == presentation.Pending {
 				user, ok := usersMap[attendee.ID]
 				if ok {
-					nofiticationTargets = append(nofiticationTargets, user.Name)
+					notificationTargets = append(notificationTargets, user.Name)
 				}
 			}
 		}
 	}
 
-	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, nofiticationTargets, h.Origin, !domain.DEVELOPMENT)
+	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, notificationTargets, h.Origin, !domain.DEVELOPMENT)
 
 	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }

@@ -1,4 +1,4 @@
-package production
+package repository
 
 import (
 	"github.com/gofrs/uuid"

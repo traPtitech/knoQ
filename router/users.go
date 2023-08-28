@@ -7,7 +7,6 @@ import (
 
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/presentation"
-	"github.com/traPtitech/knoQ/usecase/production"
 
 	"github.com/labstack/echo/v4"
 )
@@ -68,11 +67,7 @@ func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 // 停止されているユーザーの`token`を削除して、
 // 活動中のユーザーを追加する(userIDをDBに保存)
 func (h *Handlers) HandleSyncUser(c echo.Context) error {
-	repo, ok := h.Repo.(*production.Repository)
-	if !ok {
-		return internalServerError(errors.New("not implemented"))
-	}
-	err := repo.SyncUsers(getConinfo(c))
+	err := h.Repo.SyncUsers(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
