@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/presentation"
 	"github.com/traPtitech/knoQ/router/logging"
+	"github.com/traPtitech/knoQ/router/presentation"
 	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
