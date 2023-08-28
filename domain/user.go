@@ -1,6 +1,8 @@
 package domain
 
-import "github.com/gofrs/uuid"
+import (
+	"github.com/gofrs/uuid"
+)
 
 type User struct {
 	ID          uuid.UUID
@@ -25,4 +27,5 @@ type UserRepository interface {
 	GetMyiCalSecret(info *ConInfo) (string, error)
 
 	IsPrevilege(info *ConInfo) bool
+	SyncUsers(info *ConInfo) error
 }

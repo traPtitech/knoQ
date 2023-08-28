@@ -194,6 +194,27 @@ func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
 	}
 }
 
+func (repo *Repository) GetGradeGroupNames(info *domain.ConInfo) ([]string, error) {
+	t, err := repo.GormRepo.GetToken(info.ReqUserID)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+
+	groups, err := repo.TraQRepo.GetAllGroups(t)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+
+	names := make([]string, 0)
+	for _, g := range groups {
+		if g.Type == "grade" {
+			names = append(names, g.Name)
+		}
+	}
+
+	return names, nil
+}
+
 func convSPdomainUserToSdomainUser(src []*domain.User) (dst []domain.User) {
 	dst = make([]domain.User, len(src))
 	for i := range src {
