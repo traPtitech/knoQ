@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/router/presentation"
 )
 
 func (h *Handlers) HandleGetVersion(c echo.Context) error {

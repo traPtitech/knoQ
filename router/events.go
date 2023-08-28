@@ -6,7 +6,7 @@ import (
 
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
-	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/router/presentation"
 	"github.com/traPtitech/knoQ/utils/parsing"
 
 	"github.com/gofrs/uuid"

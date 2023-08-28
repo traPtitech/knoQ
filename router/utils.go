@@ -6,7 +6,7 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
-	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/router/presentation"
 )
 
 func getUserRelationFilter(values url.Values, userID uuid.UUID) filter.Expr {
