@@ -200,35 +200,35 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		return
 	}
 
-	if e.TimeEnd.After(time.Now()) {
-		// TODO fix: IDを環境変数などで定義すべき
-		traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
-		if e.Group.ID == traPGroupID {
-			repo, ok := h.Repo.(*production.Repository)
-			if !ok {
-				return
+
+	// TODO fix: IDを環境変数などで定義すべき
+	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
+	if e.Group.ID == traPGroupID {
+		repo, ok := h.Repo.(*production.Repository)
+		if !ok {
+			return
+		}
+		t, err := repo.GormRepo.GetToken(getConinfo(c).ReqUserID)
+		if err != nil {
+			return
+		}
+		groups, _ := repo.TraQRepo.GetAllGroups(t)
+		for _, g := range groups {
+			if g.Type == "grade" {
+				nofiticationTargets = append(nofiticationTargets, g.Name)
 			}
-			t, err := repo.GormRepo.GetToken(getConinfo(c).ReqUserID)
-			if err != nil {
-				return
-			}
-			groups, _ := repo.TraQRepo.GetAllGroups(t)
-			for _, g := range groups {
-				if g.Type == "grade" {
-					nofiticationTargets = append(nofiticationTargets, g.Name)
-				}
-			}
-		} else {
-			for _, attendee := range e.Attendees {
-				if attendee.Schedule == presentation.Pending {
-					user, ok := usersMap[attendee.ID]
-					if ok {
-						nofiticationTargets = append(nofiticationTargets, user.Name)
-					}
+		}
+	} else {
+		for _, attendee := range e.Attendees {
+			if attendee.Schedule == presentation.Pending {
+				user, ok := usersMap[attendee.ID]
+				if ok {
+					nofiticationTargets = append(nofiticationTargets, user.Name)
 				}
 			}
 		}
 	}
+
 
 	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, nofiticationTargets, h.Origin, !domain.DEVELOPMENT)
 
