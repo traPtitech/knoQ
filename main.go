@@ -10,7 +10,7 @@ import (
 
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
-	"github.com/traPtitech/knoQ/infra/repository"
+	"github.com/traPtitech/knoQ/repository"
 	"github.com/traPtitech/knoQ/infra/traq"
 	"github.com/traPtitech/knoQ/utils"
 	"golang.org/x/oauth2"
