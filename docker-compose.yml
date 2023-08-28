@@ -38,7 +38,7 @@ services:
       - ./domain:/srv/knoq/domain
       - ./infra:/srv/knoq/infra
       - ./presentation:/srv/knoq/presentation
-      - ./usecase:/srv/knoq/usecase
+      - ./repository:/srv/knoq/repository
       - ./parsing:/srv/knoq/parsing
     ports:
       - "6006:3000"
