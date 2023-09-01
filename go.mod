@@ -3,7 +3,7 @@ module github.com/traPtitech/knoQ
 go 1.20
 
 require (
-	github.com/arran4/golang-ical v0.0.0-20230425234049-f69e132f2b0c
+	github.com/arran4/golang-ical v0.1.0
 	github.com/carlescere/scheduler v0.0.0-20170109141437-ee74d2f83d82
 	github.com/go-gormigrate/gormigrate/v2 v2.1.0
 	github.com/go-sql-driver/mysql v1.7.1
