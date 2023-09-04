@@ -64,14 +64,14 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	count := 0
 	for _, groupMember := range group.Members {
 		if _, ok := attendeesMap[groupMember.ID]; !ok {
-			// 新しく主催者メンバーになった人をPendingにする
+			// 新しくグループメンバーになった人をPendingにする
 			_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
 			count++
 		}
 	}
 
-	// 変更前の主催者メンバー全員が変更後の主催者メンバーであるとき
-	// (変更前主催者メンバーの数) = (変更後主催者メンバーの数) - (変更後主催者メンバーの中で新規主催者メンバーの数)
+	// 変更前のグループメンバー全員が変更後のグループメンバーであるとき
+	// (変更前グループメンバーの数) = (変更後グループメンバーの数) - (変更後グループメンバーの中で新規グループメンバーの数)
 	if len(attendeesMap) == (len(group.Members) - count) {
 		return repo.GetEvent(event.ID, info)
 	}
@@ -80,8 +80,8 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 		ok := slices.ContainsFunc(group.Members, func(m domain.User) bool {
 			return m.ID == attendeeUserId
 		})
-		// グループ外参加不可で主催者メンバーから外れた人を削除
-		// グループ外参加可で主催者メンバーから外れた人でPendingだった人を削除
+		// グループ外参加不可でグループメンバーから外れた人を削除
+		// グループ外参加可でグループメンバーから外れた人でPendingだった人を削除
 		if !ok && (!event.AllowTogether || schedule == domain.Pending) {
 			_ = repo.GormRepo.DeleteEventSchedule(event.ID, attendeeUserId)
 		}
