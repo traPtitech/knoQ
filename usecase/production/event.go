@@ -56,6 +56,11 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 		return nil, defaultErrorHandling(err)
 	}
 
+	// groupが変更されていないとき
+	if currentEvent.Group.ID == params.GroupID {
+		return repo.GetEvent(event.ID, info)
+	}
+
 	attendeesMap := make(map[uuid.UUID]domain.ScheduleStatus)
 	for _, attendee := range currentEvent.Attendees {
 		attendeesMap[attendee.UserID] = attendee.Schedule
