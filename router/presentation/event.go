@@ -121,7 +121,11 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 	vevent.SetLocation(e.Room.Place)
 	vevent.SetOrganizer(e.CreatedBy.DisplayName)
 	for _, v := range e.Attendees {
-		user := userMap[v.UserID]
+		user, ok := userMap[v.UserID]
+		if !ok {
+			continue
+		}
+
 		userName := fmt.Sprintf("@%s", user.Name)
 		userDisplayName := ics.WithCN(user.DisplayName)
 		var ps ics.ParticipationStatus
