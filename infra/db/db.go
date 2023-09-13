@@ -37,24 +37,28 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 	}
 	tokenKey = []byte(key)
 
+	d := dialector{
+		Dialector: mysql.New(mysql.Config{
+			DSNConfig: &gomysql.Config{
+				User:                 user,
+				Passwd:               password,
+				Net:                  "tcp",
+				Addr:                 host + ":" + port,
+				DBName:               database,
+				Loc:                  loc,
+				AllowNativePasswords: true,
+				ParseTime:            true,
+			},
+			DefaultStringSize:         256,   // default size for string fields
+			DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
+			DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
+			DontSupportRenameColumn:   false, // `change` when rename column, rename column not supported before MySQL 8, MariaDB
+			SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
+		}),
+	}
+
 	var err error
-	repo.db, err = gorm.Open(mysql.New(mysql.Config{
-		DSNConfig: &gomysql.Config{
-			User:                 user,
-			Passwd:               password,
-			Net:                  "tcp",
-			Addr:                 host + ":" + port,
-			DBName:               database,
-			Loc:                  loc,
-			AllowNativePasswords: true,
-			ParseTime:            true,
-		},
-		DefaultStringSize:         256,   // default size for string fields
-		DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
-		DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
-		DontSupportRenameColumn:   false, // `change` when rename column, rename column not supported before MySQL 8, MariaDB
-		SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
-	}), &gorm.Config{
+	repo.db, err = gorm.Open(d, &gorm.Config{
 		Logger: logger.Default.LogMode(loglevel),
 	})
 	if err != nil {
@@ -62,4 +66,23 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 	}
 
 	return migration.Migrate(repo.db, tables)
+}
+
+// dialector with custom error handling
+type dialector struct {
+	gorm.Dialector
+}
+
+var (
+	_ gorm.Dialector       = (*dialector)(nil)
+	_ gorm.ErrorTranslator = (*dialector)(nil)
+)
+
+// override Translate(err error) error
+func (d dialector) Translate(err error) error {
+	if translater, ok := d.Dialector.(gorm.ErrorTranslator); ok {
+		err = translater.Translate(err)
+	}
+
+	return defaultErrorHandling(err)
 }
