@@ -129,6 +129,17 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
+	case presentation.RelationBelongsOrAdmins:
+		belongingGroupIDs, err := h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+		adminGroupIDs, err := h.Repo.GetUserAdminGroupIDs(userID)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+
+		groupIDs = append(belongingGroupIDs, adminGroupIDs...)
 	}
 
 	return c.JSON(http.StatusOK, groupIDs)
