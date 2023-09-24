@@ -92,7 +92,7 @@ func (h *Handlers) HandleCreateToken(c echo.Context) error {
 
 	claims := jwt.RegisteredClaims{
 		Subject:   sess.Values["userID"].(string),
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(30 * 24 * time.Hour)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(3 * 24 * time.Hour)),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
