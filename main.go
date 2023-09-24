@@ -10,8 +10,8 @@ import (
 
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
-	"github.com/traPtitech/knoQ/repository"
 	"github.com/traPtitech/knoQ/infra/traq"
+	"github.com/traPtitech/knoQ/repository"
 	"github.com/traPtitech/knoQ/utils"
 	"golang.org/x/oauth2"
 
@@ -32,7 +32,8 @@ var (
 	mariadbPassword = getenv("MARIADB_PASSWORD", "password")
 	mariadbDatabase = getenv("MARIADB_DATABASE", "knoQ")
 	mariadbPort     = getenv("MARIADB_PORT", "3306")
-	tokenKey        = getenv("TOKEN_KEY", "random32wordsXXXXXXXXXXXXXXXXXXX")
+	tokenKey        = mustGetenv("TOKEN_KEY")
+	jwtTokenKey     = mustGetenv("JWT_TOKEN_KEY")
 	gormLogLevel    = getenv("GORM_LOG_LEVEL", "silent")
 
 	clientID          = getenv("CLIENT_ID", "client_id")
@@ -89,6 +90,7 @@ func main() {
 		ActivityChannelID: activityChannelID,
 		DailyChannelId:    dailyChannelID,
 		Origin:            origin,
+		JWTTokenKey:       jwtTokenKey,
 	}
 
 	e := handler.SetupRoute()
@@ -119,4 +121,11 @@ func getenv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func mustGetenv(key string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	panic("environment variable " + key + " is not set")
 }

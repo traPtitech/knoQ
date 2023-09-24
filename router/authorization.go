@@ -13,8 +13,6 @@ import (
 	"github.com/traPtitech/knoQ/utils/random"
 )
 
-const JWTSecret = "jwtsecret"
-
 var verifierCache = cache.New(5*time.Minute, 10*time.Minute)
 var stateCache = cache.New(5*time.Minute, 10*time.Minute)
 
@@ -99,7 +97,7 @@ func (h *Handlers) HandleCreateToken(c echo.Context) error {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := token.SignedString([]byte(JWTSecret))
+	signedToken, err := token.SignedString([]byte(h.JWTTokenKey))
 	if err != nil {
 		return internalServerError(err)
 	}

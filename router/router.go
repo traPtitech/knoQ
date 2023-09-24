@@ -30,6 +30,7 @@ type Handlers struct {
 	ActivityChannelID string
 	DailyChannelId    string
 	Origin            string
+	JWTTokenKey       string
 }
 
 func (h *Handlers) SetupRoute() *echo.Echo {

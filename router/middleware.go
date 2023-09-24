@@ -85,7 +85,7 @@ func ServerVersionMiddleware(version string) echo.MiddlewareFunc {
 func (h *Handlers) JWTMiddleware() echo.MiddlewareFunc {
 	return echojwt.WithConfig(
 		echojwt.Config{
-			SigningKey: []byte(JWTSecret),
+			SigningKey: []byte(h.JWTTokenKey),
 			SuccessHandler: func(c echo.Context) {
 				// jwtの検証に成功したらsessionにuserIDを保存
 				sess, _ := session.Get("session", c)
