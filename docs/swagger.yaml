@@ -556,6 +556,23 @@ paths:
       responses:
         '302':
           description: 成功。/callbackにリダイレクト。（その後はuiがリダイレクトする）
+  /token:
+    post:
+      tags:
+        - authentication
+      operationId: createToken
+      description: APIトークンを発行します。
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: APIトークン(JWT)
 
   /ical/v1/{icalToken}:
     get:

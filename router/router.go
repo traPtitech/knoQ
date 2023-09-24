@@ -136,11 +136,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			apiTags.GET("", h.HandleGetTags)
 		}
 
-		// apiActivity := api.Group("/activity")
-		// {
-		// apiActivity.GET("/events", h.HandleGetEventActivities)
-		// }
-
+		e.POST("/token", h.HandleCreateToken)
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
 	e.GET("/api/callback", h.HandleCallback)

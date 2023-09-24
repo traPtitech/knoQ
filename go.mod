@@ -8,6 +8,7 @@ require (
 	github.com/go-gormigrate/gormigrate/v2 v2.1.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/jinzhu/copier v0.3.5
