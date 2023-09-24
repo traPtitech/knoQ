@@ -104,7 +104,7 @@ func (h *Handlers) HandleCreateToken(c echo.Context) error {
 		return internalServerError(err)
 	}
 
-	return c.JSON(http.StatusOK, presentation.CreateTokenRes{
+	return c.JSON(http.StatusCreated, presentation.CreateTokenRes{
 		Token: signedToken,
 	})
 }
