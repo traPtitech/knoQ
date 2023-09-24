@@ -33,7 +33,7 @@ var (
 	mariadbDatabase = getenv("MARIADB_DATABASE", "knoQ")
 	mariadbPort     = getenv("MARIADB_PORT", "3306")
 	tokenKey        = mustGetenv("TOKEN_KEY")
-	jwtTokenKey     = mustGetenv("JWT_TOKEN_KEY")
+	jwtKey          = mustGetenv("JWT_KEY")
 	gormLogLevel    = getenv("GORM_LOG_LEVEL", "silent")
 
 	clientID          = getenv("CLIENT_ID", "client_id")
@@ -48,8 +48,8 @@ var (
 )
 
 func main() {
-	if len(jwtTokenKey) < 32 {
-		panic("JWT_TOKEN_KEY must be at least 32 characters")
+	if len(jwtKey) < 32 {
+		panic("JWT_KEY must be at least 32 characters")
 	}
 
 	logger, _ := zap.NewDevelopment()
@@ -94,7 +94,7 @@ func main() {
 		ActivityChannelID: activityChannelID,
 		DailyChannelId:    dailyChannelID,
 		Origin:            origin,
-		JWTTokenKey:       jwtTokenKey,
+		JWTKey:            jwtKey,
 	}
 
 	e := handler.SetupRoute()

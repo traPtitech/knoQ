@@ -97,7 +97,7 @@ func (h *Handlers) HandleCreateToken(c echo.Context) error {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := token.SignedString([]byte(h.JWTTokenKey))
+	signedToken, err := token.SignedString([]byte(h.JWTKey))
 	if err != nil {
 		return internalServerError(err)
 	}
