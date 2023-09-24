@@ -14,32 +14,34 @@ import (
 )
 
 func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*traq.User, error) {
-	// URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
-	// req, err := http.NewRequest(http.MethodGet, URL, nil)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// data, err := repo.doRequest(token, req)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
+	req, err := http.NewRequest(http.MethodGet, URL, nil)
+	if err != nil {
+		return nil, err
+	}
+	data, err := repo.doRequest(token, req)
+	if err != nil {
+		return nil, err
+	}
 
+	user := new(traq.User)
+	err = json.Unmarshal(data, &user)
+	return user, err
 
 	// ここから go-traq 書き換え
 
-	traqconf := traq.NewConfiguration()
-	conf := oauth2.Config{
+	// traqconf := traq.NewConfiguration()
+	// conf := oauth2.Config{
 
-	}
-	traqconf.HTTPClient = conf.Client(context.TODO(),token)
-	apiClient := traq.NewAPIClient(traqconf)
-	userDtail,_,err := apiClient.UserApi.GetUser(context.Background(),userID.String()).Execute()
-	if err!=nil{
-		return nil,err
-	}
-	user := new(traq.User)
-	
-	return user, err
+	// }
+	// traqconf.HTTPClient = conf.Client(context.TODO(),token)
+	// apiClient := traq.NewAPIClient(traqconf)
+	// userDtail,_,err := apiClient.UserApi.GetUser(context.Background(),userID.String()).Execute()
+	// if err!=nil{
+	// 	return nil,err
+	// }
+	// user := new(traq.User)
+	// return user, err
 
 	// ここまで go-traq 書き換え
 }
