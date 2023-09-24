@@ -57,7 +57,10 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", h.TraQUserMiddleware)
+	api := e.Group("/api",
+		h.JWTMiddleware(),
+		h.TraQUserMiddleware,
+	)
 	{
 		previlegeMiddle := h.PrevilegeUserMiddleware
 
@@ -136,7 +139,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			apiTags.GET("", h.HandleGetTags)
 		}
 
-		e.POST("/token", h.HandleCreateToken)
+		api.POST("/token", h.HandleCreateToken)
 	}
 	e.POST("/api/authParams", h.HandlePostAuthParams)
 	e.GET("/api/callback", h.HandleCallback)

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/router/logging"
 	"github.com/traPtitech/knoQ/router/presentation"
@@ -16,6 +17,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/labstack/echo-contrib/session"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 )
 
@@ -78,6 +80,30 @@ func ServerVersionMiddleware(version string) echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+func (h *Handlers) JWTMiddleware() echo.MiddlewareFunc {
+	return echojwt.WithConfig(
+		echojwt.Config{
+			SigningKey: []byte(JWTSecret),
+			SuccessHandler: func(c echo.Context) {
+				// jwtの検証に成功したらsessionにuserIDを保存
+				sess, _ := session.Get("session", c)
+				claims := c.Get("user").(*jwt.Token).Claims.(*jwt.RegisteredClaims)
+				sess.Values["userID"] = claims.Subject
+				sess.Options = &h.SessionOption
+				_ = sess.Save(c.Request(), c.Response())
+			},
+			ErrorHandler: func(c echo.Context, err error) error {
+				return nil
+			},
+			ContinueOnIgnoredError: true,
+			ContextKey:             "user",
+			NewClaimsFunc: func(c echo.Context) jwt.Claims {
+				return &jwt.RegisteredClaims{}
+			},
+		},
+	)
 }
 
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
