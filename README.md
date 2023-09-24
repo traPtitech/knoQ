@@ -41,7 +41,7 @@ knoQ の全ての機能を動作させるためには、追加の情報が必要
 | DAILY_CHANNEL_ID    | 環境変数 |                                        | Bot が毎日定時に投稿する先のチャンネル                          |
 | ACTIVITY_CHANNEL_ID | 環境変数 |                                        | Bot が都度送信するチャンネル                               |
 | TOKEN_KEY           | 環境変数 | `random32wordsXXXXXXXXXXXXXXXXXXX`     | Token を暗号化する。長さ 32 文字のランダム文字列。存在しない場合はエラー。     |
-| JWT_TOKEN_KEY       | 環境変数 | `random_strings`                       | JWT の Token を暗号化する。存在しない場合はエラー。 |
+| JWT_TOKEN_KEY       | 環境変数 | `random_wordsXXXXXXXXXXXXXXXXXXXXXXX`  | JWT の Token を暗号化する。長さ 32 文字以上のランダム文字列。存在しない場合はエラー。 |
 | KNOQ_VERSION        | 環境変数 | UNKNOWN                                | knoQ のバージョン (github actions でイメージ作成時に指定)       |
 | KNOQ_REVISION       | 環境変数 | UNKNOWN                                | git の sha1 (github actions でイメージ作成時に指定)        |
 | DEVELOPMENT         | 環境変数 |                                        | 開発時かどうか                                        |

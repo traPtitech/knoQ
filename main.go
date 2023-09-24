@@ -48,6 +48,10 @@ var (
 )
 
 func main() {
+	if len(jwtTokenKey) < 32 {
+		panic("JWT_TOKEN_KEY must be at least 32 characters")
+	}
+
 	logger, _ := zap.NewDevelopment()
 	domain.VERSION = version
 	domain.REVISION = revision
