@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/arran4/golang-ical v0.0.0-20230425234049-f69e132f2b0c
 	github.com/carlescere/scheduler v0.0.0-20170109141437-ee74d2f83d82
-	github.com/go-gormigrate/gormigrate/v2 v2.1.0
+	github.com/go-gormigrate/gormigrate/v2 v2.1.1
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gorilla/securecookie v1.1.1
@@ -23,7 +23,7 @@ require (
 	golang.org/x/oauth2 v0.10.0
 	google.golang.org/api v0.134.0
 	gorm.io/driver/mysql v1.5.1
-	gorm.io/gorm v1.25.2
+	gorm.io/gorm v1.25.4
 )
 
 require (
@@ -61,6 +61,7 @@ require (
 	github.com/opencontainers/runc v1.1.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
