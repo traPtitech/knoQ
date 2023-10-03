@@ -109,7 +109,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 	var verifiedRoomNames []string
 
 	if len(rooms) == 0 {
-		roomMessage = fmt.Sprintf("本日は予約を取っていないようです。\n")
+		roomMessage = "本日は予約を取っていないようです。\n"
 	} else {
 		for _, room := range rooms {
 			if room.Verified && !slices.Contains(verifiedRoomNames, room.Place) {
@@ -118,7 +118,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		}
 
 		if len(verifiedRoomNames) == 0 {
-			roomMessage = fmt.Sprintf("本日は予約を取っていないようです。\n")
+			roomMessage = "本日は予約を取っていないようです。\n"
 		} else {
 			timeTables := []timeTable{
 				{":sunny:", setTimeFromString(t, "00:00:00"), false},
