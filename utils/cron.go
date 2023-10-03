@@ -30,7 +30,10 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 		rooms, _ := repo.GetAllRooms(now, tomorrow, uuid.Nil)
 		events, _ := repo.GetAllEvents(filter.FilterTime(now, tomorrow))
 		message := createMessage(now, rooms, events, origin)
-		_ = RequestWebhook(message, secret, channelID, webhookID, 1)
+		err := RequestWebhook(message, secret, channelID, webhookID, 1)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	return job
@@ -106,7 +109,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 	var verifiedRoomNames []string
 
 	if len(rooms) == 0 {
-		roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
+		roomMessage = fmt.Sprintf("本日は予約を取っていないようです。\n")
 	} else {
 		for _, room := range rooms {
 			if room.Verified && !slices.Contains(verifiedRoomNames, room.Place) {
@@ -115,7 +118,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		}
 
 		if len(verifiedRoomNames) == 0 {
-			roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
+			roomMessage = fmt.Sprintf("本日は予約を取っていないようです。\n")
 		} else {
 			timeTables := []timeTable{
 				{":sunny:", setTimeFromString(t, "00:00:00"), false},
@@ -166,5 +169,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		}
 
 	}
-	return roomMessage + eventMessage
+
+	message := fmt.Sprintf("## %s の進捗部屋\n%s## %s 開催予定のイベント\n%s", date, roomMessage, date, eventMessage)
+	return message
 }
