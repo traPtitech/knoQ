@@ -15,10 +15,10 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 		{"1-2", setTimeFromString(today, "08:50:00"), true},
 		{"3-4", setTimeFromString(today, "10:45:00"), true},
 		{"昼", setTimeFromString(today, "12:25:00"), true},
-		{"5-6", setTimeFromString(today, "13:45:00"), true},
-		{"7-8", setTimeFromString(today, "15:40:00"), true},
-		{"9-10", setTimeFromString(today, "17:30:00"), true},
-		{":crescent_moon:", setTimeFromString(today, "19:10:00"), false},
+		{"5-6", setTimeFromString(today, "13:30:00"), true},
+		{"7-8", setTimeFromString(today, "15:25:00"), true},
+		{"9-10", setTimeFromString(today, "17:15:00"), true},
+		{":crescent_moon:", setTimeFromString(today, "18:55:00"), false},
 	}
 
 	stampAvailable := ":white_check_mark:"
@@ -33,7 +33,7 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 					Place:     "traP-001",
 					Verified:  true,
 					TimeStart: setTimeFromString(today, "08:50:00"),
-					TimeEnd:   setTimeFromString(today, "19:10:00"),
+					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
 			},
 			want: []map[string]string{
@@ -53,13 +53,13 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 					Place:     "traP-001",
 					Verified:  true,
 					TimeStart: setTimeFromString(today, "08:50:00"),
-					TimeEnd:   setTimeFromString(today, "19:10:00"),
+					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
 				{
 					Place:     "unverified",
 					Verified:  false,
 					TimeStart: setTimeFromString(today, "08:50:00"),
-					TimeEnd:   setTimeFromString(today, "19:10:00"),
+					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
 			},
 			want: []map[string]string{
@@ -99,7 +99,7 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 					Place:     "traP-001",
 					Verified:  true,
 					TimeStart: setTimeFromString(today, "12:25:00"),
-					TimeEnd:   setTimeFromString(today, "19:10:00"),
+					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
 				{
 					Place:     "traP-002",
@@ -110,8 +110,8 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 				{
 					Place:     "traP-002",
 					Verified:  true,
-					TimeStart: setTimeFromString(today, "13:45:00"),
-					TimeEnd:   setTimeFromString(today, "19:10:00"),
+					TimeStart: setTimeFromString(today, "13:30:00"),
+					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
 			},
 			want: []map[string]string{

@@ -122,10 +122,10 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 				{"1-2", setTimeFromString(t, "08:50:00"), true},
 				{"3-4", setTimeFromString(t, "10:45:00"), true},
 				{"昼", setTimeFromString(t, "12:25:00"), true},
-				{"5-6", setTimeFromString(t, "13:45:00"), true},
-				{"7-8", setTimeFromString(t, "15:40:00"), true},
-				{"9-10", setTimeFromString(t, "17:30:00"), true},
-				{":crescent_moon:", setTimeFromString(t, "19:10:00"), false},
+				{"5-6", setTimeFromString(t, "13:30:00"), true},
+				{"7-8", setTimeFromString(t, "15:25:00"), true},
+				{"9-10", setTimeFromString(t, "17:15:00"), true},
+				{":crescent_moon:", setTimeFromString(t, "18:55:00"), false},
 			}
 			roomAvailable := makeRoomAvailableByTimeTable(rooms, timeTables, t)
 
