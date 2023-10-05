@@ -170,6 +170,5 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 
 	}
 
-	message := fmt.Sprintf("## %s の進捗部屋\n%s## %s 開催予定のイベント\n%s", date, roomMessage, date, eventMessage)
-	return message
+	return fmt.Sprintf("## %s の進捗部屋\n%s## %s 開催予定のイベント\n%s", date, roomMessage, date, eventMessage)
 }
