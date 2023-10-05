@@ -30,7 +30,10 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 		rooms, _ := repo.GetAllRooms(now, tomorrow, uuid.Nil)
 		events, _ := repo.GetAllEvents(filter.FilterTime(now, tomorrow))
 		message := createMessage(now, rooms, events, origin)
-		_ = RequestWebhook(message, secret, channelID, webhookID, 1)
+		err := RequestWebhook(message, secret, channelID, webhookID, 1)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	return job
@@ -106,7 +109,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 	var verifiedRoomNames []string
 
 	if len(rooms) == 0 {
-		roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
+		roomMessage = "本日は予約を取っていないようです。\n"
 	} else {
 		for _, room := range rooms {
 			if room.Verified && !slices.Contains(verifiedRoomNames, room.Place) {
@@ -115,17 +118,17 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		}
 
 		if len(verifiedRoomNames) == 0 {
-			roomMessage = fmt.Sprintf("%sの進捗部屋は、予約を取っていないようです。\n", date)
+			roomMessage = "本日は予約を取っていないようです。\n"
 		} else {
 			timeTables := []timeTable{
 				{":sunny:", setTimeFromString(t, "00:00:00"), false},
 				{"1-2", setTimeFromString(t, "08:50:00"), true},
 				{"3-4", setTimeFromString(t, "10:45:00"), true},
 				{"昼", setTimeFromString(t, "12:25:00"), true},
-				{"5-6", setTimeFromString(t, "13:45:00"), true},
-				{"7-8", setTimeFromString(t, "15:40:00"), true},
-				{"9-10", setTimeFromString(t, "17:30:00"), true},
-				{":crescent_moon:", setTimeFromString(t, "19:10:00"), false},
+				{"5-6", setTimeFromString(t, "13:30:00"), true},
+				{"7-8", setTimeFromString(t, "15:25:00"), true},
+				{"9-10", setTimeFromString(t, "17:15:00"), true},
+				{":crescent_moon:", setTimeFromString(t, "18:55:00"), false},
 			}
 			roomAvailable := makeRoomAvailableByTimeTable(rooms, timeTables, t)
 
@@ -166,5 +169,6 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		}
 
 	}
-	return roomMessage + eventMessage
+
+	return fmt.Sprintf("## %s の進捗部屋\n%s## %s 開催予定のイベント\n%s", date, roomMessage, date, eventMessage)
 }
