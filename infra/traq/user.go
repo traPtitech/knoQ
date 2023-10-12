@@ -1,6 +1,7 @@
 package traq
 
 import (
+	//"context"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,8 @@ import (
 	"github.com/traPtitech/go-traq"
 	"golang.org/x/oauth2"
 )
+
+
 
 func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*traq.User, error) {
 	URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
@@ -68,18 +71,41 @@ func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool)
 	return users, err
 }
 
-func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
-	URL := fmt.Sprintf("%s/users/me", repo.URL)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
-	if err != nil {
-		return nil, err
-	}
-	data, err := repo.doRequest(token, req)
-	if err != nil {
-		return nil, err
-	}
 
-	user := new(traq.User)
-	err = json.Unmarshal(data, &user)
+func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
+	// URL := fmt.Sprintf("%s/users/me", repo.URL)
+	// req, err := http.NewRequest(http.MethodGet, URL, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// data, err := repo.doRequest(token, req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	
+	// ここから go-traq 書き換え
+	traqconf := traq.NewConfiguration()
+	conf :=TraQDefaultConfig
+	traqconf.HTTPClient=conf.Client(context.Background(),token)
+	client := traq.NewAPIClient(traqconf)
+
+	data,_,err:= client.MeApi.GetMe(context.Background()).Execute()
+	if err != nil{
+		return nil,err
+	}
+	user := convertMyUserdetailToUser(data)
 	return user, err
+	// ここまで　go-traq 書き換え
+}
+
+func convertMyUserdetailToUser (userdetail *traq.MyUserDetail) *traq.User{
+	user := new(traq.User)
+	user.Id=userdetail.Id
+	user.Name=userdetail.Name
+	user.DisplayName=userdetail.DisplayName
+	user.IconFileId=userdetail.IconFileId
+	user.Bot=userdetail.Bot
+	user.State=userdetail.State
+	user.UpdatedAt=userdetail.UpdatedAt
+	return user
 }
