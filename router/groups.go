@@ -139,20 +139,17 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 			return judgeErrorResponse(err)
 		}
 
-		uniqueIDs := make(map[uuid.UUID]struct{})
+		allGroupIDs := append(belongingGroupIDs, adminGroupIDs...)
+		uniqueIDMap := make(map[uuid.UUID]struct{})
 
-		for _, id := range belongingGroupIDs {
-			uniqueIDs[id] = struct{}{}
+		for _, groupID := range allGroupIDs {
+			if _, ok := uniqueIDMap[groupID]; ok {
+				continue
+			}
+
+			uniqueIDMap[groupID] = struct{}{}
+			groupIDs = append(groupIDs, groupID)
 		}
-
-		for _, id := range adminGroupIDs {
-			uniqueIDs[id] = struct{}{}
-		}
-
-		for id := range uniqueIDs {
-			groupIDs = append(groupIDs, id)
-		}
-
 	}
 
 	return c.JSON(http.StatusOK, groupIDs)

@@ -39,11 +39,11 @@ func GetUserRelationQuery(values url.Values) UserRelation {
 		return RelationBelongs
 	case "admins":
 		return RelationAdmins
-	case "belongsoradmins":
+	case "belongs-or-admins":
 		return RelationBelongsOrAdmins
 	}
 
-	return RelationBelongs
+	return RelationBelongsOrAdmins
 }
 
 func GetExcludeEventID(values url.Values) (uuid.UUID, error) {

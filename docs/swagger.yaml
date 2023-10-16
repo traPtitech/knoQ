@@ -1200,15 +1200,16 @@ components:
       name: relation
       in: query
       required: false
-      description: どのような関係性でユーザーと結びつけるか。|
-        取り得る値は、admins(ユーザーが管理者), belongs(ユーザーが所属している) |
-        イベントはさらに、attendees(not absent)|
-        値がない場合は、belongs として振る舞う
+      description: どのような関係性でユーザーと結びつけるか。
+        |取り得る値は、admins(ユーザーが管理者), belongs(ユーザーが所属している), belongs-or-admins(ユーザーが管理者または所属している) 
+        |イベントはさらに、attendees(not absent)
+        |値がない場合は、belongs として振る舞う
       schema:
         type: string
         enum:
           - admins
           - belongs
+          - belongs-or-admins
           - attendees
 
     userID:
