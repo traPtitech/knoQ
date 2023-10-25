@@ -124,8 +124,12 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			apiTags.POST("", h.HandlePostTag)
 			apiTags.GET("", h.HandleGetTags)
 		}
+	}
 
-		apiWithAuth.POST("/token", h.HandleCreateToken)
+	// 認証あり (traQ認証のみ)
+	apiWithOnlyTraQAuth := apiNoAuth.Group("", h.TraQUserMiddleware)
+	{
+		apiWithOnlyTraQAuth.POST("/token", h.HandleCreateToken)
 	}
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
