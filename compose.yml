@@ -29,7 +29,7 @@ services:
       DEVELOPMENT: true
       GORM_LOG_LEVEL: info
     ports:
-      - "6006:3000"
+      - "${APP_PORT:-3000}:3000"
     depends_on:
       mysql:
         condition: service_healthy
