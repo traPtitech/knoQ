@@ -3,12 +3,11 @@ version: "3"
 networks:
   default:
 
-
 services:
   app:
     build:
       context: .
-      dockerfile: ./Dockerfile.dev
+      dockerfile: ./Dockerfile
     container_name: knoq_app
     environment:
       TZ: Asia/Tokyo
@@ -29,20 +28,15 @@ services:
       KNOQ_VERSION: ${KNOQ_VERSION:-dev}
       DEVELOPMENT: true
       GORM_LOG_LEVEL: info
-    volumes:
-      - ./main.go:/srv/knoq/main.go
-      - ./router:/srv/knoq/router
-      - ./utils:/srv/knoq/utils
-      - ./migration:/srv/knoq/migration
-      - ./domain:/srv/knoq/domain
-      - ./infra:/srv/knoq/infra
-      - ./presentation:/srv/knoq/presentation
-      - ./repository:/srv/knoq/repository
     ports:
       - "6006:3000"
     depends_on:
       mysql:
         condition: service_healthy
+    develop:
+      watch:
+        - action: rebuild
+          path: ./
     networks:
       - default
 
