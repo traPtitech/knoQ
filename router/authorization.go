@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/patrickmn/go-cache"
+	"github.com/traPtitech/knoQ/router/presentation"
 	"github.com/traPtitech/knoQ/utils/random"
 )
 
@@ -78,4 +80,29 @@ func (h *Handlers) HandleCallback(c echo.Context) error {
 		return internalServerError(err)
 	}
 	return c.Redirect(http.StatusFound, "/callback")
+}
+
+func (h *Handlers) HandleCreateToken(c echo.Context) error {
+	sess, err := session.Get("session", c)
+	if err != nil {
+		setMaxAgeMinus(c)
+		return unauthorized(err, needAuthorization(true),
+			message("please try again"))
+	}
+
+	claims := jwt.RegisteredClaims{
+		Subject:   sess.Values["userID"].(string),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(3 * 24 * time.Hour)),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString([]byte(h.JWTKey))
+	if err != nil {
+		return internalServerError(err)
+	}
+
+	return c.JSON(http.StatusCreated, presentation.CreateTokenRes{
+		Token: signedToken,
+	})
 }

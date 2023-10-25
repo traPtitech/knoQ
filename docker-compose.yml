@@ -3,7 +3,6 @@ version: "3"
 networks:
   default:
 
-
 services:
   knoq:
     build:
@@ -19,13 +18,14 @@ services:
       ORIGIN: http://localhost:6006
       SESSION_KEY: ${SESSION_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
       TRAQ_CALENDARID: ${TRAQ_CALENDARID}
-      CLIENT_ID: ${CLIENT_ID:-aYj6mwyLcpBIrxZZD8jkCzH3Gsdqc9DJqle2}
+      CLIENT_ID: ${CLIENT_ID:-hhCZHJemBHaIPPYFxBLElXnOG2X8jelWLCyj}
       WEBHOOK_ID: ${WEBHOOK_ID}
       WEBHOOK_SECRET: ${WEBHOOK_SECRET}
       CHANNEL_ID: ${CHANNEL_ID}
       DAILY_CHANNEL_ID: ${DAILY_CHANNEL_ID}
       ACTIVITY_CHANNEL_ID: ${ACTIVITY_CHANNEL_ID}
       TOKEN_KEY: ${TOKEN_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
+      JWT_KEY: ${JWT_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
       KNOQ_VERSION: ${KNOQ_VERSION:-dev}
       DEVELOPMENT: true
       GORM_LOG_LEVEL: info
