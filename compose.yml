@@ -1,8 +1,5 @@
 version: "3"
 
-networks:
-  default:
-
 services:
   app:
     build:
@@ -37,8 +34,6 @@ services:
       watch:
         - action: rebuild
           path: ./
-    networks:
-      - default
 
   mysql:
     image: mariadb:10.6.4
@@ -56,8 +51,6 @@ services:
       interval: 1s
       timeout: 10s
       retries: 60
-    networks:
-      - default
 
   adminer:
     image: adminer
@@ -67,5 +60,3 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-    networks:
-      - default
