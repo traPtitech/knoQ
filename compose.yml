@@ -35,9 +35,9 @@ services:
         - action: rebuild
           path: ./
 
-  mysql:
+  db:
     image: mariadb:10.6.4
-    container_name: knoq_mysql
+    container_name: knoq_db
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: knoQ
