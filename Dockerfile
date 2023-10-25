@@ -1,33 +1,51 @@
 # syntax=docker/dockerfile:1
 
-# for production
-
-FROM golang:1-alpine as server-build
-
-WORKDIR /github.com/traPtitech/knoq
-
-COPY go.mod go.sum ./
-ENV GO111MODULE=on
-RUN go mod download
-COPY ./ ./
-
-RUN go build -o knoq
-
-FROM alpine:latest
+#
+# build stage
+#
+FROM golang:1-alpine as builder
 
 WORKDIR /app
 
-RUN apk --update add tzdata \
-  && cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
-  && apk add --update ca-certificates \
-  && update-ca-certificates \
-  && rm -rf /var/cache/apk/*
+ENV GO111MODULE=on
+ENV GOOS=linux
+ENV GOARCH=amd64
+ENV GOCACHE=/root/.cache/go-build
+ENV GOMODCACHE=/go/pkg/mod
 
-COPY --from=server-build /github.com/traPtitech/knoq/knoq ./
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=${GOCACHE} \
+  --mount=type=cache,target=${GOMODCACHE} \
+  go mod download
+
+COPY ./ ./
+RUN --mount=type=cache,target=${GOCACHE} \
+  --mount=type=cache,target=${GOMODCACHE} \
+  go build -o /app/knoq
+
+# static files
+RUN mkdir -p /app/web \
+  && apk add --no-cache curl \
+  && curl -L -Ss https://github.com/traPtitech/knoQ-UI/releases/latest/download/dist.tar.gz \
+  | tar zxv -C /app/web
+# Google Calendar API needs service.json
+RUN touch /app/service.json
+
+#
+# runtime stage
+#
+FROM gcr.io/distroless/static-debian11:latest
+
+WORKDIR /app
+
+# COPY --from=builder /app/knoq /app/web/ /app/service.json /app/
+COPY --from=builder /app/knoq /app/
+COPY --from=builder /app/web/ /app/web/
+COPY --from=builder /app/service.json /app/
 
 ARG knoq_version=dev
 ARG knoq_revision=local
 ENV KNOQ_VERSION=${knoq_version}
 ENV KNOQ_REVISION=${knoq_revision}
 
-ENTRYPOINT ./knoq
+CMD ["/app/knoq"]

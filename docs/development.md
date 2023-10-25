@@ -12,11 +12,19 @@ docker compose up
 
 を実行すると以下の環境が起動します
 
-- knoQのホットリロード環境([cosmtrek/air](https://github.com/cosmtrek/air))
+- knoQアプリ (フロントエンドを含みます)
   - <http://localhost:6006>
 - DB(MariaDB)
 - DB接続クライアント(PHPMyAdmin)
   - <http://localhost:8000>
+
+> **Info**
+> 代わりに以下のコマンドを実行することで、ソースコードの変更を検知して自動で再起動させることができます
+> 参考: [Compose Watch](https://docs.docker.com/compose/file-watch/)
+>
+> ```bash
+> docker compose watch
+> ```
 
 ## ディレクトリ構造
 

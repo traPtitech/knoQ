@@ -1,15 +1,11 @@
 version: "3"
 
-networks:
-  default:
-
-
 services:
-  knoq:
+  app:
     build:
       context: .
-      dockerfile: ./Dockerfile.dev
-    container_name: knoq_development_app
+      dockerfile: ./Dockerfile
+    container_name: knoq_app
     environment:
       TZ: Asia/Tokyo
       MARIADB_USERNAME: root
@@ -29,26 +25,19 @@ services:
       KNOQ_VERSION: ${KNOQ_VERSION:-dev}
       DEVELOPMENT: true
       GORM_LOG_LEVEL: info
-    volumes:
-      - ./main.go:/srv/knoq/main.go
-      - ./router:/srv/knoq/router
-      - ./utils:/srv/knoq/utils
-      - ./migration:/srv/knoq/migration
-      - ./domain:/srv/knoq/domain
-      - ./infra:/srv/knoq/infra
-      - ./presentation:/srv/knoq/presentation
-      - ./repository:/srv/knoq/repository
     ports:
-      - "6006:3000"
+      - "${APP_PORT:-3000}:3000"
     depends_on:
       mysql:
         condition: service_healthy
-    networks:
-      - default
+    develop:
+      watch:
+        - action: rebuild
+          path: ./
 
-  mysql:
+  db:
     image: mariadb:10.6.4
-    container_name: knoq_development_mysql
+    container_name: knoq_db
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: knoQ
@@ -62,23 +51,12 @@ services:
       interval: 1s
       timeout: 10s
       retries: 60
-    networks:
-      - default
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: knoq_development_phpmyadmin
-    volumes:
-      - "./_development/phpmyadmin:/sessions"
+  adminer:
+    image: adminer
+    container_name: knoq_adminer
     ports:
-      - 8000:80
-    environment:
-      - PMA_ARBITRARY=1
-      - PMA_HOST=mysql
-      - PMA_USER=root
-      - PMA_PASSWORD=password
+      - "8000:8080"
     depends_on:
       mysql:
         condition: service_healthy
-    networks:
-      - default
