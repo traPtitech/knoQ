@@ -59,18 +59,11 @@ services:
     networks:
       - default
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: knoq_phpmyadmin
-    volumes:
-      - "./_development/phpmyadmin:/sessions"
+  adminer:
+    image: adminer
+    container_name: knoq_adminer
     ports:
-      - 8000:80
-    environment:
-      - PMA_ARBITRARY=1
-      - PMA_HOST=mysql
-      - PMA_USER=root
-      - PMA_PASSWORD=password
+      - "8000:8080"
     depends_on:
       mysql:
         condition: service_healthy
