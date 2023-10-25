@@ -5,11 +5,11 @@ networks:
 
 
 services:
-  knoq:
+  app:
     build:
       context: .
       dockerfile: ./Dockerfile.dev
-    container_name: knoq_development_app
+    container_name: knoq_app
     environment:
       TZ: Asia/Tokyo
       MARIADB_USERNAME: root
@@ -48,7 +48,7 @@ services:
 
   mysql:
     image: mariadb:10.6.4
-    container_name: knoq_development_mysql
+    container_name: knoq_mysql
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: knoQ
@@ -67,7 +67,7 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: knoq_development_phpmyadmin
+    container_name: knoq_phpmyadmin
     volumes:
       - "./_development/phpmyadmin:/sessions"
     ports:
