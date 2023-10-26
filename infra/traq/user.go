@@ -9,23 +9,17 @@ import (
 )
 
 func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*traq.User, error) {
-	traqconf := traq.NewConfiguration()
-	conf := TraQDefaultConfig
-	traqconf.HTTPClient = conf.Client(context.Background(), token)
-	apiClient := traq.NewAPIClient(traqconf)
-	userDtail, _, err := apiClient.UserApi.GetUser(context.Background(), userID.String()).Execute()
+	apiClient := MakeApiClient(token)
+	userDetail, _, err := apiClient.UserApi.GetUser(context.Background(), userID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
-	user := convertUserdetailToUser(userDtail)
+	user := convertUserdetailToUser(userDetail)
 	return user, err
 }
 
 func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]*traq.User, error) {
-	traqconf := traq.NewConfiguration()
-	conf := TraQDefaultConfig
-	traqconf.HTTPClient = conf.Client(context.Background(), token)
-	apiClient := traq.NewAPIClient(traqconf)
+	apiClient := MakeApiClient(token)
 	users, _, err := apiClient.UserApi.GetUsers(context.Background()).IncludeSuspended(includeSuspended).Execute()
 	if err != nil {
 		return nil, err
@@ -35,12 +29,9 @@ func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool)
 }
 
 func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
-	traqconf := traq.NewConfiguration()
-	conf := TraQDefaultConfig
-	traqconf.HTTPClient = conf.Client(context.Background(), token)
-	client := traq.NewAPIClient(traqconf)
+	apiClient := MakeApiClient(token)
 
-	data, _, err := client.MeApi.GetMe(context.Background()).Execute()
+	data, _, err := apiClient.MeApi.GetMe(context.Background()).Execute()
 	if err != nil {
 		return nil, err
 	}

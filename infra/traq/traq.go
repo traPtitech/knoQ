@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/knoQ/utils/random"
 	"golang.org/x/oauth2"
 )
@@ -76,4 +77,12 @@ func (repo *TraQRepository) doRequest(token *oauth2.Token, req *http.Request) ([
 		return nil, err
 	}
 	return io.ReadAll(resp.Body)
+}
+
+func MakeApiClient(token *oauth2.Token) *traq.APIClient {
+	traqconf := traq.NewConfiguration()
+	conf := TraQDefaultConfig
+	traqconf.HTTPClient = conf.Client(context.Background(), token)
+	apiClient := traq.NewAPIClient(traqconf)
+	return apiClient
 }
