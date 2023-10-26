@@ -57,95 +57,73 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", h.TraQUserMiddleware)
-	{
-		previlegeMiddle := h.PrevilegeUserMiddleware
 
-		apiGroups := api.Group("/groups")
+	// 認証なし
+	apiNoAuth := e.Group("/api")
+	{
+		apiNoAuth.POST("/authParams", h.HandlePostAuthParams)
+		apiNoAuth.GET("/callback", h.HandleCallback)
+		apiNoAuth.GET("/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
+		apiNoAuth.GET("/version", h.HandleGetVersion)
+	}
+
+	// 認証あり (JWT認証、traQ認証)
+	apiWithAuth := apiNoAuth.Group("", h.TraQUserMiddleware)
+	{
+		apiGroups := apiWithAuth.Group("/groups")
 		{
 			apiGroups.GET("", h.HandleGetGroups)
 			apiGroups.POST("", h.HandlePostGroup)
-			apiGroup := apiGroups.Group("/:groupid")
-			{
-				apiGroup.GET("", h.HandleGetGroup)
-
-				apiGroup.PUT("", h.HandleUpdateGroup, h.GroupAdminsMiddleware)
-				apiGroup.DELETE("", h.HandleDeleteGroup, h.GroupAdminsMiddleware)
-
-				apiGroup.PUT("/members/me", h.HandleAddMeGroup)
-				apiGroup.DELETE("/members/me", h.HandleDeleteMeGroup)
-
-				apiGroup.GET("/events", h.HandleGetEventsByGroupID)
-			}
+			apiGroups.GET("/:groupid", h.HandleGetGroup)
+			apiGroups.PUT("/:groupid", h.HandleUpdateGroup, h.GroupAdminsMiddleware)
+			apiGroups.DELETE("/:groupid", h.HandleDeleteGroup, h.GroupAdminsMiddleware)
+			apiGroups.PUT("/:groupid/members/me", h.HandleAddMeGroup)
+			apiGroups.DELETE("/:groupid/members/me", h.HandleDeleteMeGroup)
+			apiGroups.GET("/:groupid/events", h.HandleGetEventsByGroupID)
 		}
 
-		apiEvents := api.Group("/events")
+		apiEvents := apiWithAuth.Group("/events")
 		{
 			apiEvents.GET("", h.HandleGetEvents)
 			apiEvents.POST("", h.HandlePostEvent, middleware.BodyDump(h.WebhookEventHandler))
-
-			apiEvent := apiEvents.Group("/:eventid")
-			{
-				apiEvent.GET("", h.HandleGetEvent)
-				apiEvent.PUT("", h.HandleUpdateEvent, h.EventAdminsMiddleware, middleware.BodyDump(h.WebhookEventHandler))
-				apiEvent.DELETE("", h.HandleDeleteEvent, h.EventAdminsMiddleware)
-				apiEvent.PUT("/attendees/me", h.HandleUpsertMeEventSchedule)
-
-				apiEvent.POST("/tags", h.HandleAddEventTag)
-				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)
-			}
-
+			apiEvents.GET("/:eventid", h.HandleGetEvent)
+			apiEvents.PUT("/:eventid", h.HandleUpdateEvent, h.EventAdminsMiddleware, middleware.BodyDump(h.WebhookEventHandler))
+			apiEvents.DELETE("/:eventid", h.HandleDeleteEvent, h.EventAdminsMiddleware)
+			apiEvents.PUT("/:eventid/attendees/me", h.HandleUpsertMeEventSchedule)
+			apiEvents.POST("/:eventid/tags", h.HandleAddEventTag)
+			apiEvents.DELETE("/:eventid/tags/:tagName", h.HandleDeleteEventTag)
 		}
-		apiRooms := api.Group("/rooms")
+
+		apiRooms := apiWithAuth.Group("/rooms")
 		{
 			apiRooms.GET("", h.HandleGetRooms)
 			apiRooms.POST("", h.HandlePostRoom)
-			apiRooms.POST("/all", h.HandleCreateVerifedRooms, previlegeMiddle)
-
-			apiRoom := apiRooms.Group("/:roomid")
-			{
-				apiRoom.GET("", h.HandleGetRoom)
-				apiRoom.DELETE("", h.HandleDeleteRoom)
-
-				apiRoom.POST("/verified", h.HandleVerifyRoom, previlegeMiddle)
-				apiRoom.DELETE("/verified", h.HandleUnVerifyRoom, previlegeMiddle)
-			}
+			apiRooms.POST("/all", h.HandleCreateVerifedRooms, h.PrevilegeUserMiddleware)
+			apiRooms.GET("/:roomid", h.HandleGetRoom)
+			apiRooms.DELETE("/:roomid", h.HandleDeleteRoom)
+			apiRooms.POST("/:roomid/verified", h.HandleVerifyRoom, h.PrevilegeUserMiddleware)
+			apiRooms.DELETE("/:roomid/verified", h.HandleUnVerifyRoom, h.PrevilegeUserMiddleware)
 		}
 
-		apiUsers := api.Group("/users")
+		apiUsers := apiWithAuth.Group("/users")
 		{
 			apiUsers.GET("", h.HandleGetUsers)
-			apiUsers.POST("/sync", h.HandleSyncUser, previlegeMiddle)
-
+			apiUsers.POST("/sync", h.HandleSyncUser, h.PrevilegeUserMiddleware)
 			apiUsers.GET("/me", h.HandleGetUserMe)
 			apiUsers.GET("/me/ical", h.HandleGetiCal)
 			apiUsers.PUT("/me/ical", h.HandleUpdateiCal)
 			apiUsers.GET("/me/groups", h.HandleGetMeGroupIDs)
 			apiUsers.GET("/me/events", h.HandleGetMeEvents)
-
-			apiUser := apiUsers.Group("/:userid")
-			{
-				apiUser.GET("/events", h.HandleGetEventsByUserID)
-				apiUser.GET("/groups", h.HandleGetGroupIDsByUserID)
-			}
+			apiUsers.GET("/:userid/events", h.HandleGetEventsByUserID)
+			apiUsers.GET("/:userid/groups", h.HandleGetGroupIDsByUserID)
 		}
 
-		apiTags := api.Group("/tags")
+		apiTags := apiWithAuth.Group("/tags")
 		{
 			apiTags.POST("", h.HandlePostTag)
 			apiTags.GET("", h.HandleGetTags)
 		}
-
-		// apiActivity := api.Group("/activity")
-		// {
-		// apiActivity.GET("/events", h.HandleGetEventActivities)
-		// }
-
 	}
-	e.POST("/api/authParams", h.HandlePostAuthParams)
-	e.GET("/api/callback", h.HandleCallback)
-	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
-	e.GET("/api/version", h.HandleGetVersion)
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {
