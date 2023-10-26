@@ -75,11 +75,16 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			groupsAPI.GET("", h.HandleGetGroups)
 			groupsAPI.POST("", h.HandlePostGroup)
 			groupsAPI.GET("/:groupid", h.HandleGetGroup)
-			groupsAPI.PUT("/:groupid", h.HandleUpdateGroup, h.GroupAdminsMiddleware)
-			groupsAPI.DELETE("/:groupid", h.HandleDeleteGroup, h.GroupAdminsMiddleware)
 			groupsAPI.PUT("/:groupid/members/me", h.HandleAddMeGroup)
 			groupsAPI.DELETE("/:groupid/members/me", h.HandleDeleteMeGroup)
 			groupsAPI.GET("/:groupid/events", h.HandleGetEventsByGroupID)
+
+			// グループ管理者権限が必要
+			groupsAPIWithAdminAuth := groupsAPI.Group("", h.GroupAdminsMiddleware)
+			{
+				groupsAPIWithAdminAuth.PUT("/:groupid/members/:userid", h.HandleUpdateGroup)
+				groupsAPIWithAdminAuth.DELETE("/:groupid/members/:userid", h.HandleDeleteGroup)
+			}
 		}
 
 		eventsAPI := apiWithAuth.Group("/events")
@@ -87,28 +92,37 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			eventsAPI.GET("", h.HandleGetEvents)
 			eventsAPI.POST("", h.HandlePostEvent, middleware.BodyDump(h.WebhookEventHandler))
 			eventsAPI.GET("/:eventid", h.HandleGetEvent)
-			eventsAPI.PUT("/:eventid", h.HandleUpdateEvent, h.EventAdminsMiddleware, middleware.BodyDump(h.WebhookEventHandler))
-			eventsAPI.DELETE("/:eventid", h.HandleDeleteEvent, h.EventAdminsMiddleware)
 			eventsAPI.PUT("/:eventid/attendees/me", h.HandleUpsertMeEventSchedule)
 			eventsAPI.POST("/:eventid/tags", h.HandleAddEventTag)
 			eventsAPI.DELETE("/:eventid/tags/:tagName", h.HandleDeleteEventTag)
+
+			// イベント管理者権限が必要
+			eventsAPIWithAdminAuth := eventsAPI.Group("", h.EventAdminsMiddleware)
+			{
+				eventsAPIWithAdminAuth.PUT("/:eventid", h.HandleUpdateEvent, middleware.BodyDump(h.WebhookEventHandler))
+				eventsAPIWithAdminAuth.DELETE("/:eventid", h.HandleDeleteEvent)
+			}
 		}
 
 		roomsAPI := apiWithAuth.Group("/rooms")
 		{
 			roomsAPI.GET("", h.HandleGetRooms)
 			roomsAPI.POST("", h.HandlePostRoom)
-			roomsAPI.POST("/all", h.HandleCreateVerifedRooms, h.PrevilegeUserMiddleware)
 			roomsAPI.GET("/:roomid", h.HandleGetRoom)
 			roomsAPI.DELETE("/:roomid", h.HandleDeleteRoom)
-			roomsAPI.POST("/:roomid/verified", h.HandleVerifyRoom, h.PrevilegeUserMiddleware)
-			roomsAPI.DELETE("/:roomid/verified", h.HandleUnVerifyRoom, h.PrevilegeUserMiddleware)
+
+			// サービス管理者権限が必要
+			roomsAPIWithPrevilegeAuth := roomsAPI.Group("", h.PrevilegeUserMiddleware)
+			{
+				roomsAPIWithPrevilegeAuth.POST("/all", h.HandleCreateVerifedRooms)
+				roomsAPIWithPrevilegeAuth.POST("/:roomid/verified", h.HandleVerifyRoom)
+				roomsAPIWithPrevilegeAuth.DELETE("/:roomid/verified", h.HandleUnVerifyRoom)
+			}
 		}
 
 		usersAPI := apiWithAuth.Group("/users")
 		{
 			usersAPI.GET("", h.HandleGetUsers)
-			usersAPI.POST("/sync", h.HandleSyncUser, h.PrevilegeUserMiddleware)
 			usersAPI.GET("/me", h.HandleGetUserMe)
 			usersAPI.GET("/me/ical", h.HandleGetiCal)
 			usersAPI.PUT("/me/ical", h.HandleUpdateiCal)
@@ -116,6 +130,12 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			usersAPI.GET("/me/events", h.HandleGetMeEvents)
 			usersAPI.GET("/:userid/events", h.HandleGetEventsByUserID)
 			usersAPI.GET("/:userid/groups", h.HandleGetGroupIDsByUserID)
+
+			// サービス管理者権限が必要
+			usersAPIWithPrevilegeAuth := usersAPI.Group("", h.PrevilegeUserMiddleware)
+			{
+				usersAPIWithPrevilegeAuth.POST("/sync", h.HandleSyncUser)
+			}
 		}
 
 		tagsAPI := apiWithAuth.Group("/tags")
