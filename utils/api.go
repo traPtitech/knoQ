@@ -11,15 +11,15 @@ import (
 	"github.com/traPtitech/go-traq"
 )
 
-
-
 // RequestWebhook q.trap/jp にメッセージを送信します。
 func RequestWebhook(message, secret, channelID, webhookID string, embed int) error {
 	xTRAQSignature := calcSignature(message, secret)
 	configuration := traq.NewConfiguration()
 	apiClient := traq.NewAPIClient(configuration)
 
-	res, err := apiClient.WebhookApi.PostWebhook(context.Background(), webhookID).XTRAQChannelId(channelID).XTRAQSignature(xTRAQSignature).Embed(int32(embed)).Body(message).Execute()
+	res, err := apiClient.WebhookApi.PostWebhook(context.Background(), webhookID).
+		XTRAQChannelId(channelID).XTRAQSignature(xTRAQSignature).
+		Embed(int32(embed)).Body(message).Execute()
 	if err != nil {
 		return err
 	}
