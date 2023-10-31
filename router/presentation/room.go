@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/knoQ/utils/tz"
 )
 
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s RoomReq -d domain.WriteRoomParams -o converter.go .
@@ -75,17 +76,16 @@ func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 func ChangeRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (*domain.WriteRoomParams, error) {
 
 	layout := "2006/01/02 15:04"
-	jst, _ := time.LoadLocation("Asia/Tokyo")
 	var params domain.WriteRoomParams
 	var err error
 
 	params.Place = src.Location
-	params.TimeStart, err = time.ParseInLocation(layout, src.StartDate+" "+src.StartTime, jst)
+	params.TimeStart, err = time.ParseInLocation(layout, src.StartDate+" "+src.StartTime, tz.JST)
 	if err != nil {
 		return nil, err
 	}
 
-	params.TimeEnd, err = time.ParseInLocation(layout, src.EndDate+" "+src.EndTime, jst)
+	params.TimeEnd, err = time.ParseInLocation(layout, src.EndDate+" "+src.EndTime, tz.JST)
 	if err != nil {
 		return nil, err
 	}

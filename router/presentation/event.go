@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/knoQ/utils/tz"
 
 	ics "github.com/arran4/golang-ical"
 	"github.com/gofrs/uuid"
@@ -161,7 +162,6 @@ func ICalFormat(events []*domain.Event, host string, userMap map[uuid.UUID]*doma
 }
 
 func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationTargets []string, origin string, isMention bool) string {
-	jst, _ := time.LoadLocation("Asia/Tokyo")
 	timeFormat := "01/02(Mon) 15:04"
 	var content string
 	switch method {
@@ -172,7 +172,7 @@ func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationT
 	}
 	content += fmt.Sprintf("### [%s](%s/events/%s)", e.Name, origin, e.ID) + "\n"
 	content += fmt.Sprintf("- 主催: [%s](%s/groups/%s)", e.GroupName, origin, e.Group.ID) + "\n"
-	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(jst).Format(timeFormat), e.TimeEnd.In(jst).Format(timeFormat)) + "\n"
+	content += fmt.Sprintf("- 日時: %s ~ %s", e.TimeStart.In(tz.JST).Format(timeFormat), e.TimeEnd.In(tz.JST).Format(timeFormat)) + "\n"
 	content += fmt.Sprintf("- 場所: %s", e.Room.Place) + "\n"
 	content += "\n"
 
