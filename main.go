@@ -10,9 +10,10 @@ import (
 
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
-	"github.com/traPtitech/knoQ/repository"
 	"github.com/traPtitech/knoQ/infra/traq"
+	"github.com/traPtitech/knoQ/repository"
 	"github.com/traPtitech/knoQ/utils"
+	"github.com/traPtitech/knoQ/utils/tz"
 	"golang.org/x/oauth2"
 
 	"github.com/traPtitech/knoQ/router"
@@ -42,8 +43,6 @@ var (
 	webhookSecret     = getenv("WEBHOOK_SECRET", "")
 	activityChannelID = getenv("ACTIVITY_CHANNEL_ID", "")
 	dailyChannelID    = getenv("DAILY_CHANNEL_ID", "")
-
-	jst, _ = time.LoadLocation("Asia/Tokyo")
 )
 
 func main() {
@@ -53,7 +52,7 @@ func main() {
 	domain.DEVELOPMENT, _ = strconv.ParseBool(development)
 
 	gormRepo := db.GormRepository{}
-	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, jst)
+	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, tz.JST)
 	if err != nil {
 		panic(err)
 	}

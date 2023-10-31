@@ -9,10 +9,9 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/infra/db"
+	"github.com/traPtitech/knoQ/utils/tz"
 	"golang.org/x/exp/slices"
 )
-
-var jst, _ = time.LoadLocation("Asia/Tokyo")
 
 type timeTable struct {
 	name           string
@@ -41,7 +40,7 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 
 func setTimeFromString(t time.Time, str string) time.Time {
 	s, _ := time.Parse(time.TimeOnly, str)
-	return time.Date(t.Year(), t.Month(), t.Day(), s.Hour(), s.Minute(), s.Second(), 0, jst)
+	return time.Date(t.Year(), t.Month(), t.Day(), s.Hour(), s.Minute(), s.Second(), 0, tz.JST)
 }
 
 // makeRoomAvailableByTimeTable timeTables の各時間帯を行、rooms の各部屋を列とする表を map 形式で作成する。 unVerified の部屋は無視する。
@@ -97,7 +96,7 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 }
 
 func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
-	date := t.In(jst).Format("01/02(Mon)")
+	date := t.In(tz.JST).Format("01/02(Mon)")
 	combined := map[bool]string{
 		true:  "(併用可)",
 		false: "",
@@ -164,7 +163,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 	} else {
 		for _, event := range events {
 			eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s ~ %s @%s %s\n", event.Name, origin, event.ID,
-				event.TimeStart.In(jst).Format("15:04"), event.TimeEnd.In(jst).Format("15:04"),
+				event.TimeStart.In(tz.JST).Format("15:04"), event.TimeEnd.In(tz.JST).Format("15:04"),
 				event.Room.Place, combined[event.AllowTogether])
 		}
 
