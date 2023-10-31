@@ -18,8 +18,8 @@ import (
 
 	"github.com/traPtitech/knoQ/router"
 
-	"github.com/carlescere/scheduler"
 	"github.com/gorilla/sessions"
+	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
 
@@ -93,9 +93,21 @@ func main() {
 	e := handler.SetupRoute()
 
 	// webhook
-	job := utils.InitPostEventToTraQ(&repo.GormRepo, handler.WebhookSecret,
-		handler.DailyChannelId, handler.WebhookID, handler.Origin)
-	_, _ = scheduler.Every().Day().At("08:00").Run(job)
+	c := cron.New(cron.WithLocation(tz.JST))
+	_, err = c.AddFunc(
+		"0 8 * * *",
+		utils.InitPostEventToTraQ(
+			&repo.GormRepo,
+			handler.WebhookSecret,
+			handler.DailyChannelId,
+			handler.WebhookID,
+			handler.Origin,
+		),
+	)
+	if err != nil {
+		panic(err)
+	}
+	c.Start()
 
 	// サーバースタート
 	go func() {
