@@ -23,7 +23,7 @@ type timeTable struct {
 // webhookでtraQに送るjobを作成。
 func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, origin string) func() {
 	job := func() {
-		now := setTimeFromString(time.Now().AddDate(0, 0, 0), "06:00:00")
+		now := setTimeFromString(time.Now().In(tz.JST), "06:00:00")
 		tomorrow := now.AddDate(0, 0, 1)
 
 		rooms, _ := repo.GetAllRooms(now, tomorrow, uuid.Nil)
