@@ -27,9 +27,9 @@ func GetTiemRange(values url.Values) (start time.Time, end time.Time, err error)
 type UserRelation int
 
 const (
-	RelationBelongs         = iota
-	RelationAdmins          = iota
-	RelationBelongsOrAdmins = iota
+	RelationBelongs UserRelation = iota
+	RelationAdmins
+	RelationBelongsOrAdmins
 )
 
 func GetUserRelationQuery(values url.Values) UserRelation {
