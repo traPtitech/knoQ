@@ -31,9 +31,7 @@ func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool)
 	if err != nil {
 		return nil, err
 	}
-	return users,err
-	// res_users := convertUsersToUsers(users)
-	// return res_users, err
+	return users, err
 }
 
 func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
@@ -52,13 +50,4 @@ func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
 	user.State = userDetail.State
 	user.UpdatedAt = userDetail.UpdatedAt
 	return user, err
-}
-
-func convertUsersToUsers(users []traq.User) []*traq.User {
-	new_users := make([]*traq.User, len(users))
-	for i, _user := range users {
-		user := _user
-		new_users[i] = &user
-	}
-	return new_users
 }
