@@ -25,15 +25,15 @@ func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*tra
 	return user, err
 }
 
-func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]*traq.User, error) {
+func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]traq.User, error) {
 	apiClient := MakeApiClient(token, context.Background())
 	users, _, err := apiClient.UserApi.GetUsers(context.Background()).IncludeSuspended(includeSuspended).Execute()
 	if err != nil {
 		return nil, err
 	}
-	// return users,err
-	res_users := convertUsersToUsers(users)
-	return res_users, err
+	return users,err
+	// res_users := convertUsersToUsers(users)
+	// return res_users, err
 }
 
 func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
