@@ -79,10 +79,10 @@ func (repo *TraQRepository) doRequest(token *oauth2.Token, req *http.Request) ([
 	return io.ReadAll(resp.Body)
 }
 
-func MakeApiClient(token *oauth2.Token) *traq.APIClient {
+func MakeApiClient(token *oauth2.Token, ctx context.Context) *traq.APIClient {
 	traqconf := traq.NewConfiguration()
 	conf := TraQDefaultConfig
-	traqconf.HTTPClient = conf.Client(context.Background(), token)
+	traqconf.HTTPClient = conf.Client(ctx, token)
 	apiClient := traq.NewAPIClient(traqconf)
 	return apiClient
 }
