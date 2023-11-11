@@ -129,6 +129,27 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
+	case presentation.RelationBelongsOrAdmins:
+		belongingGroupIDs, err := h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+		adminGroupIDs, err := h.Repo.GetUserAdminGroupIDs(userID)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+
+		allGroupIDs := append(belongingGroupIDs, adminGroupIDs...)
+		uniqueIDMap := make(map[uuid.UUID]struct{})
+
+		for _, groupID := range allGroupIDs {
+			if _, ok := uniqueIDMap[groupID]; ok {
+				continue
+			}
+
+			uniqueIDMap[groupID] = struct{}{}
+			groupIDs = append(groupIDs, groupID)
+		}
 	}
 
 	return c.JSON(http.StatusOK, groupIDs)
