@@ -28,7 +28,7 @@ var (
 	revision    = getenv("KNOQ_REVISION", "unknown")
 	development = getenv("DEVELOPMENT", "false")
 
-	mariadbHost     = getenv("MARIADB_HOSTNAME", "mysql")
+	mariadbHost     = getenv("MARIADB_HOSTNAME", "db")
 	mariadbUser     = getenv("MARIADB_USERNAME", "root")
 	mariadbPassword = getenv("MARIADB_PASSWORD", "password")
 	mariadbDatabase = getenv("MARIADB_DATABASE", "knoQ")
