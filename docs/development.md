@@ -13,7 +13,7 @@ docker compose up
 を実行すると以下の環境が起動します
 
 - knoQアプリ (フロントエンドを含みます)
-  - <http://localhost:6006>
+  - <http://localhost:3000>
 - DB(MariaDB)
 - DB接続クライアント(PHPMyAdmin)
   - <http://localhost:8000>
