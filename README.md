@@ -21,7 +21,7 @@
 docker compose up --build
 ```
 
-`http://localhost:6006`に knoQ が起動します。
+`http://localhost:3000`に knoQ が起動します。
 `http://localhost:8000`に phpmyadmin が起動します。
 
 現在、ログインできるのは traP ユーザーのみです。
