@@ -34,7 +34,7 @@ knoQ の全ての機能を動作させるためには、追加の情報が必要
 |---------------------|------|----------------------------------------|------------------------------------------------|
 | SESSION_KEY         | 環境変数 | `random32wordsXXXXXXXXXXXXXXXXXXX`     | session を暗号化するもの                               |
 | TRAQ_CALENDARID     | 環境変数 |                                        | 進捗部屋の提供元（公開されている google calendar の id なら何でもいい） |
-| CLIENT_ID           | 環境変数 | `aYj6mwyLcpBIrxZZD8jkCzH3Gsdqc9DJqle2` | 認証に必要                                          |
+| CLIENT_ID           | 環境変数 | `d1hDlIRNfCBerXdZkH1VR8lJwCBpIuMgiv42` | 認証に必要                                          |
 | WEBHOOK_ID          | 環境変数 |                                        | Bot 情報                                         |
 | WEBHOOK_SECRET      | 環境変数 |                                        | Bot 情報                                         |
 | CHANNEL_ID          | 環境変数 |                                        | Bot の送信先チャンネル (deprecated)                     |
