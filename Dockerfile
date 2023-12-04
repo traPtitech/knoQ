@@ -3,13 +3,15 @@
 #
 # build stage
 #
-FROM golang:1-alpine as builder
+FROM --platform=$BUILDPLATFORM golang:1-alpine as builder
 
 WORKDIR /app
 
 ENV GO111MODULE=on
-ENV GOOS=linux
-ENV GOARCH=amd64
+ARG TARGETOS
+ARG TARGETARCH
+ENV GOOS=$TARGETOS
+ENV GOARCH=$TARGETARCH
 ENV GOCACHE=/root/.cache/go-build
 ENV GOMODCACHE=/go/pkg/mod
 
