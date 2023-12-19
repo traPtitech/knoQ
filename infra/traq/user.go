@@ -19,15 +19,16 @@ func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*tra
 	if err != nil {
 		return nil, err
 	}
-	user := new(traq.User)
-	user.Id = userDetail.Id
-	user.Name = userDetail.Name
-	user.DisplayName = userDetail.DisplayName
-	user.IconFileId = userDetail.IconFileId
-	user.Bot = userDetail.Bot
-	user.State = userDetail.State
-	user.UpdatedAt = userDetail.UpdatedAt
-	return user, err
+	user := traq.User{
+		Id:          userDetail.Id,
+		Name:        userDetail.Name,
+		DisplayName: userDetail.DisplayName,
+		IconFileId:  userDetail.IconFileId,
+		Bot:         userDetail.Bot,
+		State:       userDetail.State,
+		UpdatedAt:   userDetail.UpdatedAt,
+	}
+	return &user, err
 }
 
 func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]traq.User, error) {
@@ -55,13 +56,15 @@ func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user := new(traq.User)
-	user.Id = userDetail.Id
-	user.Name = userDetail.Name
-	user.DisplayName = userDetail.DisplayName
-	user.IconFileId = userDetail.IconFileId
-	user.Bot = userDetail.Bot
-	user.State = userDetail.State
-	user.UpdatedAt = userDetail.UpdatedAt
-	return user, err
+	user := traq.User{
+		Id:          userDetail.Id,
+		Name:        userDetail.Name,
+		DisplayName: userDetail.DisplayName,
+		IconFileId:  userDetail.IconFileId,
+		Bot:         userDetail.Bot,
+		State:       userDetail.State,
+		UpdatedAt:   userDetail.UpdatedAt,
+	}
+
+	return &user, err
 }
