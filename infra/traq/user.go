@@ -52,6 +52,9 @@ func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
 		return nil, err
 	}
 	err = handleStatusCode(resp.StatusCode)
+	if err != nil {
+		return nil, err
+	}
 	user := new(traq.User)
 	user.Id = userDetail.Id
 	user.Name = userDetail.Name
