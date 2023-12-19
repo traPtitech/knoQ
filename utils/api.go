@@ -13,11 +13,11 @@ import (
 
 // RequestWebhook q.trap/jp にメッセージを送信します。
 func RequestWebhook(message, secret, channelID, webhookID string, embed int) error {
-	xTRAQSignature := calcSignature(message, secret)
 	configuration := traq.NewConfiguration()
 	apiClient := traq.NewAPIClient(configuration)
 
-	res, err := apiClient.WebhookApi.PostWebhook(context.Background(), webhookID).
+	xTRAQSignature := calcSignature(message, secret)
+	res, err := apiClient.WebhookApi.PostWebhook(context.TODO(), webhookID).
 		XTRAQChannelId(channelID).XTRAQSignature(xTRAQSignature).
 		Embed(int32(embed)).Body(message).Execute()
 	if err != nil {
