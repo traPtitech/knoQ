@@ -10,8 +10,12 @@ import (
 
 func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*traq.User, error) {
 	ctx := context.TODO()
-	apiClient := MakeApiClient(token, ctx)
-	userDetail, _, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
+	apiClient := NewAPIClient(ctx, token)
+	userDetail, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
+	if err != nil {
+		return nil, err
+	}
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
 		return nil, err
 	}
@@ -28,8 +32,12 @@ func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*tra
 
 func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]traq.User, error) {
 	ctx := context.TODO()
-	apiClient := MakeApiClient(token, ctx)
-	users, _, err := apiClient.UserApi.GetUsers(ctx).IncludeSuspended(includeSuspended).Execute()
+	apiClient := NewAPIClient(ctx, token)
+	users, resp, err := apiClient.UserApi.GetUsers(ctx).IncludeSuspended(includeSuspended).Execute()
+	if err != nil {
+		return nil, err
+	}
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
 		return nil, err
 	}
@@ -38,12 +46,12 @@ func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool)
 
 func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
 	ctx := context.TODO()
-	apiClient := MakeApiClient(token, ctx)
-
-	userDetail, _, err := apiClient.MeApi.GetMe(ctx).Execute()
+	apiClient := NewAPIClient(ctx, token)
+	userDetail, resp, err := apiClient.MeApi.GetMe(ctx).Execute()
 	if err != nil {
 		return nil, err
 	}
+	err = handleStatusCode(resp.StatusCode)
 	user := new(traq.User)
 	user.Id = userDetail.Id
 	user.Name = userDetail.Name
