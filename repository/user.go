@@ -181,10 +181,11 @@ func (repo *Repository) IsPrevilege(info *domain.ConInfo) bool {
 	return user.Privilege
 }
 
-func traQUserMap(users []*traq.User) map[uuid.UUID]*traq.User {
+func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
 	userMap := make(map[uuid.UUID]*traq.User)
-	for _, user := range users {
-		userMap[uuid.Must(uuid.FromString(user.GetId()))] = user
+	for _, u := range users {
+		user:=u
+		userMap[uuid.Must(uuid.FromString(user.GetId()))] = &user
 	}
 	return userMap
 }
