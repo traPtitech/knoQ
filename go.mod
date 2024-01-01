@@ -10,7 +10,7 @@ require (
 	github.com/gorilla/securecookie v1.1.2
 	github.com/gorilla/sessions v1.2.2
 	github.com/jinzhu/copier v0.4.0
-	github.com/jszwec/csvutil v1.8.0
+	github.com/jszwec/csvutil v1.9.0
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/ory/dockertest/v3 v3.10.0
