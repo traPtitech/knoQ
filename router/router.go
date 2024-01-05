@@ -134,7 +134,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			// サービス管理者権限が必要
 			usersAPIWithPrevilegeAuth := usersAPI.Group("", h.PrevilegeUserMiddleware)
 			{
-				usersAPIWithPrevilegeAuth.PATCH("/:userid/privileged", h.HandleGrantPrivlege)
+				usersAPIWithPrevilegeAuth.PATCH("/:userid/privileged", h.HandleGrantPrivilege)
 				usersAPIWithPrevilegeAuth.POST("/sync", h.HandleSyncUser)
 			}
 		}

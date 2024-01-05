@@ -76,7 +76,7 @@ func (h *Handlers) HandleSyncUser(c echo.Context) error {
 }
 
 // 権限のあるユーザーがないユーザーに権限を付与
-func (h *Handlers) HandleGrantPrivlege(c echo.Context) error {
+func (h *Handlers) HandleGrantPrivilege(c echo.Context) error {
 	userID, err := getPathUserID(c)
 	if err != nil {
 		return notFound(err)
