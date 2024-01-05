@@ -112,11 +112,11 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			roomsAPI.DELETE("/:roomid", h.HandleDeleteRoom)
 
 			// サービス管理者権限が必要
-			roomsAPIWithPrevilegeAuth := roomsAPI.Group("", h.PrevilegeUserMiddleware)
+			roomsAPIWithPrivilegeAuth := roomsAPI.Group("", h.PrivilegeUserMiddleware)
 			{
-				roomsAPIWithPrevilegeAuth.POST("/all", h.HandleCreateVerifedRooms)
-				roomsAPIWithPrevilegeAuth.POST("/:roomid/verified", h.HandleVerifyRoom)
-				roomsAPIWithPrevilegeAuth.DELETE("/:roomid/verified", h.HandleUnVerifyRoom)
+				roomsAPIWithPrivilegeAuth.POST("/all", h.HandleCreateVerifedRooms)
+				roomsAPIWithPrivilegeAuth.POST("/:roomid/verified", h.HandleVerifyRoom)
+				roomsAPIWithPrivilegeAuth.DELETE("/:roomid/verified", h.HandleUnVerifyRoom)
 			}
 		}
 
@@ -132,10 +132,10 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			usersAPI.GET("/:userid/groups", h.HandleGetGroupIDsByUserID)
 
 			// サービス管理者権限が必要
-			usersAPIWithPrevilegeAuth := usersAPI.Group("", h.PrevilegeUserMiddleware)
+			usersAPIWithPrivilegeAuth := usersAPI.Group("", h.PrivilegeUserMiddleware)
 			{
-				usersAPIWithPrevilegeAuth.PATCH("/:userid/privileged", h.HandleGrantPrivilege)
-				usersAPIWithPrevilegeAuth.POST("/sync", h.HandleSyncUser)
+				usersAPIWithPrivilegeAuth.PATCH("/:userid/privileged", h.HandleGrantPrivilege)
+				usersAPIWithPrivilegeAuth.POST("/sync", h.HandleSyncUser)
 			}
 		}
 

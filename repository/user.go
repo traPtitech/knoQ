@@ -14,7 +14,7 @@ import (
 const traQIssuerName = "traQ"
 
 func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
-	if !repo.IsPrevilege(info) {
+	if !repo.IsPrivilege(info) {
 		return domain.ErrForbidden
 	}
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
@@ -174,7 +174,7 @@ func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 	return user.IcalSecret, nil
 }
 
-func (repo *Repository) IsPrevilege(info *domain.ConInfo) bool {
+func (repo *Repository) IsPrivilege(info *domain.ConInfo) bool {
 	user, err := repo.GormRepo.GetUser(info.ReqUserID)
 	if err != nil {
 		return false
@@ -185,7 +185,7 @@ func (repo *Repository) IsPrevilege(info *domain.ConInfo) bool {
 func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
 	userMap := make(map[uuid.UUID]*traq.User)
 	for _, u := range users {
-		user:=u
+		user := u
 		userMap[uuid.Must(uuid.FromString(user.GetId()))] = &user
 	}
 	return userMap
