@@ -102,11 +102,11 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-// PrevilegeUserMiddleware 管理者ユーザーか判定するミドルウェア
-func (h *Handlers) PrevilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+// PrivilegeUserMiddleware 管理者ユーザーか判定するミドルウェア
+func (h *Handlers) PrivilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// 判定
-		if !h.Repo.IsPrevilege(getConinfo(c)) {
+		if !h.Repo.IsPrivilege(getConinfo(c)) {
 			return forbidden(
 				errors.New("not admin"),
 				message("You are not admin user."),

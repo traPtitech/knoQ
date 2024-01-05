@@ -24,7 +24,7 @@ type UserRepository interface {
 	ReNewMyiCalSecret(info *ConInfo) (string, error)
 	GetMyiCalSecret(info *ConInfo) (string, error)
 
-	IsPrevilege(info *ConInfo) bool
+	IsPrivilege(info *ConInfo) bool
 	GrantPrivilege(userID uuid.UUID) error
 	SyncUsers(info *ConInfo) error
 }
