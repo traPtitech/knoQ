@@ -1,6 +1,7 @@
 package traq
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,18 +13,30 @@ import (
 )
 
 func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*traq.UserGroup, error) {
-	URL := fmt.Sprintf("%s/groups/%s", repo.URL, groupID)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
-	if err != nil {
-		return nil, err
-	}
-	data, err := repo.doRequest(token, req)
-	if err != nil {
-		return nil, err
-	}
+	// URL := fmt.Sprintf("%s/groups/%s", repo.URL, groupID)
+	// req, err := http.NewRequest(http.MethodGet, URL, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// data, err := repo.doRequest(token, req)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	group := new(traq.UserGroup)
-	err = json.Unmarshal(data, &group)
+	// group := new(traq.UserGroup)
+	// err = json.Unmarshal(data, &group)
+	// fmt.Println("GetGroup")
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	group, resp, err := apiClient.GroupApi.GetUserGroup(ctx, groupID.String()).Execute()
+	if err != nil {
+		return nil, err
+	}
+	err = handleStatusCode(resp.StatusCode)
+	if err != nil {
+		return nil, err
+	}
+	// fmt.Println("GetOK")
 	return group, err
 }
 
