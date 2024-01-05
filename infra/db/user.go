@@ -109,3 +109,13 @@ func getAllUsers(db *gorm.DB, onlyActive bool) ([]*User, error) {
 	err := db.Find(&users).Error
 	return users, err
 }
+
+func (repo *GormRepository) GrantPrivilege(userID uuid.UUID) error {
+	err := grantPrivilege(repo.db, userID)
+	return defaultErrorHandling(err)
+}
+
+func grantPrivilege(db *gorm.DB, userID uuid.UUID) error {
+	err := db.Model(&User{ID: userID}).Update("privilege", true).Error
+	return err
+}

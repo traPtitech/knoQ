@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/go-traq"
@@ -205,4 +206,16 @@ func (repo *Repository) mergeUser(userMeta *db.User, userBody *traq.User) (*doma
 		Privileged:  userMeta.Privilege,
 		State:       userMeta.State,
 	}, nil
+}
+
+func (repo *Repository) GrantPrivilege(userID uuid.UUID) error {
+	user, err := repo.GormRepo.GetUser(userID)
+	if err != nil {
+		return defaultErrorHandling(err)
+	}
+	if user.Privilege {
+		return fmt.Errorf("%w: user has been already privileged", domain.ErrBadRequest)
+	}
+	err = repo.GormRepo.GrantPrivilege(userID)
+	return defaultErrorHandling(err)
 }
