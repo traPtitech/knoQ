@@ -9,7 +9,6 @@ import (
 
 var tables = []interface{}{
 	User{},
-	UserBody{},
 	Token{},
 	Provider{},
 	Group{},
@@ -82,7 +81,6 @@ type UserBody struct {
 	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
-//go:generate gotypeconverter -s []EventAdmin -d []RoomAdmin -o converter.go .
 type RoomAdmin struct {
 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	RoomID uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -90,11 +88,8 @@ type RoomAdmin struct {
 	Model  `cvt:"-"`
 }
 
-// Room is
-//go:generate gotypeconverter -s CreateRoomParams -d Room -o converter.go .
-//go:generate gotypeconverter -s UpdateRoomParams -d Room -o converter.go .
-//go:generate gotypeconverter -s Room -d domain.Room -o converter.go .
-//go:generate gotypeconverter -s []*Room -d []*domain.Room -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Room -d domain.Room -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Room -d []*domain.Room -o converter.go .
 type Room struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Place          string    `gorm:"type:varchar(32);"`
@@ -108,7 +103,7 @@ type Room struct {
 	Model          `cvt:"->"`
 }
 
-//go:generate gotypeconverter -s []*GroupMember -d []uuid.UUID -o converter.go -structTag cvt0 .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*GroupMember -d []uuid.UUID -o converter.go -structTag cvt0 .
 type GroupMember struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primaryKey" cvt0:"<-"`
 	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -124,9 +119,9 @@ type GroupAdmin struct {
 }
 
 // Group is user group
-//go:generate gotypeconverter -s WriteGroupParams -d Group -o converter.go .
-//go:generate gotypeconverter -s Group -d domain.Group -o converter.go .
-//go:generate gotypeconverter -s []*Group -d []*domain.Group -o converter.go .
+//
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Group -d domain.Group -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Group -d []*domain.Group -o converter.go .
 type Group struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name           string    `gorm:"type:varchar(32);not null"`
@@ -139,8 +134,8 @@ type Group struct {
 	Model          `cvt:"->"`
 }
 
-//go:generate gotypeconverter -s Tag -d domain.Tag -o converter.go .
-//go:generate gotypeconverter -s []*Tag -d []*domain.Tag -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Tag -d domain.Tag -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Tag -d []*domain.Tag -o converter.go .
 type Tag struct {
 	ID    uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name  string    `gorm:"unique; type:varchar(16) binary"`
@@ -157,6 +152,7 @@ type EventTag struct {
 	Model   `cvt:"->"`
 }
 
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []EventAdmin -d []RoomAdmin -o converter.go .
 type EventAdmin struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -172,9 +168,9 @@ type EventAttendee struct {
 }
 
 // Event is event for gorm
-//go:generate gotypeconverter -s WriteEventParams -d Event -o converter.go .
-//go:generate gotypeconverter -s Event -d domain.Event -o converter.go .
-//go:generate gotypeconverter -s []*Event -d []*domain.Event -o converter.go .
+//
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Event -d domain.Event -o converter.go .
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Event -d []*domain.Event -o converter.go .
 type Event struct {
 	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Name           string    `gorm:"type:varchar(32); not null"`

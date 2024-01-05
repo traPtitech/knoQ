@@ -1,19 +1,20 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 func groupFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Members").Preload("Admins").Preload("CreatedBy")
 }
 
+//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteGroupParams -d Group -o converter.go .
 type WriteGroupParams struct {
 	domain.WriteGroupParams
 	CreatedBy uuid.UUID
@@ -118,11 +119,12 @@ func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 		GroupID: groupID,
 		UserID:  userID,
 	}
-	err := db.Create(&groupMember).Error
-	if errors.Is(defaultErrorHandling(err), ErrDuplicateEntry) {
-		return db.Omit("CreatedAt").Save(&groupMember).Error
+
+	onConflictClause := clause.OnConflict{
+		DoUpdates: clause.AssignmentColumns([]string{"updated_at", "deleted_at"}),
 	}
-	return err
+
+	return db.Clauses(onConflictClause).Create(&groupMember).Error
 }
 
 func deleteGroup(db *gorm.DB, groupID uuid.UUID) error {

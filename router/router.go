@@ -28,6 +28,7 @@ type Handlers struct {
 	WebhookID         string
 	WebhookSecret     string
 	ActivityChannelID string
+	DailyChannelId    string
 	Origin            string
 }
 
@@ -56,96 +57,94 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	}))
 
 	// API定義 (/api)
-	api := e.Group("/api", h.TraQUserMiddleware)
+
+	// 認証なし
+	apiNoAuth := e.Group("/api")
 	{
-		previlegeMiddle := h.PrevilegeUserMiddleware
-
-		apiGroups := api.Group("/groups")
-		{
-			apiGroups.GET("", h.HandleGetGroups)
-			apiGroups.POST("", h.HandlePostGroup)
-			apiGroup := apiGroups.Group("/:groupid")
-			{
-				apiGroup.GET("", h.HandleGetGroup)
-
-				apiGroup.PUT("", h.HandleUpdateGroup, h.GroupAdminsMiddleware)
-				apiGroup.DELETE("", h.HandleDeleteGroup, h.GroupAdminsMiddleware)
-
-				apiGroup.PUT("/members/me", h.HandleAddMeGroup)
-				apiGroup.DELETE("/members/me", h.HandleDeleteMeGroup)
-
-				apiGroup.GET("/events", h.HandleGetEventsByGroupID)
-			}
-		}
-
-		apiEvents := api.Group("/events")
-		{
-			apiEvents.GET("", h.HandleGetEvents)
-			apiEvents.POST("", h.HandlePostEvent, middleware.BodyDump(h.WebhookEventHandler))
-
-			apiEvent := apiEvents.Group("/:eventid")
-			{
-				apiEvent.GET("", h.HandleGetEvent)
-				apiEvent.PUT("", h.HandleUpdateEvent, h.EventAdminsMiddleware, middleware.BodyDump(h.WebhookEventHandler))
-				apiEvent.DELETE("", h.HandleDeleteEvent, h.EventAdminsMiddleware)
-				apiEvent.PUT("/attendees/me", h.HandleUpsertMeEventSchedule)
-
-				apiEvent.POST("/tags", h.HandleAddEventTag)
-				apiEvent.DELETE("/tags/:tagName", h.HandleDeleteEventTag)
-			}
-
-		}
-		apiRooms := api.Group("/rooms")
-		{
-			apiRooms.GET("", h.HandleGetRooms)
-			apiRooms.POST("", h.HandlePostRoom)
-			apiRooms.POST("/all", h.HandleCreateVerifedRooms, previlegeMiddle)
-
-			apiRoom := apiRooms.Group("/:roomid")
-			{
-				apiRoom.GET("", h.HandleGetRoom)
-				apiRoom.DELETE("", h.HandleDeleteRoom)
-
-				apiRoom.POST("/verified", h.HandleVerifyRoom, previlegeMiddle)
-				apiRoom.DELETE("/verified", h.HandleUnVerifyRoom, previlegeMiddle)
-			}
-		}
-
-		apiUsers := api.Group("/users")
-		{
-			apiUsers.GET("", h.HandleGetUsers)
-			apiUsers.POST("/sync", h.HandleSyncUser, previlegeMiddle)
-
-			apiUsers.GET("/me", h.HandleGetUserMe)
-			apiUsers.GET("/me/ical", h.HandleGetiCal)
-			apiUsers.PUT("/me/ical", h.HandleUpdateiCal)
-			apiUsers.GET("/me/groups", h.HandleGetMeGroupIDs)
-			apiUsers.GET("/me/events", h.HandleGetMeEvents)
-
-			apiUser := apiUsers.Group("/:userid")
-			{
-				apiUser.GET("/events", h.HandleGetEventsByUserID)
-				apiUser.GET("/groups", h.HandleGetGroupIDsByUserID)
-				apiUser.PATCH("/privileged", h.HandleGrantPrivlege, previlegeMiddle)
-			}
-		}
-
-		apiTags := api.Group("/tags")
-		{
-			apiTags.POST("", h.HandlePostTag)
-			apiTags.GET("", h.HandleGetTags)
-		}
-
-		// apiActivity := api.Group("/activity")
-		// {
-		// apiActivity.GET("/events", h.HandleGetEventActivities)
-		// }
-
+		apiNoAuth.POST("/authParams", h.HandlePostAuthParams)
+		apiNoAuth.GET("/callback", h.HandleCallback)
+		apiNoAuth.GET("/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
+		apiNoAuth.GET("/version", h.HandleGetVersion)
 	}
-	e.POST("/api/authParams", h.HandlePostAuthParams)
-	e.GET("/api/callback", h.HandleCallback)
-	e.GET("/api/ical/v1/:userIDsecret", h.HandleGetiCalByPrivateID)
-	e.GET("/api/version", h.HandleGetVersion)
+
+	// 認証あり (JWT認証、traQ認証)
+	apiWithAuth := apiNoAuth.Group("", h.TraQUserMiddleware)
+	{
+		groupsAPI := apiWithAuth.Group("/groups")
+		{
+			groupsAPI.GET("", h.HandleGetGroups)
+			groupsAPI.POST("", h.HandlePostGroup)
+			groupsAPI.GET("/:groupid", h.HandleGetGroup)
+			groupsAPI.PUT("/:groupid/members/me", h.HandleAddMeGroup)
+			groupsAPI.DELETE("/:groupid/members/me", h.HandleDeleteMeGroup)
+			groupsAPI.GET("/:groupid/events", h.HandleGetEventsByGroupID)
+
+			// グループ管理者権限が必要
+			groupsAPIWithAdminAuth := groupsAPI.Group("", h.GroupAdminsMiddleware)
+			{
+				groupsAPIWithAdminAuth.PUT("/:groupid/members/:userid", h.HandleUpdateGroup)
+				groupsAPIWithAdminAuth.DELETE("/:groupid/members/:userid", h.HandleDeleteGroup)
+			}
+		}
+
+		eventsAPI := apiWithAuth.Group("/events")
+		{
+			eventsAPI.GET("", h.HandleGetEvents)
+			eventsAPI.POST("", h.HandlePostEvent, middleware.BodyDump(h.WebhookEventHandler))
+			eventsAPI.GET("/:eventid", h.HandleGetEvent)
+			eventsAPI.PUT("/:eventid/attendees/me", h.HandleUpsertMeEventSchedule)
+			eventsAPI.POST("/:eventid/tags", h.HandleAddEventTag)
+			eventsAPI.DELETE("/:eventid/tags/:tagName", h.HandleDeleteEventTag)
+
+			// イベント管理者権限が必要
+			eventsAPIWithAdminAuth := eventsAPI.Group("", h.EventAdminsMiddleware)
+			{
+				eventsAPIWithAdminAuth.PUT("/:eventid", h.HandleUpdateEvent, middleware.BodyDump(h.WebhookEventHandler))
+				eventsAPIWithAdminAuth.DELETE("/:eventid", h.HandleDeleteEvent)
+			}
+		}
+
+		roomsAPI := apiWithAuth.Group("/rooms")
+		{
+			roomsAPI.GET("", h.HandleGetRooms)
+			roomsAPI.POST("", h.HandlePostRoom)
+			roomsAPI.GET("/:roomid", h.HandleGetRoom)
+			roomsAPI.DELETE("/:roomid", h.HandleDeleteRoom)
+
+			// サービス管理者権限が必要
+			roomsAPIWithPrevilegeAuth := roomsAPI.Group("", h.PrevilegeUserMiddleware)
+			{
+				roomsAPIWithPrevilegeAuth.POST("/all", h.HandleCreateVerifedRooms)
+				roomsAPIWithPrevilegeAuth.POST("/:roomid/verified", h.HandleVerifyRoom)
+				roomsAPIWithPrevilegeAuth.DELETE("/:roomid/verified", h.HandleUnVerifyRoom)
+			}
+		}
+
+		usersAPI := apiWithAuth.Group("/users")
+		{
+			usersAPI.GET("", h.HandleGetUsers)
+			usersAPI.GET("/me", h.HandleGetUserMe)
+			usersAPI.GET("/me/ical", h.HandleGetiCal)
+			usersAPI.PUT("/me/ical", h.HandleUpdateiCal)
+			usersAPI.GET("/me/groups", h.HandleGetMeGroupIDs)
+			usersAPI.GET("/me/events", h.HandleGetMeEvents)
+			usersAPI.GET("/:userid/events", h.HandleGetEventsByUserID)
+			usersAPI.GET("/:userid/groups", h.HandleGetGroupIDsByUserID)
+
+			// サービス管理者権限が必要
+			usersAPIWithPrevilegeAuth := usersAPI.Group("", h.PrevilegeUserMiddleware)
+			{
+				usersAPIWithPrevilegeAuth.PATCH("/:userid/privileged", h.HandleGrantPrivlege)
+				usersAPIWithPrevilegeAuth.POST("/sync", h.HandleSyncUser)
+			}
+		}
+
+		tagsAPI := apiWithAuth.Group("/tags")
+		{
+			tagsAPI.POST("", h.HandlePostTag)
+			tagsAPI.GET("", h.HandleGetTags)
+		}
+	}
 
 	e.Use(middleware.StaticWithConfig(middleware.StaticConfig{
 		Skipper: func(c echo.Context) bool {
@@ -182,7 +181,7 @@ func (cb *CustomBinder) Bind(i interface{}, c echo.Context) error {
 	if strings.HasPrefix(ctype, "text/csv") {
 
 		buf := new(bytes.Buffer)
-		io.Copy(buf, c.Request().Body)
+		_, _ = io.Copy(buf, c.Request().Body)
 		data := buf.Bytes()
 		if err := csvutil.Unmarshal(data, i); err != nil {
 			return err

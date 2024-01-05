@@ -3,7 +3,7 @@ package router
 import (
 	"net/http"
 
-	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/router/presentation"
 
 	"github.com/labstack/echo/v4"
 )

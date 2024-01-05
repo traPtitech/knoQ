@@ -6,8 +6,7 @@ import (
 	"strconv"
 
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/presentation"
-	"github.com/traPtitech/knoQ/usecase/production"
+	"github.com/traPtitech/knoQ/router/presentation"
 
 	"github.com/labstack/echo/v4"
 )
@@ -37,7 +36,7 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 
-	return c.JSON(http.StatusOK, presentation.ConvSPdomainUserToSUserRes(users))
+	return c.JSON(http.StatusOK, presentation.ConvSPdomainUserToSPUserRes(users))
 }
 
 func (h *Handlers) HandleGetiCal(c echo.Context) error {
@@ -68,11 +67,7 @@ func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 // 停止されているユーザーの`token`を削除して、
 // 活動中のユーザーを追加する(userIDをDBに保存)
 func (h *Handlers) HandleSyncUser(c echo.Context) error {
-	repo, ok := h.Repo.(*production.Repository)
-	if !ok {
-		return internalServerError(errors.New("not implemented"))
-	}
-	err := repo.SyncUsers(getConinfo(c))
+	err := h.Repo.SyncUsers(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

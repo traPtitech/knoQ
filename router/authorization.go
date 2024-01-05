@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/patrickmn/go-cache"
-	traQrandom "github.com/traPtitech/traQ/utils/random"
+	"github.com/traPtitech/knoQ/utils/random"
 )
 
 var verifierCache = cache.New(5*time.Minute, 10*time.Minute)
@@ -31,10 +31,10 @@ func (h *Handlers) HandlePostAuthParams(c echo.Context) error {
 
 	sessionID, ok := sess.Values["ID"].(string)
 	if !ok {
-		sessionID = traQrandom.SecureAlphaNumeric(10)
+		sessionID = random.AlphaNumeric(10, true)
 		sess.Values["ID"] = sessionID
 		sess.Options = &h.SessionOption
-		sess.Save(c.Request(), c.Response())
+		_ = sess.Save(c.Request(), c.Response())
 	}
 	// cache
 	verifierCache.Set(sessionID, codeVerifier, cache.DefaultExpiration)

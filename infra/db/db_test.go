@@ -1,17 +1,17 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/traQ/migration"
-	"github.com/traPtitech/traQ/utils/random"
+	"github.com/traPtitech/knoQ/utils/random"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -19,6 +19,10 @@ import (
 const (
 	common = "common"
 	ex     = "ex"
+
+	dbUser = "root"
+	dbPass = "password"
+	dbHost = "localhost"
 )
 
 var (
@@ -26,25 +30,49 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	const (
-		user     = "root"
-		password = "password"
-		host     = "localhost"
-	)
-
-	dbs := []string{
-		common,
-		ex,
-	}
-	if err := migration.CreateDatabasesIfNotExists("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?charset=utf8mb4&parseTime=true&loc=Local", user, password, host), "knoq-test-", dbs...); err != nil {
+	pool, err := dockertest.NewPool("")
+	if err != nil {
 		panic(err)
 	}
 
-	tokenKey = []byte(random.AlphaNumeric(32))
+	if err := pool.Client.Ping(); err != nil {
+		panic(err)
+	}
+
+	resource, err := pool.Run("mariadb", "10.7", []string{fmt.Sprintf("MYSQL_ROOT_PASSWORD=%s", dbPass)})
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		if err := pool.Purge(resource); err != nil {
+			panic(err)
+		}
+	}()
+
+	var conn *sql.DB
+	if err := pool.Retry(func() error {
+		conn, err = sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=true&loc=Local", dbUser, dbPass, dbHost, resource.GetPort("3306/tcp")))
+		if err != nil {
+			return err
+		}
+		return conn.Ping()
+	}); err != nil {
+		panic(err)
+	}
+
+	dbs := []string{common, ex}
+	for _, v := range dbs {
+		_, err = conn.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s%s`", "knoq-test-", v))
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	tokenKey = []byte(random.AlphaNumeric(32, false))
 
 	for _, key := range dbs {
 		db, err := gorm.Open(mysql.New(mysql.Config{
-			DSN:                       fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=true&loc=Local", user, password, host, "knoq-test-"+key),
+			DSN:                       fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true&loc=Local", dbUser, dbPass, dbHost, resource.GetPort("3306/tcp"), "knoq-test-"+key),
 			DefaultStringSize:         256,   // default size for string fields
 			DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
 			DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
@@ -70,8 +98,7 @@ func TestMain(m *testing.M) {
 		repositories[key] = &repo
 	}
 
-	code := m.Run()
-	os.Exit(code)
+	m.Run()
 }
 
 func assertAndRequire(t *testing.T) (*assert.Assertions, *require.Assertions) {
@@ -104,7 +131,7 @@ func setupRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Asse
 func setupRepoWithUserGroup(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Group) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
-	group, user := mustMakeGroup(t, r, random.AlphaNumeric(10))
+	group, user := mustMakeGroup(t, r, random.AlphaNumeric(10, false))
 	return r, assert, require, user, group
 }
 
@@ -183,19 +210,11 @@ func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *Use
 	return room, user
 }
 
-func mustMakeTag(t *testing.T, repo *GormRepository, name string) *Tag {
-	t.Helper()
-
-	tag, err := createOrGetTag(repo.db, name)
-	require.NoError(t, err)
-	return tag
-}
-
 // mustMakeEvent make event. now ~ now + 1m
 func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Group, *Room, *User) {
 	t.Helper()
-	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10))
-	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10))
+	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10, false))
+	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10, false))
 
 	params := WriteEventParams{
 		WriteEventParams: domain.WriteEventParams{

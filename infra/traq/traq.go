@@ -5,13 +5,13 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
+	"github.com/traPtitech/go-traq"
+	"github.com/traPtitech/knoQ/utils/random"
 	"golang.org/x/oauth2"
-
-	traQrandom "github.com/traPtitech/traQ/utils/random"
 )
 
 // TraQRepository is traq
@@ -32,7 +32,7 @@ var TraQDefaultConfig = &oauth2.Config{
 }
 
 func newPKCE() (pkceOptions []oauth2.AuthCodeOption, codeVerifier string) {
-	codeVerifier = traQrandom.SecureAlphaNumeric(43)
+	codeVerifier = random.AlphaNumeric(43, true)
 	result := sha256.Sum256([]byte(codeVerifier))
 	enc := base64.NewEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_").WithPadding(base64.NoPadding)
 
@@ -47,7 +47,7 @@ func (repo *TraQRepository) GetOAuthURL() (url, state, codeVerifier string) {
 	pkceOptions, codeVerifier := newPKCE()
 	// Redirect user to consent page to ask for permission
 	// for the scopes specified above.
-	state = traQrandom.SecureAlphaNumeric(10)
+	state = random.AlphaNumeric(10, true)
 	url = repo.Config.AuthCodeURL(state, pkceOptions...)
 	return
 }
@@ -76,5 +76,13 @@ func (repo *TraQRepository) doRequest(token *oauth2.Token, req *http.Request) ([
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
+}
+
+func NewAPIClient(ctx context.Context, token *oauth2.Token) *traq.APIClient {
+	traqconf := traq.NewConfiguration()
+	conf := TraQDefaultConfig
+	traqconf.HTTPClient = conf.Client(ctx, token)
+	apiClient := traq.NewAPIClient(traqconf)
+	return apiClient
 }

@@ -1,68 +1,70 @@
 package traq
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"net/url"
-	"strconv"
+	"context"
 
 	"github.com/gofrs/uuid"
+	"github.com/traPtitech/go-traq"
 	"golang.org/x/oauth2"
-
-	traQ "github.com/traPtitech/traQ/router/v3"
 )
 
-func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*traQ.User, error) {
-	URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
+func (repo *TraQRepository) GetUser(token *oauth2.Token, userID uuid.UUID) (*traq.User, error) {
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	userDetail, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
-	data, err := repo.doRequest(token, req)
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
 		return nil, err
 	}
-
-	user := new(traQ.User)
-	err = json.Unmarshal(data, &user)
-	return user, err
+	user := traq.User{
+		Id:          userDetail.Id,
+		Name:        userDetail.Name,
+		DisplayName: userDetail.DisplayName,
+		IconFileId:  userDetail.IconFileId,
+		Bot:         userDetail.Bot,
+		State:       userDetail.State,
+		UpdatedAt:   userDetail.UpdatedAt,
+	}
+	return &user, err
 }
 
-func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]*traQ.User, error) {
-	URL, err := url.Parse(fmt.Sprintf("%s/users", repo.URL))
+func (repo *TraQRepository) GetUsers(token *oauth2.Token, includeSuspended bool) ([]traq.User, error) {
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	users, resp, err := apiClient.UserApi.GetUsers(ctx).IncludeSuspended(includeSuspended).Execute()
 	if err != nil {
 		return nil, err
 	}
-	q := URL.Query()
-	q.Set("include-suspended", strconv.FormatBool(includeSuspended))
-	URL.RawQuery = q.Encode()
-	req, err := http.NewRequest(http.MethodGet, URL.String(), nil)
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
 		return nil, err
 	}
-	data, err := repo.doRequest(token, req)
-	if err != nil {
-		return nil, err
-	}
-
-	users := make([]*traQ.User, 0)
-	err = json.Unmarshal(data, &users)
 	return users, err
 }
 
-func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traQ.User, error) {
-	URL := fmt.Sprintf("%s/users/me", repo.URL)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
+func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	userDetail, resp, err := apiClient.MeApi.GetMe(ctx).Execute()
 	if err != nil {
 		return nil, err
 	}
-	data, err := repo.doRequest(token, req)
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
 		return nil, err
+	}
+	user := traq.User{
+		Id:          userDetail.Id,
+		Name:        userDetail.Name,
+		DisplayName: userDetail.DisplayName,
+		IconFileId:  userDetail.IconFileId,
+		Bot:         userDetail.Bot,
+		State:       userDetail.State,
+		UpdatedAt:   userDetail.UpdatedAt,
 	}
 
-	user := new(traQ.User)
-	err = json.Unmarshal(data, &user)
-	return user, err
+	return &user, err
 }

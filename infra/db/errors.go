@@ -39,17 +39,16 @@ var (
 
 // defaultErrorHandling mysql等のエラーをハンドリングする
 // テストと連携して、いい感じに変換する
-// TODO wrapして上層に伝えたい
 func defaultErrorHandling(err error) error {
 	var me *mysql.MySQLError
 	if errors.As(err, &me) {
 		switch me.Number {
 		case 1032:
-			return ErrInvalidArgs
+			return fmt.Errorf("%w: %w", ErrInvalidArgs, err)
 		case 1062:
-			return ErrDuplicateEntry
+			return fmt.Errorf("%w: %w", ErrDuplicateEntry, err)
 		case 1452:
-			return ErrRecordNotFound
+			return fmt.Errorf("%w: %w", ErrRecordNotFound, err)
 		}
 	}
 	return err

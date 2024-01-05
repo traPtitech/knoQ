@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid"
-	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/router/presentation"
 
 	"github.com/labstack/echo/v4"
 )
@@ -128,6 +128,27 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 		groupIDs, err = h.Repo.GetUserAdminGroupIDs(userID)
 		if err != nil {
 			return judgeErrorResponse(err)
+		}
+	case presentation.RelationBelongsOrAdmins:
+		belongingGroupIDs, err := h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+		adminGroupIDs, err := h.Repo.GetUserAdminGroupIDs(userID)
+		if err != nil {
+			return judgeErrorResponse(err)
+		}
+
+		allGroupIDs := append(belongingGroupIDs, adminGroupIDs...)
+		uniqueIDMap := make(map[uuid.UUID]struct{})
+
+		for _, groupID := range allGroupIDs {
+			if _, ok := uniqueIDMap[groupID]; ok {
+				continue
+			}
+
+			uniqueIDMap[groupID] = struct{}{}
+			groupIDs = append(groupIDs, groupID)
 		}
 	}
 

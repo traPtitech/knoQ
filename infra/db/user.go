@@ -84,7 +84,7 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 		if user.IcalSecret == "" {
 			user.IcalSecret = existingUser.IcalSecret
 		}
-		return tx.Session(&gorm.Session{FullSaveAssociations: true}).Save(&user).Error
+		return tx.Session(&gorm.Session{FullSaveAssociations: true}).Updates(user).Error
 	})
 
 	return user, err

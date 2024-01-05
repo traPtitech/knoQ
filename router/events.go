@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"net/http"
 
-	"github.com/lestrrat-go/ical"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
-	"github.com/traPtitech/knoQ/parsing"
-	"github.com/traPtitech/knoQ/presentation"
+	"github.com/traPtitech/knoQ/router/presentation"
+	"github.com/traPtitech/knoQ/utils/parsing"
 
 	"github.com/gofrs/uuid"
 
@@ -247,8 +246,18 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 
-	cal := presentation.ICalFormat(events, h.Origin)
+	users, err := h.Repo.GetAllUsers(false, true, info)
+	if err != nil {
+		return judgeErrorResponse(err)
+	}
+
+	userMap := make(map[uuid.UUID]*domain.User)
+	for _, user := range users {
+		userMap[user.ID] = user
+	}
+
+	cal := presentation.ICalFormat(events, h.Origin, userMap)
 	var buf bytes.Buffer
-	ical.NewEncoder(&buf).Encode(cal)
+	_ = cal.SerializeTo(&buf)
 	return c.Blob(http.StatusOK, "text/calendar", buf.Bytes())
 }

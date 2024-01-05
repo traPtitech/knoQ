@@ -35,7 +35,7 @@ func Test_createGroup(t *testing.T) {
 		_, err := createGroup(r.db, p)
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
-		assert.Equal(uint16(1032), me.Number)
+		assert.Equal(uint16(1452), me.Number)
 		assert.Contains(me.Message, "group_members")
 	})
 
@@ -52,9 +52,8 @@ func Test_createGroup(t *testing.T) {
 
 		var me *mysql.MySQLError
 		require.ErrorAs(err, &me)
-		assert.Equal(uint16(1032), me.Number)
+		assert.Equal(uint16(1452), me.Number)
 		assert.Contains(me.Message, "group_admins")
-
 	})
 }
 

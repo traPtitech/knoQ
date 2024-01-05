@@ -1,34 +1,53 @@
-FROM golang:1.16.4-alpine as server-build
+# syntax=docker/dockerfile:1
 
-WORKDIR /github.com/traPtitech/knoq
-
-COPY go.mod go.sum ./
-ENV GO111MODULE=on
-RUN go mod download
-COPY ./ ./
-
-RUN go build -o knoq
-
-FROM alpine:3.13.5
+#
+# build stage
+#
+FROM --platform=$BUILDPLATFORM golang:1-alpine as builder
 
 WORKDIR /app
 
-ENV DOCKERIZE_VERSION v0.6.1
+ENV GO111MODULE=on
+ARG TARGETOS
+ARG TARGETARCH
+ENV GOOS=$TARGETOS
+ENV GOARCH=$TARGETARCH
+ENV GOCACHE=/root/.cache/go-build
+ENV GOMODCACHE=/go/pkg/mod
 
-RUN apk --update add tzdata \
-  && cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
-  && wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-  && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-  && rm dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \ 
-  && apk add --update ca-certificates \
-  && update-ca-certificates \
-  && rm -rf /var/cache/apk/*
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=${GOCACHE} \
+  --mount=type=cache,target=${GOMODCACHE} \
+  go mod download
 
-COPY --from=server-build /github.com/traPtitech/knoq/knoq ./
+COPY ./ ./
+RUN --mount=type=cache,target=${GOCACHE} \
+  --mount=type=cache,target=${GOMODCACHE} \
+  go build -o /app/knoq
+
+# static files
+RUN mkdir -p /app/web \
+  && apk add --no-cache curl \
+  && curl -L -Ss https://github.com/traPtitech/knoQ-UI/releases/latest/download/dist.tar.gz \
+  | tar zxv -C /app/web
+# Google Calendar API needs service.json
+RUN touch /app/service.json
+
+#
+# runtime stage
+#
+FROM gcr.io/distroless/static-debian11:latest
+
+WORKDIR /app
+
+# COPY --from=builder /app/knoq /app/web/ /app/service.json /app/
+COPY --from=builder /app/knoq /app/
+COPY --from=builder /app/web/ /app/web/
+COPY --from=builder /app/service.json /app/
 
 ARG knoq_version=dev
 ARG knoq_revision=local
 ENV KNOQ_VERSION=${knoq_version}
 ENV KNOQ_REVISION=${knoq_revision}
 
-ENTRYPOINT ./knoq
+CMD ["/app/knoq"]
