@@ -66,7 +66,7 @@ type Provider struct {
 type User struct {
 	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	// アプリの管理者かどうか
-	Privilege  bool `gorm:"<-:create; not null"` // Do not update
+	Privilege  bool `gorm:"not null"`
 	State      int
 	IcalSecret string   `gorm:"not null"`
 	Provider   Provider `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
