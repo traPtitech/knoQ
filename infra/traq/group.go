@@ -2,9 +2,6 @@ package traq
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"net/http"
 
 	"github.com/gofrs/uuid"
 	"golang.org/x/oauth2"
@@ -70,17 +67,27 @@ func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traq.UserGroup
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
-	URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
+	// URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
+	// req, err := http.NewRequest(http.MethodGet, URL, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// data, err := repo.doRequest(token, req)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// user := new(traq.UserDetail)
+	// if err := json.Unmarshal(data, &user); err != nil {
+	// 	return nil, err
+	// }
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	user, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
-	data, err := repo.doRequest(token, req)
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
-		return nil, err
-	}
-	user := new(traq.UserDetail)
-	if err := json.Unmarshal(data, &user); err != nil {
 		return nil, err
 	}
 	groups := make([]uuid.UUID, 0, len(user.Groups))
