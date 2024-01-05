@@ -25,7 +25,6 @@ func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*t
 
 	// group := new(traq.UserGroup)
 	// err = json.Unmarshal(data, &group)
-	// fmt.Println("GetGroup")
 	ctx := context.TODO()
 	apiClient := NewAPIClient(ctx, token)
 	group, resp, err := apiClient.GroupApi.GetUserGroup(ctx, groupID.String()).Execute()
@@ -36,24 +35,38 @@ func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*t
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println("GetOK")
 	return group, err
 }
 
 func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traq.UserGroup, error) {
-	URL := fmt.Sprintf("%s/groups", repo.URL)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
-	if err != nil {
-		return nil, err
-	}
-	data, err := repo.doRequest(token, req)
-	if err != nil {
-		return nil, err
-	}
+	// URL := fmt.Sprintf("%s/groups", repo.URL)
+	// req, err := http.NewRequest(http.MethodGet, URL, nil)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// data, err := repo.doRequest(token, req)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	groups := make([]*traq.UserGroup, 0)
-	err = json.Unmarshal(data, &groups)
-	return groups, err
+	// groups := make([]*traq.UserGroup, 0)
+	// err = json.Unmarshal(data, &groups)
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	groups, resp, err := apiClient.GroupApi.GetUserGroups(ctx).Execute()
+	if err != nil {
+		return nil, err
+	}
+	err = handleStatusCode(resp.StatusCode)
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]*traq.UserGroup, len(groups))
+	for i, _g := range groups {
+		g := _g
+		ret[i] = &g
+	}
+	return ret, err
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
