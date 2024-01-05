@@ -67,7 +67,7 @@ func Test_saveUser(t *testing.T) {
 		assert.Equal("hoge2", token.AccessToken)
 	})
 
-	t.Run("Can't update privilege", func(t *testing.T) {
+	t.Run("Update privilege", func(t *testing.T) {
 		u, err := getUser(r.db, user.ID)
 		assert.NoError(err)
 		assert.False(u.Privilege)
@@ -80,7 +80,7 @@ func Test_saveUser(t *testing.T) {
 
 		u, err = getUser(r.db, user.ID)
 		assert.NoError(err)
-		assert.False(u.Privilege)
+		assert.True(u.Privilege)
 	})
 }
 
