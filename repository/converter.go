@@ -18,7 +18,7 @@ func ConvSPtraqUserGroupToSPdomainGroup(src []traq.UserGroup) (dst []*domain.Gro
 	dst = make([]*domain.Group, len(src))
 	for i := range src {
 		dst[i] = new(domain.Group)
-		(*dst[i]) = ConvtraqUserGroupTodomainGroup((src[i]))
+		(*dst[i]) = ConvtraqUserGroupTodomainGroup(src[i])
 	}
 	return
 }
