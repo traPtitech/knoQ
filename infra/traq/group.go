@@ -23,7 +23,7 @@ func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*t
 	return group, err
 }
 
-func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traq.UserGroup, error) {
+func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]traq.UserGroup, error) {
 	ctx := context.TODO()
 	apiClient := NewAPIClient(ctx, token)
 	groups, resp, err := apiClient.GroupApi.GetUserGroups(ctx).Execute()
@@ -34,12 +34,7 @@ func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traq.UserGroup
 	if err != nil {
 		return nil, err
 	}
-	ret := make([]*traq.UserGroup, len(groups))
-	for i, _g := range groups {
-		g := _g
-		ret[i] = &g
-	}
-	return ret, err
+	return groups, err
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {

@@ -14,13 +14,11 @@ func ConvPtraqUserToPdomainUser(src *traq.User) (dst *domain.User) {
 	return
 }
 
-func ConvSPtraqUserGroupToSPdomainGroup(src []*traq.UserGroup) (dst []*domain.Group) {
+func ConvSPtraqUserGroupToSPdomainGroup(src []traq.UserGroup) (dst []*domain.Group) {
 	dst = make([]*domain.Group, len(src))
 	for i := range src {
-		if src[i] != nil {
-			dst[i] = new(domain.Group)
-			(*dst[i]) = ConvtraqUserGroupTodomainGroup((*src[i]))
-		}
+		dst[i] = new(domain.Group)
+		(*dst[i]) = ConvtraqUserGroupTodomainGroup((src[i]))
 	}
 	return
 }
