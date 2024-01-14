@@ -82,8 +82,8 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			// グループ管理者権限が必要
 			groupsAPIWithAdminAuth := groupsAPI.Group("", h.GroupAdminsMiddleware)
 			{
-				groupsAPIWithAdminAuth.PUT("/:groupid/members/:userid", h.HandleUpdateGroup)
-				groupsAPIWithAdminAuth.DELETE("/:groupid/members/:userid", h.HandleDeleteGroup)
+				groupsAPIWithAdminAuth.PUT("/:groupid", h.HandleUpdateGroup)
+				groupsAPIWithAdminAuth.DELETE("/:groupid", h.HandleDeleteGroup)
 			}
 		}
 
