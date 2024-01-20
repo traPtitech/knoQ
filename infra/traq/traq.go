@@ -5,8 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
-	"io"
-	"net/http"
 	"net/url"
 
 	"github.com/traPtitech/go-traq"
@@ -64,19 +62,6 @@ func (repo *TraQRepository) GetOAuthToken(query, state, codeVerifier string) (*o
 	code := values.Get("code")
 	option := oauth2.SetAuthURLParam("code_verifier", codeVerifier)
 	return repo.Config.Exchange(ctx, code, option)
-}
-
-func (repo *TraQRepository) doRequest(token *oauth2.Token, req *http.Request) ([]byte, error) {
-	client := repo.Config.Client(context.TODO(), token)
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	err = handleStatusCode(resp.StatusCode)
-	if err != nil {
-		return nil, err
-	}
-	return io.ReadAll(resp.Body)
 }
 
 func NewAPIClient(ctx context.Context, token *oauth2.Token) *traq.APIClient {

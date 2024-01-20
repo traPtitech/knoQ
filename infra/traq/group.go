@@ -1,9 +1,7 @@
 package traq
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
+	"context"
 
 	"github.com/gofrs/uuid"
 	"golang.org/x/oauth2"
@@ -12,49 +10,42 @@ import (
 )
 
 func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*traq.UserGroup, error) {
-	URL := fmt.Sprintf("%s/groups/%s", repo.URL, groupID)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	group, resp, err := apiClient.GroupApi.GetUserGroup(ctx, groupID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
-	data, err := repo.doRequest(token, req)
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
 		return nil, err
 	}
-
-	group := new(traq.UserGroup)
-	err = json.Unmarshal(data, &group)
 	return group, err
 }
 
-func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]*traq.UserGroup, error) {
-	URL := fmt.Sprintf("%s/groups", repo.URL)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
+func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]traq.UserGroup, error) {
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	groups, resp, err := apiClient.GroupApi.GetUserGroups(ctx).Execute()
 	if err != nil {
 		return nil, err
 	}
-	data, err := repo.doRequest(token, req)
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
 		return nil, err
 	}
-
-	groups := make([]*traq.UserGroup, 0)
-	err = json.Unmarshal(data, &groups)
 	return groups, err
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
-	URL := fmt.Sprintf("%s/users/%s", repo.URL, userID)
-	req, err := http.NewRequest(http.MethodGet, URL, nil)
+	ctx := context.TODO()
+	apiClient := NewAPIClient(ctx, token)
+	user, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
-	data, err := repo.doRequest(token, req)
+	err = handleStatusCode(resp.StatusCode)
 	if err != nil {
-		return nil, err
-	}
-	user := new(traq.UserDetail)
-	if err := json.Unmarshal(data, &user); err != nil {
 		return nil, err
 	}
 	groups := make([]uuid.UUID, 0, len(user.Groups))
@@ -65,6 +56,5 @@ func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID
 		}
 		groups = append(groups, groupUUID)
 	}
-
 	return groups, err
 }
