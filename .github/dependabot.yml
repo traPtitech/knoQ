@@ -7,6 +7,16 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
+      - "iChemy"
+    commit-message:
+      prefix: ":arrow_up: "
+    groups:
+      gomod-deps:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   - package-ecosystem: github-actions
     directory: "/"
@@ -15,6 +25,13 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
+      - "iChemy"
+    commit-message:
+      prefix: ":arrow_up: "
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
 
   - package-ecosystem: docker
     directory: "/"
@@ -23,3 +40,10 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "ras0q"
+      - "iChemy"
+    commit-message:
+      prefix: ":arrow_up: "
+    groups:
+      docker-deps:
+        patterns:
+          - "*"
