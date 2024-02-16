@@ -46,9 +46,7 @@ func (repo *GormRepository) SyncUsers(users []*User) error {
 					exist = true
 					if u.State != eu.State {
 						eu.State = u.State
-						_, err := saveUser(tx.Session(&gorm.Session{
-							DisableNestedTransaction: true,
-						}), eu)
+						_, err := saveUser(tx, eu)
 						if err != nil {
 							return err
 						}
@@ -58,9 +56,7 @@ func (repo *GormRepository) SyncUsers(users []*User) error {
 			}
 
 			if !exist {
-				_, err := saveUser(tx.Session(&gorm.Session{
-					DisableNestedTransaction: true,
-				}), u)
+				_, err := saveUser(tx, u)
 				if err != nil {
 					return err
 				}

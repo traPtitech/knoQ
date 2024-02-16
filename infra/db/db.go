@@ -86,3 +86,22 @@ func (d dialector) Translate(err error) error {
 
 	return defaultErrorHandling(err)
 }
+
+func (d dialector) SavePoint(tx *gorm.DB, name string) error {
+	var err error = nil
+	if savePointer, ok := d.Dialector.(gorm.SavePointerDialectorInterface); ok {
+		err = savePointer.SavePoint(tx, name)
+	} else {
+		err = gorm.ErrUnsupportedDriver
+	}
+	return defaultErrorHandling(err)
+}
+func (d dialector) RollbackTo(tx *gorm.DB, name string) error {
+	var err error = nil
+	if savePointer, ok := d.Dialector.(gorm.SavePointerDialectorInterface); ok {
+		err = savePointer.RollbackTo(tx, name)
+	} else {
+		err = gorm.ErrUnsupportedDriver
+	}
+	return defaultErrorHandling(err)
+}
