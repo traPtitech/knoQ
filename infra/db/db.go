@@ -71,6 +71,7 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 // dialector with custom error handling
 type dialector struct {
 	gorm.Dialector
+	gorm.SavePointerDialectorInterface
 }
 
 var (
