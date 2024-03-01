@@ -144,16 +144,15 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 }
 
 func ICalFormat(events []*domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.Calendar {
-	var tz ics.VTimezone
 	var std ics.Standard
+	tz := ics.NewTimezone("Asia/Tokyo")
 	cal := ics.NewCalendar()
-	tz.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzid), "Asia/Tokyo")
 	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetfrom), "+0900")
 	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetto), "+0900")
 	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzname), "JST")
 	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyDtstart), "19700101T000000")
 	tz.Components = append(tz.Components, &std)
-	cal.Components = append(cal.Components, &tz)
+	cal.AddVTimezone(tz)
 	for _, e := range events {
 		vevent := iCalVeventFormat(e, host, userMap)
 		cal.AddVEvent(vevent)
