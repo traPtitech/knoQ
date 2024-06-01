@@ -50,7 +50,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v4
-      - uses: golangci/golangci-lint-action@v5
+      - uses: golangci/golangci-lint-action@v6
         with:
           version: latest
           args: "--timeout=5m"
