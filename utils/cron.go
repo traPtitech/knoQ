@@ -162,8 +162,8 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 
 	} else {
 		for _, event := range events {
-			eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s:%s ~ %s:%s @%s %s\n", event.Name, origin, event.ID,
-				event.TimeStart.In(tz.JST).Format("01/02"), event.TimeStart.In(tz.JST).Format("15:04"), event.TimeEnd.In(tz.JST).Format("01/02"), event.TimeEnd.In(tz.JST).Format("15:04"),
+			eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s ~ %s @%s %s\n", event.Name, origin, event.ID,
+				event.TimeStart.In(tz.JST).Format("01/02 15:04"), event.TimeEnd.In(tz.JST).Format("01/02 15:04"),
 				event.Room.Place, combined[event.AllowTogether])
 		}
 
