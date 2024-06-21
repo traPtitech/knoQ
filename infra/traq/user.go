@@ -9,8 +9,9 @@ import (
 )
 
 func (repo *TraQRepository) GetUser(userID uuid.UUID) (*traq.User, error) {
-	ctx := context.TODO()
-	apiClient := repo.NewServerAPIClient(ctx)
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
+	apiClient := traq.NewAPIClient(traqAPIConfig)
+	// TODO: 一定期間キャッシュする
 	userDetail, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
 		return nil, err
@@ -32,8 +33,9 @@ func (repo *TraQRepository) GetUser(userID uuid.UUID) (*traq.User, error) {
 }
 
 func (repo *TraQRepository) GetUsers(includeSuspended bool) ([]traq.User, error) {
-	ctx := context.TODO()
-	apiClient := repo.NewServerAPIClient(ctx)
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
+	apiClient := traq.NewAPIClient(traqAPIConfig)
+	// TODO: 一定期間キャッシュする
 	users, resp, err := apiClient.UserApi.GetUsers(ctx).IncludeSuspended(includeSuspended).Execute()
 	if err != nil {
 		return nil, err

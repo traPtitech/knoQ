@@ -10,8 +10,9 @@ import (
 )
 
 func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*traq.UserGroup, error) {
-	ctx := context.TODO()
-	apiClient := repo.NewServerAPIClient(ctx)
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
+	apiClient := traq.NewAPIClient(traqAPIConfig)
+	// TODO: 一定期間キャッシュする
 	group, resp, err := apiClient.GroupApi.GetUserGroup(ctx, groupID.String()).Execute()
 	if err != nil {
 		return nil, err
@@ -24,8 +25,9 @@ func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*traq.UserGroup, error)
 }
 
 func (repo *TraQRepository) GetAllGroups() ([]traq.UserGroup, error) {
-	ctx := context.TODO()
-	apiClient := repo.NewServerAPIClient(ctx)
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
+	apiClient := traq.NewAPIClient(traqAPIConfig)
+	// TODO: 一定期間キャッシュする
 	groups, resp, err := apiClient.GroupApi.GetUserGroups(ctx).Execute()
 	if err != nil {
 		return nil, err
