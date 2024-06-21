@@ -14,8 +14,9 @@ import (
 
 // TraQRepository is traq
 type TraQRepository struct {
-	Config *oauth2.Config
-	URL    string
+	Config            *oauth2.Config
+	URL               string
+	ServerAccessToken string
 }
 
 var TraQDefaultConfig = &oauth2.Config{
@@ -64,10 +65,17 @@ func (repo *TraQRepository) GetOAuthToken(query, state, codeVerifier string) (*o
 	return repo.Config.Exchange(ctx, code, option)
 }
 
-func NewAPIClient(ctx context.Context, token *oauth2.Token) *traq.APIClient {
+func NewOauth2APIClient(ctx context.Context, token *oauth2.Token) *traq.APIClient {
 	traqconf := traq.NewConfiguration()
 	conf := TraQDefaultConfig
 	traqconf.HTTPClient = conf.Client(ctx, token)
 	apiClient := traq.NewAPIClient(traqconf)
+	return apiClient
+}
+
+func (repo *TraQRepository) NewServerAPIClient(ctx context.Context) *traq.APIClient {
+	traqconf := traq.NewConfiguration()
+	apiClient := traq.NewAPIClient(traqconf)
+	ctx = context.WithValue(ctx, traq.ContextAccessToken, repo.ServerAccessToken)
 	return apiClient
 }

@@ -43,6 +43,8 @@ var (
 	webhookSecret     = getenv("WEBHOOK_SECRET", "")
 	activityChannelID = getenv("ACTIVITY_CHANNEL_ID", "")
 	dailyChannelID    = getenv("DAILY_CHANNEL_ID", "")
+
+	traqAccessToken = getenv("TRAQ_ACCESS_TOKEN", "")
 )
 
 func main() {
@@ -66,7 +68,8 @@ func main() {
 				TokenURL: "https://q.trap.jp/api/v3/oauth2/token",
 			},
 		},
-		URL: "https://q.trap.jp/api/v3",
+		URL:               "https://q.trap.jp/api/v3",
+		ServerAccessToken: traqAccessToken,
 	}
 	repo := &repository.Repository{
 		GormRepo: gormRepo,

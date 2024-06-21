@@ -9,9 +9,9 @@ import (
 	"github.com/traPtitech/go-traq"
 )
 
-func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*traq.UserGroup, error) {
+func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*traq.UserGroup, error) {
 	ctx := context.TODO()
-	apiClient := NewAPIClient(ctx, token)
+	apiClient := repo.NewServerAPIClient(ctx)
 	group, resp, err := apiClient.GroupApi.GetUserGroup(ctx, groupID.String()).Execute()
 	if err != nil {
 		return nil, err
@@ -23,9 +23,9 @@ func (repo *TraQRepository) GetGroup(token *oauth2.Token, groupID uuid.UUID) (*t
 	return group, err
 }
 
-func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]traq.UserGroup, error) {
+func (repo *TraQRepository) GetAllGroups() ([]traq.UserGroup, error) {
 	ctx := context.TODO()
-	apiClient := NewAPIClient(ctx, token)
+	apiClient := repo.NewServerAPIClient(ctx)
 	groups, resp, err := apiClient.GroupApi.GetUserGroups(ctx).Execute()
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func (repo *TraQRepository) GetAllGroups(token *oauth2.Token) ([]traq.UserGroup,
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
 	ctx := context.TODO()
-	apiClient := NewAPIClient(ctx, token)
+	apiClient := NewOauth2APIClient(ctx, token)
 	user, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
 		return nil, err
