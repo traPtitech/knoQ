@@ -44,6 +44,8 @@ var (
 	activityChannelID = getenv("ACTIVITY_CHANNEL_ID", "")
 	dailyChannelID    = getenv("DAILY_CHANNEL_ID", "")
 
+	// TODO: traQにClient Credential Flowが実装されたら定期的に取得するように変更する
+	// Issue: https://github.com/traPtitech/traQ/issues/2403
 	traqAccessToken = getenv("TRAQ_ACCESS_TOKEN", "")
 )
 

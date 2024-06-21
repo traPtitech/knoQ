@@ -65,17 +65,18 @@ func (repo *TraQRepository) GetOAuthToken(query, state, codeVerifier string) (*o
 	return repo.Config.Exchange(ctx, code, option)
 }
 
+// TODO: これを使って箇所でのAPIアクセスを一定期間キャッシュしたい
+func (repo *TraQRepository) NewServerAPIClient(ctx context.Context) *traq.APIClient {
+	traqconf := traq.NewConfiguration()
+	apiClient := traq.NewAPIClient(traqconf)
+	ctx = context.WithValue(ctx, traq.ContextAccessToken, repo.ServerAccessToken)
+	return apiClient
+}
+
 func NewOauth2APIClient(ctx context.Context, token *oauth2.Token) *traq.APIClient {
 	traqconf := traq.NewConfiguration()
 	conf := TraQDefaultConfig
 	traqconf.HTTPClient = conf.Client(ctx, token)
 	apiClient := traq.NewAPIClient(traqconf)
-	return apiClient
-}
-
-func (repo *TraQRepository) NewServerAPIClient(ctx context.Context) *traq.APIClient {
-	traqconf := traq.NewConfiguration()
-	apiClient := traq.NewAPIClient(traqconf)
-	ctx = context.WithValue(ctx, traq.ContextAccessToken, repo.ServerAccessToken)
 	return apiClient
 }
