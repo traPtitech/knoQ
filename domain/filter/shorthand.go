@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"errors"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -95,50 +96,44 @@ func AddAnd(lhs, rhs Expr) Expr {
 }
 
 // 以下のいずれかを満たす
-// * 期間中に始まる (time_start >= min AND time_start < max)
-// * 期間中に終わる (time_end >= min AND time_end < max)
-// * 期間より前に始まり期間より後に終わる (time_start < min AND time_end >= max)
-//
-// since < until でない場合 nil を返す
-func FilterDuration(since, until time.Time) Expr {
+// * 期間中に始まる (time_start >= since AND time_start < until)
+// * 期間中に終わる (time_end >= since AND time_end < until)
+// * 期間より前に始まり期間より後に終わる (time_start < since AND time_end >= until)
+func FilterDuration(since, until time.Time) (Expr, error) {
 	if !since.IsZero() && !until.IsZero() {
 		if since.After(until) {
-			return nil
+			return nil, errors.New("invalid time range")
 		}
 	}
 
-	startAfterMin := &CmpExpr{
-		Attr:     AttrTimeStart,
-		Relation: GreterEq,
-		Value:    since,
-	}
-	startBeforeMax := &CmpExpr{
-		Attr:     AttrTimeStart,
-		Relation: Less,
-		Value:    until,
-	}
 	// 期間中に始まる
 	startIn := &LogicOpExpr{
 		LogicOp: And,
-		Lhs:     startAfterMin,
-		Rhs:     startBeforeMax,
+		Lhs: &CmpExpr{
+			Attr:     AttrTimeStart,
+			Relation: GreterEq,
+			Value:    since,
+		},
+		Rhs: &CmpExpr{
+			Attr:     AttrTimeStart,
+			Relation: Less,
+			Value:    until,
+		},
 	}
 
-	endAfterMin := &CmpExpr{
-		Attr:     AttrTimeEnd,
-		Relation: GreterEq,
-		Value:    since,
-	}
-	endBeforeMax := &CmpExpr{
-		Attr:     AttrTimeEnd,
-		Relation: Less,
-		Value:    until,
-	}
 	// 期間中に終わる
 	endIn := &LogicOpExpr{
 		LogicOp: And,
-		Lhs:     endAfterMin,
-		Rhs:     endBeforeMax,
+		Lhs: &CmpExpr{
+			Attr:     AttrTimeEnd,
+			Relation: GreterEq,
+			Value:    since,
+		},
+		Rhs: &CmpExpr{
+			Attr:     AttrTimeEnd,
+			Relation: Less,
+			Value:    until,
+		},
 	}
 
 	startBeforeMin := &CmpExpr{
@@ -166,5 +161,5 @@ func FilterDuration(since, until time.Time) Expr {
 			Lhs:     endIn,
 			Rhs:     startIn,
 		},
-	}
+	}, nil
 }
