@@ -220,7 +220,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		}
 	}
 
-	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, notificationTargets, h.Origin, !domain.DEVELOPMENT)
+	content := presentation.GenerateEventBotContent(c.Request().Method, e, notificationTargets, h.Origin, !domain.DEVELOPMENT)
 
 	_ = utils.RequestBotPost(content, h.ActivityChannelID)
 }

@@ -162,7 +162,7 @@ func ICalFormat(events []*domain.Event, host string, userMap map[uuid.UUID]*doma
 	return cal
 }
 
-func GenerateEventWebhookContent(method string, e *EventDetailRes, nofiticationTargets []string, origin string, isMention bool) string {
+func GenerateEventBotContent(method string, e *EventDetailRes, nofiticationTargets []string, origin string, isMention bool) string {
 	timeFormat := "01/02(Mon) 15:04"
 	var content string
 	switch method {
