@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/knoQ/infra/bot"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/infra/traq"
 	"github.com/traPtitech/knoQ/repository"
@@ -21,6 +22,8 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
+
+	traqwsbot "github.com/traPtitech/traq-ws-bot"
 )
 
 var (
@@ -108,6 +111,17 @@ func main() {
 		panic(err)
 	}
 	c.Start()
+
+	// bot
+	bot.Bot, err = traqwsbot.NewBot(&traqwsbot.Options{
+		AccessToken: os.Getenv("TRAQ_BOT_TOKEN"),
+	})
+	if err != nil {
+		panic(err)
+	}
+	if err := bot.Bot.Start(); err != nil {
+		panic(err)
+	}
 
 	// サーバースタート
 	go func() {

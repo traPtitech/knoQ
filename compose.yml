@@ -23,6 +23,7 @@ services:
       ACTIVITY_CHANNEL_ID: ${ACTIVITY_CHANNEL_ID}
       TOKEN_KEY: ${TOKEN_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
       KNOQ_VERSION: ${KNOQ_VERSION:-dev}
+      TRAQ_BOT_TOKEN: ${TRAQ_BOT_TOKEN}
       DEVELOPMENT: true
       GORM_LOG_LEVEL: info
     ports:
@@ -30,10 +31,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    develop:
-      watch:
-        - action: rebuild
-          path: ./
 
   db:
     image: mariadb:10.6.4

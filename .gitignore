@@ -7,3 +7,4 @@ debug
 
 # for development
 _development/*
+.env
