@@ -101,9 +101,7 @@ func main() {
 		"0 8 * * *",
 		utils.InitPostEventToTraQ(
 			&repo.GormRepo,
-			handler.WebhookSecret,
 			handler.DailyChannelId,
-			handler.WebhookID,
 			handler.Origin,
 		),
 	)
@@ -111,6 +109,13 @@ func main() {
 		panic(err)
 	}
 	c.Start()
+
+	// サーバースタート
+	go func() {
+		if err := e.Start(":3000"); err != nil {
+			e.Logger.Info("shutting down the server")
+		}
+	}()
 
 	// bot
 	bot.Bot, err = traqwsbot.NewBot(&traqwsbot.Options{
@@ -123,16 +128,11 @@ func main() {
 		panic(err)
 	}
 
-	// サーバースタート
-	go func() {
-		if err := e.Start(":3000"); err != nil {
-			e.Logger.Info("shutting down the server")
-		}
-	}()
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer cancel()
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal(err)

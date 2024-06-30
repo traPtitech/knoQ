@@ -222,7 +222,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 
 	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, notificationTargets, h.Origin, !domain.DEVELOPMENT)
 
-	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
+	_ = utils.RequestBotPost(content, h.ActivityChannelID)
 }
 
 // getRequestUserID sessionからuserを返します

@@ -20,8 +20,8 @@ type timeTable struct {
 }
 
 // InitPostEventToTraQ 現在(job実行)から24時間以内に始まるイベントを取得し、
-// webhookでtraQに送るjobを作成。
-func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, origin string) func() {
+// botでtraQに送るjobを作成。
+func InitPostEventToTraQ(repo *db.GormRepository, channelID, origin string) func() {
 	job := func() {
 		now := setTimeFromString(time.Now().In(tz.JST), "06:00:00")
 		tomorrow := now.AddDate(0, 0, 1)
@@ -29,7 +29,7 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 		rooms, _ := repo.GetAllRooms(now, tomorrow, uuid.Nil)
 		events, _ := repo.GetAllEvents(filter.FilterTime(now, tomorrow))
 		message := createMessage(now, rooms, events, origin)
-		err := RequestWebhook(message, secret, channelID, webhookID, 1)
+		err := RequestBotPost(message, channelID)
 		if err != nil {
 			fmt.Println(err)
 		}
