@@ -27,9 +27,13 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 		tomorrow := now.AddDate(0, 0, 1)
 
 		rooms, _ := repo.GetAllRooms(now, tomorrow, uuid.Nil)
-		events, _ := repo.GetAllEvents(filter.FilterTime(now, tomorrow))
+		expr, err := filter.FilterDuration(now, tomorrow)
+		if err != nil {
+			fmt.Println(err)
+		}
+		events, _ := repo.GetAllEvents(expr)
 		message := createMessage(now, rooms, events, origin)
-		err := RequestWebhook(message, secret, channelID, webhookID, 1)
+		err = RequestWebhook(message, secret, channelID, webhookID, 1)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -163,7 +167,7 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 	} else {
 		for _, event := range events {
 			eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s ~ %s @%s %s\n", event.Name, origin, event.ID,
-				event.TimeStart.In(tz.JST).Format("15:04"), event.TimeEnd.In(tz.JST).Format("15:04"),
+				event.TimeStart.In(tz.JST).Format("01/02 15:04"), event.TimeEnd.In(tz.JST).Format("01/02 15:04"),
 				event.Room.Place, combined[event.AllowTogether])
 		}
 
