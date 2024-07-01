@@ -74,11 +74,7 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 			}
 
 			// traq group
-			t, err := repo.GormRepo.GetToken(info.ReqUserID)
-			if err != nil {
-				return nil, defaultErrorHandling(err)
-			}
-			g, err := repo.TraQRepo.GetGroup(t, groupID)
+			g, err := repo.TraQRepo.GetGroup(groupID)
 			if err != nil {
 				return nil, defaultErrorHandling(err)
 			}
@@ -95,16 +91,12 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 
 func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, error) {
 	groups := make([]*domain.Group, 0)
-	t, err := repo.GormRepo.GetToken(info.ReqUserID)
-	if err != nil {
-		return nil, defaultErrorHandling(err)
-	}
 	gg, err := repo.GormRepo.GetAllGroups()
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	groups = append(groups, db.ConvSPGroupToSPdomainGroup(gg)...)
-	tg, err := repo.TraQRepo.GetAllGroups(t)
+	tg, err := repo.TraQRepo.GetAllGroups()
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -195,12 +187,7 @@ func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
 }
 
 func (repo *Repository) GetGradeGroupNames(info *domain.ConInfo) ([]string, error) {
-	t, err := repo.GormRepo.GetToken(info.ReqUserID)
-	if err != nil {
-		return nil, defaultErrorHandling(err)
-	}
-
-	groups, err := repo.TraQRepo.GetAllGroups(t)
+	groups, err := repo.TraQRepo.GetAllGroups()
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}

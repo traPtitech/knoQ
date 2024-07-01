@@ -44,6 +44,7 @@ knoQ の全ての機能を動作させるためには、追加の情報が必要
 | KNOQ_VERSION        | 環境変数 | UNKNOWN                                | knoQ のバージョン (github actions でイメージ作成時に指定)       |
 | KNOQ_REVISION       | 環境変数 | UNKNOWN                                | git の sha1 (github actions でイメージ作成時に指定)        |
 | DEVELOPMENT         | 環境変数 |                                        | 開発時かどうか                                        |
+| TRAQ_ACCESS_TOKEN   | 環境変数 |                                        | traQ へのアクセストークン                                  |
 | service.json        | ファイル | 空のファイル                                 | google calendar api に必要（権限は必要なし）               |
 
 ### テスト
