@@ -15,6 +15,7 @@ import (
 	"github.com/traPtitech/knoQ/repository"
 	"github.com/traPtitech/knoQ/utils"
 	"github.com/traPtitech/knoQ/utils/tz"
+	"github.com/traPtitech/traq-ws-bot/payload"
 	"golang.org/x/oauth2"
 
 	"github.com/traPtitech/knoQ/router"
@@ -124,6 +125,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	bot.Bot.OnBotMessageStampsUpdated(func(p *payload.BotMessageStampsUpdated) {
+		bot.BotMessageStampsUpdatedHandler(p, gormRepo)
+	})
+
 	if err := bot.Bot.Start(); err != nil {
 		panic(err)
 	}
