@@ -261,6 +261,13 @@ func ConvWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
 	}
 	return
 }
+
+func ConvWritePostParamsToPost(src WritePostParams) (dst Post) {
+	dst.MessageID = src.MessageID
+	dst.EventID = src.EventID
+	return
+}
+
 func ConvdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst EventTag) {
 	dst.Tag.Name = src.Name
 	dst.Locked = src.Locked

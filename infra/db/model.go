@@ -21,6 +21,7 @@ var tables = []interface{}{
 	EventTag{}, // Eventより下にないと、overrideされる
 	EventAdmin{},
 	EventAttendee{},
+	Post{},
 }
 
 type Model struct {
@@ -165,6 +166,11 @@ type EventAttendee struct {
 	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	User     User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 	Schedule int
+}
+
+type Post struct {
+	MessageID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	EventID   uuid.UUID `gorm:"type:char(36); not null"`
 }
 
 // Event is event for gorm
