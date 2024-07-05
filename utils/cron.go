@@ -29,7 +29,7 @@ func InitPostEventToTraQ(repo *db.GormRepository, channelID, origin string) func
 		rooms, _ := repo.GetAllRooms(now, tomorrow, uuid.Nil)
 		events, _ := repo.GetAllEvents(filter.FilterTime(now, tomorrow))
 		message := createMessage(now, rooms, events, origin)
-		err := RequestBotPost(message, channelID)
+		_, err := RequestBotPost(message, channelID)
 		if err != nil {
 			fmt.Println(err)
 		}

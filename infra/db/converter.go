@@ -127,6 +127,12 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	return
 }
 
+func ConvPostTodomainPost(src Post) (dst domain.Post) {
+	dst.MessageID = src.MessageID
+	dst.EventID = src.EventID
+	return
+}
+
 func ConvSEventAdminToSRoomAdmin(src []EventAdmin) (dst []RoomAdmin) {
 	dst = make([]RoomAdmin, len(src))
 	for i := range src {

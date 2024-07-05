@@ -30,4 +30,5 @@ type Repository interface {
 	RoomRepository
 	TagRepository
 	UserRepository
+	PostRepository
 }

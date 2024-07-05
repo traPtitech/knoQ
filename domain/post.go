@@ -11,3 +11,8 @@ type WritePostParams struct {
 	MessageID uuid.UUID
 	EventID   uuid.UUID
 }
+
+type PostRepository interface {
+	CreatePost(params WritePostParams) (*Post, error)
+	GetPost(MessageID uuid.UUID) (*Post, error)
+}

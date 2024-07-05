@@ -222,7 +222,12 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 
 	content := presentation.GenerateEventBotContent(c.Request().Method, e, notificationTargets, h.Origin, !domain.DEVELOPMENT)
 
-	_ = utils.RequestBotPost(content, h.ActivityChannelID)
+	messageID, err := utils.RequestBotPost(content, h.ActivityChannelID)
+	if err != nil {
+		h.Logger.Error("failed to request bot post", zap.Error(err))
+		return
+	}
+	h.Repo.CreatePost(domain.WritePostParams{MessageID: messageID, EventID: e.ID})
 }
 
 // getRequestUserID sessionからuserを返します
