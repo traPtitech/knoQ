@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
@@ -24,6 +25,10 @@ func BotMessageStampsUpdatedHandler(p *payload.BotMessageStampsUpdated, gormRepo
 		fmt.Println(err)
 	}
 	for _, stamp := range p.Stamps {
+		if time.Now().After(stamp.UpdatedAt.Add(3 * time.Second)) {
+			// 3秒以上経過したスタンプは無視
+			continue
+		}
 		var scheduleStatus domain.ScheduleStatus
 		switch stamp.StampID {
 		case AttendanceStampID:
@@ -35,6 +40,8 @@ func BotMessageStampsUpdatedHandler(p *payload.BotMessageStampsUpdated, gormRepo
 		case PendingStampID:
 			// 未定
 			scheduleStatus = domain.Pending
+		default:
+			continue
 		}
 		err := gormRepo.UpsertEventSchedule(post.EventID, uuid.FromStringOrNil(stamp.UserID), scheduleStatus)
 		if err != nil {
