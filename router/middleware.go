@@ -227,6 +227,11 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 		h.Logger.Error("failed to request bot post", zap.Error(err))
 		return
 	}
+	err = utils.RequestBotStatusStamp(messageID)
+	if err != nil {
+		h.Logger.Error("failed to request bot status stamp", zap.Error(err))
+		return
+	}
 	h.Repo.CreatePost(domain.WritePostParams{MessageID: messageID, EventID: e.ID})
 }
 

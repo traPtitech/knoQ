@@ -19,3 +19,16 @@ func RequestBotPost(messageText, channelID string) (uuid.UUID, error) {
 		Execute()
 	return uuid.FromStringOrNil(message.Id), err
 }
+
+// RequestBotStatusStamp :white_check_mark:, :no_entry_sign:, :loading: のスタンプを送信します。
+func RequestBotStatusStamp(messageID uuid.UUID) error {
+	stamps := []string{bot.AttendanceStampID, bot.AbsentStampID, bot.PendingStampID}
+	for _, stampID := range stamps {
+		_, err := bot.Bot.API().
+			MessageApi.AddMessageStamp(context.Background(), messageID.String(), stampID).Execute()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
