@@ -43,8 +43,6 @@ var (
 	clientID          = getenv("CLIENT_ID", "client_id")
 	origin            = getenv("ORIGIN", "http://localhost:3000")
 	sessionKey        = getenv("SESSION_KEY", "random32wordsXXXXXXXXXXXXXXXXXXX")
-	webhookID         = getenv("WEBHOOK_ID", "")
-	webhookSecret     = getenv("WEBHOOK_SECRET", "")
 	activityChannelID = getenv("ACTIVITY_CHANNEL_ID", "")
 	dailyChannelID    = getenv("DAILY_CHANNEL_ID", "")
 )
@@ -87,8 +85,6 @@ func main() {
 			HttpOnly: true,
 			SameSite: http.SameSiteLaxMode,
 		},
-		WebhookID:         webhookID,
-		WebhookSecret:     webhookSecret,
 		ActivityChannelID: activityChannelID,
 		DailyChannelId:    dailyChannelID,
 		Origin:            origin,
@@ -96,7 +92,7 @@ func main() {
 
 	e := handler.SetupRoute()
 
-	// webhook
+	// cron
 	c := cron.New(cron.WithLocation(tz.JST))
 	_, err = c.AddFunc(
 		"0 8 * * *",

@@ -25,8 +25,6 @@ type Handlers struct {
 	SessionKey        []byte
 	SessionOption     sessions.Options
 	ClientID          string
-	WebhookID         string
-	WebhookSecret     string
 	ActivityChannelID string
 	DailyChannelId    string
 	Origin            string
@@ -90,7 +88,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 		eventsAPI := apiWithAuth.Group("/events")
 		{
 			eventsAPI.GET("", h.HandleGetEvents)
-			eventsAPI.POST("", h.HandlePostEvent, middleware.BodyDump(h.WebhookEventHandler))
+			eventsAPI.POST("", h.HandlePostEvent, middleware.BodyDump(h.BotEventHandler))
 			eventsAPI.GET("/:eventid", h.HandleGetEvent)
 			eventsAPI.PUT("/:eventid/attendees/me", h.HandleUpsertMeEventSchedule)
 			eventsAPI.POST("/:eventid/tags", h.HandleAddEventTag)
@@ -99,7 +97,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			// イベント管理者権限が必要
 			eventsAPIWithAdminAuth := eventsAPI.Group("", h.EventAdminsMiddleware)
 			{
-				eventsAPIWithAdminAuth.PUT("/:eventid", h.HandleUpdateEvent, middleware.BodyDump(h.WebhookEventHandler))
+				eventsAPIWithAdminAuth.PUT("/:eventid", h.HandleUpdateEvent, middleware.BodyDump(h.BotEventHandler))
 				eventsAPIWithAdminAuth.DELETE("/:eventid", h.HandleDeleteEvent)
 			}
 		}
