@@ -14,8 +14,9 @@ import (
 
 // TraQRepository is traq
 type TraQRepository struct {
-	Config *oauth2.Config
-	URL    string
+	Config            *oauth2.Config
+	URL               string
+	ServerAccessToken string
 }
 
 var TraQDefaultConfig = &oauth2.Config{
@@ -28,6 +29,8 @@ var TraQDefaultConfig = &oauth2.Config{
 		TokenURL: "https://q.trap.jp/api/v3/oauth2/token",
 	},
 }
+
+var traqAPIConfig = traq.NewConfiguration()
 
 func newPKCE() (pkceOptions []oauth2.AuthCodeOption, codeVerifier string) {
 	codeVerifier = random.AlphaNumeric(43, true)
@@ -64,8 +67,8 @@ func (repo *TraQRepository) GetOAuthToken(query, state, codeVerifier string) (*o
 	return repo.Config.Exchange(ctx, code, option)
 }
 
-func NewAPIClient(ctx context.Context, token *oauth2.Token) *traq.APIClient {
-	traqconf := traq.NewConfiguration()
+func NewOauth2APIClient(ctx context.Context, token *oauth2.Token) *traq.APIClient {
+	traqconf := traqAPIConfig
 	conf := TraQDefaultConfig
 	traqconf.HTTPClient = conf.Client(ctx, token)
 	apiClient := traq.NewAPIClient(traqconf)

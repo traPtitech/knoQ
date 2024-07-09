@@ -17,11 +17,7 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	if !repo.IsPrivilege(info) {
 		return domain.ErrForbidden
 	}
-	t, err := repo.GormRepo.GetToken(info.ReqUserID)
-	if err != nil {
-		return defaultErrorHandling(err)
-	}
-	traQUsers, err := repo.TraQRepo.GetUsers(t, true)
+	traQUsers, err := repo.TraQRepo.GetUsers(true)
 	if err != nil {
 		return defaultErrorHandling(err)
 	}
@@ -92,18 +88,13 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 }
 
 func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
-	t, err := repo.GormRepo.GetToken(info.ReqUserID)
-	if err != nil {
-		return nil, defaultErrorHandling(err)
-	}
-
 	userMeta, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	if userMeta.Provider.Issuer == traQIssuerName {
-		userBody, err := repo.TraQRepo.GetUser(t, userID)
+		userBody, err := repo.TraQRepo.GetUser(userID)
 		if err != nil {
 			return nil, defaultErrorHandling(err)
 		}
@@ -120,17 +111,12 @@ func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 }
 
 func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, info *domain.ConInfo) ([]*domain.User, error) {
-	t, err := repo.GormRepo.GetToken(info.ReqUserID)
-	if err != nil {
-		return nil, defaultErrorHandling(err)
-	}
-
 	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	// TODO fix
-	traQUserBodys, err := repo.TraQRepo.GetUsers(t, includeSuspend)
+	traQUserBodys, err := repo.TraQRepo.GetUsers(includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}

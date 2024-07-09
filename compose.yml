@@ -25,6 +25,7 @@ services:
       KNOQ_VERSION: ${KNOQ_VERSION:-dev}
       DEVELOPMENT: true
       GORM_LOG_LEVEL: info
+      TRAQ_ACCESS_TOKEN:
     ports:
       - "${APP_PORT:-3000}:3000"
     depends_on:
