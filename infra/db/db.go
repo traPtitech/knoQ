@@ -38,25 +38,27 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 	tokenKey = []byte(key)
 
 	var err error
-	repo.db, err = gorm.Open(mysql.New(mysql.Config{
-		DSNConfig: &gomysql.Config{
-			User:                 user,
-			Passwd:               password,
-			Net:                  "tcp",
-			Addr:                 host + ":" + port,
-			DBName:               database,
-			Loc:                  loc,
-			AllowNativePasswords: true,
-			ParseTime:            true,
-		},
-		DefaultStringSize:         256,   // default size for string fields
-		DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
-		DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
-		DontSupportRenameColumn:   false, // `change` when rename column, rename column not supported before MySQL 8, MariaDB
-		SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
-	}), &gorm.Config{
-		Logger: logger.Default.LogMode(loglevel),
-	})
+	repo.db, err = gorm.Open(
+		mysql.New(mysql.Config{
+			DSNConfig: &gomysql.Config{
+				User:                 user,
+				Passwd:               password,
+				Net:                  "tcp",
+				Addr:                 host + ":" + port,
+				DBName:               database,
+				Loc:                  loc,
+				AllowNativePasswords: true,
+				ParseTime:            true,
+			},
+			DefaultStringSize:         256,   // default size for string fields
+			DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
+			DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
+			DontSupportRenameColumn:   false, // `change` when rename column, rename column not supported before MySQL 8, MariaDB
+			SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
+		}),
+		&gorm.Config{
+			Logger: logger.Default.LogMode(loglevel),
+		})
 	if err != nil {
 		return err
 	}
