@@ -19,7 +19,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.9.0
-	github.com/traPtitech/go-traq v0.0.0-20240723215239-7622b89fcb33
+	github.com/traPtitech/go-traq v0.0.0-20240725071454-97c7b85dc879
 	go.uber.org/zap v1.27.0
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	golang.org/x/oauth2 v0.21.0
