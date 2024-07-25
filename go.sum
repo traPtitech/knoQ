@@ -172,6 +172,8 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/traPtitech/go-traq v0.0.0-20240509050113-9343acbeec35 h1:NoEvHqFhmtyy7ELLp1chwM4R1vhXw2zKeEotkmKvSJw=
 github.com/traPtitech/go-traq v0.0.0-20240509050113-9343acbeec35/go.mod h1:7yJs1m/ddCG39XF78GA8FrXqyc4fNPfHp8BSLjMVMY8=
+github.com/traPtitech/go-traq v0.0.0-20240723215239-7622b89fcb33 h1:xYVN9ljsLNPeOn2CERuyXU1NomJlaCvtT2qwd4oyL6w=
+github.com/traPtitech/go-traq v0.0.0-20240723215239-7622b89fcb33/go.mod h1:7yJs1m/ddCG39XF78GA8FrXqyc4fNPfHp8BSLjMVMY8=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasttemplate v1.2.2 h1:lxLXG0uE3Qnshl9QyaK6XJxMXlQZELvChBOCmQD0Loo=
