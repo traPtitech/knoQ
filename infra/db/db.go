@@ -37,9 +37,8 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 	}
 	tokenKey = []byte(key)
 
-	var err error
-	repo.db, err = gorm.Open(
-		mysql.New(mysql.Config{
+	d := dialector{
+		Dialector: mysql.New(mysql.Config{
 			DSNConfig: &gomysql.Config{
 				User:                 user,
 				Passwd:               password,
@@ -56,12 +55,35 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 			DontSupportRenameColumn:   false, // `change` when rename column, rename column not supported before MySQL 8, MariaDB
 			SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
 		}),
-		&gorm.Config{
-			Logger: logger.Default.LogMode(loglevel),
-		})
+	}
+
+	var err error
+	repo.db, err = gorm.Open(d, &gorm.Config{
+		Logger: logger.Default.LogMode(loglevel),
+	})
 	if err != nil {
 		return err
 	}
 
 	return migration.Migrate(repo.db, tables)
+}
+
+// dialector with custom error handling
+type dialector struct {
+	gorm.Dialector
+	gorm.SavePointerDialectorInterface
+}
+
+var (
+	_ gorm.Dialector       = (*dialector)(nil)
+	_ gorm.ErrorTranslator = (*dialector)(nil)
+)
+
+// override Translate(err error) error
+func (d dialector) Translate(err error) error {
+	if translater, ok := d.Dialector.(gorm.ErrorTranslator); ok {
+		err = translater.Translate(err)
+	}
+
+	return defaultErrorHandling(err)
 }
