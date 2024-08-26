@@ -48,8 +48,8 @@ func (repo *TraQRepository) GetUsers(includeSuspended bool) ([]traq.User, error)
 }
 
 func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
-	ctx := context.TODO()
-	apiClient := NewOauth2APIClient(ctx, token)
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, token.AccessToken)
+	apiClient := traq.NewAPIClient(traqAPIConfig)
 	userDetail, resp, err := apiClient.MeApi.GetMe(ctx).Execute()
 	if err != nil {
 		return nil, err

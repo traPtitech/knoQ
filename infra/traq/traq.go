@@ -19,17 +19,6 @@ type TraQRepository struct {
 	ServerAccessToken string
 }
 
-var TraQDefaultConfig = &oauth2.Config{
-	ClientID:     "something",
-	ClientSecret: "any",
-	RedirectURL:  "foo",
-	Scopes:       []string{"read", "write", "manage_bot"},
-	Endpoint: oauth2.Endpoint{
-		AuthURL:  "https://q.trap.jp/api/v3/oauth2/authorize",
-		TokenURL: "https://q.trap.jp/api/v3/oauth2/token",
-	},
-}
-
 var traqAPIConfig = traq.NewConfiguration()
 
 func newPKCE() (pkceOptions []oauth2.AuthCodeOption, codeVerifier string) {
@@ -65,12 +54,4 @@ func (repo *TraQRepository) GetOAuthToken(query, state, codeVerifier string) (*o
 	code := values.Get("code")
 	option := oauth2.SetAuthURLParam("code_verifier", codeVerifier)
 	return repo.Config.Exchange(ctx, code, option)
-}
-
-func NewOauth2APIClient(ctx context.Context, token *oauth2.Token) *traq.APIClient {
-	traqconf := traqAPIConfig
-	conf := TraQDefaultConfig
-	traqconf.HTTPClient = conf.Client(ctx, token)
-	apiClient := traq.NewAPIClient(traqconf)
-	return apiClient
 }

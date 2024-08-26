@@ -40,8 +40,8 @@ func (repo *TraQRepository) GetAllGroups() ([]traq.UserGroup, error) {
 }
 
 func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
-	ctx := context.TODO()
-	apiClient := NewOauth2APIClient(ctx, token)
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, token.AccessToken)
+	apiClient := traq.NewAPIClient(traqAPIConfig)
 	user, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
 		return nil, err
