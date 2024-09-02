@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/knoQ/utils/random"
 	"golang.org/x/oauth2"
 )
@@ -18,8 +17,6 @@ type TraQRepository struct {
 	URL               string
 	ServerAccessToken string
 }
-
-var traqAPIConfig = traq.NewConfiguration()
 
 func newPKCE() (pkceOptions []oauth2.AuthCodeOption, codeVerifier string) {
 	codeVerifier = random.AlphaNumeric(43, true)
