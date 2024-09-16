@@ -10,7 +10,7 @@ import (
 
 func (repo *TraQRepository) GetUser(userID uuid.UUID) (*traq.User, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
-	apiClient := traq.NewAPIClient(traqAPIConfig)
+	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	// TODO: 一定期間キャッシュする
 	userDetail, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
@@ -34,7 +34,7 @@ func (repo *TraQRepository) GetUser(userID uuid.UUID) (*traq.User, error) {
 
 func (repo *TraQRepository) GetUsers(includeSuspended bool) ([]traq.User, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
-	apiClient := traq.NewAPIClient(traqAPIConfig)
+	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	// TODO: 一定期間キャッシュする
 	users, resp, err := apiClient.UserApi.GetUsers(ctx).IncludeSuspended(includeSuspended).Execute()
 	if err != nil {
@@ -48,8 +48,8 @@ func (repo *TraQRepository) GetUsers(includeSuspended bool) ([]traq.User, error)
 }
 
 func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
-	ctx := context.TODO()
-	apiClient := NewOauth2APIClient(ctx, token)
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, token.AccessToken)
+	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	userDetail, resp, err := apiClient.MeApi.GetMe(ctx).Execute()
 	if err != nil {
 		return nil, err
