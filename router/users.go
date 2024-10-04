@@ -16,7 +16,7 @@ import (
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 	user, err := h.Repo.GetUserMe(getConinfo(c))
 	if err != nil {
-		if errors.Is(domain.ErrInvalidToken, err) {
+		if errors.Is(err, domain.ErrInvalidToken) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
 		}
 		return judgeErrorResponse(err)
@@ -30,7 +30,7 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 
 	users, err := h.Repo.GetAllUsers(includeSuspend, true, getConinfo(c))
 	if err != nil {
-		if errors.Is(domain.ErrInvalidToken, err) {
+		if errors.Is(err, domain.ErrInvalidToken) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
 		}
 		return judgeErrorResponse(err)
