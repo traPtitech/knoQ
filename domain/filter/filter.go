@@ -25,6 +25,7 @@ const (
 	AttrAdmin
 	AttrBelong
 	AttrAttendee
+	AttrPending
 )
 
 type LogicOp int

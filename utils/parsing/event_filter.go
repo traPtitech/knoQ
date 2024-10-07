@@ -116,7 +116,7 @@ func (k tokenKind) String() (s string) {
 /*---------------------------------------------------------------------------*/
 
 var (
-	SupportedAttributes = []string{"user", "group", "tag", "event"}
+	SupportedAttributes = []string{"user", "group", "tag", "event", "pending"}
 	reAttrOrUUIDLike    = regexp.MustCompile(`^[a-z0-9\-:{}]+`)
 )
 
@@ -207,6 +207,7 @@ var MapSupportedAttributes = map[string]filter.Attr{
 	"group": filter.AttrGroup,
 	"tag":   filter.AttrTag,
 	"event": filter.AttrEvent,
+	"pending": filter.AttrPending,
 }
 
 func createParseError(found tokenKind, expected ...tokenKind) error {

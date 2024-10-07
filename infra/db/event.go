@@ -217,6 +217,13 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 				}
 				filterFormat = fmt.Sprintf("%v %v ? AND event_attendees.schedule != %v", attrMap[e.Attr], defaultRelationMap[e.Relation], domain.Absent)
 				filterArgs = []interface{}{id}
+			case filter.AttrPending:
+				id, ok := e.Value.(uuid.UUID)
+				if !ok {
+					return "", nil, ErrExpression
+				}
+				filterFormat = fmt.Sprintf("%v %v ? AND event_attendees.schedule == %v", attrMap[e.Attr], defaultRelationMap[e.Relation], domain.Pending)
+				filterArgs = []interface{}{id}
 			default:
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {
