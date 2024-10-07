@@ -1,7 +1,8 @@
 module github.com/traPtitech/knoQ
 
 go 1.22
-toolchain go1.23.1
+
+toolchain go1.22.2
 
 require (
 	github.com/arran4/golang-ical v0.3.1
@@ -9,7 +10,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/gorilla/securecookie v1.1.2
-	github.com/gorilla/sessions v1.4.0
+	github.com/gorilla/sessions v1.3.0
 	github.com/jinzhu/copier v0.4.0
 	github.com/jszwec/csvutil v1.10.0
 	github.com/labstack/echo-contrib v0.17.1
