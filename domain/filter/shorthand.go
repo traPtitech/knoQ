@@ -54,30 +54,65 @@ func FilterTime(start, end time.Time) Expr {
 	if start.IsZero() && end.IsZero() {
 		return nil
 	}
-	timeStart := &CmpExpr{
+
+	// イベント開始時刻が指定された範囲内にあるか
+	eventStartInRangeRight := &CmpExpr{
+		Attr:     AttrTimeStart,
+		Relation: LessEq,
+		Value:    end,
+	}
+	eventStartInRangeLeft := &CmpExpr{
 		Attr:     AttrTimeStart,
 		Relation: GreterEq,
 		Value:    start,
 	}
-	timeEnd := &CmpExpr{
+
+	// イベント終了時刻が指定された範囲内にあるか
+	eventEndInRangeRight := &CmpExpr{
 		Attr:     AttrTimeEnd,
 		Relation: LessEq,
 		Value:    end,
 	}
+	eventEndInRangeLeft := &CmpExpr{
+		Attr:     AttrTimeEnd,
+		Relation: GreterEq,
+		Value:    start,
+	}
 
-	if start.IsZero() {
-		return timeEnd
+	// イベントの開催期間が指定された範囲を包含しているか
+	eventStartBeforeRangeStart := &CmpExpr{
+		Attr:     AttrTimeStart,
+		Relation: LessEq,
+		Value:    start,
 	}
-	if end.IsZero() {
-		return timeStart
+	eventEndAfterRangeEnd := &CmpExpr{
+		Attr:     AttrTimeEnd,
+		Relation: GreterEq,
+		Value:    end,
 	}
+
 	return &LogicOpExpr{
-		LogicOp: And,
-		Lhs:     timeStart,
-		Rhs:     timeEnd,
+		LogicOp: Or,
+		Lhs: &LogicOpExpr{
+			LogicOp: Or,
+			Lhs: &LogicOpExpr{
+				LogicOp: And,
+				Lhs:     eventStartInRangeRight,
+				Rhs:     eventStartInRangeLeft,
+			},
+			Rhs: &LogicOpExpr{
+				LogicOp: And,
+				Lhs:     eventEndInRangeRight,
+				Rhs:     eventEndInRangeLeft,
+			},
+		},
+		Rhs: &LogicOpExpr{
+			LogicOp: And,
+			Lhs:     eventStartBeforeRangeStart,
+			Rhs:     eventEndAfterRangeEnd,
+		},
 	}
 }
-
 func AddAnd(lhs, rhs Expr) Expr {
 	if lhs == nil && rhs == nil {
 		return nil
