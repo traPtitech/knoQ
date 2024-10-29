@@ -55,6 +55,23 @@ func FilterTime(start, end time.Time) Expr {
 		return nil
 	}
 
+	// startがゼロの時はend以前に一部でもイベントが含まれるものを返す
+	if start.IsZero() {
+		return &CmpExpr{
+			Attr:     AttrTimeStart,
+			Relation: LessEq,
+			Value:    end,
+		}
+	}
+	// endがゼロの時はstart以降に一部でもイベントが含まれるものを返す
+	if end.IsZero() {
+		return &CmpExpr{
+			Attr:     AttrTimeEnd,
+			Relation: GreterEq,
+			Value:    start,
+		}
+	}
+
 	// イベント開始時刻が指定された範囲内にあるか
 	eventStartInRangeRight := &CmpExpr{
 		Attr:     AttrTimeStart,
@@ -113,6 +130,7 @@ func FilterTime(start, end time.Time) Expr {
 		},
 	}
 }
+
 func AddAnd(lhs, rhs Expr) Expr {
 	if lhs == nil && rhs == nil {
 		return nil
