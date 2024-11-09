@@ -41,6 +41,7 @@ type RoomRepository interface {
 
 	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
 	GetAllRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
+	GetAllVerifiedRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
 	IsRoomAdmins(roomID uuid.UUID, info *ConInfo) bool
 }
 

@@ -114,7 +114,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			// サービス管理者権限が必要
 			roomsAPIWithPrivilegeAuth := roomsAPI.Group("", h.PrivilegeUserMiddleware)
 			{
-				roomsAPIWithPrivilegeAuth.POST("/all", h.HandleCreateVerifedRooms)
+				roomsAPIWithPrivilegeAuth.POST("/all", h.HandleCreateVerifedRooms, h.WebhookRoomHandler)
 				roomsAPIWithPrivilegeAuth.POST("/:roomid/verified", h.HandleVerifyRoom)
 				roomsAPIWithPrivilegeAuth.DELETE("/:roomid/verified", h.HandleUnVerifyRoom)
 			}

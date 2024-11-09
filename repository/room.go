@@ -79,6 +79,11 @@ func (repo *Repository) GetAllRooms(start time.Time, end time.Time, excludeEvent
 	return rs, defaultErrorHandling(err)
 }
 
+func (repo *Repository) GetAllVerifiedRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
+	rs, err := repo.GormRepo.GetAllVerifiedRooms(start, end, excludeEventID)
+	return rs, defaultErrorHandling(err)
+}
+
 func (repo *Repository) IsRoomAdmins(roomID uuid.UUID, info *domain.ConInfo) bool {
 	room, err := repo.GetRoom(roomID, uuid.Nil)
 	if err != nil {

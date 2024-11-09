@@ -32,7 +32,7 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 			fmt.Println(err)
 		}
 		events, _ := repo.GetAllEvents(expr)
-		message := createMessage(now, rooms, events, origin)
+		message := GenerateTodaysEventContent(now, rooms, events, origin)
 		err = RequestWebhook(message, secret, channelID, webhookID, 1)
 		if err != nil {
 			fmt.Println(err)
@@ -99,7 +99,7 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 	return roomAvailable
 }
 
-func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
+func GenerateTodaysEventContent(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
 	date := t.In(tz.JST).Format("01/02(Mon)")
 	combined := map[bool]string{
 		true:  "(併用可)",
