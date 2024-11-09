@@ -91,9 +91,15 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	if err != nil {
 		return badRequest(err, message("invalid time"))
 	}
-	events, err := h.Repo.GetEvents(
-		filter.AddAnd(expr, filter.FilterTime(start, end)),
-		getConinfo(c))
+
+	durationExpr, err := filter.FilterDuration(start, end)
+	if err != nil {
+		return badRequest(err, message("filter duration error"))
+	}
+
+	combinedExpr := filter.AddAnd(expr, durationExpr)
+
+	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
