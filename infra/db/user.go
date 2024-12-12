@@ -8,7 +8,7 @@ import (
 )
 
 func userPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Provider")
+	return tx
 }
 
 func (repo *GormRepository) SaveUser(user User) (*User, error) {
@@ -73,7 +73,7 @@ func (repo *GormRepository) SyncUsers(users []*User) error {
 // user.Privilegeは常に更新されません。
 func saveUser(db *gorm.DB, user *User) (*User, error) {
 	err := db.Transaction(func(tx *gorm.DB) error {
-		existingUser, err := getUser(tx.Preload("Provider").Preload("Token"), user.ID)
+		existingUser, err := getUser(tx.Preload("Token"), user.ID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return tx.Create(&user).Error
 		}

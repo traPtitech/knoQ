@@ -33,7 +33,6 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 			ID:    uid,
 			State: int(u.State),
 			Provider: db.Provider{
-				UserID:  uid,
 				Issuer:  traQIssuerName,
 				Subject: u.GetId(),
 			},
@@ -72,7 +71,6 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 			},
 		},
 		Provider: db.Provider{
-			UserID:  uid,
 			Issuer:  traQIssuerName,
 			Subject: traQUser.GetId(),
 		},

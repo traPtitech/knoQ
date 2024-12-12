@@ -10,7 +10,6 @@ import (
 var tables = []interface{}{
 	User{},
 	Token{},
-	Provider{},
 	Group{},
 	GroupMember{},
 	GroupAdmin{},
@@ -58,8 +57,7 @@ type Token struct {
 }
 
 type Provider struct {
-	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Issuer  string    `gorm:"not null"`
+	Issuer  string `gorm:"not null"`
 	Subject string
 }
 
@@ -68,9 +66,9 @@ type User struct {
 	// アプリの管理者かどうか
 	Privilege  bool `gorm:"not null"`
 	State      int
-	IcalSecret string   `gorm:"not null"`
-	Provider   Provider `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
-	Token      Token    `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
+	IcalSecret string `gorm:"not null"`
+	Provider
+	Token Token `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
 }
 
 type UserBody struct {
