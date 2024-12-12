@@ -13,11 +13,8 @@ func Test_saveUser(t *testing.T) {
 		ID:         id,
 		State:      1,
 		IcalSecret: "foo",
-		Token: Token{
-			UserID: id,
-			Oauth2Token: &Oauth2Token{
-				AccessToken: "hoge",
-			},
+		Oauth2Token: &Oauth2Token{
+			AccessToken: "hoge",
 		},
 		Provider: Provider{
 			Issuer:  "bar",
@@ -40,10 +37,10 @@ func Test_saveUser(t *testing.T) {
 		})
 		assert.NoError(err)
 
-		u, err := getUser(r.db.Preload("Token"), id)
+		u, err := getUser(r.db, id)
 		assert.NoError(err)
 		// token
-		assert.Equal(user.Token.AccessToken, u.Token.AccessToken)
+		assert.Equal(user.AccessToken, u.AccessToken)
 		// provider
 		assert.Equal(user.Provider.Issuer, u.Provider.Issuer)
 		// icalSecret
@@ -54,12 +51,11 @@ func Test_saveUser(t *testing.T) {
 		_, err := saveUser(r.db, &User{
 			ID:    user.ID,
 			State: 2,
-			Token: Token{
-				Oauth2Token: &Oauth2Token{
-					AccessToken: "hoge2",
-				},
+			Oauth2Token: &Oauth2Token{
+				AccessToken: "hoge2",
 			},
-		})
+		},
+		)
 		assert.NoError(err)
 		token, err := getToken(r.db, id)
 		assert.NoError(err)

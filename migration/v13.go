@@ -1,10 +1,19 @@
 package migration
 
 import (
+	"time"
+
 	gormigrate "github.com/go-gormigrate/gormigrate/v2"
 	"github.com/gofrs/uuid"
 	"gorm.io/gorm"
 )
+
+type embeddedToken struct {
+	AccessToken  string `gorm:"type:varbinary(64)"`
+	TokenType    string
+	RefreshToken string
+	Expiry       time.Time
+}
 
 type v13newUser struct {
 	ID         uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -13,6 +22,7 @@ type v13newUser struct {
 	IcalSecret string `gorm:"not null"`
 	Issuer     string `gorm:"not null"`
 	Subject    string
+	*embeddedToken
 }
 
 func (*v13newUser) TableName() string {
@@ -27,6 +37,15 @@ type v13currentProvider struct {
 
 func (*v13currentProvider) TableName() string {
 	return "providers"
+}
+
+type v13currentToken struct {
+	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	*embeddedToken
+}
+
+func (*v13currentToken) TableName() string {
+	return "tokens"
 }
 
 func v13() *gormigrate.Migration {
@@ -58,6 +77,42 @@ func v13() *gormigrate.Migration {
 
 			// Step 3: Drop the Provider table
 			if err := db.Migrator().DropTable(&v13currentProvider{}); err != nil {
+				return err
+			}
+
+			// Step 1: Add Token fields to the User table
+			if err := db.Migrator().AddColumn(&v13newUser{}, "AccessToken"); err != nil {
+				return err
+			}
+			if err := db.Migrator().AddColumn(&v13newUser{}, "TokenType"); err != nil {
+				return err
+			}
+			if err := db.Migrator().AddColumn(&v13newUser{}, "RefreshToken"); err != nil {
+				return err
+			}
+			if err := db.Migrator().AddColumn(&v13newUser{}, "Expiry"); err != nil {
+				return err
+			}
+
+			// Step 2: Migrate data from Token to User
+			tokens := make([]*v13currentToken, 0)
+			if err := db.Find(&tokens).Error; err != nil {
+				return err
+			}
+
+			for _, token := range tokens {
+				if err := db.Model(&v13newUser{}).Where("id = ?", token.UserID).Updates(map[string]interface{}{
+					"AccessToken":  token.AccessToken,
+					"TokenType":    token.TokenType,
+					"RefreshToken": token.RefreshToken,
+					"Expiry":       token.Expiry,
+				}).Error; err != nil {
+					return err
+				}
+			}
+
+			// Step 3: Drop the Token table
+			if err := db.Migrator().DropTable(&v13currentToken{}); err != nil {
 				return err
 			}
 
