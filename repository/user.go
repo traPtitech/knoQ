@@ -61,14 +61,15 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	user := db.User{
 		ID:    uid,
 		State: 1,
-
-		Oauth2Token: &db.Oauth2Token{
-			AccessToken:  t.AccessToken,
-			TokenType:    t.TokenType,
-			RefreshToken: t.RefreshToken,
-			Expiry:       t.Expiry,
+		Token: db.Token{
+			UserID: uid,
+			Oauth2Token: &db.Oauth2Token{
+				AccessToken:  t.AccessToken,
+				TokenType:    t.TokenType,
+				RefreshToken: t.RefreshToken,
+				Expiry:       t.Expiry,
+			},
 		},
-
 		Provider: db.Provider{
 			Issuer:  traQIssuerName,
 			Subject: traQUser.GetId(),

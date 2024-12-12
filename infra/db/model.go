@@ -9,6 +9,7 @@ import (
 
 var tables = []interface{}{
 	User{},
+	Token{},
 	Group{},
 	GroupMember{},
 	GroupAdmin{},
@@ -50,6 +51,8 @@ type Oauth2Token struct {
 	Expiry time.Time
 }
 type Token struct {
+	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
+
 	*Oauth2Token
 }
 
@@ -65,16 +68,16 @@ type User struct {
 	State      int
 	IcalSecret string `gorm:"not null"`
 	Provider
-	*Oauth2Token
+	Token Token `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
 }
 
-// type UserBody struct {
-// 	ID          uuid.UUID `gorm:"type:char(36); primaryKey;"`
-// 	Name        string    `gorm:"type:varchar(32);"`
-// 	DisplayName string    `gorm:"type:varchar(32);"`
-// 	Icon        string
-// 	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
-// }
+type UserBody struct {
+	ID          uuid.UUID `gorm:"type:char(36); primaryKey;"`
+	Name        string    `gorm:"type:varchar(32);"`
+	DisplayName string    `gorm:"type:varchar(32);"`
+	Icon        string
+	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
+}
 
 type RoomAdmin struct {
 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
