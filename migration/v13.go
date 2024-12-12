@@ -16,13 +16,16 @@ type embeddedToken struct {
 }
 
 type v13newUser struct {
-	ID         uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Privilege  bool      `gorm:"not null"`
-	State      int
-	IcalSecret string `gorm:"not null"`
-	Issuer     string `gorm:"not null"`
-	Subject    string
-	*embeddedToken
+	ID           uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Privilege    bool      `gorm:"not null"`
+	State        int
+	IcalSecret   string `gorm:"not null"`
+	Issuer       string `gorm:"not null"`
+	Subject      string
+	AccessToken  *string `gorm:"type:varbinary(64)"`
+	TokenType    *string
+	RefreshToken *string
+	Expiry       *time.Time
 }
 
 func (*v13newUser) TableName() string {
