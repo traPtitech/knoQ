@@ -31,7 +31,7 @@ var (
 	mariadbHost     = getenv("MARIADB_HOSTNAME", "db")
 	mariadbUser     = getenv("MARIADB_USERNAME", "root")
 	mariadbPassword = getenv("MARIADB_PASSWORD", "password")
-	mariadbDatabase = getenv("MARIADB_DATABASE", "knoQ")
+	mariadbDatabase = getenv("MARIADB_DATABASE", "knoq")
 	mariadbPort     = getenv("MARIADB_PORT", "3306")
 	tokenKey        = getenv("TOKEN_KEY", "random32wordsXXXXXXXXXXXXXXXXXXX")
 	gormLogLevel    = getenv("GORM_LOG_LEVEL", "silent")
