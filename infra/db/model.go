@@ -15,7 +15,6 @@ var tables = []interface{}{
 	GroupAdmin{},
 	Tag{},
 	Room{},
-	// RoomAdmin{},
 	Event{},
 	EventTag{}, // Eventより下にないと、overrideされる
 	EventAdmin{},
@@ -78,13 +77,6 @@ type UserBody struct {
 	Icon        string
 	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
-
-// type RoomAdmin struct {
-// 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
-// 	RoomID uuid.UUID `gorm:"type:char(36); primaryKey"`
-// 	User   User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-// 	Model  `cvt:"-"`
-// }
 
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Room -d domain.Room -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Room -d []*domain.Room -o converter.go .

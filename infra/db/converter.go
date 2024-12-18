@@ -22,11 +22,6 @@ func ConvCreateRoomParamsToRoom(src CreateRoomParams) (dst Room) {
 	return
 }
 
-// func ConvEventAdminToRoomAdmin(src EventAdmin) (dst RoomAdmin) {
-// 	dst.UserID = src.UserID
-// 	return
-// }
-
 func ConvEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
 	dst.ID = src.UserID
 	return
@@ -101,10 +96,6 @@ func ConvGroupTodomainGroup(src Group) (dst domain.Group) {
 	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
-// func ConvRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
-// 	dst.ID = src.UserID
-// 	return
-// }
 
 func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
@@ -127,14 +118,6 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
-
-// func ConvSEventAdminToSRoomAdmin(src []EventAdmin) (dst []RoomAdmin) {
-// 	dst = make([]RoomAdmin, len(src))
-// 	for i := range src {
-// 		dst[i] = convEventAdminToRoomAdmin(src[i])
-// 	}
-// 	return
-// }
 
 func ConvSEventAdminToSUser(src []EventAdmin) (dst []User) {
 	dst = make([]User, len(src))
@@ -297,19 +280,11 @@ func ConvuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
 	dst.UserID = src
 	return
 }
-// func ConvuuidUUIDToRoomAdmin(src uuid.UUID) (dst RoomAdmin) {
-// 	dst.UserID = src
-// 	return
-// }
+
 func ConvuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
 	dst.ID = src
 	return
 }
-
-// func convEventAdminToRoomAdmin(src EventAdmin) (dst RoomAdmin) {
-// 	dst.UserID = src.UserID
-// 	return
-// }
 
 func convEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
 	dst.ID = src.UserID
@@ -389,10 +364,7 @@ func convGroupTodomainGroup(src Group) (dst domain.Group) {
 	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
 	return
 }
-// func convRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
-// 	dst.ID = src.UserID
-// 	return
-// }
+
 func convRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
 	dst.Place = src.Place
@@ -452,8 +424,3 @@ func convuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
 	dst.UserID = src
 	return
 }
-
-// func convuuidUUIDToRoomAdmin(src uuid.UUID) (dst RoomAdmin) {
-// 	dst.UserID = src
-// 	return
-// }
