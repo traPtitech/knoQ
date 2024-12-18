@@ -15,7 +15,7 @@ var tables = []interface{}{
 	GroupAdmin{},
 	Tag{},
 	Room{},
-	RoomAdmin{},
+	// RoomAdmin{},
 	Event{},
 	EventTag{}, // Eventより下にないと、overrideされる
 	EventAdmin{},
@@ -79,12 +79,12 @@ type UserBody struct {
 	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
-type RoomAdmin struct {
-	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	RoomID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	User   User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model  `cvt:"-"`
-}
+// type RoomAdmin struct {
+// 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
+// 	RoomID uuid.UUID `gorm:"type:char(36); primaryKey"`
+// 	User   User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+// 	Model  `cvt:"-"`
+// }
 
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Room -d domain.Room -o converter.go .
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Room -d []*domain.Room -o converter.go .
@@ -95,7 +95,7 @@ type Room struct {
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
 	Events         []Event   `gorm:"->; constraint:-"` // readOnly
-	Admins         []RoomAdmin
+	Admins         []User    `gorm:"many2many:room_admin_users;"`
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	Model          `cvt:"->"`

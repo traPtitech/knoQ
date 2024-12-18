@@ -22,7 +22,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 			e.Room.TimeStart = e.TimeStart
 			e.Room.TimeEnd = e.TimeEnd
 			e.Room.CreatedByRefer = e.CreatedByRefer
-			e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
+			e.Room.Admins = ConvSEventAdminToSUser(e.Admins)
 		} else {
 			return NewValueError(ErrRoomUndefined, "roomID", "place")
 		}
@@ -180,8 +180,7 @@ func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
 }
 
 func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
-	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
-	if err != nil {
+	if err := tx.Model(r).Association("Admins").Clear(); err != nil {
 		return err
 	}
 	return nil
