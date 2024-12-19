@@ -180,7 +180,7 @@ func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
 }
 
 func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
-	if err := tx.Model(r).Association("Admins").Clear(); err != nil {
+	if err := tx.Model(&Room{ID: r.ID}).Association("Admins").Clear(); err != nil {
 		return err
 	}
 	return nil
