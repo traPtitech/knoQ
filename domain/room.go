@@ -98,16 +98,12 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 		return []StartEndTime{a}
 	}
 
-	/*
-		a: s###########e
-		b: ----s####e---
-		-> s###e----s##e
-	*/
+	// 期間 b が 期間 a に包含される場合
 	if a.TimeStart.Unix() <= b.TimeStart.Unix() && b.TimeEnd.Unix() <= a.TimeEnd.Unix() {
 		/*
 			a: --s######e---
-			b: --s#####e----
-			-> --------se---
+			b: --s####e-----
+			-> -------s#e---
 		*/
 		if a.TimeStart.Unix() == b.TimeStart.Unix() {
 			return []StartEndTime{
@@ -117,7 +113,7 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 
 		/*
 			a: --s######e---
-			b: ----s###e----
+			b: ----s####e---
 			-> --s#e--------
 		*/
 		if a.TimeEnd.Unix() == b.TimeEnd.Unix() {
@@ -125,6 +121,12 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 				{a.TimeStart, b.TimeStart},
 			}
 		}
+
+		/*
+			a: -s##########e
+			b: ----s####e---
+			-> -s##e----s##e
+		*/
 		return []StartEndTime{
 			{a.TimeStart, b.TimeStart},
 			{b.TimeEnd, a.TimeEnd},
