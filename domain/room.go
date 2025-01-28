@@ -9,7 +9,7 @@ import (
 type Room struct {
 	ID    uuid.UUID
 	Place string
-	// Verifeid indicates if the room has been verified by privileged users.
+	// Verified indicates if the room has been verified by privileged users.
 	Verified  bool
 	TimeStart time.Time
 	TimeEnd   time.Time
@@ -69,6 +69,8 @@ func (r *Room) CalcAvailableTime(allowTogether bool) []StartEndTime {
 	return availabletime
 }
 
+// as: 利用可能な時間帯のリスト
+// b: イベントの時間
 func timeRangesSub(as []StartEndTime, b StartEndTime) (cs []StartEndTime) {
 	for _, a := range as {
 		cs = append(cs, timeRangeSub(a, b)...)
@@ -96,16 +98,12 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 		return []StartEndTime{a}
 	}
 
-	/*
-		a: s###########e
-		b: ----s####e---
-		-> s###e----s##e
-	*/
+	// 期間 b が 期間 a に包含される場合
 	if a.TimeStart.Unix() <= b.TimeStart.Unix() && b.TimeEnd.Unix() <= a.TimeEnd.Unix() {
 		/*
 			a: --s######e---
-			b: --s#####e----
-			-> --------se---
+			b: --s####e-----
+			-> -------s#e---
 		*/
 		if a.TimeStart.Unix() == b.TimeStart.Unix() {
 			return []StartEndTime{
@@ -115,14 +113,20 @@ func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
 
 		/*
 			a: --s######e---
-			b: ----s###e----
+			b: ----s####e---
 			-> --s#e--------
 		*/
-		if a.TimeEnd.Unix() == b.TimeStart.Unix() {
+		if a.TimeEnd.Unix() == b.TimeEnd.Unix() {
 			return []StartEndTime{
 				{a.TimeStart, b.TimeStart},
 			}
 		}
+
+		/*
+			a: -s##########e
+			b: ----s####e---
+			-> -s##e----s##e
+		*/
 		return []StartEndTime{
 			{a.TimeStart, b.TimeStart},
 			{b.TimeEnd, a.TimeEnd},
