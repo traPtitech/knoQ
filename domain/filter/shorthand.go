@@ -105,7 +105,7 @@ func AddAnd(lhs, rhs Expr) Expr {
 // 双方がゼロのき nil を返す
 func FilterDuration(since, until time.Time) (Expr, error) {
 	if since.IsZero() && until.IsZero() {
-		return &CmpExpr{}, nil
+		return nil, nil
 	} else if since.IsZero() {
 		return &CmpExpr{
 			Attr:     AttrTimeStart,
