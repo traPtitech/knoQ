@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/traPtitech/knoQ/router/logging"
 	"github.com/traPtitech/knoQ/router/presentation"
 	"github.com/traPtitech/knoQ/utils"
+	"github.com/traPtitech/knoQ/utils/tz"
 
 	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
@@ -225,6 +227,37 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }
 
+func (h *Handlers) WebhookRoomHandler(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		s, _ := time.Parse(time.TimeOnly, "06:00:00")
+		t := time.Now().In(tz.JST)
+		now := time.Date(t.Year(), t.Month(), t.Day(), s.Hour(), s.Minute(), s.Second(), 0, tz.JST)
+		tomorrow := now.AddDate(0, 0, 1)
+
+		todaysRoomsBefore, _ := h.Repo.GetAllVerifiedRooms(now, tomorrow, uuid.Nil)
+
+		println("RoomsBefore")
+		for _, room := range todaysRoomsBefore {
+			fmt.Printf("%v\n", *room)
+		}
+
+		err := next(c)
+
+		todaysRoomsAfter, _ := h.Repo.GetAllVerifiedRooms(now, tomorrow, uuid.Nil)
+
+		println("RoomsAfter")
+		for _, room := range todaysRoomsAfter {
+			fmt.Printf("%v\n", *room)
+		}
+
+		content := utils.GenerateTodaysEventContent(now, todaysRoomsAfter, nil, h.Origin)
+
+		print(content)
+
+		return err
+	}
+}
+
 // getRequestUserID sessionからuserを返します
 func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	sess, err := session.Get("session", c)
@@ -280,4 +313,9 @@ func setMaxAgeMinus(c echo.Context) {
 		MaxAge:   -1,
 	}
 	c.SetCookie(sess)
+}
+
+func isTodaysVerifiedRoomsUpdated(todaysRoomsBefore, todaysRoomsAfter []*domain.Room) bool {
+
+	return false
 }
