@@ -37,31 +37,31 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 	dst = make([]EventRes, len(src))
 	for i := range src {
 		if src[i] != nil {
-			dst[i].ID = (*src[i]).ID
-			dst[i].Name = (*src[i]).Name
-			dst[i].Description = (*src[i]).Description
-			dst[i].AllowTogether = (*src[i]).AllowTogether
-			dst[i].TimeStart = (*src[i]).TimeStart
-			dst[i].TimeEnd = (*src[i]).TimeEnd
-			dst[i].RoomID = convdomainRoomTouuidUUID((*src[i]).Room)
-			dst[i].GroupID = convdomainGroupTouuidUUID((*src[i]).Group)
-			dst[i].Place = (*src[i]).Room.Place
-			dst[i].GroupName = (*src[i]).Group.Name
-			dst[i].Admins = make([]uuid.UUID, len((*src[i]).Admins))
-			for j := range (*src[i]).Admins {
-				dst[i].Admins[j] = convdomainUserTouuidUUID((*src[i]).Admins[j])
+			dst[i].ID = src[i].ID
+			dst[i].Name = src[i].Name
+			dst[i].Description = src[i].Description
+			dst[i].AllowTogether = src[i].AllowTogether
+			dst[i].TimeStart = src[i].TimeStart
+			dst[i].TimeEnd = src[i].TimeEnd
+			dst[i].RoomID = convdomainRoomTouuidUUID(src[i].Room)
+			dst[i].GroupID = convdomainGroupTouuidUUID(src[i].Group)
+			dst[i].Place = src[i].Room.Place
+			dst[i].GroupName = src[i].Group.Name
+			dst[i].Admins = make([]uuid.UUID, len(src[i].Admins))
+			for j := range src[i].Admins {
+				dst[i].Admins[j] = convdomainUserTouuidUUID(src[i].Admins[j])
 			}
-			dst[i].Tags = make([]EventTagRes, len((*src[i]).Tags))
-			for j := range (*src[i]).Tags {
-				dst[i].Tags[j] = convdomainEventTagToEventTagRes((*src[i]).Tags[j])
+			dst[i].Tags = make([]EventTagRes, len(src[i].Tags))
+			for j := range src[i].Tags {
+				dst[i].Tags[j] = convdomainEventTagToEventTagRes(src[i].Tags[j])
 			}
-			dst[i].CreatedBy = convdomainUserTouuidUUID((*src[i]).CreatedBy)
-			dst[i].Open = (*src[i]).Open
-			dst[i].Attendees = make([]EventAttendeeRes, len((*src[i]).Attendees))
-			for j := range (*src[i]).Attendees {
-				dst[i].Attendees[j] = convdomainAttendeeToEventAttendeeRes((*src[i]).Attendees[j])
+			dst[i].CreatedBy = convdomainUserTouuidUUID(src[i].CreatedBy)
+			dst[i].Open = src[i].Open
+			dst[i].Attendees = make([]EventAttendeeRes, len(src[i].Attendees))
+			for j := range src[i].Attendees {
+				dst[i].Attendees[j] = convdomainAttendeeToEventAttendeeRes(src[i].Attendees[j])
 			}
-			dst[i].Model = Model((*src[i]).Model)
+			dst[i].Model = Model(src[i].Model)
 		}
 	}
 	return
