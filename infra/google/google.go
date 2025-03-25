@@ -14,9 +14,8 @@ type GoogleRepository struct {
 	Config *oauth2.Config
 }
 
-//embed tmp/client.json
-//var ClientFile []byte
-
+// embed tmp/client.json
+// var ClientFile []byte
 func (repo *GoogleRepository) GetOAuthURL() (url, state string) {
 	state = random.AlphaNumeric(10, true)
 	url = repo.Config.AuthCodeURL(state)

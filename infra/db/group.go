@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/domain/filters"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -61,7 +61,7 @@ func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
 
 func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	cmd := groupFullPreload(repo.db)
-	filterFormat, filterArgs, err := createGroupFilter(filter.FilterBelongs(userID))
+	filterFormat, filterArgs, err := createGroupFilter(filters.FilterBelongs(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, er
 
 func (repo *GormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	cmd := groupFullPreload(repo.db)
-	filterFormat, filterArgs, err := createGroupFilter(filter.FilterAdmins(userID))
+	filterFormat, filterArgs, err := createGroupFilter(filters.FilterAdmins(userID))
 	if err != nil {
 		return nil, err
 	}
@@ -158,45 +158,45 @@ func getGroups(db *gorm.DB, query string, args []interface{}) ([]*Group, error) 
 	return groups, err
 }
 
-func createGroupFilter(expr filter.Expr) (string, []interface{}, error) {
+func createGroupFilter(expr filters.Expr) (string, []interface{}, error) {
 	if expr == nil {
 		return "", []interface{}{}, nil
 	}
 
-	attrMap := map[filter.Attr]string{
-		filter.AttrUser:   "group_members.user_id",
-		filter.AttrBelong: "group_members.user_id",
-		filter.AttrAdmin:  "group_admins.user_id",
+	attrMap := map[filters.Attr]string{
+		filters.AttrUser:   "group_members.user_id",
+		filters.AttrBelong: "group_members.user_id",
+		filters.AttrAdmin:  "group_admins.user_id",
 
-		filter.AttrName:  "groups.name",
-		filter.AttrGroup: "groups.id",
-		filter.AttrEvent: "events.id",
+		filters.AttrName:  "groups.name",
+		filters.AttrGroup: "groups.id",
+		filters.AttrEvent: "events.id",
 	}
-	defaultRelationMap := map[filter.Relation]string{
-		filter.Eq:       "=",
-		filter.Neq:      "!=",
-		filter.Greter:   ">",
-		filter.GreterEq: ">=",
-		filter.Less:     "<",
-		filter.LessEq:   "<=",
+	defaultRelationMap := map[filters.Relation]string{
+		filters.Eq:       "=",
+		filters.Neq:      "!=",
+		filters.Greter:   ">",
+		filters.GreterEq: ">=",
+		filters.Less:     "<",
+		filters.LessEq:   "<=",
 	}
 
-	var cf func(e filter.Expr) (string, []interface{}, error)
-	cf = func(e filter.Expr) (string, []interface{}, error) {
+	var cf func(e filters.Expr) (string, []interface{}, error)
+	cf = func(e filters.Expr) (string, []interface{}, error) {
 		var filterFormat string
 		var filterArgs []interface{}
 
 		switch e := e.(type) {
-		case *filter.CmpExpr:
+		case *filters.CmpExpr:
 			switch e.Attr {
-			case filter.AttrName:
+			case filters.AttrName:
 				name, ok := e.Value.(string)
 				if !ok {
 					return "", nil, ErrExpression
 				}
-				rel := map[filter.Relation]string{
-					filter.Eq:  "=",
-					filter.Neq: "!=",
+				rel := map[filters.Relation]string{
+					filters.Eq:  "=",
+					filters.Neq: "!=",
 				}[e.Relation]
 				filterFormat = fmt.Sprintf("groups.name %v ?", rel)
 				filterArgs = []interface{}{name}
@@ -209,10 +209,10 @@ func createGroupFilter(expr filter.Expr) (string, []interface{}, error) {
 				filterArgs = []interface{}{id}
 			}
 
-		case *filter.LogicOpExpr:
-			op := map[filter.LogicOp]string{
-				filter.And: "AND",
-				filter.Or:  "OR",
+		case *filters.LogicOpExpr:
+			op := map[filters.LogicOp]string{
+				filters.And: "AND",
+				filters.Or:  "OR",
 			}[e.LogicOp]
 			lFilter, lFilterArgs, lerr := cf(e.Lhs)
 			rFilter, rFilterArgs, rerr := cf(e.Rhs)
