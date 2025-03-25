@@ -1,3 +1,5 @@
+version: "2"
+
 linters:
   enable:
     - errcheck
@@ -10,5 +12,3 @@ linters:
     - revive
     - prealloc
     - gofmt
-
-  fast: true
