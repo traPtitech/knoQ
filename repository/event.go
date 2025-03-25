@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/domain/filters"
 	"github.com/traPtitech/knoQ/infra/db"
 )
 
@@ -24,7 +24,6 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	}
 	for _, groupMember := range group.Members {
 		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
-
 	}
 	return repo.GetEvent(event.ID, info)
 }
@@ -138,7 +137,7 @@ func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain
 	return defaultErrorHandling(err)
 }
 
-func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
+func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
@@ -208,18 +207,18 @@ func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 }
 
 // add traQ group and traP(111...)
-func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filter.Expr {
+func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filters.Expr) filters.Expr {
 	t, err := repo.GormRepo.GetToken(userID)
 	if err != nil {
 		return expr
 	}
 
-	var fixExpr func(filter.Expr) filter.Expr
+	var fixExpr func(filters.Expr) filters.Expr
 
-	fixExpr = func(expr filter.Expr) filter.Expr {
+	fixExpr = func(expr filters.Expr) filters.Expr {
 		switch e := expr.(type) {
-		case *filter.CmpExpr:
-			if e.Attr == filter.AttrBelong {
+		case *filters.CmpExpr:
+			if e.Attr == filters.AttrBelong {
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {
 					return e
@@ -236,15 +235,15 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filter.Expr) filte
 				if user.Provider.Issuer == traQIssuerName {
 					groupIDs = append(groupIDs, traPGroupID)
 				}
-				return &filter.LogicOpExpr{
-					LogicOp: filter.Or,
+				return &filters.LogicOpExpr{
+					LogicOp: filters.Or,
 					Lhs:     e,
-					Rhs:     filter.FilterGroupIDs(groupIDs...),
+					Rhs:     filters.FilterGroupIDs(groupIDs...),
 				}
 			}
 			return e
-		case *filter.LogicOpExpr:
-			return &filter.LogicOpExpr{
+		case *filters.LogicOpExpr:
+			return &filters.LogicOpExpr{
 				LogicOp: e.LogicOp,
 				Lhs:     fixExpr(e.Lhs),
 				Rhs:     fixExpr(e.Rhs),
