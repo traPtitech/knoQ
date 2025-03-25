@@ -32,6 +32,7 @@ func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams
 	dst = domain.WriteRoomParams(src)
 	return
 }
+
 func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
 	dst = make([]EventRes, len(src))
 	for i := range src {
@@ -98,6 +99,7 @@ func ConvSPdomainUserToSPUserRes(src []*domain.User) (dst []*UserRes) {
 	}
 	return
 }
+
 func ConvSdomainStartEndTimeToSStartEndTime(src []domain.StartEndTime) (dst []StartEndTime) {
 	dst = make([]StartEndTime, len(src))
 	for i := range src {
@@ -105,6 +107,7 @@ func ConvSdomainStartEndTimeToSStartEndTime(src []domain.StartEndTime) (dst []St
 	}
 	return
 }
+
 func ConvdomainEventToEventRes(src domain.Event) (dst EventRes) {
 	dst.ID = src.ID
 	dst.Name = src.Name
@@ -164,11 +167,13 @@ func ConvdomainUserToUserRes(src domain.User) (dst UserRes) {
 	dst = UserRes(src)
 	return
 }
+
 func convdomainAttendeeToEventAttendeeRes(src domain.Attendee) (dst EventAttendeeRes) {
 	dst.ID = src.UserID
 	dst.Schedule = convdomainScheduleStatusToScheduleStatus(src.Schedule)
 	return
 }
+
 func convdomainEventTagToEventTagRes(src domain.EventTag) (dst EventTagRes) {
 	dst.ID = convdomainTagTouuidUUID(src.Tag)
 	dst.Name = src.Tag.Name
@@ -194,10 +199,12 @@ func convdomainGroupToGroupRes(src domain.Group) (dst GroupRes) {
 	dst.Model = Model(src.Model)
 	return
 }
+
 func convdomainGroupTouuidUUID(src domain.Group) (dst uuid.UUID) {
 	dst = src.ID
 	return
 }
+
 func convdomainRoomTouuidUUID(src domain.Room) (dst uuid.UUID) {
 	dst = src.ID
 	return
@@ -219,6 +226,7 @@ func convdomainTagToTagRes(src domain.Tag) (dst TagRes) {
 	dst.Model = Model(src.Model)
 	return
 }
+
 func convdomainTagTouuidUUID(src domain.Tag) (dst uuid.UUID) {
 	dst = src.ID
 	return
@@ -228,6 +236,7 @@ func convdomainUserToUserRes(src domain.User) (dst UserRes) {
 	dst = UserRes(src)
 	return
 }
+
 func convdomainUserTouuidUUID(src domain.User) (dst uuid.UUID) {
 	dst = src.ID
 	return
