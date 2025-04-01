@@ -245,7 +245,8 @@ func createEventFilter(expr filters.Expr) (string, []interface{}, error) {
 			}
 
 			filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
-			filterArgs = append(lFilterArgs, rFilterArgs...)
+			filterArgs = lFilterArgs
+			filterArgs = append(filterArgs, rFilterArgs...)
 
 		default:
 			return "", nil, ErrExpression
