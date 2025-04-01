@@ -91,7 +91,7 @@ func convSPGroupToSuuidUUID(src []*Group) (dst []uuid.UUID) {
 	dst = make([]uuid.UUID, len(src))
 	for i := range src {
 		if src[i] != nil {
-			dst[i] = (*src[i]).ID
+			dst[i] = src[i].ID
 		}
 	}
 	return
@@ -228,7 +228,8 @@ func createGroupFilter(expr filters.Expr) (string, []interface{}, error) {
 			}
 
 			filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
-			filterArgs = append(lFilterArgs, rFilterArgs...)
+			filterArgs = lFilterArgs
+			filterArgs = append(filterArgs, rFilterArgs...)
 
 		default:
 			return "", nil, ErrExpression
