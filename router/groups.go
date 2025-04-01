@@ -138,8 +138,8 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
-
-		allGroupIDs := append(belongingGroupIDs, adminGroupIDs...)
+		allGroupIDs := belongingGroupIDs
+		allGroupIDs = append(allGroupIDs, adminGroupIDs...)
 		uniqueIDMap := make(map[uuid.UUID]struct{})
 
 		for _, groupID := range allGroupIDs {
