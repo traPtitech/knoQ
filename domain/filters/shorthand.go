@@ -73,8 +73,8 @@ func FilterTime(start, end time.Time) Expr {
 	}
 	return &LogicOpExpr{
 		LogicOp: And,
-		Lhs:     timeStart,
-		Rhs:     timeEnd,
+		LHS:     timeStart,
+		RHS:     timeEnd,
 	}
 }
 
@@ -90,8 +90,8 @@ func AddAnd(lhs, rhs Expr) Expr {
 	}
 	return &LogicOpExpr{
 		LogicOp: And,
-		Lhs:     lhs,
-		Rhs:     rhs,
+		LHS:     lhs,
+		RHS:     rhs,
 	}
 }
 
@@ -106,13 +106,17 @@ func AddAnd(lhs, rhs Expr) Expr {
 func FilterDuration(since, until time.Time) (Expr, error) {
 	if since.IsZero() && until.IsZero() {
 		return nil, nil
-	} else if since.IsZero() {
+	}
+
+	if since.IsZero() {
 		return &CmpExpr{
 			Attr:     AttrTimeStart,
 			Relation: LessEq,
 			Value:    until,
 		}, nil
-	} else if until.IsZero() {
+	}
+
+	if until.IsZero() {
 		return &CmpExpr{
 			Attr:     AttrTimeEnd,
 			Relation: GreterEq,
@@ -127,12 +131,12 @@ func FilterDuration(since, until time.Time) (Expr, error) {
 	// 期間中に始まる
 	startIn := &LogicOpExpr{
 		LogicOp: And,
-		Lhs: &CmpExpr{
+		LHS: &CmpExpr{
 			Attr:     AttrTimeStart,
 			Relation: GreterEq,
 			Value:    since,
 		},
-		Rhs: &CmpExpr{
+		RHS: &CmpExpr{
 			Attr:     AttrTimeStart,
 			Relation: Less,
 			Value:    until,
@@ -142,12 +146,12 @@ func FilterDuration(since, until time.Time) (Expr, error) {
 	// 期間中に終わる
 	endIn := &LogicOpExpr{
 		LogicOp: And,
-		Lhs: &CmpExpr{
+		LHS: &CmpExpr{
 			Attr:     AttrTimeEnd,
 			Relation: GreterEq,
 			Value:    since,
 		},
-		Rhs: &CmpExpr{
+		RHS: &CmpExpr{
 			Attr:     AttrTimeEnd,
 			Relation: Less,
 			Value:    until,
@@ -157,12 +161,12 @@ func FilterDuration(since, until time.Time) (Expr, error) {
 	// 期間より前に始まり期間より後に終わる
 	throughout := &LogicOpExpr{
 		LogicOp: And,
-		Lhs: &CmpExpr{
+		LHS: &CmpExpr{
 			Attr:     AttrTimeStart,
 			Relation: Less,
 			Value:    since,
 		},
-		Rhs: &CmpExpr{
+		RHS: &CmpExpr{
 			Attr:     AttrTimeEnd,
 			Relation: GreterEq,
 			Value:    until,
@@ -171,11 +175,11 @@ func FilterDuration(since, until time.Time) (Expr, error) {
 
 	return &LogicOpExpr{
 		LogicOp: Or,
-		Lhs:     throughout,
-		Rhs: &LogicOpExpr{
+		LHS:     throughout,
+		RHS: &LogicOpExpr{
 			LogicOp: Or,
-			Lhs:     endIn,
-			Rhs:     startIn,
+			LHS:     endIn,
+			RHS:     startIn,
 		},
 	}, nil
 }

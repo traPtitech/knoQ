@@ -214,8 +214,8 @@ func createGroupFilter(expr filters.Expr) (string, []interface{}, error) {
 				filters.And: "AND",
 				filters.Or:  "OR",
 			}[e.LogicOp]
-			lFilter, lFilterArgs, lerr := cf(e.Lhs)
-			rFilter, rFilterArgs, rerr := cf(e.Rhs)
+			lFilter, lFilterArgs, lerr := cf(e.LHS)
+			rFilter, rFilterArgs, rerr := cf(e.RHS)
 
 			if lerr != nil && rerr != nil {
 				return "", nil, ErrExpression

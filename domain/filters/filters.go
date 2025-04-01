@@ -40,8 +40,8 @@ type Expr interface {
 
 type LogicOpExpr struct {
 	LogicOp LogicOp
-	Lhs     Expr
-	Rhs     Expr
+	LHS     Expr
+	RHS     Expr
 }
 
 type CmpExpr struct {

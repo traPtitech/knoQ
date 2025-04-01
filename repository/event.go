@@ -237,16 +237,16 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filters.Expr) filt
 				}
 				return &filters.LogicOpExpr{
 					LogicOp: filters.Or,
-					Lhs:     e,
-					Rhs:     filters.FilterGroupIDs(groupIDs...),
+					LHS:     e,
+					RHS:     filters.FilterGroupIDs(groupIDs...),
 				}
 			}
 			return e
 		case *filters.LogicOpExpr:
 			return &filters.LogicOpExpr{
 				LogicOp: e.LogicOp,
-				Lhs:     fixExpr(e.Lhs),
-				Rhs:     fixExpr(e.Rhs),
+				LHS:     fixExpr(e.LHS),
+				RHS:     fixExpr(e.RHS),
 			}
 		}
 		return nil

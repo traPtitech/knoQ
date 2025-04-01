@@ -79,19 +79,19 @@ var parseCasesSuccess = []struct {
 		"user==123e4567-e89b-12d3-a456-426652340000&&tag!=123e4567-e89b-12d3-a456-426652340000",
 		&filters.LogicOpExpr{
 			LogicOp: filters.And,
-			Lhs:     &filters.CmpExpr{Attr: filters.AttrUser, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-			Rhs:     &filters.CmpExpr{Attr: filters.AttrTag, Relation: filters.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			LHS:     &filters.CmpExpr{Attr: filters.AttrUser, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			RHS:     &filters.CmpExpr{Attr: filters.AttrTag, Relation: filters.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 		},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&(tag!=123e4567-e89b-12d3-a456-426652340000||event==123e4567-e89b-12d3-a456-426652340000)",
 		&filters.LogicOpExpr{
 			LogicOp: filters.And,
-			Lhs:     &filters.CmpExpr{Attr: filters.AttrUser, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-			Rhs: &filters.LogicOpExpr{
+			LHS:     &filters.CmpExpr{Attr: filters.AttrUser, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			RHS: &filters.LogicOpExpr{
 				LogicOp: filters.Or,
-				Lhs:     &filters.CmpExpr{Attr: filters.AttrTag, Relation: filters.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-				Rhs:     &filters.CmpExpr{Attr: filters.AttrEvent, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+				LHS:     &filters.CmpExpr{Attr: filters.AttrTag, Relation: filters.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+				RHS:     &filters.CmpExpr{Attr: filters.AttrEvent, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 			},
 		},
 	},

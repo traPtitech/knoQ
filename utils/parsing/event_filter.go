@@ -272,7 +272,7 @@ Loop:
 			if err != nil {
 				return nil, err
 			}
-			expr = &filters.LogicOpExpr{LogicOp: op, Lhs: lhs, Rhs: rhs}
+			expr = &filters.LogicOpExpr{LogicOp: op, LHS: lhs, RHS: rhs}
 
 		default:
 			break Loop
