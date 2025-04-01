@@ -22,7 +22,7 @@ func Test_createGroup(t *testing.T) {
 		},
 	}
 
-	t.Run("create group", func(t *testing.T) {
+	t.Run("create group", func(_ *testing.T) {
 		group, err := createGroup(r.db, params)
 		require.NoError(err)
 		assert.NotNil(group.ID)

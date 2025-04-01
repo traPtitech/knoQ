@@ -31,7 +31,7 @@ func Test_createEvent(t *testing.T) {
 		},
 	}
 
-	t.Run("create event", func(t *testing.T) {
+	t.Run("create event", func(_ *testing.T) {
 		event, err := createEvent(r.db, params)
 		require.NoError(err)
 		assert.NotNil(event.ID)
