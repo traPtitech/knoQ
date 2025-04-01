@@ -37,7 +37,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 	}
 
 	// 構造体の変換
-	var RoomsRes []presentation.RoomRes
+	RoomsRes := make([]presentation.RoomRes, 0, len(req))
 
 	for _, v := range req {
 
