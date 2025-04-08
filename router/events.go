@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/domain/filters"
 	"github.com/traPtitech/knoQ/router/presentation"
 	"github.com/traPtitech/knoQ/utils/parsing"
 
@@ -92,12 +92,12 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 		return badRequest(err, message("invalid time"))
 	}
 
-	durationExpr, err := filter.FilterDuration(start, end)
+	durationExpr, err := filters.FilterDuration(start, end)
 	if err != nil {
 		return badRequest(err, message("filter duration error"))
 	}
 
-	combinedExpr := filter.AddAnd(expr, durationExpr)
+	combinedExpr := filters.AddAnd(expr, durationExpr)
 
 	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
@@ -114,7 +114,7 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	events, err := h.Repo.GetEvents(filter.FilterGroupIDs(groupID),
+	events, err := h.Repo.GetEvents(filters.FilterGroupIDs(groupID),
 		getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
@@ -215,7 +215,7 @@ func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 	}
 
 	events, err := h.Repo.GetEvents(
-		filter.FilterRoomIDs(roomID),
+		filters.FilterRoomIDs(roomID),
 		getConinfo(c),
 	)
 	if err != nil {
