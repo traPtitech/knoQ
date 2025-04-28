@@ -16,7 +16,6 @@ func roomFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Events").Preload("Admins").Preload("CreatedBy")
 }
 
-
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s CreateRoomParams -d Room -o converter.go .
 type CreateRoomParams struct {
 	domain.WriteRoomParams
@@ -24,7 +23,6 @@ type CreateRoomParams struct {
 	Verified  bool
 	CreatedBy uuid.UUID
 }
-
 
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s UpdateRoomParams -d Room -o converter.go .
 type UpdateRoomParams struct {
@@ -89,6 +87,21 @@ func (repo GormRepository) GetAllRooms(start, end time.Time, excludeEventID uuid
 	return r, nil
 }
 
+func (repo GormRepository) GetAllVerifiedRooms(start, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
+	var rooms []*Room
+	var err error
+	if excludeEventID == uuid.Nil {
+		rooms, err = getAllVerifiedRooms(roomFullPreload(repo.db), start, end)
+	} else {
+		rooms, err = getAllVerifiedRooms(roomExcludeEventPreload(repo.db, excludeEventID), start, end)
+	}
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+	r := ConvSPRoomToSPdomainRoom(rooms)
+	return r, nil
+}
+
 func createRoom(db *gorm.DB, roomParams CreateRoomParams) (*Room, error) {
 	room := ConvCreateRoomParamsToRoom(roomParams)
 	err := db.Create(&room).Error
@@ -129,6 +142,21 @@ func getAllRooms(db *gorm.DB, start, end time.Time) ([]*Room, error) {
 	if !end.IsZero() {
 		db = db.Where("time_end <= ?", end)
 	}
+	err := db.Debug().Order("time_start").Find(&rooms).Error
+	return rooms, err
+}
+
+func getAllVerifiedRooms(db *gorm.DB, start, end time.Time) ([]*Room, error) {
+	rooms := make([]*Room, 0)
+	if !start.IsZero() {
+		db = db.Where("time_start >= ?", start)
+	}
+	if !end.IsZero() {
+		db = db.Where("time_end <= ?", end)
+	}
+
+	db.Where("verified = ?", true)
+
 	err := db.Debug().Order("time_start").Find(&rooms).Error
 	return rooms, err
 }
