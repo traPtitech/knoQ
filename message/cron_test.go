@@ -1,11 +1,11 @@
-package utils
+package message
 
 import (
-	"github.com/traPtitech/knoQ/domain"
 	"reflect"
+	"testing"
 	"time"
 
-	"testing"
+	"github.com/traPtitech/knoQ/domain"
 )
 
 func Test_makeRoomAvailableByTimeTable(t *testing.T) {

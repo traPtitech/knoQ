@@ -11,8 +11,9 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/infra/traq"
+	"github.com/traPtitech/knoQ/message"
 	"github.com/traPtitech/knoQ/repository"
-	"github.com/traPtitech/knoQ/utils"
+
 	"github.com/traPtitech/knoQ/utils/tz"
 	"golang.org/x/oauth2"
 
@@ -101,7 +102,7 @@ func main() {
 	c := cron.New(cron.WithLocation(tz.JST))
 	_, err = c.AddFunc(
 		"0 8 * * *",
-		utils.InitPostEventToTraQ(
+		message.InitPostEventToTraQ(
 			&repo.GormRepo,
 			handler.WebhookSecret,
 			handler.DailyChannelId,

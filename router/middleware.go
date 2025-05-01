@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/traPtitech/knoQ/domain"
+	msg "github.com/traPtitech/knoQ/message"
 	"github.com/traPtitech/knoQ/router/logging"
 	"github.com/traPtitech/knoQ/router/presentation"
-	"github.com/traPtitech/knoQ/utils"
 
 	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
@@ -222,7 +222,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, reqBody, resBody []byte) 
 
 	content := presentation.GenerateEventWebhookContent(c.Request().Method, e, notificationTargets, h.Origin, !domain.DEVELOPMENT)
 
-	_ = utils.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
+	_ = msg.RequestWebhook(content, h.WebhookSecret, h.ActivityChannelID, h.WebhookID, 1)
 }
 
 // getRequestUserID sessionからuserを返します

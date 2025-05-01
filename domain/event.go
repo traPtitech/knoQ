@@ -91,8 +91,8 @@ func (e *Event) TimeConsistency() bool {
 func (e *Event) RoomTimeConsistency() bool {
 	times := e.Room.CalcAvailableTime(e.AllowTogether)
 	for _, t := range times {
-		start := t.TimeStart
-		end := t.TimeEnd
+		start := t.Start
+		end := t.End
 		if start.Equal(e.TimeStart) || start.Before(e.TimeStart) &&
 			(end.Equal(e.TimeEnd) || end.After(e.TimeEnd)) {
 			return true

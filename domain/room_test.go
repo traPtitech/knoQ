@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/traPtitech/knoQ/utils"
 )
 
 func TestRoom_CalcAvailableTime(t *testing.T) {
@@ -17,7 +19,7 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 		name          string
 		fields        fields
 		allowTogether bool
-		want          []StartEndTime
+		want          []utils.TimeSpan
 	}{
 		{
 			name: "simple",
@@ -32,14 +34,14 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 					},
 				},
 			},
-			want: []StartEndTime{
+			want: []utils.TimeSpan{
 				{
-					TimeStart: now,
-					TimeEnd:   now.Add(1 * time.Hour),
+					Start: now,
+					End:   now.Add(1 * time.Hour),
 				},
 				{
-					TimeStart: now.Add(2 * time.Hour),
-					TimeEnd:   now.Add(10 * time.Hour),
+					Start: now.Add(2 * time.Hour),
+					End:   now.Add(10 * time.Hour),
 				},
 			},
 			allowTogether: true,
@@ -57,7 +59,7 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 					},
 				},
 			},
-			want:          []StartEndTime{},
+			want:          []utils.TimeSpan{},
 			allowTogether: true,
 		},
 		{
@@ -78,10 +80,10 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 					},
 				},
 			},
-			want: []StartEndTime{
+			want: []utils.TimeSpan{
 				{
-					TimeStart: now.Add(4 * time.Hour),
-					TimeEnd:   now.Add(10 * time.Hour),
+					Start: now.Add(4 * time.Hour),
+					End:   now.Add(10 * time.Hour),
 				},
 			},
 			allowTogether: false,
@@ -98,10 +100,10 @@ func TestRoom_CalcAvailableTime(t *testing.T) {
 					},
 				},
 			},
-			want: []StartEndTime{
+			want: []utils.TimeSpan{
 				{
-					TimeStart: now,
-					TimeEnd:   now.Add(4 * time.Hour),
+					Start: now,
+					End:   now.Add(4 * time.Hour),
 				},
 			},
 		},
