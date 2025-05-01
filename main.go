@@ -92,7 +92,7 @@ func main() {
 		WebhookID:         webhookID,
 		WebhookSecret:     webhookSecret,
 		ActivityChannelID: activityChannelID,
-		DailyChannelId:    dailyChannelID,
+		DailyChannelID:    dailyChannelID,
 		Origin:            origin,
 	}
 
@@ -105,7 +105,7 @@ func main() {
 		message.InitPostEventToTraQ(
 			&repo.GormRepo,
 			handler.WebhookSecret,
-			handler.DailyChannelId,
+			handler.DailyChannelID,
 			handler.WebhookID,
 			handler.Origin,
 		),
