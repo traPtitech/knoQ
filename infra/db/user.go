@@ -73,7 +73,7 @@ func (repo *GormRepository) SyncUsers(users []*User) error {
 // user.Privilegeは常に更新されません。
 func saveUser(db *gorm.DB, user *User) (*User, error) {
 	err := db.Transaction(func(tx *gorm.DB) error {
-		existingUser, err := getUser(tx.Preload("Provider").Preload("Token"), user.ID)
+		existingUser, err := getUser(tx.Preload("Provider"), user.ID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return tx.Create(&user).Error
 		}

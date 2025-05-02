@@ -54,23 +54,15 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	traQUser, err := repo.TraQRepo.GetUserMe(t)
+	traQUser, err := repo.TraQRepo.GetUserMe(t.AccessToken)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	uid := uuid.Must(uuid.FromString(traQUser.GetId()))
 	user := db.User{
-		ID:    uid,
-		State: 1,
-		Token: db.Token{
-			UserID: uid,
-			Oauth2Token: &db.Oauth2Token{
-				AccessToken:  t.AccessToken,
-				TokenType:    t.TokenType,
-				RefreshToken: t.RefreshToken,
-				Expiry:       t.Expiry,
-			},
-		},
+		ID:          uid,
+		State:       1,
+		AccessToken: t.AccessToken,
 		Provider: db.Provider{
 			UserID:  uid,
 			Issuer:  traQIssuerName,
@@ -79,6 +71,7 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	}
 	_, err = repo.GormRepo.SaveUser(user)
 	if err != nil {
+		println("hererererere")
 		return nil, defaultErrorHandling(err)
 	}
 	u, err := repo.GetUser(user.ID, &domain.ConInfo{

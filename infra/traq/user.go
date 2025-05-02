@@ -5,7 +5,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/go-traq"
-	"golang.org/x/oauth2"
 )
 
 func (repo *TraQRepository) GetUser(userID uuid.UUID) (*traq.User, error) {
@@ -47,8 +46,8 @@ func (repo *TraQRepository) GetUsers(includeSuspended bool) ([]traq.User, error)
 	return users, err
 }
 
-func (repo *TraQRepository) GetUserMe(token *oauth2.Token) (*traq.User, error) {
-	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, token.AccessToken)
+func (repo *TraQRepository) GetUserMe(accessToken string) (*traq.User, error) {
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, accessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	userDetail, resp, err := apiClient.MeApi.GetMe(ctx).Execute()
 	if err != nil {

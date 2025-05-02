@@ -9,7 +9,6 @@ import (
 
 var tables = []interface{}{
 	User{},
-	Token{},
 	Provider{},
 	Group{},
 	GroupMember{},
@@ -29,18 +28,6 @@ type Model struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-type Oauth2Token struct {
-	AccessToken  string `gorm:"type:varbinary(64)"`
-	TokenType    string
-	RefreshToken string
-	Expiry       time.Time
-}
-type Token struct {
-	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
-
-	*Oauth2Token
-}
-
 type Provider struct {
 	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Issuer  string    `gorm:"not null"`
@@ -50,11 +37,11 @@ type Provider struct {
 type User struct {
 	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	// アプリの管理者かどうか
-	Privilege  bool `gorm:"not null"`
-	State      int
-	IcalSecret string   `gorm:"not null"`
-	Provider   Provider `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
-	Token      Token    `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
+	Privilege   bool `gorm:"not null"`
+	State       int
+	IcalSecret  string   `gorm:"not null"`
+	Provider    Provider `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
+	AccessToken string   `gorm:"type:varbinary(64)"`
 }
 
 type UserBody struct {
