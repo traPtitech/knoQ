@@ -120,7 +120,7 @@ func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	tgIDs, err := repo.TraQRepo.GetUserBelongingGroupIDs(t, userID)
+	tgIDs, err := repo.TraQRepo.GetUserBelongingGroupIDs(t.AccessToken, userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}

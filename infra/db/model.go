@@ -29,27 +29,11 @@ type Model struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-// Oauth2Token is oauth2.Token
 type Oauth2Token struct {
-	// AccessToken is the token that authorizes and authenticates
-	// the requests.
-	AccessToken string `gorm:"type:varbinary(64)"`
-
-	// TokenType is the type of token.
-	// The Type method returns either this or "Bearer", the default.
-	TokenType string
-
-	// RefreshToken is a token that's used by the application
-	// (as opposed to the user) to refresh the access token
-	// if it expires.
+	AccessToken  string `gorm:"type:varbinary(64)"`
+	TokenType    string
 	RefreshToken string
-
-	// Expiry is the optional expiration time of the access token.
-	//
-	// If zero, TokenSource implementations will reuse the same
-	// token forever and RefreshToken or equivalent
-	// mechanisms for that TokenSource will not be used.
-	Expiry time.Time
+	Expiry       time.Time
 }
 type Token struct {
 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`

@@ -223,7 +223,7 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filters.Expr) filt
 				if !ok {
 					return e
 				}
-				groupIDs, err := repo.TraQRepo.GetUserBelongingGroupIDs(t, id)
+				groupIDs, err := repo.TraQRepo.GetUserBelongingGroupIDs(t.AccessToken, id)
 				if err != nil {
 					return e
 				}

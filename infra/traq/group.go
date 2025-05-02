@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/gofrs/uuid"
-	"golang.org/x/oauth2"
 
 	"github.com/traPtitech/go-traq"
 )
@@ -39,8 +38,8 @@ func (repo *TraQRepository) GetAllGroups() ([]traq.UserGroup, error) {
 	return groups, err
 }
 
-func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
-	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, token.AccessToken)
+func (repo *TraQRepository) GetUserBelongingGroupIDs(accessToken string, userID uuid.UUID) ([]uuid.UUID, error) {
+	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, accessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	user, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
