@@ -73,21 +73,19 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 }
 
 func (repo *Repository) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.User, error) {
-	userMeta, err := repo.GormRepo.GetUser(userID)
+	dbUser, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
-	if userMeta.ProviderName == traQIssuerName {
-		println("hereherehere")
-		userBody, err := repo.TraQRepo.GetUser(userID)
+	if dbUser.ProviderName == traQIssuerName {
+		traqUser, err := repo.TraQRepo.GetUser(userID)
 		if err != nil {
 			return nil, defaultErrorHandling(err)
 		}
-		user, _ := repo.mergeUser(userMeta, userBody)
+		user, _ := repo.mergeDBUserandTraQUser(dbUser, traqUser)
 		return user, nil
 	}
-	// userBody, err := repo.gormRepo.GetUserBody(userID)
 
 	return nil, errors.New("not implemented")
 }
@@ -97,7 +95,7 @@ func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 }
 
 func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, _ *domain.ConInfo) ([]*domain.User, error) {
-	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
+	dbUsers, err := repo.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -107,16 +105,16 @@ func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, _ *domain.C
 		return nil, defaultErrorHandling(err)
 	}
 	traQUserBodsMap := traQUserMap(traQUserBodys)
-	users := make([]*domain.User, 0, len(userMetas))
-	for _, userMeta := range userMetas {
-		userBody, ok := traQUserBodsMap[userMeta.ID]
+	users := make([]*domain.User, 0, len(dbUsers))
+	for _, dbUser := range dbUsers {
+		traqUser, ok := traQUserBodsMap[dbUser.ID]
 		if !ok {
 			continue
 		}
-		if !includeBot && userBody.Bot {
+		if !includeBot && traqUser.Bot {
 			continue
 		}
-		user, err := repo.mergeUser(userMeta, userBody)
+		user, err := repo.mergeDBUserandTraQUser(dbUser, traqUser)
 		if err != nil {
 			continue
 		}
@@ -163,20 +161,20 @@ func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
 	return userMap
 }
 
-func (repo *Repository) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.User, error) {
-	if userMeta.ID != uuid.Must(uuid.FromString(userBody.GetId())) {
+func (repo *Repository) mergeDBUserandTraQUser(dbUser *db.User, traqUser *traq.User) (*domain.User, error) {
+	if dbUser.ID != uuid.Must(uuid.FromString(traqUser.GetId())) {
 		return nil, errors.New("id does not match")
 	}
-	if userMeta.ProviderName != traQIssuerName {
+	if dbUser.ProviderName != traQIssuerName {
 		return nil, errors.New("different provider")
 	}
 	return &domain.User{
-		ID:          userMeta.ID,
-		Name:        userBody.Name,
-		DisplayName: userBody.DisplayName,
-		Icon:        repo.TraQRepo.URL + "/public/icon/" + userBody.Name,
-		Privileged:  userMeta.Privilege,
-		State:       userMeta.State,
+		ID:          dbUser.ID,
+		Name:        traqUser.Name,
+		DisplayName: traqUser.DisplayName,
+		Icon:        repo.TraQRepo.URL + "/public/icon/" + traqUser.Name,
+		Privileged:  dbUser.Privilege,
+		State:       dbUser.State,
 	}, nil
 }
 

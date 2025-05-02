@@ -36,7 +36,7 @@ type Provider struct {
 // TODO: 本当に ProviderName を持っておく必要があるのか?
 // 全て traQIssuerName になるようなコードしか書いていないので
 // YAGNI 的には削除すべきだと思うが
-// 特に (repo *Repository) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.User, error)
+// 特に (repo *Repository) mergeDBUserandTraQUser(dbUser *db.User, traqUser *traq.User) (*domain.User, error)
 // では traQIssuerNmae 以外に対しては error を返すような実装になっておりそれはもうこのサービスが
 // traQ のみを対象にしていることと同値ではという
 type User struct {
@@ -47,14 +47,6 @@ type User struct {
 	IcalSecret   string `gorm:"not null"`
 	ProviderName string `gorm:"not null"`
 	AccessToken  string `gorm:"type:varbinary(64)"`
-}
-
-type UserBody struct {
-	ID          uuid.UUID `gorm:"type:char(36); primaryKey;"`
-	Name        string    `gorm:"type:varchar(32);"`
-	DisplayName string    `gorm:"type:varchar(32);"`
-	Icon        string
-	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
 }
 
 type RoomAdmin struct {
