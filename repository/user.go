@@ -30,13 +30,9 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 
 		uid := uuid.Must(uuid.FromString(u.GetId()))
 		user := &db.User{
-			ID:    uid,
-			State: int(u.State),
-			Provider: db.Provider{
-				UserID:  uid,
-				Issuer:  traQIssuerName,
-				Subject: u.GetId(),
-			},
+			ID:           uid,
+			State:        int(u.State),
+			ProviderName: traQIssuerName,
 		}
 		users = append(users, user)
 	}
@@ -60,14 +56,10 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	}
 	uid := uuid.Must(uuid.FromString(traQUser.GetId()))
 	user := db.User{
-		ID:          uid,
-		State:       1,
-		AccessToken: t.AccessToken,
-		Provider: db.Provider{
-			UserID:  uid,
-			Issuer:  traQIssuerName,
-			Subject: traQUser.GetId(),
-		},
+		ID:           uid,
+		State:        1,
+		AccessToken:  t.AccessToken,
+		ProviderName: traQIssuerName,
 	}
 	_, err = repo.GormRepo.SaveUser(user)
 	if err != nil {
@@ -86,7 +78,8 @@ func (repo *Repository) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.Us
 		return nil, defaultErrorHandling(err)
 	}
 
-	if userMeta.Provider.Issuer == traQIssuerName {
+	if userMeta.ProviderName == traQIssuerName {
+		println("hereherehere")
 		userBody, err := repo.TraQRepo.GetUser(userID)
 		if err != nil {
 			return nil, defaultErrorHandling(err)
@@ -174,7 +167,7 @@ func (repo *Repository) mergeUser(userMeta *db.User, userBody *traq.User) (*doma
 	if userMeta.ID != uuid.Must(uuid.FromString(userBody.GetId())) {
 		return nil, errors.New("id does not match")
 	}
-	if userMeta.Provider.Issuer != traQIssuerName {
+	if userMeta.ProviderName != traQIssuerName {
 		return nil, errors.New("different provider")
 	}
 	return &domain.User{

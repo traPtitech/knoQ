@@ -232,7 +232,7 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filters.Expr) filt
 				if err != nil {
 					return e
 				}
-				if user.Provider.Issuer == traQIssuerName {
+				if user.ProviderName == traQIssuerName {
 					groupIDs = append(groupIDs, traPGroupID)
 				}
 				return &filters.LogicOpExpr{

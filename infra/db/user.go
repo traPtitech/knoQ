@@ -7,10 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func userPreload(tx *gorm.DB) *gorm.DB {
-	return tx.Preload("Provider")
-}
-
 func (repo *GormRepository) SaveUser(user User) (*User, error) {
 	u, err := saveUser(repo.db, &user)
 	return u, defaultErrorHandling(err)
@@ -22,12 +18,12 @@ func (repo *GormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) er
 }
 
 func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
-	u, err := getUser(userPreload(repo.db), userID)
+	u, err := getUser(repo.db, userID)
 	return u, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetAllUsers(onlyActive bool) ([]*User, error) {
-	us, err := getAllUsers(userPreload(repo.db), onlyActive)
+	us, err := getAllUsers(repo.db, onlyActive)
 	return us, defaultErrorHandling(err)
 }
 
@@ -73,7 +69,7 @@ func (repo *GormRepository) SyncUsers(users []*User) error {
 // user.Privilegeは常に更新されません。
 func saveUser(db *gorm.DB, user *User) (*User, error) {
 	err := db.Transaction(func(tx *gorm.DB) error {
-		existingUser, err := getUser(tx.Preload("Provider"), user.ID)
+		existingUser, err := getUser(tx, user.ID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return tx.Create(&user).Error
 		}

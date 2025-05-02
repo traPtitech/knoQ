@@ -10,23 +10,19 @@ func Test_saveUser(t *testing.T) {
 	id := mustNewUUIDV4(t)
 
 	user := &User{
-		ID:          id,
-		State:       1,
-		IcalSecret:  "foo",
-		AccessToken: "hoge",
-		Provider: Provider{
-			UserID:  id,
-			Issuer:  "bar",
-			Subject: id.String(),
-		},
+		ID:           id,
+		State:        1,
+		IcalSecret:   "foo",
+		AccessToken:  "hoge",
+		ProviderName: "bar",
 	}
 
 	t.Run("save user", func(_ *testing.T) {
 		_, err := saveUser(r.db, user)
 		assert.NoError(err)
-		u, err := getUser(r.db.Preload("Provider"), id)
+		u, err := getUser(r.db, id)
 		assert.NoError(err)
-		assert.Equal(user.Provider.Issuer, u.Provider.Issuer)
+		assert.Equal(user.ProviderName, u.ProviderName)
 	})
 
 	t.Run("Update only state. Without deleting anything.", func(_ *testing.T) {
@@ -36,12 +32,12 @@ func Test_saveUser(t *testing.T) {
 		})
 		assert.NoError(err)
 
-		u, err := getUser(r.db.Preload("Token").Preload("Provider"), id)
+		u, err := getUser(r.db, id)
 		assert.NoError(err)
 		// token
 		assert.Equal(user.AccessToken, u.AccessToken)
 		// provider
-		assert.Equal(user.Provider.Issuer, u.Provider.Issuer)
+		assert.Equal(user.ProviderName, u.ProviderName)
 		// icalSecret
 		assert.Equal(user.IcalSecret, u.IcalSecret)
 	})

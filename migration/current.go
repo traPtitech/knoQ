@@ -20,5 +20,6 @@ func Migrations() []*gormigrate.Migration {
 		v11(),
 		v12(),
 		v13(),
+		v14(),
 	}
 }
