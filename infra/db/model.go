@@ -27,14 +27,8 @@ type Model struct {
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
-type Provider struct {
-	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Issuer  string    `gorm:"not null"`
-	Subject string
-}
-
 // TODO: 本当に ProviderName を持っておく必要があるのか?
-// 全て traQIssuerName になるようなコードしか書いていないので
+// 全て TraQIssuerName になるようなコードしか書いていないので
 // YAGNI 的には削除すべきだと思うが
 // 特に (repo *Repository) mergeDBUserandTraQUser(dbUser *db.User, traqUser *traq.User) (*domain.User, error)
 // では traQIssuerNmae 以外に対しては error を返すような実装になっておりそれはもうこのサービスが
