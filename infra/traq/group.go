@@ -4,15 +4,17 @@ import (
 	"context"
 
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
 
 	"github.com/traPtitech/go-traq"
+	"github.com/traPtitech/knoQ/infra"
 )
 
-func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*traq.UserGroup, error) {
+func (repo *traqRepository) GetGroup(groupID uuid.UUID) (*infra.TraqUserGroupResponse, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	// TODO: 一定期間キャッシュする
-	group, resp, err := apiClient.GroupApi.GetUserGroup(ctx, groupID.String()).Execute()
+	g, resp, err := apiClient.GroupApi.GetUserGroup(ctx, groupID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -20,14 +22,34 @@ func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*traq.UserGroup, error)
 	if err != nil {
 		return nil, err
 	}
-	return group, err
+
+	group := infra.TraqUserGroupResponse{
+		ID:          uuid.FromStringOrNil(g.Id),
+		Name:        g.Name,
+		Description: g.Description,
+		Type:        g.Type,
+		Members: lo.Map(g.Members, func(m traq.UserGroupMember, _ int) infra.TraqUserGroupMember {
+			return infra.TraqUserGroupMember{
+				ID:   uuid.FromStringOrNil(m.Id),
+				Role: m.Role,
+			}
+		}),
+		IconID:    uuid.FromStringOrNil(g.Icon),
+		CreatedAt: g.CreatedAt,
+		UpdatedAt: g.UpdatedAt,
+		Admins: lo.Map(g.Admins, func(adminID string, _ int) uuid.UUID {
+			return uuid.FromStringOrNil(adminID)
+		}),
+	}
+
+	return &group, err
 }
 
-func (repo *TraQRepository) GetAllGroups() ([]traq.UserGroup, error) {
+func (repo *traqRepository) GetAllGroups() ([]*infra.TraqUserGroupResponse, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	// TODO: 一定期間キャッシュする
-	groups, resp, err := apiClient.GroupApi.GetUserGroups(ctx).Execute()
+	gs, resp, err := apiClient.GroupApi.GetUserGroups(ctx).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -35,10 +57,32 @@ func (repo *TraQRepository) GetAllGroups() ([]traq.UserGroup, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	groups := lo.Map(gs, func(g traq.UserGroup, _ int) *infra.TraqUserGroupResponse {
+		return &infra.TraqUserGroupResponse{
+			ID:          uuid.FromStringOrNil(g.Id),
+			Name:        g.Name,
+			Description: g.Description,
+			Type:        g.Type,
+			Members: lo.Map(g.Members, func(m traq.UserGroupMember, _ int) infra.TraqUserGroupMember {
+				return infra.TraqUserGroupMember{
+					ID:   uuid.FromStringOrNil(m.Id),
+					Role: m.Role,
+				}
+			}),
+			IconID:    uuid.FromStringOrNil(g.Icon),
+			CreatedAt: g.CreatedAt,
+			UpdatedAt: g.UpdatedAt,
+			Admins: lo.Map(g.Admins, func(adminID string, _ int) uuid.UUID {
+				return uuid.FromStringOrNil(adminID)
+			}),
+		}
+	})
+
 	return groups, err
 }
 
-func (repo *TraQRepository) GetUserBelongingGroupIDs(accessToken string, userID uuid.UUID) ([]uuid.UUID, error) {
+func (repo *traqRepository) GetUserBelongingGroupIDs(accessToken string, userID uuid.UUID) ([]uuid.UUID, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, accessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	user, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()

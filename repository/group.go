@@ -4,7 +4,9 @@ import (
 	"errors"
 
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
 	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/knoQ/infra"
 	"github.com/traPtitech/knoQ/infra/db"
 	"gorm.io/gorm"
 )
@@ -78,8 +80,24 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 			if err != nil {
 				return nil, defaultErrorHandling(err)
 			}
-			group = ConvtraqUserGroupTodomainGroup(*g)
-			group.IsTraQGroup = true
+			// group = ConvtraqUserGroupTodomainGroup(*g)
+			// group.IsTraQGroup = true
+			group = domain.Group{
+				ID:          g.ID,
+				Name:        g.Name,
+				Description: g.Description,
+				Members: lo.Map(g.Members, func(m infra.TraqUserGroupMember, _ int) domain.User {
+					return domain.User{ID: m.ID}
+				}),
+				Admins: lo.Map(g.Admins, func(adminID uuid.UUID, _ int) domain.User {
+					return domain.User{ID: adminID}
+				}),
+				IsTraQGroup: true,
+				Model: domain.Model{
+					CreatedAt: g.CreatedAt,
+					UpdatedAt: g.UpdatedAt,
+				},
+			}
 		} else {
 			return nil, defaultErrorHandling(err)
 		}
@@ -100,7 +118,25 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	dg := ConvSPtraqUserGroupToSPdomainGroup(tg)
+	// dg := ConvSPtraqUserGroupToSPdomainGroup(tg)
+	dg := lo.Map(tg, func(g *infra.TraqUserGroupResponse, _ int) *domain.Group {
+		return &domain.Group{
+			ID:          g.ID,
+			Name:        g.Name,
+			Description: g.Description,
+			Members: lo.Map(g.Members, func(m infra.TraqUserGroupMember, _ int) domain.User {
+				return domain.User{ID: m.ID}
+			}),
+			Admins: lo.Map(g.Admins, func(adminID uuid.UUID, _ int) domain.User {
+				return domain.User{ID: adminID}
+			}),
+			IsTraQGroup: true,
+			Model: domain.Model{
+				CreatedAt: g.CreatedAt,
+				UpdatedAt: g.UpdatedAt,
+			},
+		}
+	})
 	// add IsTraQGroup
 	for i := range dg {
 		dg[i].IsTraQGroup = true

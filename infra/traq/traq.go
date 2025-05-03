@@ -7,15 +7,30 @@ import (
 	"errors"
 	"net/url"
 
+	"github.com/traPtitech/knoQ/infra"
 	"github.com/traPtitech/knoQ/utils/random"
 	"golang.org/x/oauth2"
 )
 
 // TraQRepository is traq
-type TraQRepository struct { //nolint:revive
+type traqRepository struct { //nolint:revive
 	Config            *oauth2.Config
-	URL               string
 	ServerAccessToken string
+}
+
+func NewTraqRepository(clientID, origin, traqAccessToken string) infra.TraqRepository {
+	return &traqRepository{
+		Config: &oauth2.Config{
+			ClientID:    clientID,
+			RedirectURL: origin + "/api/callback",
+			Scopes:      []string{"read"},
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://q.trap.jp/api/v3/oauth2/authorize",
+				TokenURL: "https://q.trap.jp/api/v3/oauth2/token",
+			},
+		},
+		ServerAccessToken: traqAccessToken,
+	}
 }
 
 func newPKCE() (pkceOptions []oauth2.AuthCodeOption, codeVerifier string) {
@@ -30,7 +45,7 @@ func newPKCE() (pkceOptions []oauth2.AuthCodeOption, codeVerifier string) {
 		codeVerifier
 }
 
-func (repo *TraQRepository) GetOAuthURL() (url, state, codeVerifier string) {
+func (repo *traqRepository) GetOAuthURL() (url, state, codeVerifier string) {
 	pkceOptions, codeVerifier := newPKCE()
 	// Redirect user to consent page to ask for permission
 	// for the scopes specified above.
@@ -39,7 +54,7 @@ func (repo *TraQRepository) GetOAuthURL() (url, state, codeVerifier string) {
 	return
 }
 
-func (repo *TraQRepository) GetOAuthToken(query, state, codeVerifier string) (*oauth2.Token, error) {
+func (repo *traqRepository) GetOAuthToken(query, state, codeVerifier string) (*oauth2.Token, error) {
 	ctx := context.TODO()
 	values, err := url.ParseQuery(query)
 	if err != nil {

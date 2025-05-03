@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/gofrs/uuid"
-	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/knoQ/domain"
+	"github.com/traPtitech/knoQ/infra"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/utils/random"
 )
@@ -28,9 +28,12 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 			continue
 		}
 
-		uid := uuid.Must(uuid.FromString(u.GetId()))
+		// uid := uuid.Must(uuid.FromString(u.GetId()))
+		if u.ID.IsNil() {
+			panic("uuid is nil")
+		}
 		user := &db.User{
-			ID:           uid,
+			ID:           u.ID,
 			State:        int(u.State),
 			ProviderName: traQIssuerName,
 		}
@@ -54,9 +57,12 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	uid := uuid.Must(uuid.FromString(traQUser.GetId()))
+	// uid := uuid.Must(uuid.FromString(traQUser.GetId()))
+	if traQUser.ID.IsNil() {
+		panic("uuid is nil")
+	}
 	user := db.User{
-		ID:           uid,
+		ID:           traQUser.ID,
 		State:        1,
 		AccessToken:  t.AccessToken,
 		ProviderName: traQIssuerName,
@@ -152,17 +158,16 @@ func (repo *Repository) IsPrivilege(info *domain.ConInfo) bool {
 	return user.Privilege
 }
 
-func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
-	userMap := make(map[uuid.UUID]*traq.User)
+func traQUserMap(users []*infra.TraqUserResponse) map[uuid.UUID]*infra.TraqUserResponse {
+	userMap := make(map[uuid.UUID]*infra.TraqUserResponse)
 	for _, u := range users {
-		user := u
-		userMap[uuid.Must(uuid.FromString(user.GetId()))] = &user
+		userMap[u.ID] = u
 	}
 	return userMap
 }
 
-func (repo *Repository) mergeDBUserandTraQUser(dbUser *db.User, traqUser *traq.User) (*domain.User, error) {
-	if dbUser.ID != uuid.Must(uuid.FromString(traqUser.GetId())) {
+func (repo *Repository) mergeDBUserandTraQUser(dbUser *db.User, traqUser *infra.TraqUserResponse) (*domain.User, error) {
+	if dbUser.ID != traqUser.ID {
 		return nil, errors.New("id does not match")
 	}
 	if dbUser.ProviderName != traQIssuerName {
@@ -172,7 +177,7 @@ func (repo *Repository) mergeDBUserandTraQUser(dbUser *db.User, traqUser *traq.U
 		ID:          dbUser.ID,
 		Name:        traqUser.Name,
 		DisplayName: traqUser.DisplayName,
-		Icon:        repo.TraQRepo.URL + "/public/icon/" + traqUser.Name,
+		Icon:        traqUser.IconURL,
 		Privileged:  dbUser.Privilege,
 		State:       dbUser.State,
 	}, nil

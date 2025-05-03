@@ -15,7 +15,6 @@ import (
 	"github.com/traPtitech/knoQ/repository"
 
 	"github.com/traPtitech/knoQ/utils/tz"
-	"golang.org/x/oauth2"
 
 	"github.com/traPtitech/knoQ/router"
 
@@ -61,19 +60,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	traqRepo := traq.TraQRepository{
-		Config: &oauth2.Config{
-			ClientID:    clientID,
-			RedirectURL: origin + "/api/callback",
-			Scopes:      []string{"read"},
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  "https://q.trap.jp/api/v3/oauth2/authorize",
-				TokenURL: "https://q.trap.jp/api/v3/oauth2/token",
-			},
-		},
-		URL:               "https://q.trap.jp/api/v3",
-		ServerAccessToken: traqAccessToken,
-	}
+	traqRepo := traq.NewTraqRepository(clientID, origin, traqAccessToken)
 	repo := &repository.Repository{
 		GormRepo: gormRepo,
 		TraQRepo: traqRepo,

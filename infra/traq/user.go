@@ -5,13 +5,16 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/go-traq"
+	"github.com/traPtitech/knoQ/infra"
+
+	"github.com/samber/lo"
 )
 
-func (repo *TraQRepository) GetUser(userID uuid.UUID) (*traq.User, error) {
+func (repo *traqRepository) GetUser(userID uuid.UUID) (*infra.TraqUserResponse, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	// TODO: 一定期間キャッシュする
-	userDetail, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
+	u, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -19,23 +22,23 @@ func (repo *TraQRepository) GetUser(userID uuid.UUID) (*traq.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user := traq.User{
-		Id:          userDetail.Id,
-		Name:        userDetail.Name,
-		DisplayName: userDetail.DisplayName,
-		IconFileId:  userDetail.IconFileId,
-		Bot:         userDetail.Bot,
-		State:       userDetail.State,
-		UpdatedAt:   userDetail.UpdatedAt,
+	user := infra.TraqUserResponse{
+		ID:          uuid.FromStringOrNil(u.Id),
+		Name:        u.Name,
+		DisplayName: u.DisplayName,
+		IconURL:     "https://q.trap.jp/api/v3/public/icon/" + u.Name,
+		Bot:         u.Bot,
+		State:       u.State,
+		UpdatedAt:   u.UpdatedAt,
 	}
 	return &user, err
 }
 
-func (repo *TraQRepository) GetUsers(includeSuspended bool) ([]traq.User, error) {
+func (repo *traqRepository) GetUsers(includeSuspended bool) ([]*infra.TraqUserResponse, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	// TODO: 一定期間キャッシュする
-	users, resp, err := apiClient.UserApi.GetUsers(ctx).IncludeSuspended(includeSuspended).Execute()
+	us, resp, err := apiClient.UserApi.GetUsers(ctx).IncludeSuspended(includeSuspended).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +46,26 @@ func (repo *TraQRepository) GetUsers(includeSuspended bool) ([]traq.User, error)
 	if err != nil {
 		return nil, err
 	}
+
+	users := lo.Map(us, func(u traq.User, _ int) *infra.TraqUserResponse {
+		return &infra.TraqUserResponse{
+			ID:          uuid.FromStringOrNil(u.Id),
+			Name:        u.Name,
+			DisplayName: u.DisplayName,
+			IconURL:     "https://q.trap.jp/api/v3/public/icon/" + u.Name,
+			Bot:         u.Bot,
+			State:       u.State,
+			UpdatedAt:   u.UpdatedAt,
+		}
+	})
+
 	return users, err
 }
 
-func (repo *TraQRepository) GetUserMe(accessToken string) (*traq.User, error) {
+func (repo *traqRepository) GetUserMe(accessToken string) (*infra.TraqUserResponse, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, accessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
-	userDetail, resp, err := apiClient.MeApi.GetMe(ctx).Execute()
+	u, resp, err := apiClient.MeApi.GetMe(ctx).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -57,15 +73,15 @@ func (repo *TraQRepository) GetUserMe(accessToken string) (*traq.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	user := traq.User{
-		Id:          userDetail.Id,
-		Name:        userDetail.Name,
-		DisplayName: userDetail.DisplayName,
-		IconFileId:  userDetail.IconFileId,
-		Bot:         userDetail.Bot,
-		State:       userDetail.State,
-		UpdatedAt:   userDetail.UpdatedAt,
-	}
 
+	user := infra.TraqUserResponse{
+		ID:          uuid.FromStringOrNil(u.Id),
+		Name:        u.Name,
+		DisplayName: u.DisplayName,
+		IconURL:     "https://q.trap.jp/api/v3/public/icon/" + u.Name,
+		Bot:         u.Bot,
+		State:       u.State,
+		UpdatedAt:   u.UpdatedAt,
+	}
 	return &user, err
 }
