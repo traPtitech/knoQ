@@ -1,13 +1,12 @@
 package repository
 
 import (
-	"github.com/traPtitech/knoQ/infra"
 	"github.com/traPtitech/knoQ/infra/db"
 )
 
 type Repository struct {
 	GormRepo db.GormRepository
-	TraQRepo infra.TraqRepository
+	// TraQRepo infra.TraqRepository
 }
 
 // implements domain

@@ -27,14 +27,16 @@ type WriteEventParams struct {
 	CreatedBy uuid.UUID
 }
 
-func (repo *GormRepository) CreateEvent(params WriteEventParams) (*Event, error) {
+func (repo *GormRepository) CreateEvent(params WriteEventParams) (*domain.Event, error) {
 	e, err := createEvent(repo.db, params)
-	return e, defaultErrorHandling(err)
+	de := ConvEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*Event, error) {
+func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*domain.Event, error) {
 	e, err := updateEvent(repo.db, eventID, params)
-	return e, defaultErrorHandling(err)
+	de := ConvEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
@@ -57,12 +59,14 @@ func (repo *GormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, sched
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
-	es, err := getEvent(eventFullPreload(repo.db), eventID)
-	return es, defaultErrorHandling(err)
+// group が traq のだと zero 値になる
+func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*domain.Event, error) {
+	e, err := getEvent(eventFullPreload(repo.db), eventID)
+	de := ConvEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*Event, error) {
+func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, error) {
 	filterFormat, filterArgs, err := createEventFilter(expr)
 	if err != nil {
 		return nil, err
@@ -74,7 +78,8 @@ func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*Event, error) {
 			"LEFT JOIN event_admins ON events.id = event_admins.event_id "+
 			"LEFT JOIN event_attendees ON events.id = event_attendees.event_id"),
 		filterFormat, filterArgs)
-	return es, defaultErrorHandling(err)
+	des := ConvSPEventToSPdomainEvent(es)
+	return des, defaultErrorHandling(err)
 }
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {

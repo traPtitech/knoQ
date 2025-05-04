@@ -157,6 +157,7 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 }
 
 func (h *Handlers) HandleUpsertMeEventSchedule(c echo.Context) error {
+	print("called")
 	eventID, err := getPathEventID(c)
 	if err != nil {
 		return notFound(err, message(err.Error()))

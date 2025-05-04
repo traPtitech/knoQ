@@ -11,7 +11,7 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	// groupの確認
 	group, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
 
 	p := db.WriteEventParams{
@@ -20,7 +20,7 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	}
 	event, err := repo.GormRepo.CreateEvent(p)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
 	for _, groupMember := range group.Members {
 		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
@@ -35,13 +35,13 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 
 	currentEvent, err := repo.GetEvent(eventID, info)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
 
 	// groupの確認
 	group, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
 
 	p := db.WriteEventParams{
@@ -50,7 +50,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	}
 	event, err := repo.GormRepo.UpdateEvent(eventID, p)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
 	for _, groupMember := range group.Members {
 		exist := false
@@ -94,34 +94,34 @@ func (repo *Repository) DeleteEventTag(eventID uuid.UUID, tagName string, info *
 }
 
 func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*domain.Event, error) {
-	e, err := repo.GormRepo.GetEvent(eventID)
+	event, err := repo.GormRepo.GetEvent(eventID)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
-	event := db.ConvEventTodomainEvent(*e)
-	// add traQ groups and users
-	g, err := repo.GetGroup(e.GroupID, info)
-	if err != nil {
-		return nil, defaultErrorHandling(err)
-	}
-	event.Group = *g
-	users, err := repo.GetAllUsers(false, true, info)
-	if err != nil {
-		return &event, err
-	}
-	userMap := createUserMap(users)
-	c, ok := userMap[e.CreatedByRefer]
-	if ok {
-		event.CreatedBy = *c
-	}
-	for j, eventAdmin := range e.Admins {
-		a, ok := userMap[eventAdmin.UserID]
-		if ok {
-			event.Admins[j] = *a
-		}
-	}
+	// // event := db.ConvEventTodomainEvent(*e)
+	// // add traQ groups and users
+	// g, err := repo.GetGroup(e.GroupID, info)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// event.Group = *g
+	// users, err := repo.GetAllUsers(false, true, info)
+	// if err != nil {
+	// 	return &event, err
+	// }
+	// userMap := createUserMap(users)
+	// c, ok := userMap[event.CreatedByRefer]
+	// if ok {
+	// 	event.CreatedBy = *c
+	// }
+	// for j, eventAdmin := range e.Admins {
+	// 	a, ok := userMap[eventAdmin.UserID]
+	// 	if ok {
+	// 		event.Admins[j] = *a
+	// 	}
+	// }
 
-	return &event, nil
+	return event, nil
 }
 
 func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain.ScheduleStatus, info *domain.ConInfo) error {
@@ -129,12 +129,13 @@ func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain
 	if err != nil {
 		return err
 	}
+
 	if !repo.IsGroupMember(info.ReqUserID, event.Group.ID, info) && !event.Open {
 		return domain.ErrForbidden
 	}
 
 	err = repo.GormRepo.UpsertEventSchedule(eventID, info.ReqUserID, schedule)
-	return defaultErrorHandling(err)
+	return err
 }
 
 func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
@@ -142,39 +143,39 @@ func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*d
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
-	events := db.ConvSPEventToSPdomainEvent(es)
+	// events := db.ConvSPEventToSPdomainEvent(es)
 
-	// add traQ groups and users
-	groups, err := repo.GetAllGroups(info)
-	if err != nil {
-		return events, nil
-	}
-	groupMap := createGroupMap(groups)
-	users, err := repo.GetAllUsers(false, true, info)
-	if err != nil {
-		return events, err
-	}
-	userMap := createUserMap(users)
-	for i := range events {
-		g, ok := groupMap[es[i].GroupID]
-		if ok {
-			events[i].Group = *g
-		}
-		c, ok := userMap[es[i].CreatedByRefer]
-		if ok {
-			events[i].CreatedBy = *c
-		}
-		for j, eventAdmin := range es[i].Admins {
-			a, ok := userMap[eventAdmin.UserID]
-			if ok {
-				events[i].Admins[j] = *a
-			}
-		}
-	}
+	// // add traQ groups and users
+	// groups, err := repo.GetAllGroups(info)
+	// if err != nil {
+	// 	return events, nil
+	// }
+	// groupMap := createGroupMap(groups)
+	// users, err := repo.GetAllUsers(false, true, info)
+	// if err != nil {
+	// 	return events, err
+	// }
+	// userMap := createUserMap(users)
+	// for i := range events {
+	// 	g, ok := groupMap[es[i].GroupID]
+	// 	if ok {
+	// 		events[i].Group = *g
+	// 	}
+	// 	c, ok := userMap[es[i].CreatedByRefer]
+	// 	if ok {
+	// 		events[i].CreatedBy = *c
+	// 	}
+	// 	for j, eventAdmin := range es[i].Admins {
+	// 		a, ok := userMap[eventAdmin.UserID]
+	// 		if ok {
+	// 			events[i].Admins[j] = *a
+	// 		}
+	// 	}
+	// }
 
-	return events, nil
+	return es, nil
 }
 
 func (repo *Repository) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) bool {
@@ -183,30 +184,30 @@ func (repo *Repository) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) b
 		return false
 	}
 	for _, admin := range event.Admins {
-		if info.ReqUserID == admin.UserID {
+		if info.ReqUserID == admin.ID {
 			return true
 		}
 	}
 	return false
 }
 
-func createGroupMap(groups []*domain.Group) map[uuid.UUID]*domain.Group {
-	groupMap := make(map[uuid.UUID]*domain.Group)
-	for _, group := range groups {
-		groupMap[group.ID] = group
-	}
-	return groupMap
-}
+// func createGroupMap(groups []*domain.Group) map[uuid.UUID]*domain.Group {
+// 	groupMap := make(map[uuid.UUID]*domain.Group)
+// 	for _, group := range groups {
+// 		groupMap[group.ID] = group
+// 	}
+// 	return groupMap
+// }
 
-func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
-	userMap := make(map[uuid.UUID]*domain.User)
-	for _, user := range users {
-		userMap[user.ID] = user
-	}
-	return userMap
-}
+// func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
+// 	userMap := make(map[uuid.UUID]*domain.User)
+// 	for _, user := range users {
+// 		userMap[user.ID] = user
+// 	}
+// 	return userMap
+// }
 
-// add traQ group and traP(111...)
+// // add traQ group and traP(111...)
 func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filters.Expr) filters.Expr {
 	t, err := repo.GormRepo.GetToken(userID)
 	if err != nil {
@@ -223,18 +224,18 @@ func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filters.Expr) filt
 				if !ok {
 					return e
 				}
-				groupIDs, err := repo.TraQRepo.GetUserBelongingGroupIDs(t.AccessToken, id)
+				groupIDs, err := repo.GormRepo.GetTraqRepository().GetUserBelongingGroupIDs(t.AccessToken, id)
 				if err != nil {
 					return e
 				}
 				// add traP
-				user, err := repo.GormRepo.GetUser(id)
-				if err != nil {
-					return e
-				}
-				if user.ProviderName == traQIssuerName {
-					groupIDs = append(groupIDs, traPGroupID)
-				}
+				// user, err := repo.GormRepo.GetUser(id)
+				// if err != nil {
+				// 	return e
+				// }
+				// if user.ProviderName == traQIssuerName {
+				groupIDs = append(groupIDs, traPGroupID)
+				// }
 				return &filters.LogicOpExpr{
 					LogicOp: filters.Or,
 					LHS:     e,

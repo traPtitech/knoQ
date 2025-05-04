@@ -20,6 +20,7 @@ type TraqRepository interface {
 	GetGroup(groupID uuid.UUID) (*TraqUserGroupResponse, error)
 	GetAllGroups() ([]*TraqUserGroupResponse, error)
 	GetUserBelongingGroupIDs(accessToken string, userID uuid.UUID) ([]uuid.UUID, error)
+	GetGradeGroups() ([]*TraqUserGroupResponse, error)
 }
 
 type SaveUserArgs struct{}

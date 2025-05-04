@@ -15,7 +15,7 @@ func (repo *Repository) CreateUnVerifiedRoom(params domain.WriteRoomParams, info
 		CreatedBy:       info.ReqUserID,
 	}
 	r, err := repo.GormRepo.CreateRoom(p)
-	return r, defaultErrorHandling(err)
+	return r, err
 }
 
 func (repo *Repository) CreateVerifiedRoom(params domain.WriteRoomParams, info *domain.ConInfo) (*domain.Room, error) {
@@ -28,7 +28,7 @@ func (repo *Repository) CreateVerifiedRoom(params domain.WriteRoomParams, info *
 		CreatedBy:       info.ReqUserID,
 	}
 	r, err := repo.GormRepo.CreateRoom(p)
-	return r, defaultErrorHandling(err)
+	return r, err
 }
 
 func (repo *Repository) UpdateRoom(roomID uuid.UUID, params domain.WriteRoomParams, info *domain.ConInfo) (*domain.Room, error) {
@@ -42,7 +42,7 @@ func (repo *Repository) UpdateRoom(roomID uuid.UUID, params domain.WriteRoomPara
 	}
 
 	r, err := repo.GormRepo.UpdateRoom(roomID, p)
-	return r, defaultErrorHandling(err)
+	return r, err
 }
 
 func (repo *Repository) VerifyRoom(roomID uuid.UUID, info *domain.ConInfo) error {
@@ -50,7 +50,7 @@ func (repo *Repository) VerifyRoom(roomID uuid.UUID, info *domain.ConInfo) error
 		return domain.ErrForbidden
 	}
 	err := repo.GormRepo.UpdateRoomVerified(roomID, true)
-	return defaultErrorHandling(err)
+	return err
 }
 
 func (repo *Repository) UnVerifyRoom(roomID uuid.UUID, info *domain.ConInfo) error {
@@ -58,7 +58,7 @@ func (repo *Repository) UnVerifyRoom(roomID uuid.UUID, info *domain.ConInfo) err
 		return domain.ErrForbidden
 	}
 	err := repo.GormRepo.UpdateRoomVerified(roomID, false)
-	return defaultErrorHandling(err)
+	return err
 }
 
 func (repo *Repository) DeleteRoom(roomID uuid.UUID, info *domain.ConInfo) error {
@@ -66,17 +66,17 @@ func (repo *Repository) DeleteRoom(roomID uuid.UUID, info *domain.ConInfo) error
 		return domain.ErrForbidden
 	}
 	err := repo.GormRepo.DeleteRoom(roomID)
-	return defaultErrorHandling(err)
+	return err
 }
 
 func (repo *Repository) GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
 	rs, err := repo.GormRepo.GetRoom(roomID, excludeEventID)
-	return rs, defaultErrorHandling(err)
+	return rs, err
 }
 
 func (repo *Repository) GetAllRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
 	rs, err := repo.GormRepo.GetAllRooms(start, end, excludeEventID)
-	return rs, defaultErrorHandling(err)
+	return rs, err
 }
 
 func (repo *Repository) IsRoomAdmins(roomID uuid.UUID, info *domain.ConInfo) bool {

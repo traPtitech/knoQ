@@ -55,15 +55,16 @@ func main() {
 	domain.REVISION = revision
 	domain.DEVELOPMENT, _ = strconv.ParseBool(development)
 
+	traqRepo := traq.NewTraqRepository(clientID, origin, traqAccessToken)
+
 	gormRepo := db.GormRepository{}
-	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, tz.JST)
+	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, tz.JST, traqRepo)
 	if err != nil {
 		panic(err)
 	}
-	traqRepo := traq.NewTraqRepository(clientID, origin, traqAccessToken)
+
 	repo := &repository.Repository{
 		GormRepo: gormRepo,
-		TraQRepo: traqRepo,
 	}
 	handler := &router.Handlers{
 		Repo:       repo,
