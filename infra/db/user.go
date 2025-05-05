@@ -21,7 +21,7 @@ func mergeDBUserandTraQUser(dbUser *User, traqUser *infra.TraqUserResponse) (*do
 		Name:        traqUser.Name,
 		DisplayName: traqUser.DisplayName,
 		Icon:        traqUser.IconURL,
-		Privileged:  dbUser.Privilege,
+		Privileged:  dbUser.Privileged,
 		State:       dbUser.State,
 	}, nil
 }

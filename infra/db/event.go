@@ -15,13 +15,12 @@ import (
 func eventFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Group").Preload("Group.Members").Preload("Group.Admins").Preload("Group.CreatedBy").
 		Preload("Room").Preload("Room.Events").Preload("Room.Admins").Preload("Room.CreatedBy").
-		Preload("Admins").Preload("Admins.User").
+		Preload("Admins").
 		Preload("Tags").Preload("Tags.Tag").
 		Preload("Attendees").Preload("Attendees.User").
 		Preload("CreatedBy")
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteEventParams -d Event -o converter.go .
 type WriteEventParams struct {
 	domain.WriteEventParams
 	CreatedBy uuid.UUID
@@ -74,10 +73,9 @@ func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, er
 	cmd := eventFullPreload(repo.db)
 	es, err := getEvents(cmd.Joins(
 		"LEFT JOIN event_tags ON events.id = event_tags.event_id "+
-			"LEFT JOIN group_members ON events.group_id = group_members.group_id "+
-			"LEFT JOIN event_admins ON events.id = event_admins.event_id "+
-			"LEFT JOIN event_attendees ON events.id = event_attendees.event_id"),
-		filterFormat, filterArgs)
+			"LEFT JOIN group_member ON events.group_id = group_member.group_id "+
+			"LEFT JOIN event_admin ON events.id = event_admin.event_id "+
+			"LEFT JOIN event_attendees ON events.id = event_attendees.event_id"), filterFormat, filterArgs)
 	des := ConvSPEventToSPdomainEvent(es)
 	return des, defaultErrorHandling(err)
 }
@@ -118,7 +116,7 @@ func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string, deleteLocked
 	}
 	eventTag := EventTag{
 		EventID: eventID,
-		Tag: Tag{
+		Tag: &Tag{
 			Name: tagName,
 		},
 	}
@@ -164,8 +162,8 @@ func createEventFilter(expr filters.Expr) (string, []interface{}, error) {
 
 	attrMap := map[filters.Attr]string{
 		filters.AttrUser:     "event_attendees.user_id",
-		filters.AttrBelong:   "group_members.user_id",
-		filters.AttrAdmin:    "event_admins.user_id",
+		filters.AttrBelong:   "group_member.user_id",
+		filters.AttrAdmin:    "event_admin.user_id",
 		filters.AttrAttendee: "event_attendees.user_id",
 
 		filters.AttrName:      "events.name",

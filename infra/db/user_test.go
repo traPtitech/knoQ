@@ -57,11 +57,11 @@ func Test_saveUser(t *testing.T) {
 	t.Run("Update privilege", func(_ *testing.T) {
 		u, err := getUser(r.db, user.ID)
 		assert.NoError(err)
-		assert.False(u.Privilege)
+		assert.False(u.Privileged)
 
 		_, err = saveUser(r.db, &User{
-			ID:        user.ID,
-			Privilege: true,
+			ID:         user.ID,
+			Privileged: true,
 		})
 		assert.NoError(err)
 

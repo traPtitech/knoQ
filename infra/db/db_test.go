@@ -151,7 +151,7 @@ func setupRepoWithUserGroupRoomEvent(t *testing.T, repo string) (*GormRepository
 func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 	t.Helper()
 	user := User{
-		Privilege: privilege,
+		Privileged: privilege,
 	}
 	err := repo.db.Create(&user).Error
 	require.NoError(t, err)

@@ -22,7 +22,7 @@ func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 			e.Room.TimeStart = e.TimeStart
 			e.Room.TimeEnd = e.TimeEnd
 			e.Room.CreatedByRefer = e.CreatedByRefer
-			e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
+			copy(e.Admins, e.Room.Admins)
 		} else {
 			return NewValueError(ErrRoomUndefined, "roomID", "place")
 		}
@@ -77,10 +77,6 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	err = tx.Where("event_id = ?", e.ID).Delete(&EventAdmin{}).Error
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -108,11 +104,6 @@ func (e *Event) BeforeDelete(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	err = tx.Where("event_id = ?", e.ID).Delete(&EventAdmin{}).Error
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -179,13 +170,13 @@ func (r *Room) BeforeSave(_ *gorm.DB) (err error) {
 	return nil
 }
 
-func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
-	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
+// 	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 	room, err := getRoom(tx.Preload("Admins"), r.ID)
@@ -211,18 +202,18 @@ func (g *Group) BeforeSave(_ *gorm.DB) (err error) {
 	return nil
 }
 
-func (g *Group) BeforeUpdate(tx *gorm.DB) (err error) {
-	// delete current m2m
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (g *Group) BeforeUpdate(tx *gorm.DB) (err error) {
+// 	// delete current m2m
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 	group, err := getGroup(tx.Preload("Admins"), g.ID)
@@ -241,18 +232,18 @@ func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (g *Group) BeforeDelete(tx *gorm.DB) (err error) {
-	// delete current m2m
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (g *Group) BeforeDelete(tx *gorm.DB) (err error) {
+// 	// delete current m2m
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // BeforeCreate is hook
 func (t *Tag) BeforeCreate(_ *gorm.DB) (err error) {

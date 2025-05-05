@@ -11,21 +11,11 @@ import (
 var tables = []interface{}{
 	User{},
 	Group{},
-	GroupMember{},
-	GroupAdmin{},
 	Tag{},
 	Room{},
-	RoomAdmin{},
 	Event{},
 	EventTag{}, // Eventより下にないと、overrideされる
-	EventAdmin{},
 	EventAttendee{},
-}
-
-type Model struct {
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 // TODO: 本当に ProviderName を持っておく必要があるのか?
@@ -36,88 +26,60 @@ type Model struct {
 // traQ のみを対象にしていることと同値ではという
 type User struct {
 	ID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	// アプリの管理者かどうか
-	Privilege    bool `gorm:"not null"`
+	// TODO: privileged に名前を変える
+	Privileged   bool `gorm:"not null"`
 	State        int
 	IcalSecret   string `gorm:"not null"`
 	ProviderName string `gorm:"not null"`
 	AccessToken  string `gorm:"type:varbinary(64)"`
 }
 
-type RoomAdmin struct {
-	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	RoomID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	User   User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model  `cvt:"-"`
-}
-
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Room -d domain.Room -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Room -d []*domain.Room -o converter.go .
 type Room struct {
-	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Place          string    `gorm:"type:varchar(32);"`
-	Verified       bool
-	TimeStart      time.Time `gorm:"type:DATETIME; index"`
-	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
-	Events         []Event   `gorm:"->; constraint:-"` // readOnly
-	Admins         []RoomAdmin
+	gorm.Model
+	ID        uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Place     string    `gorm:"type:varchar(32);"`
+	Verified  bool
+	TimeStart time.Time `gorm:"type:DATETIME; index"`
+	TimeEnd   time.Time `gorm:"type:DATETIME; index"`
+
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model          `cvt:"->"`
-}
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*GroupMember -d []uuid.UUID -o converter.go -structTag cvt0 .
-type GroupMember struct {
-	UserID  uuid.UUID `gorm:"type:char(36); primaryKey" cvt0:"<-"`
-	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model   `cvt:"-"`
-}
-
-type GroupAdmin struct {
-	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
-	GroupID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model   `cvt:"-"`
+	Admins []*User `gorm:"many2many:room_admin;"`
+	Events []Event `gorm:"->; constraint:-"` // readOnly
 }
 
 // Group is user group
 type Group struct {
-	ID             uuid.UUID     `gorm:"type:char(36);primaryKey"`
-	Name           string        `gorm:"type:varchar(32);not null"`
-	Description    string        `gorm:"type:TEXT"`
-	IsTraqGroup    bool          `gorm:"not null"`
-	JoinFreely     sql.NullBool  `gorm:""`
-	TraqID         uuid.NullUUID `gorm:""`
-	Members        []*User       `gorm:"many2many:group_members;"`
-	Admins         []*User       `gorm:"many2many:group_admins;"` // 共通テーブル使用想定
+	gorm.Model
+	ID          uuid.UUID     `gorm:"type:char(36);primaryKey"`
+	Name        string        `gorm:"type:varchar(32);not null"`
+	Description string        `gorm:"type:TEXT"`
+	IsTraqGroup bool          `gorm:"not null"`
+	JoinFreely  sql.NullBool  `gorm:""`
+	TraqID      uuid.NullUUID `gorm:""`
+
 	CreatedByRefer uuid.NullUUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      *User         `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model          `cvt:"->"`
+
+	Members []*User `gorm:"many2many:group_member;"`
+	Admins  []*User `gorm:"many2many:group_admin;"`
 }
 
 type Tag struct {
-	ID    uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Name  string    `gorm:"unique; type:varchar(16) binary"`
-	Model `cvt:"->"`
+	gorm.Model
+	ID   uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Name string    `gorm:"unique; type:varchar(16) binary"`
 }
 
 // EventTag is
 type EventTag struct {
+	gorm.Model
 	TagID   uuid.UUID `gorm:"type:char(36); primaryKey" cvt:"ID"`
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Event   Event     `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
-	Tag     Tag       `gorm:"foreignKey:TagID; constraint:OnDelete:CASCADE;" cvt:"write:Name"`
+	Event   *Event    `gorm:"->; foreignKey:EventID; constraint:OnDelete:CASCADE;"`
+	Tag     *Tag      `gorm:"foreignKey:TagID; constraint:OnDelete:CASCADE;" cvt:"write:Name"`
 	Locked  bool
-	Model   `cvt:"->"`
-}
-
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []EventAdmin -d []RoomAdmin -o converter.go .
-type EventAdmin struct {
-	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
-	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	User    User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Model   `cvt:"-"`
 }
 
 type EventAttendee struct {
@@ -129,21 +91,25 @@ type EventAttendee struct {
 
 // Event is event for gorm
 type Event struct {
-	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Name           string    `gorm:"type:varchar(32); not null"`
-	Description    string    `gorm:"type:TEXT"`
-	GroupID        uuid.UUID `gorm:"type:char(36); not null; index"`
-	Group          Group     `gorm:"->; foreignKey:GroupID; constraint:-"`
-	RoomID         uuid.UUID `gorm:"type:char(36); not null; index"`
-	Room           Room      `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"`
-	TimeStart      time.Time `gorm:"type:DATETIME; index"`
-	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
+	gorm.Model
+	ID            uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Name          string    `gorm:"type:varchar(32); not null"`
+	Description   string    `gorm:"type:TEXT"`
+	TimeStart     time.Time `gorm:"type:DATETIME; index"`
+	TimeEnd       time.Time `gorm:"type:DATETIME; index"`
+	AllowTogether bool
+	Open          bool
+
 	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
-	Admins         []EventAdmin
-	AllowTogether  bool
-	Tags           []EventTag
-	Open           bool
-	Attendees      []EventAttendee
-	Model          `cvt:"->"`
+
+	GroupID uuid.UUID `gorm:"type:char(36); not null; index"`
+	Group   Group     `gorm:"->; foreignKey:GroupID; constraint:-"`
+
+	RoomID uuid.UUID `gorm:"type:char(36); not null; index"`
+	Room   Room      `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"`
+
+	Admins    []*User `gorm:"many2many:event_admin"`
+	Attendees []EventAttendee
+	Tags      []*EventTag `gorm:"foreignKey:EventID;references:ID;constraint:OnDelete:CASCADE;"`
 }

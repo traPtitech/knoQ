@@ -14,22 +14,22 @@ func ConvCreateRoomParamsToRoom(src CreateRoomParams) (dst Room) {
 	dst.Place = src.WriteRoomParams.Place
 	dst.TimeStart = src.WriteRoomParams.TimeStart
 	dst.TimeEnd = src.WriteRoomParams.TimeEnd
-	dst.Admins = make([]RoomAdmin, len(src.WriteRoomParams.Admins))
+	dst.Admins = make([]*User, len(src.WriteRoomParams.Admins))
 	for i := range src.WriteRoomParams.Admins {
-		dst.Admins[i] = convuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
+		*dst.Admins[i] = convuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
 	}
 	return
 }
 
-func ConvEventAdminToRoomAdmin(src EventAdmin) (dst RoomAdmin) {
-	dst.UserID = src.UserID
-	return
-}
+// func ConvEventAdminToRoomAdmin(src EventAdmin) (dst RoomAdmin) {
+// 	dst.UserID = src.UserID
+// 	return
+// }
 
-func ConvEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
-	dst.ID = src.UserID
-	return
-}
+// func ConvEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
+// 	dst.ID = src.UserID
+// 	return
+// }
 
 func ConvEventAttendeeTodomainAttendee(src EventAttendee) (dst domain.Attendee) {
 	dst.UserID = src.UserID
@@ -38,7 +38,7 @@ func ConvEventAttendeeTodomainAttendee(src EventAttendee) (dst domain.Attendee) 
 }
 
 func ConvEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
-	dst.Tag = ConvTagTodomainTag(src.Tag)
+	dst.Tag = ConvTagTodomainTag(*src.Tag)
 	dst.Locked = src.Locked
 	return
 }
@@ -54,11 +54,11 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = convEventAdminTodomainUser(src.Admins[i])
+		dst.Admins[i] = convUserTodomainUser(*src.Admins[i])
 	}
 	dst.Tags = make([]domain.EventTag, len(src.Tags))
 	for i := range src.Tags {
-		dst.Tags[i] = convEventTagTodomainEventTag(src.Tags[i])
+		dst.Tags[i] = convEventTagTodomainEventTag(*src.Tags[i])
 	}
 	dst.AllowTogether = src.AllowTogether
 	dst.Attendees = make([]domain.Attendee, len(src.Attendees))
@@ -73,15 +73,15 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 	return
 }
 
-func ConvGroupAdminTodomainUser(src GroupAdmin) (dst domain.User) {
-	dst.ID = src.UserID
-	return
-}
+// func ConvGroupAdminTodomainUser(src GroupAdmin) (dst domain.User) {
+// 	dst.ID = src.UserID
+// 	return
+// }
 
-func ConvGroupMemberTodomainUser(src GroupMember) (dst domain.User) {
-	dst.ID = src.UserID
-	return
-}
+// func ConvGroupMemberTodomainUser(src GroupMember) (dst domain.User) {
+// 	dst.ID = src.UserID
+// 	return
+// }
 
 func ConvGroupTodomainGroup(src Group) (dst domain.Group) {
 	dst.ID = src.ID
@@ -107,10 +107,10 @@ func ConvGroupTodomainGroup(src Group) (dst domain.Group) {
 	return
 }
 
-func ConvRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
-	dst.ID = src.UserID
-	return
-}
+// func ConvRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
+// 	dst.ID = src.UserID
+// 	return
+// }
 
 func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
@@ -124,7 +124,7 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	}
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = convRoomAdminTodomainUser(src.Admins[i])
+		dst.Admins[i] = convUserTodomainUser(*src.Admins[i])
 	}
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt
@@ -134,13 +134,13 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	return
 }
 
-func ConvSEventAdminToSRoomAdmin(src []EventAdmin) (dst []RoomAdmin) {
-	dst = make([]RoomAdmin, len(src))
-	for i := range src {
-		dst[i] = convEventAdminToRoomAdmin(src[i])
-	}
-	return
-}
+// func ConvSEventAdminToSRoomAdmin(src []EventAdmin) (dst []RoomAdmin) {
+// 	dst = make([]RoomAdmin, len(src))
+// 	for i := range src {
+// 		dst[i] = convEventAdminToRoomAdmin(src[i])
+// 	}
+// 	return
+// }
 
 func ConvSPEventToSPdomainEvent(src []*Event) (dst []*domain.Event) {
 	dst = make([]*domain.Event, len(src))
@@ -153,15 +153,15 @@ func ConvSPEventToSPdomainEvent(src []*Event) (dst []*domain.Event) {
 	return
 }
 
-func ConvSPGroupMemberToSuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
-	dst = make([]uuid.UUID, len(src))
-	for i := range src {
-		if src[i] != nil {
-			dst[i] = (*src[i]).GroupID
-		}
-	}
-	return
-}
+// func ConvSPGroupMemberToSuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
+// 	dst = make([]uuid.UUID, len(src))
+// 	for i := range src {
+// 		if src[i] != nil {
+// 			dst[i] = (*src[i]).GroupID
+// 		}
+// 	}
+// 	return
+// }
 
 func ConvSPGroupToSPdomainGroup(src []*Group) (dst []*domain.Group) {
 	dst = make([]*domain.Group, len(src))
@@ -217,9 +217,9 @@ func ConvUpdateRoomParamsToRoom(src UpdateRoomParams) (dst Room) {
 	dst.Place = src.WriteRoomParams.Place
 	dst.TimeStart = src.WriteRoomParams.TimeStart
 	dst.TimeEnd = src.WriteRoomParams.TimeEnd
-	dst.Admins = make([]RoomAdmin, len(src.WriteRoomParams.Admins))
+	dst.Admins = make([]*User, len(src.WriteRoomParams.Admins))
 	for i := range src.WriteRoomParams.Admins {
-		dst.Admins[i] = convuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
+		*dst.Admins[i] = convuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
 	}
 	return
 }
@@ -244,14 +244,14 @@ func ConvWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	dst.Room.Place = src.WriteEventParams.Place
 	dst.TimeStart = src.WriteEventParams.TimeStart
 	dst.TimeEnd = src.WriteEventParams.TimeEnd
-	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
+	dst.Admins = make([]*User, len(src.WriteEventParams.Admins))
 	for i := range src.WriteEventParams.Admins {
-		dst.Admins[i] = convuuidUUIDToEventAdmin(src.WriteEventParams.Admins[i])
+		*dst.Admins[i] = convuuidUUIDToEventAdmin(src.WriteEventParams.Admins[i])
 	}
 	dst.AllowTogether = src.WriteEventParams.AllowTogether
-	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
+	dst.Tags = make([]*EventTag, len(src.WriteEventParams.Tags))
 	for i := range src.WriteEventParams.Tags {
-		dst.Tags[i] = convdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
+		*dst.Tags[i] = convdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
 	}
 	dst.Open = src.WriteEventParams.Open
 	return
@@ -264,11 +264,11 @@ func ConvWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
 	dst.JoinFreely.Scan(src.WriteGroupParams.JoinFreely)
 	dst.Members = make([]*User, len(src.WriteGroupParams.Members))
 	for i := range src.WriteGroupParams.Members {
-		*dst.Members[i] = convuuidUUIDToGroupMember(src.WriteGroupParams.Members[i]).User
+		*dst.Members[i] = convuuidUUIDToGroupMember(src.WriteGroupParams.Members[i])
 	}
 	dst.Admins = make([]*User, len(src.WriteGroupParams.Admins))
 	for i := range src.WriteGroupParams.Admins {
-		*dst.Admins[i] = convuuidUUIDToGroupAdmin(src.WriteGroupParams.Admins[i]).User
+		*dst.Admins[i] = convuuidUUIDToGroupAdmin(src.WriteGroupParams.Admins[i])
 	}
 	return
 }
@@ -284,43 +284,13 @@ func ConvgormDeletedAtTotimeTime(src gorm.DeletedAt) (dst time.Time) {
 	return
 }
 
-func ConvuuidUUIDToEventAdmin(src uuid.UUID) (dst EventAdmin) {
-	dst.UserID = src
-	return
-}
-
-func ConvuuidUUIDToGroupAdmin(src uuid.UUID) (dst GroupAdmin) {
-	dst.UserID = src
-	return
-}
-
-func ConvuuidUUIDToGroupAdmins(src uuid.UUID) (dst GroupAdmin) {
-	dst.UserID = src
-	return
-}
-
-func ConvuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
-	dst.UserID = src
-	return
-}
-
-func ConvuuidUUIDToRoomAdmin(src uuid.UUID) (dst RoomAdmin) {
-	dst.UserID = src
-	return
-}
+// func ConvuuidUUIDToRoomAdmin(src uuid.UUID) (dst RoomAdmin) {
+// 	dst.UserID = src
+// 	return
+// }
 
 func ConvuuidUUIDToUserMeta(src uuid.UUID) (dst User) {
 	dst.ID = src
-	return
-}
-
-func convEventAdminToRoomAdmin(src EventAdmin) (dst RoomAdmin) {
-	dst.UserID = src.UserID
-	return
-}
-
-func convEventAdminTodomainUser(src EventAdmin) (dst domain.User) {
-	dst.ID = src.UserID
 	return
 }
 
@@ -331,7 +301,7 @@ func convEventAttendeeTodomainAttendee(src EventAttendee) (dst domain.Attendee) 
 }
 
 func convEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
-	dst.Tag = convTagTodomainTag(src.Tag)
+	dst.Tag = convTagTodomainTag(*src.Tag)
 	dst.Locked = src.Locked
 	return
 }
@@ -347,11 +317,11 @@ func convEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = convEventAdminTodomainUser(src.Admins[i])
+		dst.Admins[i] = convUserTodomainUser(*src.Admins[i])
 	}
 	dst.Tags = make([]domain.EventTag, len(src.Tags))
 	for i := range src.Tags {
-		dst.Tags[i] = convEventTagTodomainEventTag(src.Tags[i])
+		dst.Tags[i] = convEventTagTodomainEventTag(*src.Tags[i])
 	}
 	dst.AllowTogether = src.AllowTogether
 	dst.Attendees = make([]domain.Attendee, len(src.Attendees))
@@ -363,16 +333,6 @@ func convEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.Model.UpdatedAt = src.Model.UpdatedAt
 	dst.Model.DeletedAt = new(time.Time)
 	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
-	return
-}
-
-func convGroupAdminTodomainUser(src GroupAdmin) (dst domain.User) {
-	dst.ID = src.UserID
-	return
-}
-
-func convGroupMemberTodomainUser(src GroupMember) (dst domain.User) {
-	dst.ID = src.UserID
 	return
 }
 
@@ -400,10 +360,10 @@ func convGroupTodomainGroup(src Group) (dst domain.Group) {
 	return
 }
 
-func convRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
-	dst.ID = src.UserID
-	return
-}
+// func convRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
+// 	dst.ID = src.UserID
+// 	return
+// }
 
 func convRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
@@ -417,7 +377,7 @@ func convRoomTodomainRoom(src Room) (dst domain.Room) {
 	}
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = convRoomAdminTodomainUser(src.Admins[i])
+		dst.Admins[i] = convUserTodomainUser(*src.Admins[i])
 	}
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt
@@ -454,22 +414,22 @@ func convgormDeletedAtTotimeTime(src gorm.DeletedAt) (dst time.Time) {
 	return
 }
 
-func convuuidUUIDToEventAdmin(src uuid.UUID) (dst EventAdmin) {
-	dst.UserID = src
+func convuuidUUIDToEventAdmin(src uuid.UUID) (dst User) {
+	dst.ID = src
 	return
 }
 
-func convuuidUUIDToGroupAdmin(src uuid.UUID) (dst GroupAdmin) {
-	dst.UserID = src
+func convuuidUUIDToGroupAdmin(src uuid.UUID) (dst User) {
+	dst.ID = src
 	return
 }
 
-func convuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
-	dst.UserID = src
+func convuuidUUIDToGroupMember(src uuid.UUID) (dst User) {
+	dst.ID = src
 	return
 }
 
-func convuuidUUIDToRoomAdmin(src uuid.UUID) (dst RoomAdmin) {
-	dst.UserID = src
+func convuuidUUIDToRoomAdmin(src uuid.UUID) (dst User) {
+	dst.ID = src
 	return
 }

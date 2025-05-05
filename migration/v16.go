@@ -2,49 +2,83 @@ package migration
 
 import (
 	"database/sql"
-	// gormigrateに必要なその他のimportがあれば追加
+	"time"
+
 	"github.com/go-gormigrate/gormigrate/v2"
 	"github.com/gofrs/uuid"
 	"gorm.io/gorm"
-	// 他の必要なimport (例: time, etc. Model structが含むフィールドによる)
 )
 
-// User モデルの定義（マイグレーションに必要な最小限のフィールドのみ）
-// アプリケーション内の実際のUserモデルを正確に反映させてください
 type User struct {
 	ID uuid.UUID `gorm:"type:char(36);primaryKey"`
-	// User モデルにある他のフィールド（例: CreatedAt, UpdatedAtなど）
-	// CreatedAt time.Time
-	// UpdatedAt time.Time
 }
 
-// v16Group はマイグレーション後のGroupモデルを反映します
-// gormigrateでは、そのマイグレーション時点でのモデルの状態を定義します
 type v16Group struct {
-	ID          uuid.UUID     `gorm:"type:char(36);primaryKey"`
-	Name        string        `gorm:"type:varchar(32);not null"`
-	Description string        `gorm:"type:TEXT"`
-	IsTraqGroup bool          `gorm:"not null"`
-	JoinFreely  sql.NullBool  `gorm:""`
-	TraqID      uuid.NullUUID `gorm:""`
-	// GroupMemberとGroupAdmin構造体からmany2manyへの変更
-	Members        []*User       `gorm:"many2many:group_members;"` // 結合テーブル名を明示
-	Admins         []*User       `gorm:"many2many:group_admins;"`  // 結合テーブル名を明示
+	ID             uuid.UUID     `gorm:"type:char(36);primaryKey"`
+	Name           string        `gorm:"type:varchar(32);not null"`
+	Description    string        `gorm:"type:TEXT"`
+	IsTraqGroup    bool          `gorm:"not null"`
+	JoinFreely     sql.NullBool  `gorm:""`
+	TraqID         uuid.NullUUID `gorm:""`
+	Members        []*User       `gorm:"many2many:group_member;"` // 結合テーブル名を明示
+	Admins         []*User       `gorm:"many2many:group_admin;"`  // 結合テーブル名を明示
 	CreatedByRefer uuid.NullUUID `gorm:"type:char(36);"`
 	CreatedBy      *User         `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;"`
-	// Model structが含まれていたフィールド（例: CreatedAt, UpdatedAt, DeletedAtなど）
-	// 必要に応じてここに明示的に定義してください。
-	// CreatedAt time.Time
-	// UpdatedAt time.Time
-	// DeletedAt gorm.DeletedAt `gorm:"index"`
+}
+
+type v16Room struct {
+	ID     uuid.UUID `gorm:"type:char(36);primaryKey"`
+	Admins []*User   `gorm:"many2many:room_admin;"` // 結合テーブル名を明示
+}
+
+func (*v16Room) TableName() string {
+	return "rooms"
+}
+
+type v16EventTag struct {
+	EventID uuid.UUID `gorm:"type:char(36);primaryKey"`
+}
+
+func (*v16EventTag) TableName() string {
+	return "event_tags"
+}
+
+type v16Event struct {
+	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Name           string    `gorm:"type:varchar(32); not null"`
+	Description    string    `gorm:"type:TEXT"`
+	GroupID        uuid.UUID `gorm:"type:char(36); not null; index"`
+	Group          v16Group  `gorm:"->; foreignKey:GroupID; constraint:-"`
+	RoomID         uuid.UUID `gorm:"type:char(36); not null; index"`
+	Room           v16Room   `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"`
+	TimeStart      time.Time `gorm:"type:DATETIME; index"`
+	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
+	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`
+	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Admins         []*User   `gorm:"many2many:event_admin"`
+	AllowTogether  bool
+	Tags           []*v16EventTag `gorm:"references:EventID; constraint:OnDelete:CASCADE;"`
+	Open           bool
+	Attendees      []v16EventAttendee
+}
+
+type v16EventAttendee struct {
+	UserID  uuid.UUID `gorm:"type:char(36); primaryKey"`
+	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
+}
+
+func (*v16EventAttendee) TableName() string {
+	return "event_attendee"
+}
+
+func (*v16Event) TableName() string {
+	return "events"
 }
 
 func (*v16Group) TableName() string {
-	return "groups" // テーブル名は変更されないことを明示
+	return "groups"
 }
 
-// v15Group はマイグレーション前のGroupモデルのテーブルカラムを反映します
-// 提供されたv15Groupの定義を参考にします（リレーションシップは含まないことが多い）
 type v16GroupOld struct {
 	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name           string    `gorm:"type:varchar(32);not null"`
@@ -53,38 +87,24 @@ type v16GroupOld struct {
 	JoinFreely     sql.NullBool
 	TraqID         uuid.NullUUID `gorm:"default:null;uniqueIndex"`
 	CreatedByRefer uuid.NullUUID `gorm:"type:char(36);"`
-	// Model structが含まれていたフィールド（例: CreatedAt, UpdatedAt, DeletedAtなど）
-	// 必要に応じてここに明示的に定義してください。
 }
 
 func (*v16GroupOld) TableName() string {
 	return "groups" // テーブル名は変更されないことを明示
 }
 
-// v15GroupMember はマイグレーション前のGroupMember結合テーブル構造体を反映します
-// 提供されたv15GroupMemberの定義を参考にします
 type v16GroupMember struct {
 	UserID  uuid.UUID `gorm:"type:char(36);primaryKey"`
 	GroupID uuid.UUID `gorm:"type:char(36);primaryKey"`
-	// Model structが含まれていたフィールド（例: CreatedAt, UpdatedAtなど）
-	// もし結合テーブルにこれらのカラムがあった場合、ロールバックの際に必要になるため定義してください
-	// CreatedAt time.Time
-	// UpdatedAt time.Time
 }
 
 func (*v16GroupMember) TableName() string {
 	return "group_members" // テーブル名は変更されないことを明示
 }
 
-// v15GroupAdmin はマイグレーション前のGroupAdmin結合テーブル構造体を反映します
-// 提供されたv15GroupAdminの定義を参考にします
 type v16GroupAdmin struct {
 	UserID  uuid.UUID `gorm:"type:char(36);primaryKey"`
 	GroupID uuid.UUID `gorm:"type:char(36);primaryKey"`
-	// Model structが含まれていたフィールド（例: CreatedAt, UpdatedAtなど）
-	// もし結合テーブルにこれらのカラムがあった場合、ロールバックの際に必要になるため定義してください
-	// CreatedAt time.Time
-	// UpdatedAt time.Time
 }
 
 func (*v16GroupAdmin) TableName() string {
@@ -94,28 +114,36 @@ func (*v16GroupAdmin) TableName() string {
 // v16 は many2many リレーションシップへの変更を処理するマイグレーションです
 func v16() *gormigrate.Migration {
 	return &gormigrate.Migration{
-		ID: "16", // 前のマイグレーションIDの次のユニークなIDを設定
+		ID: "16",
 
 		Migrate: func(tx *gorm.DB) error {
-			// GORMに新しいモデル定義に基づいてデータベースをマイグレーションさせます。
-			// many2manyタグは既存の'group_member'および'group_admin'テーブルを使用するようにGORMに指示します。
-			// テーブルが存在しない場合は作成を試みますが、このケースでは既に存在すると想定されます。
-			// Userモデルもリレーションシップの一部として含めます。
-			return tx.AutoMigrate(&v16Group{}, &User{})
-			// AutoMigrateは、既存のテーブルやカラムに対して破壊的な変更（カラムの削除など）を
-			// デフォルトでは行いません。新しいカラムやテーブルを追加するのに安全です。
-			// この場合、主にGORMの内部的なリレーションシップマッピングを更新します。
+			if tx.Migrator().HasTable("room_admins") {
+				if err := tx.Migrator().RenameTable("room_admins", "room_admin"); err != nil {
+					return err
+				}
+			}
+
+			if tx.Migrator().HasTable("event_admins") {
+				if err := tx.Migrator().RenameTable("event_admins", "event_admin"); err != nil {
+					return err
+				}
+			}
+
+			if tx.Migrator().HasTable("group_members") {
+				if err := tx.Migrator().RenameTable("group_members", "group_member"); err != nil {
+					return err
+				}
+			}
+			if tx.Migrator().HasTable("group_admins") {
+				if err := tx.Migrator().RenameTable("group_admins", "group_admin"); err != nil {
+					return err
+				}
+			}
+			return tx.AutoMigrate(&v16Group{}, &User{}, &v16Event{}, &v16EventAttendee{}, &v16Room{})
 		},
 
 		Rollback: func(tx *gorm.DB) error {
-			// マイグレーション前のモデル定義に基づいてデータベースをロールバックさせます。
-			// これにより、GORMの内部的なリレーションシップマッピングが、
-			// 明示的なGroupMember/GroupAdmin構造体を使用する状態に戻ります。
-			// ロールバックでは、v15のGroup、GroupMember、GroupAdmin構造体を使用してAutoMigrateを行います。
 			return tx.AutoMigrate(&v16GroupOld{}, &v16GroupMember{}, &v16GroupAdmin{})
-			// 注意: AutoMigrateは、ロールバックの場合でも基本的にはテーブルやカラムを追加/修正する挙動です。
-			// このケースではスキーマが大きく変わらないためこれで十分ですが、
-			// 複雑なスキーマ変更のロールバックではDROP TABLE/COLUMNなどの明示的なSQLが必要になる場合があります。
 		},
 	}
 }

@@ -10,14 +10,12 @@ import (
 	"github.com/traPtitech/knoQ/domain/filters"
 	"github.com/traPtitech/knoQ/infra"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 func groupFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Members").Preload("Admins").Preload("CreatedBy")
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteGroupParams -d Group -o converter.go .
 type WriteGroupParams struct {
 	domain.WriteGroupParams
 	CreatedBy uuid.UUID
@@ -36,7 +34,7 @@ func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupPara
 }
 
 func (repo *GormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
-	err := addMemberToGroup(repo.db, groupID, userID)
+	err := repo.db.Model(&Group{ID: groupID}).Association("Members").Append(&User{ID: userID})
 	return defaultErrorHandling(err)
 }
 
@@ -46,7 +44,7 @@ func (repo *GormRepository) DeleteGroup(groupID uuid.UUID) error {
 }
 
 func (repo *GormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error {
-	err := deleteMemberOfGroup(repo.db, groupID, userID)
+	err := repo.db.Model(&Group{ID: groupID}).Association("Members").Delete(&User{ID: userID})
 	return defaultErrorHandling(err)
 }
 
@@ -113,32 +111,11 @@ func updateGroup(db *gorm.DB, groupID uuid.UUID, params WriteGroupParams) (*Grou
 	return &group, err
 }
 
-func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
-	groupMember := GroupMember{
-		GroupID: groupID,
-		UserID:  userID,
-	}
-
-	onConflictClause := clause.OnConflict{
-		DoUpdates: clause.AssignmentColumns([]string{"updated_at", "deleted_at"}),
-	}
-
-	return db.Clauses(onConflictClause).Create(&groupMember).Error
-}
-
 func deleteGroup(db *gorm.DB, groupID uuid.UUID) error {
 	group := Group{
 		ID: groupID,
 	}
 	return db.Delete(&group).Error
-}
-
-func deleteMemberOfGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
-	groupMember := GroupMember{
-		GroupID: groupID,
-		UserID:  userID,
-	}
-	return db.Delete(&groupMember).Error
 }
 
 func getGroup(db *gorm.DB, groupID uuid.UUID) (*Group, error) {
@@ -163,9 +140,9 @@ func createGroupFilter(expr filters.Expr) (string, []interface{}, error) {
 	}
 
 	attrMap := map[filters.Attr]string{
-		filters.AttrUser:   "group_members.user_id",
-		filters.AttrBelong: "group_members.user_id",
-		filters.AttrAdmin:  "group_admins.user_id",
+		filters.AttrUser:   "group_member.user_id",
+		filters.AttrBelong: "group_member.user_id",
+		filters.AttrAdmin:  "group_admin.user_id",
 
 		filters.AttrName:  "groups.name",
 		filters.AttrGroup: "groups.id",
@@ -277,7 +254,7 @@ func (repo *GormRepository) SyncExternalGroups() error {
 			Name:        g.Name,
 			Description: g.Description,
 			IsTraqGroup: true,
-			JoinFreely:  sql.NullBool{}, // 外部グループなので JoinFreely 無し
+			JoinFreely:  sql.NullBool{},
 			Members: lo.Map(g.Members, func(tm infra.TraqUserGroupMember, _ int) *User {
 				return &User{
 					ID: tm.ID,
@@ -297,30 +274,6 @@ func (repo *GormRepository) SyncExternalGroups() error {
 		if err := tx.Where("is_traq_group = ?", true).Find(&existingGroups).Error; err != nil {
 			return err
 		}
-		existingGroupIDs := lo.Map(existingGroups, func(eg Group, _ int) uuid.UUID {
-			return eg.ID
-		})
-		if err := tx.Where("group_id in ?", existingGroupIDs).Delete(&GroupMember{}).Error; err != nil {
-			return err
-		}
-		if err := tx.Where("group_id in ?", existingGroupIDs).Delete(&GroupAdmin{}).Error; err != nil {
-			return err
-		}
-
-		// for _, ng := range newGroups {
-		// 	if err := tx.Save(&ng).Error; err != nil {
-		// 		fmt.Printf("\nhere1\n%s\n\n%#v\n\n", err.Error(), *ng)
-		// 		return err
-		// 	}
-		// 	if err := tx.Model(ng).Association("Members").Replace(ng.Members); err != nil {
-		// 		fmt.Printf("\nhere2\n%s\n\n%#v\n\n", err.Error(), *&ng.Members)
-		// 		return err
-		// 	}
-		// 	if err := tx.Model(ng).Association("Admins").Replace(ng.Admins); err != nil {
-		// 		fmt.Printf("\nhere3\n%s\n\n%#v\n\n", err.Error(), *&ng.Admins)
-		// 		return err
-		// 	}
-		// }
 		if err := tx.Session(&gorm.Session{FullSaveAssociations: true}).Save(&newGroups).Error; err != nil {
 			return err
 		}
