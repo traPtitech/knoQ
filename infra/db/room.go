@@ -16,7 +16,6 @@ func roomFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Events").Preload("Admins").Preload("CreatedBy")
 }
 
-
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s CreateRoomParams -d Room -o converter.go .
 type CreateRoomParams struct {
 	domain.WriteRoomParams
@@ -24,7 +23,6 @@ type CreateRoomParams struct {
 	Verified  bool
 	CreatedBy uuid.UUID
 }
-
 
 //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s UpdateRoomParams -d Room -o converter.go .
 type UpdateRoomParams struct {

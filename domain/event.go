@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/domain/filters"
 )
 
 type ScheduleStatus int
@@ -78,7 +78,7 @@ type EventRepository interface {
 	UpsertMeEventSchedule(eventID uuid.UUID, schedule ScheduleStatus, info *ConInfo) error
 
 	GetEvent(eventID uuid.UUID, info *ConInfo) (*Event, error)
-	GetEvents(expr filter.Expr, info *ConInfo) ([]*Event, error)
+	GetEvents(expr filters.Expr, info *ConInfo) ([]*Event, error)
 	IsEventAdmins(eventID uuid.UUID, info *ConInfo) bool
 
 	// GetEventActivities(day int) ([]*Event, error)
@@ -91,8 +91,8 @@ func (e *Event) TimeConsistency() bool {
 func (e *Event) RoomTimeConsistency() bool {
 	times := e.Room.CalcAvailableTime(e.AllowTogether)
 	for _, t := range times {
-		start := t.TimeStart
-		end := t.TimeEnd
+		start := t.Start
+		end := t.End
 		if start.Equal(e.TimeStart) || start.Before(e.TimeStart) &&
 			(end.Equal(e.TimeEnd) || end.After(e.TimeEnd)) {
 			return true

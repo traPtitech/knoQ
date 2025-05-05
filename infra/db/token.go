@@ -14,25 +14,23 @@ func (repo *GormRepository) GetToken(userID uuid.UUID) (*oauth2.Token, error) {
 	return getToken(repo.db, userID)
 }
 
+// TODO: string を返した方が良い?
 func getToken(db *gorm.DB, userID uuid.UUID) (*oauth2.Token, error) {
-	token := Token{}
-	err := db.Take(&token, userID).Error
+	u := new(User)
+	err := db.Take(u, userID).Error
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	// decrypt
-	if token.AccessToken != "" {
-		token.AccessToken, err = decryptByGCM(tokenKey, []byte(token.AccessToken))
+	if u.AccessToken != "" {
+		u.AccessToken, err = decryptByGCM(tokenKey, []byte(u.AccessToken))
 		if err != nil {
 			return nil, defaultErrorHandling(err)
 		}
 	}
 	return &oauth2.Token{
-		AccessToken:  token.AccessToken,
-		TokenType:    token.TokenType,
-		RefreshToken: token.RefreshToken,
-		Expiry:       token.Expiry,
+		AccessToken: u.AccessToken,
 	}, defaultErrorHandling(err)
 }
 

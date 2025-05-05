@@ -11,7 +11,7 @@ services:
       MARIADB_USERNAME: root
       MARIADB_PASSWORD: password
       MARIADB_HOSTNAME: db
-      MARIADB_DATABASE: knoQ
+      MARIADB_DATABASE: knoq
       ORIGIN: http://localhost:3000
       SESSION_KEY: ${SESSION_KEY:-random32wordsXXXXXXXXXXXXXXXXXXX}
       TRAQ_CALENDARID: ${TRAQ_CALENDARID}
@@ -41,8 +41,8 @@ services:
     container_name: knoq_db
     environment:
       MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: knoQ
-    command: mysqld --character-set-server=utf8 --collation-server=utf8_general_ci
+      MYSQL_DATABASE: knoq
+    command: mysqld --character-set-server=utf8mb4
     volumes:
       - "./_development/mariadb:/var/lib/mysql"
     expose:

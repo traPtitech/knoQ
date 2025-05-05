@@ -8,7 +8,7 @@ import (
 )
 
 // BeforeSave is hook
-func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
+func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 	if e.ID == uuid.Nil {
 		e.ID, err = uuid.NewV4()
 		if err != nil {
@@ -22,7 +22,7 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 			e.Room.TimeStart = e.TimeStart
 			e.Room.TimeEnd = e.TimeEnd
 			e.Room.CreatedByRefer = e.CreatedByRefer
-			e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
+			copy(e.Admins, e.Room.Admins)
 		} else {
 			return NewValueError(ErrRoomUndefined, "roomID", "place")
 		}
@@ -77,10 +77,6 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	err = tx.Where("event_id = ?", e.ID).Delete(&EventAdmin{}).Error
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -108,11 +104,6 @@ func (e *Event) BeforeDelete(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	err = tx.Where("event_id = ?", e.ID).Delete(&EventAdmin{}).Error
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -124,7 +115,7 @@ func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
 
 	// 名前からIDを探す
 	// タグが存在しなければ、作ってイベントにタグを追加する
-	//（自動で作ることを想定 FullSaveAssociations: true等）
+	// （自動で作ることを想定 FullSaveAssociations: true等）
 	// 存在すれば、作らずにイベントにタグを追加する
 	if et.Tag.ID == uuid.Nil {
 		tag := Tag{
@@ -162,7 +153,7 @@ func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 // BeforeSave is hook
-func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
+func (r *Room) BeforeSave(_ *gorm.DB) (err error) {
 	if r.ID != uuid.Nil {
 		return nil
 	}
@@ -179,13 +170,13 @@ func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
-	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
+// 	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 	room, err := getRoom(tx.Preload("Admins"), r.ID)
@@ -200,7 +191,7 @@ func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 }
 
 // BeforeSave is hook
-func (g *Group) BeforeSave(tx *gorm.DB) (err error) {
+func (g *Group) BeforeSave(_ *gorm.DB) (err error) {
 	if g.ID != uuid.Nil {
 		return nil
 	}
@@ -211,18 +202,18 @@ func (g *Group) BeforeSave(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (g *Group) BeforeUpdate(tx *gorm.DB) (err error) {
-	// delete current m2m
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (g *Group) BeforeUpdate(tx *gorm.DB) (err error) {
+// 	// delete current m2m
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 	group, err := getGroup(tx.Preload("Admins"), g.ID)
@@ -241,21 +232,21 @@ func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (g *Group) BeforeDelete(tx *gorm.DB) (err error) {
-	// delete current m2m
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (g *Group) BeforeDelete(tx *gorm.DB) (err error) {
+// 	// delete current m2m
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // BeforeCreate is hook
-func (t *Tag) BeforeCreate(tx *gorm.DB) (err error) {
+func (t *Tag) BeforeCreate(_ *gorm.DB) (err error) {
 	if t.ID != uuid.Nil {
 		return nil
 	}
@@ -267,7 +258,7 @@ func (t *Tag) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // BeforeCreate is hook
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+func (u *User) BeforeCreate(_ *gorm.DB) (err error) {
 	if u.ID != uuid.Nil {
 		return nil
 	}
@@ -278,13 +269,13 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (t *Token) BeforeSave(tx *gorm.DB) (err error) {
-	if t.AccessToken != "" {
-		cipherText, err := encryptByGCM(tokenKey, t.AccessToken)
+func (u *User) BeforeSave(_ *gorm.DB) (err error) {
+	if u.AccessToken != "" {
+		cipherText, err := encryptByGCM(tokenKey, u.AccessToken)
 		if err != nil {
 			return err
 		}
-		t.AccessToken = string(cipherText)
+		u.AccessToken = string(cipherText)
 	}
 
 	return nil

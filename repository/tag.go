@@ -7,15 +7,15 @@ import (
 
 func (repo *Repository) CreateOrGetTag(name string) (*domain.Tag, error) {
 	t, err := repo.GormRepo.CreateOrGetTag(name)
-	return t, defaultErrorHandling(err)
+	return t, err
 }
 
 func (repo *Repository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
 	t, err := repo.GormRepo.GetTag(tagID)
-	return t, defaultErrorHandling(err)
+	return t, err
 }
 
 func (repo *Repository) GetAllTags() ([]*domain.Tag, error) {
 	ts, err := repo.GormRepo.GetAllTags()
-	return ts, defaultErrorHandling(err)
+	return ts, err
 }

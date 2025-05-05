@@ -7,7 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/domain/filters"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -15,26 +15,27 @@ import (
 func eventFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Group").Preload("Group.Members").Preload("Group.Admins").Preload("Group.CreatedBy").
 		Preload("Room").Preload("Room.Events").Preload("Room.Admins").Preload("Room.CreatedBy").
-		Preload("Admins").Preload("Admins.User").
+		Preload("Admins").
 		Preload("Tags").Preload("Tags.Tag").
 		Preload("Attendees").Preload("Attendees.User").
 		Preload("CreatedBy")
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteEventParams -d Event -o converter.go .
 type WriteEventParams struct {
 	domain.WriteEventParams
 	CreatedBy uuid.UUID
 }
 
-func (repo *GormRepository) CreateEvent(params WriteEventParams) (*Event, error) {
+func (repo *GormRepository) CreateEvent(params WriteEventParams) (*domain.Event, error) {
 	e, err := createEvent(repo.db, params)
-	return e, defaultErrorHandling(err)
+	de := ConvEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*Event, error) {
+func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*domain.Event, error) {
 	e, err := updateEvent(repo.db, eventID, params)
-	return e, defaultErrorHandling(err)
+	de := ConvEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
@@ -57,12 +58,14 @@ func (repo *GormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, sched
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
-	es, err := getEvent(eventFullPreload(repo.db), eventID)
-	return es, defaultErrorHandling(err)
+// group が traq のだと zero 値になる
+func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*domain.Event, error) {
+	e, err := getEvent(eventFullPreload(repo.db), eventID)
+	de := ConvEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
+func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, error) {
 	filterFormat, filterArgs, err := createEventFilter(expr)
 	if err != nil {
 		return nil, err
@@ -70,11 +73,11 @@ func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 	cmd := eventFullPreload(repo.db)
 	es, err := getEvents(cmd.Joins(
 		"LEFT JOIN event_tags ON events.id = event_tags.event_id "+
-			"LEFT JOIN group_members ON events.group_id = group_members.group_id "+
-			"LEFT JOIN event_admins ON events.id = event_admins.event_id "+
-			"LEFT JOIN event_attendees ON events.id = event_attendees.event_id"),
-		filterFormat, filterArgs)
-	return es, defaultErrorHandling(err)
+			"LEFT JOIN group_member ON events.group_id = group_member.group_id "+
+			"LEFT JOIN event_admin ON events.id = event_admin.event_id "+
+			"LEFT JOIN event_attendees ON events.id = event_attendees.event_id"), filterFormat, filterArgs)
+	des := ConvSPEventToSPdomainEvent(es)
+	return des, defaultErrorHandling(err)
 }
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
@@ -113,7 +116,7 @@ func deleteEventTag(db *gorm.DB, eventID uuid.UUID, tagName string, deleteLocked
 	}
 	eventTag := EventTag{
 		EventID: eventID,
-		Tag: Tag{
+		Tag: &Tag{
 			Name: tagName,
 		},
 	}
@@ -152,65 +155,65 @@ func getEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, error) 
 	return events, err
 }
 
-func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
+func createEventFilter(expr filters.Expr) (string, []interface{}, error) {
 	if expr == nil {
 		return "", []interface{}{}, nil
 	}
 
-	attrMap := map[filter.Attr]string{
-		filter.AttrUser:     "event_attendees.user_id",
-		filter.AttrBelong:   "group_members.user_id",
-		filter.AttrAdmin:    "event_admins.user_id",
-		filter.AttrAttendee: "event_attendees.user_id",
+	attrMap := map[filters.Attr]string{
+		filters.AttrUser:     "event_attendees.user_id",
+		filters.AttrBelong:   "group_member.user_id",
+		filters.AttrAdmin:    "event_admin.user_id",
+		filters.AttrAttendee: "event_attendees.user_id",
 
-		filter.AttrName:      "events.name",
-		filter.AttrGroup:     "events.group_id",
-		filter.AttrRoom:      "events.room_id",
-		filter.AttrTag:       "event_tags.tag_id",
-		filter.AttrEvent:     "events.id",
-		filter.AttrTimeStart: "events.time_start",
-		filter.AttrTimeEnd:   "events.time_end",
+		filters.AttrName:      "events.name",
+		filters.AttrGroup:     "events.group_id",
+		filters.AttrRoom:      "events.room_id",
+		filters.AttrTag:       "event_tags.tag_id",
+		filters.AttrEvent:     "events.id",
+		filters.AttrTimeStart: "events.time_start",
+		filters.AttrTimeEnd:   "events.time_end",
 	}
-	defaultRelationMap := map[filter.Relation]string{
-		filter.Eq:       "=",
-		filter.Neq:      "!=",
-		filter.Greter:   ">",
-		filter.GreterEq: ">=",
-		filter.Less:     "<",
-		filter.LessEq:   "<=",
+	defaultRelationMap := map[filters.Relation]string{
+		filters.Eq:       "=",
+		filters.Neq:      "!=",
+		filters.Greter:   ">",
+		filters.GreterEq: ">=",
+		filters.Less:     "<",
+		filters.LessEq:   "<=",
 	}
 
-	var cf func(e filter.Expr) (string, []interface{}, error)
-	cf = func(e filter.Expr) (string, []interface{}, error) {
+	var cf func(e filters.Expr) (string, []interface{}, error)
+	cf = func(e filters.Expr) (string, []interface{}, error) {
 		var filterFormat string
 		var filterArgs []interface{}
 
 		switch e := e.(type) {
-		case *filter.CmpExpr:
+		case *filters.CmpExpr:
 			switch e.Attr {
-			case filter.AttrName:
+			case filters.AttrName:
 				name, ok := e.Value.(string)
 				if !ok {
 					return "", nil, ErrExpression
 				}
-				rel := map[filter.Relation]string{
-					filter.Eq:  "=",
-					filter.Neq: "!=",
+				rel := map[filters.Relation]string{
+					filters.Eq:  "=",
+					filters.Neq: "!=",
 				}[e.Relation]
 				filterFormat = fmt.Sprintf("events.name %v ?", rel)
 				filterArgs = []interface{}{name}
-			case filter.AttrTimeStart:
+			case filters.AttrTimeStart:
 				fallthrough
-			case filter.AttrTimeEnd:
+			case filters.AttrTimeEnd:
 				t, ok := e.Value.(time.Time)
 				if !ok {
 					return "", nil, ErrExpression
 				}
 				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
 				filterArgs = []interface{}{t}
-			case filter.AttrUser:
+			case filters.AttrUser:
 				fallthrough
-			case filter.AttrAttendee:
+			case filters.AttrAttendee:
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {
 					return "", nil, ErrExpression
@@ -226,13 +229,13 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 				filterArgs = []interface{}{id}
 			}
 
-		case *filter.LogicOpExpr:
-			op := map[filter.LogicOp]string{
-				filter.And: "AND",
-				filter.Or:  "OR",
+		case *filters.LogicOpExpr:
+			op := map[filters.LogicOp]string{
+				filters.And: "AND",
+				filters.Or:  "OR",
 			}[e.LogicOp]
-			lFilter, lFilterArgs, lerr := cf(e.Lhs)
-			rFilter, rFilterArgs, rerr := cf(e.Rhs)
+			lFilter, lFilterArgs, lerr := cf(e.LHS)
+			rFilter, rFilterArgs, rerr := cf(e.RHS)
 
 			if lerr != nil && rerr != nil {
 				return "", nil, ErrExpression
@@ -245,7 +248,8 @@ func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 			}
 
 			filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
-			filterArgs = append(lFilterArgs, rFilterArgs...)
+			filterArgs = lFilterArgs
+			filterArgs = append(filterArgs, rFilterArgs...)
 
 		default:
 			return "", nil, ErrExpression

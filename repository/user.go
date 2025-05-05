@@ -1,11 +1,9 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/gofrs/uuid"
-	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/utils/random"
@@ -17,125 +15,121 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	if !repo.IsPrivilege(info) {
 		return domain.ErrForbidden
 	}
-	traQUsers, err := repo.TraQRepo.GetUsers(true)
+	// traQUsers, err := repo.TraQRepo.GetUsers(true)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// users := make([]*db.User, 0)
+	// for _, u := range traQUsers {
+	// 	if u.Bot {
+	// 		continue
+	// 	}
+
+	// 	// uid := uuid.Must(uuid.FromString(u.GetId()))
+	// 	if u.ID.IsNil() {
+	// 		panic("uuid is nil")
+	// 	}
+	// 	user := &db.User{
+	// 		ID:           u.ID,
+	// 		State:        int(u.State),
+	// 		ProviderName: traQIssuerName,
+	// 	}
+	// 	users = append(users, user)
+	// }
+
+	err := repo.GormRepo.SyncUsers()
 	if err != nil {
-		return defaultErrorHandling(err)
+		return err
 	}
 
-	users := make([]*db.User, 0)
-	for _, u := range traQUsers {
-		if u.Bot {
-			continue
-		}
-
-		uid := uuid.Must(uuid.FromString(u.GetId()))
-		user := &db.User{
-			ID:    uid,
-			State: int(u.State),
-			Provider: db.Provider{
-				UserID:  uid,
-				Issuer:  traQIssuerName,
-				Subject: u.GetId(),
-			},
-		}
-		users = append(users, user)
+	err = repo.GormRepo.SyncExternalGroups()
+	if err != nil {
+		return err
 	}
-
-	err = repo.GormRepo.SyncUsers(users)
-	return defaultErrorHandling(err)
+	return err
 }
 
 func (repo *Repository) GetOAuthURL() (url, state, codeVerifier string) {
-	return repo.TraQRepo.GetOAuthURL()
+	return repo.GormRepo.GetTraqRepository().GetOAuthURL()
 }
 
 func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.User, error) {
-	t, err := repo.TraQRepo.GetOAuthToken(query, state, codeVerifier)
+	t, err := repo.GormRepo.GetTraqRepository().GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
-	traQUser, err := repo.TraQRepo.GetUserMe(t)
+	traQUser, err := repo.GormRepo.GetTraqRepository().GetUserMe(t.AccessToken)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
-	uid := uuid.Must(uuid.FromString(traQUser.GetId()))
+	// uid := uuid.Must(uuid.FromString(traQUser.GetId()))
+	if traQUser.ID.IsNil() {
+		panic("uuid is nil")
+	}
 	user := db.User{
-		ID:    uid,
-		State: 1,
-		Token: db.Token{
-			UserID: uid,
-			Oauth2Token: &db.Oauth2Token{
-				AccessToken:  t.AccessToken,
-				TokenType:    t.TokenType,
-				RefreshToken: t.RefreshToken,
-				Expiry:       t.Expiry,
-			},
-		},
-		Provider: db.Provider{
-			UserID:  uid,
-			Issuer:  traQIssuerName,
-			Subject: traQUser.GetId(),
-		},
+		ID:           traQUser.ID,
+		State:        1,
+		AccessToken:  t.AccessToken,
+		ProviderName: traQIssuerName,
 	}
 	_, err = repo.GormRepo.SaveUser(user)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		println("hererererere")
+		return nil, err
 	}
 	u, err := repo.GetUser(user.ID, &domain.ConInfo{
 		ReqUserID: user.ID,
 	})
-	return u, defaultErrorHandling(err)
+	return u, err
 }
 
-func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
-	userMeta, err := repo.GormRepo.GetUser(userID)
+func (repo *Repository) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.User, error) {
+	user, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
 
-	if userMeta.Provider.Issuer == traQIssuerName {
-		userBody, err := repo.TraQRepo.GetUser(userID)
-		if err != nil {
-			return nil, defaultErrorHandling(err)
-		}
-		user, _ := repo.mergeUser(userMeta, userBody)
-		return user, nil
-	}
-	// userBody, err := repo.gormRepo.GetUserBody(userID)
-
-	return nil, errors.New("not implemented")
+	// if dbUser.ProviderName == traQIssuerName {
+	// 	traqUser, err := repo.GormRepo.GetTraqRepository().GetUser(userID)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	user, _ := repo.mergeDBUserandTraQUser(dbUser, traqUser)
+	return user, nil
+	// }
 }
 
 func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 	return repo.GetUser(info.ReqUserID, info)
 }
 
-func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, info *domain.ConInfo) ([]*domain.User, error) {
-	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
+func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, _ *domain.ConInfo) ([]*domain.User, error) {
+	users, err := repo.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
 	// TODO fix
-	traQUserBodys, err := repo.TraQRepo.GetUsers(includeSuspend)
-	if err != nil {
-		return nil, defaultErrorHandling(err)
-	}
-	traQUserBodsMap := traQUserMap(traQUserBodys)
-	users := make([]*domain.User, 0, len(userMetas))
-	for _, userMeta := range userMetas {
-		userBody, ok := traQUserBodsMap[userMeta.ID]
-		if !ok {
-			continue
-		}
-		if !includeBot && userBody.Bot {
-			continue
-		}
-		user, err := repo.mergeUser(userMeta, userBody)
-		if err != nil {
-			continue
-		}
-		users = append(users, user)
-	}
+	// traQUserBodys, err := repo.GormRepo.GetTraqRepository().GetUsers(includeSuspend)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// traQUserBodsMap := traQUserMap(traQUserBodys)
+	// users := make([]*domain.User, 0, len(dbUsers))
+	// for _, dbUser := range dbUsers {
+	// 	traqUser, ok := traQUserBodsMap[dbUser.ID]
+	// 	if !ok {
+	// 		continue
+	// 	}
+	// 	if !includeBot && traqUser.Bot {
+	// 		continue
+	// 	}
+	// 	user, err := repo.mergeDBUserandTraQUser(dbUser, traqUser)
+	// 	if err != nil {
+	// 		continue
+	// 	}
+	// 	users = append(users, user)
+	// }
 
 	return users, nil
 }
@@ -149,15 +143,18 @@ func (repo *Repository) ReNewMyiCalSecret(info *domain.ConInfo) (secret string, 
 func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 	user, err := repo.GormRepo.GetUser(info.ReqUserID)
 	if err != nil {
-		return "", defaultErrorHandling(err)
+		return "", err
 	}
 	if user.State != 1 {
 		return "", domain.ErrForbidden
 	}
-	if user.IcalSecret == "" {
+
+	icalSecret, err := repo.GormRepo.GetiCalSecret(info.ReqUserID)
+
+	if icalSecret == "" {
 		return "", domain.ErrNotFound
 	}
-	return user.IcalSecret, nil
+	return icalSecret, nil
 }
 
 func (repo *Repository) IsPrivilege(info *domain.ConInfo) bool {
@@ -165,43 +162,17 @@ func (repo *Repository) IsPrivilege(info *domain.ConInfo) bool {
 	if err != nil {
 		return false
 	}
-	return user.Privilege
-}
-
-func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
-	userMap := make(map[uuid.UUID]*traq.User)
-	for _, u := range users {
-		user := u
-		userMap[uuid.Must(uuid.FromString(user.GetId()))] = &user
-	}
-	return userMap
-}
-
-func (repo *Repository) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.User, error) {
-	if userMeta.ID != uuid.Must(uuid.FromString(userBody.GetId())) {
-		return nil, errors.New("id does not match")
-	}
-	if userMeta.Provider.Issuer != traQIssuerName {
-		return nil, errors.New("different provider")
-	}
-	return &domain.User{
-		ID:          userMeta.ID,
-		Name:        userBody.Name,
-		DisplayName: userBody.DisplayName,
-		Icon:        repo.TraQRepo.URL + "/public/icon/" + userBody.Name,
-		Privileged:  userMeta.Privilege,
-		State:       userMeta.State,
-	}, nil
+	return user.Privileged
 }
 
 func (repo *Repository) GrantPrivilege(userID uuid.UUID) error {
 	user, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
-		return defaultErrorHandling(err)
+		return err
 	}
-	if user.Privilege {
+	if user.Privileged {
 		return fmt.Errorf("%w: user has been already privileged", domain.ErrBadRequest)
 	}
 	err = repo.GormRepo.GrantPrivilege(userID)
-	return defaultErrorHandling(err)
+	return err
 }

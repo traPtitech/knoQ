@@ -11,10 +11,10 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/infra/traq"
+	"github.com/traPtitech/knoQ/message"
 	"github.com/traPtitech/knoQ/repository"
-	"github.com/traPtitech/knoQ/utils"
+
 	"github.com/traPtitech/knoQ/utils/tz"
-	"golang.org/x/oauth2"
 
 	"github.com/traPtitech/knoQ/router"
 
@@ -31,7 +31,7 @@ var (
 	mariadbHost     = getenv("MARIADB_HOSTNAME", "db")
 	mariadbUser     = getenv("MARIADB_USERNAME", "root")
 	mariadbPassword = getenv("MARIADB_PASSWORD", "password")
-	mariadbDatabase = getenv("MARIADB_DATABASE", "knoQ")
+	mariadbDatabase = getenv("MARIADB_DATABASE", "knoq")
 	mariadbPort     = getenv("MARIADB_PORT", "3306")
 	tokenKey        = getenv("TOKEN_KEY", "random32wordsXXXXXXXXXXXXXXXXXXX")
 	gormLogLevel    = getenv("GORM_LOG_LEVEL", "silent")
@@ -55,27 +55,16 @@ func main() {
 	domain.REVISION = revision
 	domain.DEVELOPMENT, _ = strconv.ParseBool(development)
 
+	traqRepo := traq.NewTraqRepository(clientID, origin, traqAccessToken)
+
 	gormRepo := db.GormRepository{}
-	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, tz.JST)
+	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, tz.JST, traqRepo)
 	if err != nil {
 		panic(err)
 	}
-	traqRepo := traq.TraQRepository{
-		Config: &oauth2.Config{
-			ClientID:    clientID,
-			RedirectURL: origin + "/api/callback",
-			Scopes:      []string{"read"},
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  "https://q.trap.jp/api/v3/oauth2/authorize",
-				TokenURL: "https://q.trap.jp/api/v3/oauth2/token",
-			},
-		},
-		URL:               "https://q.trap.jp/api/v3",
-		ServerAccessToken: traqAccessToken,
-	}
+
 	repo := &repository.Repository{
 		GormRepo: gormRepo,
-		TraQRepo: traqRepo,
 	}
 	handler := &router.Handlers{
 		Repo:       repo,
@@ -91,7 +80,7 @@ func main() {
 		WebhookID:         webhookID,
 		WebhookSecret:     webhookSecret,
 		ActivityChannelID: activityChannelID,
-		DailyChannelId:    dailyChannelID,
+		DailyChannelID:    dailyChannelID,
 		Origin:            origin,
 	}
 
@@ -101,10 +90,10 @@ func main() {
 	c := cron.New(cron.WithLocation(tz.JST))
 	_, err = c.AddFunc(
 		"0 8 * * *",
-		utils.InitPostEventToTraQ(
+		message.InitPostEventToTraQ(
 			&repo.GormRepo,
 			handler.WebhookSecret,
-			handler.DailyChannelId,
+			handler.DailyChannelID,
 			handler.WebhookID,
 			handler.Origin,
 		),
