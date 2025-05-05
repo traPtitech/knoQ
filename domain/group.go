@@ -1,12 +1,17 @@
 package domain
 
-import "github.com/gofrs/uuid"
+import (
+	"database/sql"
+
+	"github.com/gofrs/uuid"
+)
 
 type Group struct {
 	ID          uuid.UUID
 	Name        string
 	Description string
-	JoinFreely  bool
+	JoinFreely  sql.NullBool
+	TraqID      uuid.NullUUID
 	Members     []User
 	Admins      []User
 	IsTraQGroup bool `cvt:"->"`

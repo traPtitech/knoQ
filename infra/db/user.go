@@ -106,7 +106,6 @@ func (repo *GormRepository) SyncUsers() error {
 			continue
 		}
 
-		// uid := uuid.Must(uuid.FromString(u.GetId()))
 		if u.ID.IsNil() {
 			panic("uuid is nil")
 		}

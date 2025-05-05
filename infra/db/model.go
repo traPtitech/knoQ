@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -81,23 +82,20 @@ type GroupAdmin struct {
 }
 
 // Group is user group
-//
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Group -d domain.Group -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Group -d []*domain.Group -o converter.go .
 type Group struct {
-	ID             uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Name           string    `gorm:"type:varchar(32);not null"`
-	Description    string    `gorm:"type:TEXT"`
-	JoinFreely     bool
-	Members        []GroupMember
-	Admins         []GroupAdmin
-	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
-	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
+	ID             uuid.UUID     `gorm:"type:char(36);primaryKey"`
+	Name           string        `gorm:"type:varchar(32);not null"`
+	Description    string        `gorm:"type:TEXT"`
+	IsTraqGroup    bool          `gorm:"not null"`
+	JoinFreely     sql.NullBool  `gorm:""`
+	TraqID         uuid.NullUUID `gorm:""`
+	Members        []*User       `gorm:"many2many:group_members;"`
+	Admins         []*User       `gorm:"many2many:group_admins;"` // 共通テーブル使用想定
+	CreatedByRefer uuid.NullUUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
+	CreatedBy      *User         `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
 	Model          `cvt:"->"`
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Tag -d domain.Tag -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Tag -d []*domain.Tag -o converter.go .
 type Tag struct {
 	ID    uuid.UUID `gorm:"type:char(36);primaryKey"`
 	Name  string    `gorm:"unique; type:varchar(16) binary"`
@@ -130,9 +128,6 @@ type EventAttendee struct {
 }
 
 // Event is event for gorm
-//
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s Event -d domain.Event -o converter.go .
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s []*Event -d []*domain.Event -o converter.go .
 type Event struct {
 	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
 	Name           string    `gorm:"type:varchar(32); not null"`

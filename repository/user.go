@@ -39,6 +39,14 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	// }
 
 	err := repo.GormRepo.SyncUsers()
+	if err != nil {
+		return err
+	}
+
+	err = repo.GormRepo.SyncExternalGroups()
+	if err != nil {
+		return err
+	}
 	return err
 }
 

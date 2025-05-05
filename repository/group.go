@@ -1,14 +1,9 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/gofrs/uuid"
-	"github.com/samber/lo"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/infra"
 	"github.com/traPtitech/knoQ/infra/db"
-	"gorm.io/gorm"
 )
 
 var traPGroupID = uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
@@ -69,38 +64,38 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 	var group *domain.Group
 	g, err := repo.GormRepo.GetGroup(groupID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// trap
-			if groupID == traPGroupID {
-				return repo.getTraPGroup(info), nil
-			}
+		// if errors.Is(err, gorm.ErrRecordNotFound) {
+		// 	// trap
+		// 	if groupID == traPGroupID {
+		// 		return repo.getTraPGroup(info), nil
+		// 	}
 
-			// traq group
-			g, err := repo.GormRepo.GetTraqRepository().GetGroup(groupID)
-			if err != nil {
-				return nil, err
-			}
-			// group = ConvtraqUserGroupTodomainGroup(*g)
-			// group.IsTraQGroup = true
-			group = &domain.Group{
-				ID:          g.ID,
-				Name:        g.Name,
-				Description: g.Description,
-				Members: lo.Map(g.Members, func(m infra.TraqUserGroupMember, _ int) domain.User {
-					return domain.User{ID: m.ID}
-				}),
-				Admins: lo.Map(g.Admins, func(adminID uuid.UUID, _ int) domain.User {
-					return domain.User{ID: adminID}
-				}),
-				IsTraQGroup: true,
-				Model: domain.Model{
-					CreatedAt: g.CreatedAt,
-					UpdatedAt: g.UpdatedAt,
-				},
-			}
-		} else {
-			return nil, err
-		}
+		// 	// traq group
+		// 	g, err := repo.GormRepo.GetTraqRepository().GetGroup(groupID)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	// group = ConvtraqUserGroupTodomainGroup(*g)
+		// 	// group.IsTraQGroup = true
+		// 	group = &domain.Group{
+		// 		ID:          g.ID,
+		// 		Name:        g.Name,
+		// 		Description: g.Description,
+		// 		Members: lo.Map(g.Members, func(m infra.TraqUserGroupMember, _ int) domain.User {
+		// 			return domain.User{ID: m.ID}
+		// 		}),
+		// 		Admins: lo.Map(g.Admins, func(adminID uuid.UUID, _ int) domain.User {
+		// 			return domain.User{ID: adminID}
+		// 		}),
+		// 		IsTraQGroup: true,
+		// 		Model: domain.Model{
+		// 			CreatedAt: g.CreatedAt,
+		// 			UpdatedAt: g.UpdatedAt,
+		// 		},
+		// 	}
+		// } else {
+		return nil, err
+		// }
 	} else {
 		group = g
 	}
@@ -108,43 +103,41 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 }
 
 func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, error) {
-	groups := make([]*domain.Group, 0)
 	gg, err := repo.GormRepo.GetAllGroups()
 	if err != nil {
 		return nil, err
 	}
-	groups = append(groups, gg...)
-	tg, err := repo.GormRepo.GetTraqRepository().GetAllGroups()
-	if err != nil {
-		return nil, err
-	}
-	// dg := ConvSPtraqUserGroupToSPdomainGroup(tg)
-	dg := lo.Map(tg, func(g *infra.TraqUserGroupResponse, _ int) *domain.Group {
-		return &domain.Group{
-			ID:          g.ID,
-			Name:        g.Name,
-			Description: g.Description,
-			Members: lo.Map(g.Members, func(m infra.TraqUserGroupMember, _ int) domain.User {
-				return domain.User{ID: m.ID}
-			}),
-			Admins: lo.Map(g.Admins, func(adminID uuid.UUID, _ int) domain.User {
-				return domain.User{ID: adminID}
-			}),
-			IsTraQGroup: true,
-			Model: domain.Model{
-				CreatedAt: g.CreatedAt,
-				UpdatedAt: g.UpdatedAt,
-			},
-		}
-	})
-	// add IsTraQGroup
-	// for i := range dg {
-	// 	dg[i].IsTraQGroup = true
+	// tg, err := repo.GormRepo.GetTraqRepository().GetAllGroups()
+	// if err != nil {
+	// 	return nil, err
 	// }
-	// add trap
-	groups = append(append(groups, repo.getTraPGroup(info)), dg...)
+	// // dg := ConvSPtraqUserGroupToSPdomainGroup(tg)
+	// dg := lo.Map(tg, func(g *infra.TraqUserGroupResponse, _ int) *domain.Group {
+	// 	return &domain.Group{
+	// 		ID:          g.ID,
+	// 		Name:        g.Name,
+	// 		Description: g.Description,
+	// 		Members: lo.Map(g.Members, func(m infra.TraqUserGroupMember, _ int) domain.User {
+	// 			return domain.User{ID: m.ID}
+	// 		}),
+	// 		Admins: lo.Map(g.Admins, func(adminID uuid.UUID, _ int) domain.User {
+	// 			return domain.User{ID: adminID}
+	// 		}),
+	// 		IsTraQGroup: true,
+	// 		Model: domain.Model{
+	// 			CreatedAt: g.CreatedAt,
+	// 			UpdatedAt: g.UpdatedAt,
+	// 		},
+	// 	}
+	// })
+	// // add IsTraQGroup
+	// // for i := range dg {
+	// // 	dg[i].IsTraQGroup = true
+	// // }
+	// // add trap
+	// groups = append(append(groups, repo.getTraPGroup(info)), dg...)
 
-	return groups, nil
+	return gg, nil
 }
 
 func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.ConInfo) ([]uuid.UUID, error) {
@@ -186,7 +179,8 @@ func (repo *Repository) IsGroupJoinFreely(groupID uuid.UUID) bool {
 	if err != nil {
 		return false
 	}
-	return group.JoinFreely
+
+	return group.JoinFreely.Valid && group.JoinFreely.Bool
 }
 
 func (repo *Repository) IsGroupMember(userID, groupID uuid.UUID, info *domain.ConInfo) bool {
@@ -203,24 +197,23 @@ func (repo *Repository) IsGroupMember(userID, groupID uuid.UUID, info *domain.Co
 	return false
 }
 
-func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
-	members, err := repo.GetAllUsers(false, false, info)
-	if err != nil {
-		return nil
-	}
+// func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
+// 	members, err := repo.GetAllUsers(false, false, info)
+// 	if err != nil {
+// 		return nil
+// 	}
 
-	return &domain.Group{
-		ID:          traPGroupID,
-		Name:        "traP",
-		Description: "traP全体グループ",
-		JoinFreely:  false,
-		Members:     convSPdomainUserToSdomainUser(members),
-		Admins:      []domain.User{},
-		IsTraQGroup: true,
-		CreatedBy:   domain.User{},
-		Model:       domain.Model{},
-	}
-}
+// 	return &domain.Group{
+// 		ID:          traPGroupID,
+// 		Name:        "traP",
+// 		Description: "traP全体グループ",
+// 		Members:     convSPdomainUserToSdomainUser(members),
+// 		Admins:      []domain.User{},
+// 		IsTraQGroup: true,
+// 		CreatedBy:   domain.User{},
+// 		Model:       domain.Model{},
+// 	}
+// }
 
 func (repo *Repository) GetGradeGroupNames(_ *domain.ConInfo) ([]string, error) {
 	groups, err := repo.GormRepo.GetTraqRepository().GetAllGroups()

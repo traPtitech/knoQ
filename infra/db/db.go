@@ -55,6 +55,7 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 				Loc:                  loc,
 				AllowNativePasswords: true,
 				ParseTime:            true,
+				Collation:            "utf8mb4_unicode_ci",
 			},
 			DefaultStringSize:         256,   // default size for string fields
 			DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6

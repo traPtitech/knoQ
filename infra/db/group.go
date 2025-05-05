@@ -1,11 +1,14 @@
 package db
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filters"
+	"github.com/traPtitech/knoQ/infra"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -55,10 +58,7 @@ func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*domain.Group, error) {
 
 func (repo *GormRepository) GetAllGroups() ([]*domain.Group, error) {
 	cmd := groupFullPreload(repo.db)
-	gs, err := getGroups(cmd.Joins(
-		"LEFT JOIN events ON groups.id = events.group_id "+
-			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
-			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), "", nil)
+	gs, err := getGroups(cmd, "", nil)
 
 	dgs := ConvSPGroupToSPdomainGroup(gs)
 	return dgs, defaultErrorHandling(err)
@@ -70,10 +70,7 @@ func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, er
 	if err != nil {
 		return nil, err
 	}
-	gs, err := getGroups(cmd.Joins(
-		"LEFT JOIN events ON groups.id = events.group_id "+
-			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
-			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), filterFormat, filterArgs)
+	gs, err := getGroups(cmd, filterFormat, filterArgs)
 
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
@@ -84,10 +81,7 @@ func (repo *GormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, err
 	if err != nil {
 		return nil, err
 	}
-	gs, err := getGroups(cmd.Joins(
-		"LEFT JOIN events ON groups.id = events.group_id "+
-			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
-			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), filterFormat, filterArgs)
+	gs, err := getGroups(cmd, filterFormat, filterArgs)
 
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
@@ -243,4 +237,94 @@ func createGroupFilter(expr filters.Expr) (string, []interface{}, error) {
 		return filterFormat, filterArgs, nil
 	}
 	return cf(expr)
+}
+
+func (repo *GormRepository) SyncExternalGroups() error {
+	externalGroups, err := repo.traqRepo.GetAllGroups() // 外部APIから取得
+	if err != nil {
+		return err
+	}
+
+	existingTraqGroups := make([]*Group, 0)
+	err = repo.db.Model(&Group{IsTraqGroup: true}).Find(&existingTraqGroups).Error
+	if err != nil {
+		return err
+	}
+
+	existingTraqGroupsMap := make(map[uuid.UUID]*Group, 0)
+	for _, g := range existingTraqGroups {
+		existingTraqGroupsMap[g.TraqID.UUID] = g
+	}
+
+	newGroups := make([]*Group, 0, len(externalGroups))
+	for _, g := range externalGroups {
+		if g.ID.IsNil() {
+			continue
+		}
+		var gid uuid.UUID
+		if _, ok := existingTraqGroupsMap[g.ID]; ok {
+			gid = g.ID
+		} else {
+			gid, err = uuid.NewV4()
+			if err != nil {
+				return err
+			}
+		}
+
+		newGroups = append(newGroups, &Group{
+			ID:          gid,
+			TraqID:      uuid.NullUUID{UUID: g.ID, Valid: true},
+			Name:        g.Name,
+			Description: g.Description,
+			IsTraqGroup: true,
+			JoinFreely:  sql.NullBool{}, // 外部グループなので JoinFreely 無し
+			Members: lo.Map(g.Members, func(tm infra.TraqUserGroupMember, _ int) *User {
+				return &User{
+					ID: tm.ID,
+				}
+			}),
+			Admins: lo.Map(g.Admins, func(id uuid.UUID, _ int) *User {
+				return &User{
+					ID: id,
+				}
+			}),
+			CreatedByRefer: uuid.NullUUID{},
+		})
+	}
+
+	return repo.db.Transaction(func(tx *gorm.DB) error {
+		existingGroups := []Group{}
+		if err := tx.Where("is_traq_group = ?", true).Find(&existingGroups).Error; err != nil {
+			return err
+		}
+		existingGroupIDs := lo.Map(existingGroups, func(eg Group, _ int) uuid.UUID {
+			return eg.ID
+		})
+		if err := tx.Where("group_id in ?", existingGroupIDs).Delete(&GroupMember{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("group_id in ?", existingGroupIDs).Delete(&GroupAdmin{}).Error; err != nil {
+			return err
+		}
+
+		// for _, ng := range newGroups {
+		// 	if err := tx.Save(&ng).Error; err != nil {
+		// 		fmt.Printf("\nhere1\n%s\n\n%#v\n\n", err.Error(), *ng)
+		// 		return err
+		// 	}
+		// 	if err := tx.Model(ng).Association("Members").Replace(ng.Members); err != nil {
+		// 		fmt.Printf("\nhere2\n%s\n\n%#v\n\n", err.Error(), *&ng.Members)
+		// 		return err
+		// 	}
+		// 	if err := tx.Model(ng).Association("Admins").Replace(ng.Admins); err != nil {
+		// 		fmt.Printf("\nhere3\n%s\n\n%#v\n\n", err.Error(), *&ng.Admins)
+		// 		return err
+		// 	}
+		// }
+		if err := tx.Session(&gorm.Session{FullSaveAssociations: true}).Save(&newGroups).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

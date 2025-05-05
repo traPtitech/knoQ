@@ -142,7 +142,7 @@ func ConvdomainGroupToGroupRes(src domain.Group) (dst GroupRes) {
 	dst.ID = src.ID
 	dst.GroupReq.Name = src.Name
 	dst.GroupReq.Description = src.Description
-	dst.GroupReq.JoinFreely = src.JoinFreely
+	dst.GroupReq.JoinFreely = src.JoinFreely.Bool
 	dst.GroupReq.Members = make([]uuid.UUID, len(src.Members))
 	for i := range src.Members {
 		dst.GroupReq.Members[i] = convdomainUserTouuidUUID(src.Members[i])
@@ -186,7 +186,7 @@ func convdomainGroupToGroupRes(src domain.Group) (dst GroupRes) {
 	dst.ID = src.ID
 	dst.GroupReq.Name = src.Name
 	dst.GroupReq.Description = src.Description
-	dst.GroupReq.JoinFreely = src.JoinFreely
+	dst.GroupReq.JoinFreely = src.JoinFreely.Bool
 	dst.GroupReq.Members = make([]uuid.UUID, len(src.Members))
 	for i := range src.Members {
 		dst.GroupReq.Members[i] = convdomainUserTouuidUUID(src.Members[i])
