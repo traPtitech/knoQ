@@ -252,7 +252,7 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return badRequest(err)
 	}
-	events, err := h.Repo.GetEvents(expr, info)
+	events, err := h.Repo.GetEventsWithGroup(expr, info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
