@@ -146,34 +146,6 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 	}
 	events := db.ConvSPEventToSPdomainEvent(es)
 
-	// add traQ groups and users
-	// groups, err := repo.GetAllGroups(info)
-	// if err != nil {
-	// 	return events, nil
-	// }
-	// groupMap := createGroupMap(groups)
-	// users, err := repo.GetAllUsers(false, true, info)
-	// if err != nil {
-	// 	return events, err
-	// }
-	// userMap := createUserMap(users)
-	// for i := range events {
-	// 	g, ok := groupMap[es[i].GroupID]
-	// 	if ok {
-	// 		events[i].Group = *g
-	// 	}
-	// 	c, ok := userMap[es[i].CreatedByRefer]
-	// 	if ok {
-	// 		events[i].CreatedBy = *c
-	// 	}
-	// 	for j, eventAdmin := range es[i].Admins {
-	// 		a, ok := userMap[eventAdmin.UserID]
-	// 		if ok {
-	// 			events[i].Admins[j] = *a
-	// 		}
-	// 	}
-	// }
-
 	return events, nil
 }
 
