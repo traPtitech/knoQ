@@ -166,7 +166,7 @@ paths:
         - $ref: '#/components/parameters/eventFilter'
       responses:
         '200':
-          $ref: '#/components/responses/EventArray'
+          $ref: '#/components/responses/EventAbstractArray'
     post:
       tags:
         - events
@@ -278,7 +278,7 @@ paths:
       description: 所属しているイベントを返す
       responses:
         '200':
-          $ref: '#/components/responses/EventArray'
+          $ref: '#/components/responses/EventAbstractArray'
   /users/{userID}/events:
     parameters:
       - $ref: '#/components/parameters/userID'
@@ -291,7 +291,7 @@ paths:
       description: 所属しているイベントを返す
       responses:
         '200':
-          $ref: '#/components/responses/EventArray'
+          $ref: '#/components/responses/EventAbstractArray'
 
   /rooms/{roomID}/events:
     parameters:
@@ -303,7 +303,7 @@ paths:
       description: 指定した部屋で行われるイベントを返す
       responses:
         '200':
-          $ref: '#/components/responses/EventArray'
+          $ref: '#/components/responses/EventAbstractArray'
   /groups/{groupID}/events:
     parameters:
       - $ref: '#/components/parameters/groupID'
@@ -314,7 +314,7 @@ paths:
       description: groupIdのeventsを取得
       responses:
         '200':
-          $ref: '#/components/responses/EventArray'
+          $ref: '#/components/responses/EventAbstractArray'
 
   /groups:
     get:
@@ -896,6 +896,52 @@ components:
         - createdAt
         - updatedAt
 
+    ResponseEventAbstract:
+      type: object
+      properties:
+        eventId: *uuid
+        name: *eventName
+        description: *eventDescription
+        sharedRoom: *sharedRoom
+        timeStart: *time
+        timeEnd: *time
+        place: *place
+        roomId: *uuid
+        groupId: *uuid
+        open: *eventOpen
+        admins:
+          type: array
+          items:
+            type: string
+            format: uuid
+        tags: *eventTags
+        attendees:
+          type: array
+          items:
+            type: string
+            format: uuid
+        createdBy: *uuid
+        createdAt: *time
+        updatedAt: *time
+      required:
+        - eventId
+        - name
+        - description
+        - sharedRoom
+        - timeStart
+        - timeEnd
+        - place
+        - groupName
+        - open
+        - roomId
+        - groupId
+        - admins
+        - tags
+        - attendees
+        - createdBy
+        - createdAt
+        - updatedAt
+
     RequestEventInstant:
       type: object
       description: 部屋を作る
@@ -1097,6 +1143,14 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/ResponseEvent'
+    EventAbstractArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ResponseEventAbstract'
     Group:
       description: successful operation
       content:

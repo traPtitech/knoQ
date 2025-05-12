@@ -206,7 +206,8 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
+	eventsRes := presentation.ConvDomainEventsToEventsResElems(events)
+	return c.JSON(http.StatusOK, eventsRes)
 }
 
 // HandleGetEventsByRoomID get events by roomID
