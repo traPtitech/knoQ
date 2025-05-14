@@ -782,7 +782,7 @@ components:
         name: *tagName
       required:
         - name
-  
+
     ResponseEvent:
       type: object
       properties:
