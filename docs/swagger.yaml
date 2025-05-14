@@ -1090,6 +1090,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ResponseEventDetail'
+
     EventArray:
       description: successful operation
       content:
