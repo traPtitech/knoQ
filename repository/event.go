@@ -180,19 +180,6 @@ func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*do
 	return events, nil
 }
 
-func (repo *Repository) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) bool {
-	event, err := repo.GormRepo.GetEvent(eventID)
-	if err != nil {
-		return false
-	}
-	for _, admin := range event.Admins {
-		if info.ReqUserID == admin.UserID {
-			return true
-		}
-	}
-	return false
-}
-
 func (repo *Repository) GetEventsWithGroup(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
@@ -231,6 +218,19 @@ func (repo *Repository) GetEventsWithGroup(expr filter.Expr, info *domain.ConInf
 	}
 
 	return events, nil
+}
+
+func (repo *Repository) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) bool {
+	event, err := repo.GormRepo.GetEvent(eventID)
+	if err != nil {
+		return false
+	}
+	for _, admin := range event.Admins {
+		if info.ReqUserID == admin.UserID {
+			return true
+		}
+	}
+	return false
 }
 
 func createGroupMap(groups []*domain.Group) map[uuid.UUID]*domain.Group {
