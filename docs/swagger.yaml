@@ -799,7 +799,6 @@ components:
         timeStart: *time
         timeEnd: *time
         place: *place
-        groupName: *groupName
         roomId: *uuid
         groupId: *uuid
         open: &eventOpen
@@ -819,20 +818,11 @@ components:
             required:
               - tagId
               - name
-        attendees: &attendees
+        attendees:
           type: array
           items:
-            type: object
-            description: ユーザの参加状況
-            properties:
-              userId: *uuid
-              schedule: &schedule
-                type: string
-                enum: [pending, absent, attendance]
-                description: pending or absent or attendance
-            required:
-              - userId
-              - schedule
+            type: string
+            format: uuid
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time
@@ -844,7 +834,6 @@ components:
         - timeStart
         - timeEnd
         - place
-        - groupName
         - open
         - roomId
         - groupId
@@ -873,7 +862,20 @@ components:
           $ref: '#/components/schemas/ResponseGroup'
         admins: *admins
         tags: *eventTags
-        attendees: *attendees
+        attendees: &attendees
+          type: array
+          items:
+            type: object
+            description: ユーザの参加状況
+            properties:
+              userId: *uuid
+              schedule: &schedule
+                type: string
+                enum: [pending, absent, attendance]
+                description: pending or absent or attendance
+            required:
+              - userId
+              - schedule
         createdBy: *uuid
         createdAt: *time
         updatedAt: *time

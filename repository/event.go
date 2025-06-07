@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/infra/db"
@@ -24,7 +25,6 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	}
 	for _, groupMember := range group.Members {
 		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
-
 	}
 	return repo.GetEvent(event.ID, info)
 }
@@ -139,6 +139,48 @@ func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain
 }
 
 func (repo *Repository) GetEvents(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
+	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
+
+	es, err := repo.GormRepo.GetAllEvents(expr)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+	events := lo.Map(es, func(e *db.Event, _ int) *domain.Event {
+		return &domain.Event{
+			ID:          e.ID,
+			Name:        e.Name,
+			Description: e.Description,
+			Room:        domain.Room{ID: e.RoomID},
+			Group:       domain.Group{ID: e.GroupID},
+			TimeStart:   e.TimeStart,
+			TimeEnd:     e.TimeEnd,
+			CreatedBy:   domain.User{ID: e.CreatedByRefer},
+			Admins: lo.Map(e.Admins, func(a db.EventAdmin, _ int) domain.User {
+				return domain.User{ID: a.UserID}
+			}),
+			Tags: lo.Map(e.Tags, func(t db.EventTag, _ int) domain.EventTag {
+				return domain.EventTag{
+					Tag:    domain.Tag{ID: t.TagID, Name: t.Tag.Name},
+					Locked: t.Locked,
+				}
+			}),
+			AllowTogether: e.AllowTogether,
+			Attendees: lo.Map(e.Attendees, func(a db.EventAttendee, _ int) domain.Attendee {
+				return domain.Attendee{UserID: a.UserID}
+			}),
+			Open: e.Open,
+
+			Model: domain.Model{
+				CreatedAt: e.CreatedAt,
+				UpdatedAt: e.UpdatedAt,
+			},
+		}
+	})
+
+	return events, nil
+}
+
+func (repo *Repository) GetEventsWithGroup(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
