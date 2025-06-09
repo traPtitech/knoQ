@@ -10,14 +10,13 @@ import (
 )
 
 func ConvCreateRoomParamsToRoom(src CreateRoomParams) (dst Room) {
-	dst.Verified = src.Verified
 	dst.CreatedByRefer = src.CreatedBy
-	dst.Place = src.WriteRoomParams.Place
+	dst.Name = src.WriteRoomParams.Place
 	dst.TimeStart = src.WriteRoomParams.TimeStart
 	dst.TimeEnd = src.WriteRoomParams.TimeEnd
-	dst.Admins = make([]RoomAdmin, len(src.WriteRoomParams.Admins))
+	dst.Admins = make([]*User, len(src.WriteRoomParams.Admins))
 	for i := range src.WriteRoomParams.Admins {
-		dst.Admins[i] = convuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
+		*dst.Admins[i] = ConvuuidUUIDToUserMeta(src.WriteRoomParams.Admins[i])
 	}
 	return
 }
@@ -46,7 +45,7 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	dst.Room = convRoomTodomainRoom(src.Room)
+	dst.Room = convRoomTodomainRoom(*src.Room)
 	dst.Group = convGroupTodomainGroup(src.Group)
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
@@ -107,17 +106,16 @@ func ConvRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
 
 func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
-	dst.Place = src.Place
-	dst.Verified = src.Verified
+	dst.Place = src.Name
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.Events = make([]domain.Event, len(src.Events))
 	for i := range src.Events {
-		dst.Events[i] = convEventTodomainEvent(src.Events[i])
+		dst.Events[i] = convEventTodomainEvent(*src.Events[i])
 	}
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = convRoomAdminTodomainUser(src.Admins[i])
+		dst.Admins[i] = convUserTodomainUser(*src.Admins[i])
 	}
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt
@@ -204,12 +202,12 @@ func ConvTagTodomainTag(src Tag) (dst domain.Tag) {
 
 func ConvUpdateRoomParamsToRoom(src UpdateRoomParams) (dst Room) {
 	dst.CreatedByRefer = src.CreatedBy
-	dst.Place = src.WriteRoomParams.Place
+	dst.Name = src.WriteRoomParams.Place
 	dst.TimeStart = src.WriteRoomParams.TimeStart
 	dst.TimeEnd = src.WriteRoomParams.TimeEnd
-	dst.Admins = make([]RoomAdmin, len(src.WriteRoomParams.Admins))
+	dst.Admins = make([]*User, len(src.WriteRoomParams.Admins))
 	for i := range src.WriteRoomParams.Admins {
-		dst.Admins[i] = convuuidUUIDToRoomAdmin(src.WriteRoomParams.Admins[i])
+		*dst.Admins[i] = ConvuuidUUIDToUserMeta(src.WriteRoomParams.Admins[i])
 	}
 	return
 }
@@ -230,7 +228,7 @@ func ConvWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	dst.Description = src.WriteEventParams.Description
 	dst.GroupID = src.WriteEventParams.GroupID
 	dst.RoomID = src.WriteEventParams.RoomID
-	dst.Room.Place = src.WriteEventParams.Place
+	dst.Room.Name = src.WriteEventParams.Place
 	dst.TimeStart = src.WriteEventParams.TimeStart
 	dst.TimeEnd = src.WriteEventParams.TimeEnd
 	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
@@ -321,7 +319,7 @@ func convEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	dst.Room = convRoomTodomainRoom(src.Room)
+	dst.Room = convRoomTodomainRoom(*src.Room)
 	dst.Group = convGroupTodomainGroup(src.Group)
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
@@ -381,17 +379,16 @@ func convRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
 }
 func convRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
-	dst.Place = src.Place
-	dst.Verified = src.Verified
+	dst.Place = src.Name
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.Events = make([]domain.Event, len(src.Events))
 	for i := range src.Events {
-		dst.Events[i] = convEventTodomainEvent(src.Events[i])
+		dst.Events[i] = convEventTodomainEvent(*src.Events[i])
 	}
 	dst.Admins = make([]domain.User, len(src.Admins))
 	for i := range src.Admins {
-		dst.Admins[i] = convRoomAdminTodomainUser(src.Admins[i])
+		dst.Admins[i] = convUserTodomainUser(*src.Admins[i])
 	}
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
 	dst.Model.CreatedAt = src.Model.CreatedAt

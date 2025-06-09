@@ -16,17 +16,17 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 		}
 	}
 
-	if e.RoomID == uuid.Nil {
-		if e.Room.Place != "" {
-			e.Room.Verified = false
-			e.Room.TimeStart = e.TimeStart
-			e.Room.TimeEnd = e.TimeEnd
-			e.Room.CreatedByRefer = e.CreatedByRefer
-			e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
-		} else {
-			return NewValueError(ErrRoomUndefined, "roomID", "place")
-		}
-	}
+	// if e.RoomID == uuid.Nil {
+	// 	if e.Room.Place != "" {
+	// 		e.Room.Verified = false
+	// 		e.Room.TimeStart = e.TimeStart
+	// 		e.Room.TimeEnd = e.TimeEnd
+	// 		e.Room.CreatedByRefer = e.CreatedByRefer
+	// 		e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
+	// 	} else {
+	// 		return NewValueError(ErrRoomUndefined, "roomID", "place")
+	// 	}
+	// }
 
 	// 時間整合性
 	Devent := ConvEventTodomainEvent(*e)
@@ -38,8 +38,13 @@ func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
 
 // BeforeCreate is hook
 func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
+	if !e.IsRoomEvent {
+		return nil
+	}
+
 	// 時間整合性
-	r, err := getRoom(tx.Preload("Events"), e.RoomID)
+	roomID := e.Room.ID
+	r, err := getRoom(tx.Preload("Events"), roomID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
 		// 後で作られる
@@ -48,7 +53,7 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 	if err != nil {
 		return err
 	}
-	e.Room = *r
+	e.Room = r
 	Devent := ConvEventTodomainEvent(*e)
 	if !Devent.RoomTimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
@@ -58,10 +63,15 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeUpdate is hook
 func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
+	if !e.IsRoomEvent {
+		return nil
+	}
+
 	// 時間整合性
-	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
+	roomID := e.Room.ID
+	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), roomID)
 	if err == nil {
-		e.Room = *r
+		e.Room = r
 		Devent := ConvEventTodomainEvent(*e)
 		if !Devent.RoomTimeConsistency() {
 			return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")

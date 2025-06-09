@@ -163,14 +163,12 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 
 	if len(events) == 0 {
 		eventMessage = "本日開催予定のイベントはありません。\n"
-
 	} else {
 		for _, event := range events {
 			eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s ~ %s @%s %s\n", event.Name, origin, event.ID,
 				event.TimeStart.In(tz.JST).Format("01/02 15:04"), event.TimeEnd.In(tz.JST).Format("01/02 15:04"),
-				event.Room.Place, combined[event.AllowTogether])
+				event.Room.Name, combined[event.AllowTogether])
 		}
-
 	}
 
 	return fmt.Sprintf("## %s の進捗部屋\n%s## %s 開催予定のイベント\n%s", date, roomMessage, date, eventMessage)

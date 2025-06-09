@@ -25,9 +25,7 @@ const (
 	dbHost = "localhost"
 )
 
-var (
-	repositories = map[string]*GormRepository{}
-)
+var repositories = map[string]*GormRepository{}
 
 func TestMain(m *testing.M) {
 	pool, err := dockertest.NewPool("")
@@ -215,12 +213,12 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Gr
 	t.Helper()
 	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10, false))
 	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10, false))
-
+	roomID := uuid.NullUUID{Valid: true, UUID: room.ID}
 	params := WriteEventParams{
 		WriteEventParams: domain.WriteEventParams{
 			Name:          name,
 			GroupID:       group.ID,
-			RoomID:        room.ID,
+			RoomID:        roomID,
 			TimeStart:     time.Now(),
 			TimeEnd:       time.Now().Add(1 * time.Minute),
 			AllowTogether: true,

@@ -14,13 +14,14 @@ import (
 
 func Test_createEvent(t *testing.T) {
 	r, assert, require, user, room := setupRepoWithUserRoom(t, common)
+	roomID := uuid.NullUUID{Valid: true, UUID: room.ID}
 
 	params := WriteEventParams{
 		CreatedBy: user.ID,
 		WriteEventParams: domain.WriteEventParams{
 			Name:          "first event",
 			GroupID:       mustNewUUIDV4(t),
-			RoomID:        room.ID,
+			RoomID:        roomID,
 			TimeStart:     time.Now(),
 			TimeEnd:       time.Now().Add(1 * time.Minute),
 			AllowTogether: true,
@@ -76,7 +77,7 @@ func Test_createEvent(t *testing.T) {
 		var p WriteEventParams
 		require.NoError(copier.Copy(&p, &params))
 
-		p.RoomID = uuid.Nil
+		p.RoomID = uuid.NullUUID{}
 		p.Place = "instant room"
 		event, err := createEvent(r.db.Debug(), p)
 		require.NoError(err)
@@ -84,19 +85,20 @@ func Test_createEvent(t *testing.T) {
 		e, err := getEvent(eventFullPreload(r.db), event.ID)
 		require.NoError(err)
 		assert.NotEqual(uuid.Nil, e.RoomID)
-		assert.Equal(p.Place, e.Room.Place)
+		assert.Equal(p.Place, e.Room.Name)
 	})
 }
 
 func Test_updateEvent(t *testing.T) {
 	r, assert, require, user, _, room, event := setupRepoWithUserGroupRoomEvent(t, common)
+	roomID := uuid.NullUUID{Valid: true, UUID: room.ID}
 
 	params := WriteEventParams{
 		CreatedBy: user.ID,
 		WriteEventParams: domain.WriteEventParams{
 			Name:          "update event",
 			GroupID:       mustNewUUIDV4(t),
-			RoomID:        room.ID,
+			RoomID:        roomID,
 			TimeStart:     time.Now(),
 			TimeEnd:       time.Now().Add(1 * time.Minute),
 			AllowTogether: true,

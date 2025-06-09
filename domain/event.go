@@ -48,8 +48,9 @@ type Attendee struct {
 type WriteEventParams struct {
 	Name          string
 	Description   string
+	IsRoomEvent   bool
 	GroupID       uuid.UUID
-	RoomID        uuid.UUID
+	RoomID        uuid.NullUUID
 	Place         string // option
 	TimeStart     time.Time
 	TimeEnd       time.Time
