@@ -205,9 +205,13 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	dst.Room = ConvdomainRoomToRoomRes(src.Room)
+	if src.Room != nil {
+		dst.Room = ConvdomainRoomToRoomRes(*src.Room)
+		dst.Place = src.Room.Place
+	} else {
+		dst.Place = src.Venue.String
+	}
 	dst.Group = convdomainGroupToGroupRes(src.Group)
-	dst.Place = src.Room.Place
 	dst.GroupName = src.Group.Name
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd

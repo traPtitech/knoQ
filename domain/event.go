@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -19,7 +20,9 @@ type Event struct {
 	ID            uuid.UUID
 	Name          string
 	Description   string
-	Room          Room
+	IsRoomEvent   bool
+	Room          *Room
+	Venue         sql.NullString
 	Group         Group
 	TimeStart     time.Time
 	TimeEnd       time.Time
@@ -51,7 +54,7 @@ type WriteEventParams struct {
 	IsRoomEvent   bool
 	GroupID       uuid.UUID
 	RoomID        uuid.NullUUID
-	Place         string // option
+	Venue         sql.NullString // option
 	TimeStart     time.Time
 	TimeEnd       time.Time
 	Admins        []uuid.UUID

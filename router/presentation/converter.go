@@ -1,7 +1,10 @@
 package presentation
 
 import (
+	"database/sql"
+
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
 	"github.com/traPtitech/knoQ/domain"
 )
 
@@ -9,11 +12,13 @@ func ConvEventReqWriteTodomainWriteEventParams(src EventReqWrite) (dst domain.Wr
 	dst.Name = src.Name
 	dst.Description = src.Description
 	dst.GroupID = src.GroupID
-	if src.RoomID.IsNil() {
-		dst.RoomID = uuid.NullUUID{}
+	if src.RoomID.IsNil() { // not room event
+		dst.Venue = sql.NullString{Valid: true, String: src.Place}
+	} else {
+		dst.IsRoomEvent = true
+		dst.RoomID = uuid.NullUUID{Valid: true, UUID: src.RoomID}
 	}
-	dst.RoomID = uuid.NullUUID{Valid: true, UUID: src.RoomID}
-	dst.Place = src.Place
+
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.Admins = src.Admins
@@ -36,38 +41,41 @@ func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams
 	return
 }
 
-func ConvSPdomainEventToSEventRes(src []*domain.Event) (dst []EventRes) {
-	dst = make([]EventRes, len(src))
-	for i := range src {
-		if src[i] != nil {
-			dst[i].ID = (*src[i]).ID
-			dst[i].Name = (*src[i]).Name
-			dst[i].Description = (*src[i]).Description
-			dst[i].AllowTogether = (*src[i]).AllowTogether
-			dst[i].TimeStart = (*src[i]).TimeStart
-			dst[i].TimeEnd = (*src[i]).TimeEnd
-			dst[i].RoomID = convdomainRoomTouuidUUID((*src[i]).Room)
-			dst[i].GroupID = convdomainGroupTouuidUUID((*src[i]).Group)
-			dst[i].Place = (*src[i]).Room.Place
-			dst[i].GroupName = (*src[i]).Group.Name
-			dst[i].Admins = make([]uuid.UUID, len((*src[i]).Admins))
-			for j := range (*src[i]).Admins {
-				dst[i].Admins[j] = convdomainUserTouuidUUID((*src[i]).Admins[j])
+func ConvSPdomainEventToSEventRes(src []*domain.Event) []EventRes {
+	return lo.Map(
+		src, func(e *domain.Event, _ int) EventRes {
+			roomID := uuid.Nil
+			place := e.Venue.String
+			if e.IsRoomEvent {
+				roomID = e.Room.ID
+				place = e.Room.Place
 			}
-			dst[i].Tags = make([]EventTagRes, len((*src[i]).Tags))
-			for j := range (*src[i]).Tags {
-				dst[i].Tags[j] = convdomainEventTagToEventTagRes((*src[i]).Tags[j])
+			return EventRes{
+				ID:            e.ID,
+				Name:          e.Name,
+				Description:   e.Description,
+				AllowTogether: e.AllowTogether,
+				TimeStart:     e.TimeStart,
+				TimeEnd:       e.TimeEnd,
+				RoomID:        roomID,
+				GroupID:       e.Group.ID,
+				Place:         place,
+				GroupName:     e.Group.Name,
+				Admins: lo.Map(e.Admins, func(a domain.User, _ int) uuid.UUID {
+					return a.ID
+				}),
+				Tags: lo.Map(e.Tags, func(t domain.EventTag, _ int) EventTagRes {
+					return convdomainEventTagToEventTagRes(t)
+				}),
+				CreatedBy: e.CreatedBy.ID,
+				Open:      e.Open,
+				Attendees: lo.Map(e.Attendees, func(a domain.Attendee, _ int) EventAttendeeRes {
+					return convdomainAttendeeToEventAttendeeRes(a)
+				}),
+				Model: Model(e.Model),
 			}
-			dst[i].CreatedBy = convdomainUserTouuidUUID((*src[i]).CreatedBy)
-			dst[i].Open = (*src[i]).Open
-			dst[i].Attendees = make([]EventAttendeeRes, len((*src[i]).Attendees))
-			for j := range (*src[i]).Attendees {
-				dst[i].Attendees[j] = convdomainAttendeeToEventAttendeeRes((*src[i]).Attendees[j])
-			}
-			dst[i].Model = Model((*src[i]).Model)
-		}
-	}
-	return
+		},
+	)
 }
 
 func ConvSPdomainGroupToSPGroupRes(src []*domain.Group) (dst []*GroupRes) {
@@ -108,35 +116,6 @@ func ConvSdomainStartEndTimeToSStartEndTime(src []domain.StartEndTime) (dst []St
 	for i := range src {
 		dst[i] = convdomainStartEndTimeToStartEndTime(src[i])
 	}
-	return
-}
-
-func ConvdomainEventToEventRes(src domain.Event) (dst EventRes) {
-	dst.ID = src.ID
-	dst.Name = src.Name
-	dst.Description = src.Description
-	dst.AllowTogether = src.AllowTogether
-	dst.TimeStart = src.TimeStart
-	dst.TimeEnd = src.TimeEnd
-	dst.RoomID = convdomainRoomTouuidUUID(src.Room)
-	dst.GroupID = convdomainGroupTouuidUUID(src.Group)
-	dst.Place = src.Room.Place
-	dst.GroupName = src.Group.Name
-	dst.Admins = make([]uuid.UUID, len(src.Admins))
-	for i := range src.Admins {
-		dst.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
-	}
-	dst.Tags = make([]EventTagRes, len(src.Tags))
-	for i := range src.Tags {
-		dst.Tags[i] = convdomainEventTagToEventTagRes(src.Tags[i])
-	}
-	dst.CreatedBy = convdomainUserTouuidUUID(src.CreatedBy)
-	dst.Open = src.Open
-	dst.Attendees = make([]EventAttendeeRes, len(src.Attendees))
-	for i := range src.Attendees {
-		dst.Attendees[i] = convdomainAttendeeToEventAttendeeRes(src.Attendees[i])
-	}
-	dst.Model = Model(src.Model)
 	return
 }
 

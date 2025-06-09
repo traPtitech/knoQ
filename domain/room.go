@@ -79,7 +79,6 @@ func timeRangesSub(as []StartEndTime, b StartEndTime) (cs []StartEndTime) {
 }
 
 func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
-
 	/*
 		a: ---s#####e---
 		b: s##########e-

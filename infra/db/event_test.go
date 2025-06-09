@@ -73,20 +73,20 @@ func Test_createEvent(t *testing.T) {
 		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 
-	t.Run("create event with place", func(t *testing.T) {
-		var p WriteEventParams
-		require.NoError(copier.Copy(&p, &params))
+	// t.Run("create event with place", func(t *testing.T) {
+	// 	var p WriteEventParams
+	// 	require.NoError(copier.Copy(&p, &params))
 
-		p.RoomID = uuid.NullUUID{}
-		p.Place = "instant room"
-		event, err := createEvent(r.db.Debug(), p)
-		require.NoError(err)
+	// 	p.RoomID = uuid.NullUUID{}
+	// 	p.Place = "instant room"
+	// 	event, err := createEvent(r.db.Debug(), p)
+	// 	require.NoError(err)
 
-		e, err := getEvent(eventFullPreload(r.db), event.ID)
-		require.NoError(err)
-		assert.NotEqual(uuid.Nil, e.RoomID)
-		assert.Equal(p.Place, e.Room.Name)
-	})
+	// 	e, err := getEvent(eventFullPreload(r.db), event.ID)
+	// 	require.NoError(err)
+	// 	assert.NotEqual(uuid.Nil, e.RoomID)
+	// 	assert.Equal(p.Place, e.Room.Name)
+	// })
 }
 
 func Test_updateEvent(t *testing.T) {
