@@ -104,7 +104,8 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 		return judgeErrorResponse(err)
 	}
 
-	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
+	eventsRes := presentation.ConvDomainEventsToEventsResElems(events)
+	return c.JSON(http.StatusOK, eventsRes)
 }
 
 // HandleGetEventsByGroupID get events by groupID
@@ -119,7 +120,8 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
+	eventsRes := presentation.ConvDomainEventsToEventsResElems(events)
+	return c.JSON(http.StatusOK, eventsRes)
 }
 
 func (h *Handlers) HandleAddEventTag(c echo.Context) error {
@@ -188,7 +190,8 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
+	eventsRes := presentation.ConvDomainEventsToEventsResElems(events)
+	return c.JSON(http.StatusOK, eventsRes)
 }
 
 func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
@@ -203,7 +206,8 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
+	eventsRes := presentation.ConvDomainEventsToEventsResElems(events)
+	return c.JSON(http.StatusOK, eventsRes)
 }
 
 // HandleGetEventsByRoomID get events by roomID
@@ -221,7 +225,8 @@ func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
-	return c.JSON(http.StatusOK, presentation.ConvSPdomainEventToSEventRes(events))
+	eventsRes := presentation.ConvDomainEventsToEventsResElems(events)
+	return c.JSON(http.StatusOK, eventsRes)
 }
 
 // HandleGetiCalByPrivateID sessionを持たないリクエストが想定されている
@@ -247,7 +252,7 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return badRequest(err)
 	}
-	events, err := h.Repo.GetEvents(expr, info)
+	events, err := h.Repo.GetEventsWithGroup(expr, info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

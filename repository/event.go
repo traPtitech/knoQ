@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filters"
 	"github.com/traPtitech/knoQ/infra/db"
@@ -86,10 +87,8 @@ func (repo *Repository) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) err
 
 // DeleteTagInEvent delete a tag in that Event
 func (repo *Repository) DeleteEventTag(eventID uuid.UUID, tagName string, info *domain.ConInfo) error {
-	deleteLocked := false
-	if repo.IsEventAdmins(eventID, info) {
-		deleteLocked = true
-	}
+	deleteLocked := repo.IsEventAdmins(eventID, info)
+
 	return repo.GormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
 }
 
@@ -138,6 +137,48 @@ func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain
 }
 
 func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
+	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
+
+	es, err := repo.GormRepo.GetAllEvents(expr)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+	events := lo.Map(es, func(e *db.Event, _ int) *domain.Event {
+		return &domain.Event{
+			ID:          e.ID,
+			Name:        e.Name,
+			Description: e.Description,
+			Room:        domain.Room{ID: e.RoomID, Place: e.Room.Place},
+			Group:       domain.Group{ID: e.GroupID},
+			TimeStart:   e.TimeStart,
+			TimeEnd:     e.TimeEnd,
+			CreatedBy:   domain.User{ID: e.CreatedByRefer},
+			Admins: lo.Map(e.Admins, func(a db.EventAdmin, _ int) domain.User {
+				return domain.User{ID: a.UserID}
+			}),
+			Tags: lo.Map(e.Tags, func(t db.EventTag, _ int) domain.EventTag {
+				return domain.EventTag{
+					Tag:    domain.Tag{ID: t.TagID, Name: t.Tag.Name},
+					Locked: t.Locked,
+				}
+			}),
+			AllowTogether: e.AllowTogether,
+			Attendees: lo.Map(e.Attendees, func(a db.EventAttendee, _ int) domain.Attendee {
+				return domain.Attendee{UserID: a.UserID}
+			}),
+			Open: e.Open,
+
+			Model: domain.Model{
+				CreatedAt: e.CreatedAt,
+				UpdatedAt: e.UpdatedAt,
+			},
+		}
+	})
+
+	return events, nil
+}
+
+func (repo *Repository) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
 	es, err := repo.GormRepo.GetAllEvents(expr)

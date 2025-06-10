@@ -171,7 +171,7 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 			got := makeRoomAvailableByTimeTable(te.room, tt, today)
 
 			if !reflect.DeepEqual(got, te.want) {
-				if !(len(got) == 0 && len(te.want) == 0) {
+				if len(got) != 0 || len(te.want) != 0 {
 					t.Errorf("\ngot : %v\nwant: %v", got, te.want)
 				}
 			}
