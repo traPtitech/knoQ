@@ -96,7 +96,7 @@ type Room struct {
 	Name           string    `gorm:"type:varchar(32);"`
 	TimeStart      time.Time `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
-	Events         []*Event  `gorm:"foreignKey:RoomID"` // readOnly
+	Events         []*Event  `gorm:"->;constraint:-;foreignKey:RoomID"` // readOnly
 	Admins         []*User   `gorm:"many2many:room_admins"`
 	CreatedByRefer uuid.UUID `gorm:"type:char(36);" cvt:"CreatedBy, <-"`
 	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
@@ -175,12 +175,12 @@ type Event struct {
 	ID             uuid.UUID      `gorm:"type:char(36); primaryKey"`
 	Name           string         `gorm:"type:varchar(32); not null"`
 	Description    string         `gorm:"type:TEXT"`
-	IsRoomEvent    bool           `gorm:"not null"` // 進捗部屋開催かどうか
+	IsRoomEvent    bool           `gorm:"not null"`                                                          // 進捗部屋開催かどうか
+	RoomID         uuid.NullUUID  `gorm:"type:char(36); index"`                                              // 進捗部屋開催のとき not null
+	Room           *Room          `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"` // 進捗部屋開催のとき not nil
+	Venue          sql.NullString `gorm:"type:TEXT"`                                                         // 進捗部屋開催でないとき not null
 	GroupID        uuid.UUID      `gorm:"type:char(36); not null; index"`
-	Group          Group          `gorm:"->; foreignKey:GroupID; constraint:-"` // 進捗部屋開催のとき not null
-	RoomID         uuid.NullUUID  `gorm:"type:char(36); index"`                 // 進捗部屋開催のとき not nil
-	Room           *Room          `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"`
-	Venue          sql.NullString `gorm:"type:TEXT"` // 進捗部屋開催でないとき not null
+	Group          Group          `gorm:"->; foreignKey:GroupID; constraint:-"`
 	TimeStart      time.Time      `gorm:"type:DATETIME; index"`
 	TimeEnd        time.Time      `gorm:"type:DATETIME; index"`
 	CreatedByRefer uuid.UUID      `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`

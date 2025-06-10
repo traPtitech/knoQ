@@ -16,9 +16,19 @@ type v13OldRoom struct {
 	Verified bool
 }
 
-func (r v13OldRoom) TableName() string {
+func (v13OldRoom) TableName() string {
 	return "rooms"
 }
+
+/*
+古い Event
+```
+	RoomID         uuid.UUID `gorm:"type:char(36); not null; index"` // ここを null も許容するようにしたい
+	Room           Room      `gorm:"foreignKey:RoomID; constraint:OnDelete:CASCADE;" cvt:"write:Place"`
+	TimeStart      time.Time `gorm:"type:DATETIME; index"`
+	TimeEnd        time.Time `gorm:"type:DATETIME; index"`
+```
+*/
 
 type v13OldEvent struct {
 	ID     uuid.UUID  `gorm:"type:char(36); primaryKey"`
@@ -31,15 +41,20 @@ func (v13OldEvent) TableName() string {
 }
 
 // --- 移行後の最終的な構造体定義 ---
-// GORMのAutoMigrate機能でスキーマを更新するために使用します。
-type v13NewRoom struct {
-	ID   uuid.UUID `gorm:"type:char(36);primaryKey"`
-	Name string    `gorm:"type:varchar(32);"` // placeからrename
-}
+/*
+	Place          string    `gorm:"type:varchar(32);"`
+	Verified       bool
+	Events         []Event   `gorm:"->; constraint:-"` // readOnly
+	Admins         []RoomAdmin
+*/
+// type v13NewRoom struct {
+// 	ID   uuid.UUID `gorm:"type:char(36);primaryKey"`
+// 	Name string    `gorm:"type:varchar(32);"` // placeからrename
+// }
 
-func (v13NewRoom) TableName() string {
-	return "rooms"
-}
+// func (v13NewRoom) TableName() string {
+// 	return "rooms"
+// }
 
 type v13NewEvent struct {
 	ID          uuid.UUID      `gorm:"type:char(36);primaryKey"`
@@ -63,10 +78,20 @@ func v13() *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: "13",
 		Migrate: func(db *gorm.DB) error {
-			// 1. スキーマのマイグレーションを実行
-			// - `events`テーブルに is_room_event, venue カラムを追加
-			if err := db.AutoMigrate(&v13NewEvent{}); err != nil {
-				return err
+			// 1a. カラム`is_room_event`の追加
+			//     まず、カラムが存在しないことを確認します。
+			if !db.Migrator().HasColumn(&v13NewEvent{}, "IsRoomEvent") {
+				// カラムが存在しない場合のみ、追加処理を実行します。
+				if err := db.Migrator().AddColumn(&v13NewEvent{}, "IsRoomEvent"); err != nil {
+					return err
+				}
+			}
+
+			// 1b. カラム`venue`の追加
+			if !db.Migrator().HasColumn(&v13NewEvent{}, "Venue") {
+				if err := db.Migrator().AddColumn(&v13NewEvent{}, "Venue"); err != nil {
+					return err
+				}
 			}
 
 			// - `events.room_id` を NULL 許容に変更
