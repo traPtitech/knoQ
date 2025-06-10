@@ -43,8 +43,8 @@ func ConvtraqUserGroupTodomainGroup(src traq.UserGroup) (dst domain.Group) {
 	for i := range src.Admins {
 		dst.Admins[i] = ConvuuidUUIDTodomainUser(uuid.Must(uuid.FromString(src.GetAdmins()[i])))
 	}
-	dst.Model.CreatedAt = src.CreatedAt
-	dst.Model.UpdatedAt = src.UpdatedAt
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
 	return
 }
 func ConvtraqUserTodomainUser(src traq.User) (dst domain.User) {
