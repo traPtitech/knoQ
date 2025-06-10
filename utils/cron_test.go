@@ -1,11 +1,11 @@
 package utils
 
 import (
-	"github.com/traPtitech/knoQ/domain"
 	"reflect"
+	"testing"
 	"time"
 
-	"testing"
+	"github.com/traPtitech/knoQ/domain"
 )
 
 func Test_makeRoomAvailableByTimeTable(t *testing.T) {
@@ -30,8 +30,7 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 		"1-10": {
 			room: []*domain.Room{
 				{
-					Place:     "traP-001",
-					Verified:  true,
+					Name:      "traP-001",
 					TimeStart: setTimeFromString(today, "08:50:00"),
 					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
@@ -50,14 +49,7 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 		"cut unverified": {
 			room: []*domain.Room{
 				{
-					Place:     "traP-001",
-					Verified:  true,
-					TimeStart: setTimeFromString(today, "08:50:00"),
-					TimeEnd:   setTimeFromString(today, "18:55:00"),
-				},
-				{
-					Place:     "unverified",
-					Verified:  false,
+					Name:      "traP-001",
 					TimeStart: setTimeFromString(today, "08:50:00"),
 					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
@@ -76,8 +68,7 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 		"24/7": {
 			room: []*domain.Room{
 				{
-					Place:     "traP-001",
-					Verified:  true,
+					Name:      "traP-001",
 					TimeStart: setTimeFromString(today, "00:00:00"),
 					TimeEnd:   setTimeFromString(today, "23:59:59"),
 				},
@@ -96,20 +87,17 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 		"5-10 and 3-10 except Lunch": {
 			room: []*domain.Room{
 				{
-					Place:     "traP-001",
-					Verified:  true,
+					Name:      "traP-001",
 					TimeStart: setTimeFromString(today, "12:25:00"),
 					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
 				{
-					Place:     "traP-002",
-					Verified:  true,
+					Name:      "traP-002",
 					TimeStart: setTimeFromString(today, "10:45:00"),
 					TimeEnd:   setTimeFromString(today, "12:25:00"),
 				},
 				{
-					Place:     "traP-002",
-					Verified:  true,
+					Name:      "traP-002",
 					TimeStart: setTimeFromString(today, "13:30:00"),
 					TimeEnd:   setTimeFromString(today, "18:55:00"),
 				},
@@ -128,8 +116,7 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 		"10:00-18:00": {
 			room: []*domain.Room{
 				{
-					Place:     "traP-001",
-					Verified:  true,
+					Name:      "traP-001",
 					TimeStart: setTimeFromString(today, "10:00:00"),
 					TimeEnd:   setTimeFromString(today, "18:00:00"),
 				},
@@ -148,8 +135,7 @@ func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 		"15:00-15:01": {
 			room: []*domain.Room{
 				{
-					Place:     "traP-001",
-					Verified:  true,
+					Name:      "traP-001",
 					TimeStart: setTimeFromString(today, "15:00:00"),
 					TimeEnd:   setTimeFromString(today, "15:01:00"),
 				},

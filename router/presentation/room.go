@@ -58,8 +58,8 @@ func ConvSPdomainRoomToSPRoomRes(src []*domain.Room) (dst []*RoomRes) {
 // //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Room -d RoomRes -o converter.go .
 func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 	dst.ID = src.ID
-	dst.Verified = src.Verified
-	dst.RoomReq.Place = src.Place
+	dst.Verified = true // Room は全て進捗部屋
+	dst.RoomReq.Place = src.Name
 	dst.RoomReq.TimeStart = src.TimeStart
 	dst.RoomReq.TimeEnd = src.TimeEnd
 	dst.RoomReq.Admins = make([]uuid.UUID, len(src.Admins))
@@ -74,7 +74,6 @@ func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 }
 
 func ChangeRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (*domain.WriteRoomParams, error) {
-
 	layout := "2006/01/02 15:04"
 	var params domain.WriteRoomParams
 	var err error
@@ -93,5 +92,4 @@ func ChangeRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (
 	params.Admins = []uuid.UUID{userID}
 
 	return &params, err
-
 }

@@ -119,7 +119,7 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 	e.Description += "イベント詳細ページ\n"
 	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
 	vevent.SetDescription(e.Description)
-	vevent.SetLocation(e.Room.Place)
+	vevent.SetLocation(e.Room.Name)
 	vevent.SetOrganizer(e.CreatedBy.DisplayName)
 	for _, v := range e.Attendees {
 		user, ok := userMap[v.UserID]
@@ -207,7 +207,7 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	dst.Description = src.Description
 	if src.Room != nil {
 		dst.Room = ConvdomainRoomToRoomRes(*src.Room)
-		dst.Place = src.Room.Place
+		dst.Place = src.Room.Name
 	} else {
 		dst.Place = src.Venue.String
 	}

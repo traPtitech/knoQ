@@ -14,10 +14,11 @@ func ConvCreateRoomParamsToRoom(src CreateRoomParams) (dst Room) {
 	dst.Name = src.WriteRoomParams.Place
 	dst.TimeStart = src.WriteRoomParams.TimeStart
 	dst.TimeEnd = src.WriteRoomParams.TimeEnd
-	dst.Admins = make([]*User, len(src.WriteRoomParams.Admins))
-	for i := range src.WriteRoomParams.Admins {
-		*dst.Admins[i] = ConvuuidUUIDToUserMeta(src.WriteRoomParams.Admins[i])
-	}
+	dst.Admins = lo.Map(src.WriteRoomParams.Admins, func(i uuid.UUID, _ int) *User {
+		u := new(User)
+		*u = ConvuuidUUIDToUserMeta(i)
+		return u
+	})
 	return
 }
 
@@ -114,7 +115,7 @@ func ConvRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
 
 func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
-	dst.Place = src.Name
+	dst.Name = src.Name
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.Events = make([]domain.Event, len(src.Events))
@@ -397,14 +398,9 @@ func convGroupTodomainGroup(src Group) (dst domain.Group) {
 	return
 }
 
-func convRoomAdminTodomainUser(src RoomAdmin) (dst domain.User) {
-	dst.ID = src.UserID
-	return
-}
-
 func convRoomTodomainRoom(src Room) (dst domain.Room) {
 	dst.ID = src.ID
-	dst.Place = src.Name
+	dst.Name = src.Name
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.Events = make([]domain.Event, len(src.Events))
@@ -461,11 +457,6 @@ func convuuidUUIDToGroupAdmin(src uuid.UUID) (dst GroupAdmin) {
 }
 
 func convuuidUUIDToGroupMember(src uuid.UUID) (dst GroupMember) {
-	dst.UserID = src
-	return
-}
-
-func convuuidUUIDToRoomAdmin(src uuid.UUID) (dst RoomAdmin) {
 	dst.UserID = src
 	return
 }

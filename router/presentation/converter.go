@@ -48,7 +48,11 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) []EventRes {
 			place := e.Venue.String
 			if e.IsRoomEvent {
 				roomID = e.Room.ID
-				place = e.Room.Place
+				place = e.Room.Name
+			}
+			if e == nil {
+				println("hell")
+				return EventRes{}
 			}
 			return EventRes{
 				ID:            e.ID,

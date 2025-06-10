@@ -54,10 +54,6 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 		roomAvailable[i] = make(map[string]string)
 	}
 	for _, room := range rooms {
-		if !room.Verified {
-			continue
-		}
-
 		ts, te := room.TimeStart, room.TimeEnd
 		for i, row := range timeTables {
 			rowNextStart := setTimeFromString(date, "23:59:59")
@@ -70,10 +66,10 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 			if (ts.Before(rs) || ts.Equal(rs)) && rs.Before(te) {
 				if rowNextStart.Before(te) || rowNextStart.Equal(te) {
 					// n限の間全使用
-					roomAvailable[i][room.Place] = ":white_check_mark:"
+					roomAvailable[i][room.Name] = ":white_check_mark:"
 				} else {
 					// n限の途中で使用終了
-					roomAvailable[i][room.Place] = fmt.Sprintf("- %s", te.Format("15:04"))
+					roomAvailable[i][room.Name] = fmt.Sprintf("- %s", te.Format("15:04"))
 				}
 				continue
 			}
@@ -82,17 +78,17 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 			if rs.Before(ts) && ts.Before(rowNextStart) {
 				if rowNextStart.Before(te) || rowNextStart.Equal(te) {
 					// n限の途中で使用開始し、n限の間は全使用
-					roomAvailable[i][room.Place] = fmt.Sprintf("%s -", ts.Format("15:04"))
+					roomAvailable[i][room.Name] = fmt.Sprintf("%s -", ts.Format("15:04"))
 				} else {
 					// n限の途中で使用開始し、n限の途中で使用終了
-					roomAvailable[i][room.Place] = fmt.Sprintf("%s - %s", ts.Format("15:04"), te.Format("15:04"))
+					roomAvailable[i][room.Name] = fmt.Sprintf("%s - %s", ts.Format("15:04"), te.Format("15:04"))
 				}
 				continue
 			}
 
 			// n限の間は進捗部屋を使用しない
-			if _, ok := roomAvailable[i][room.Place]; !ok {
-				roomAvailable[i][room.Place] = ":regional_indicator_null:"
+			if _, ok := roomAvailable[i][room.Name]; !ok {
+				roomAvailable[i][room.Name] = ":regional_indicator_null:"
 			}
 		}
 	}
@@ -115,8 +111,8 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 		roomMessage = "本日は予約を取っていないようです。\n"
 	} else {
 		for _, room := range rooms {
-			if room.Verified && !slices.Contains(verifiedRoomNames, room.Place) {
-				verifiedRoomNames = append(verifiedRoomNames, room.Place)
+			if !slices.Contains(verifiedRoomNames, room.Name) {
+				verifiedRoomNames = append(verifiedRoomNames, room.Name)
 			}
 		}
 

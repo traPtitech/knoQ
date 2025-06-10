@@ -24,7 +24,6 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	}
 	for _, groupMember := range group.Members {
 		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
-
 	}
 	return repo.GetEvent(event.ID, info)
 }
