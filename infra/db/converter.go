@@ -154,7 +154,7 @@ func ConvSPGroupMemberToSuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
 	dst = make([]uuid.UUID, len(src))
 	for i := range src {
 		if src[i] != nil {
-			dst[i] = (*src[i]).GroupID
+			dst[i] = src[i].GroupID
 		}
 	}
 	return
@@ -337,11 +337,14 @@ func convEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
 func convEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
 	dst.Name = src.Name
-	dst.Description = src.Description
-	if src.Room != nil {
+	dst.IsRoomEvent = src.IsRoomEvent
+	if dst.IsRoomEvent {
 		dst.Room = new(domain.Room)
 		*dst.Room = convRoomTodomainRoom(*src.Room)
+	} else {
+		dst.Venue = src.Venue
 	}
+	dst.Description = src.Description
 	dst.Group = convGroupTodomainGroup(src.Group)
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
