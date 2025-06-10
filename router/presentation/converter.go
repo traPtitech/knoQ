@@ -41,6 +41,7 @@ func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams
 	return
 }
 
+
 func ConvSPdomainEventToSEventRes(src []*domain.Event) []EventRes {
 	return lo.Map(
 		src, func(e *domain.Event, _ int) EventRes {
@@ -54,6 +55,7 @@ func ConvSPdomainEventToSEventRes(src []*domain.Event) []EventRes {
 				println("hell")
 				return EventRes{}
 			}
+      
 			return EventRes{
 				ID:            e.ID,
 				Name:          e.Name,
@@ -125,16 +127,16 @@ func ConvSdomainStartEndTimeToSStartEndTime(src []domain.StartEndTime) (dst []St
 
 func ConvdomainGroupToGroupRes(src domain.Group) (dst GroupRes) {
 	dst.ID = src.ID
-	dst.GroupReq.Name = src.Name
-	dst.GroupReq.Description = src.Description
-	dst.GroupReq.JoinFreely = src.JoinFreely
-	dst.GroupReq.Members = make([]uuid.UUID, len(src.Members))
+	dst.Name = src.Name
+	dst.Description = src.Description
+	dst.JoinFreely = src.JoinFreely
+	dst.Members = make([]uuid.UUID, len(src.Members))
 	for i := range src.Members {
-		dst.GroupReq.Members[i] = convdomainUserTouuidUUID(src.Members[i])
+		dst.Members[i] = convdomainUserTouuidUUID(src.Members[i])
 	}
-	dst.GroupReq.Admins = make([]uuid.UUID, len(src.Admins))
+	dst.Admins = make([]uuid.UUID, len(src.Admins))
 	for i := range src.Admins {
-		dst.GroupReq.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
+		dst.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
 	}
 	dst.IsTraQGroup = src.IsTraQGroup
 	dst.CreatedBy = convdomainUserTouuidUUID(src.CreatedBy)
@@ -169,16 +171,16 @@ func convdomainEventTagToEventTagRes(src domain.EventTag) (dst EventTagRes) {
 
 func convdomainGroupToGroupRes(src domain.Group) (dst GroupRes) {
 	dst.ID = src.ID
-	dst.GroupReq.Name = src.Name
-	dst.GroupReq.Description = src.Description
-	dst.GroupReq.JoinFreely = src.JoinFreely
-	dst.GroupReq.Members = make([]uuid.UUID, len(src.Members))
+	dst.Name = src.Name
+	dst.Description = src.Description
+	dst.JoinFreely = src.JoinFreely
+	dst.Members = make([]uuid.UUID, len(src.Members))
 	for i := range src.Members {
-		dst.GroupReq.Members[i] = convdomainUserTouuidUUID(src.Members[i])
+		dst.Members[i] = convdomainUserTouuidUUID(src.Members[i])
 	}
-	dst.GroupReq.Admins = make([]uuid.UUID, len(src.Admins))
+	dst.Admins = make([]uuid.UUID, len(src.Admins))
 	for i := range src.Admins {
-		dst.GroupReq.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
+		dst.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
 	}
 	dst.IsTraQGroup = src.IsTraQGroup
 	dst.CreatedBy = convdomainUserTouuidUUID(src.CreatedBy)

@@ -346,6 +346,7 @@ func convEventTodomainEvent(src Event) (dst domain.Event) {
 	}
 	dst.Description = src.Description
 	dst.Group = convGroupTodomainGroup(src.Group)
+	dst.Group.ID = src.GroupID
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
