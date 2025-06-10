@@ -26,7 +26,7 @@ func Test_saveUser(t *testing.T) {
 		},
 	}
 
-	t.Run("save user", func(t *testing.T) {
+	t.Run("save user", func(_ *testing.T) {
 		_, err := saveUser(r.db, user)
 		assert.NoError(err)
 		u, err := getUser(r.db.Preload("Provider"), id)
@@ -34,7 +34,7 @@ func Test_saveUser(t *testing.T) {
 		assert.Equal(user.Provider.Issuer, u.Provider.Issuer)
 	})
 
-	t.Run("Update only state. Without deleting anything.", func(t *testing.T) {
+	t.Run("Update only state. Without deleting anything.", func(_ *testing.T) {
 		_, err := saveUser(r.db, &User{
 			ID:    user.ID,
 			State: 2,
@@ -51,7 +51,7 @@ func Test_saveUser(t *testing.T) {
 		assert.Equal(user.IcalSecret, u.IcalSecret)
 	})
 
-	t.Run("Update token", func(t *testing.T) {
+	t.Run("Update token", func(_ *testing.T) {
 		_, err := saveUser(r.db, &User{
 			ID:    user.ID,
 			State: 2,
@@ -67,7 +67,7 @@ func Test_saveUser(t *testing.T) {
 		assert.Equal("hoge2", token.AccessToken)
 	})
 
-	t.Run("Update privilege", func(t *testing.T) {
+	t.Run("Update privilege", func(_ *testing.T) {
 		u, err := getUser(r.db, user.ID)
 		assert.NoError(err)
 		assert.False(u.Privilege)
@@ -87,7 +87,7 @@ func Test_saveUser(t *testing.T) {
 func Test_getUser(t *testing.T) {
 	r, assert, _, user := setupRepoWithUser(t, common)
 
-	t.Run("get user", func(t *testing.T) {
+	t.Run("get user", func(_ *testing.T) {
 		_, err := getUser(r.db, user.ID)
 		assert.NoError(err)
 	})

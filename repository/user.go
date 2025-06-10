@@ -87,7 +87,7 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	return u, defaultErrorHandling(err)
 }
 
-func (repo *Repository) GetUser(userID uuid.UUID, info *domain.ConInfo) (*domain.User, error) {
+func (repo *Repository) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.User, error) {
 	userMeta, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -110,7 +110,7 @@ func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 	return repo.GetUser(info.ReqUserID, info)
 }
 
-func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, info *domain.ConInfo) ([]*domain.User, error) {
+func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, _ *domain.ConInfo) ([]*domain.User, error) {
 	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
