@@ -2,7 +2,6 @@ package google
 
 import (
 	"context"
-	_ "embed"
 	"errors"
 	"net/url"
 
@@ -10,20 +9,22 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type GoogleRepository struct {
+type Repository struct {
 	Config *oauth2.Config
 }
 
-//embed tmp/client.json
-//var ClientFile []byte
+// "embed" を利用したい場合以下のコメントを解除する
+// import "embed"
+// // go:embed tmp/client.json
+// var ClientFile []byte
 
-func (repo *GoogleRepository) GetOAuthURL() (url, state string) {
+func (repo *Repository) GetOAuthURL() (url, state string) {
 	state = random.AlphaNumeric(10, true)
 	url = repo.Config.AuthCodeURL(state)
 	return
 }
 
-func (repo *GoogleRepository) GetOAuthToken(query, state string) (*oauth2.Token, error) {
+func (repo *Repository) GetOAuthToken(query, state string) (*oauth2.Token, error) {
 	ctx := context.TODO()
 	values, err := url.ParseQuery(query)
 	if err != nil {
