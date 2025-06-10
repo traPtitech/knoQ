@@ -7,7 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/domain/filters"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/utils/tz"
 	"golang.org/x/exp/slices"
@@ -27,7 +27,7 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 		tomorrow := now.AddDate(0, 0, 1)
 
 		rooms, _ := repo.GetAllRooms(now, tomorrow, uuid.Nil)
-		expr, err := filter.FilterDuration(now, tomorrow)
+		expr, err := filters.FilterDuration(now, tomorrow)
 		if err != nil {
 			fmt.Println(err)
 		}

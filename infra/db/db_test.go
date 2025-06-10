@@ -158,12 +158,12 @@ func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 	return &user
 }
 
-//func mustMakeUserBody(t *testing.T, repo *GormRepository, name, password string) *UserBody {
-//t.Helper()
-//user, err := saveUser(repo.db, userID uuid.UUID, privilege bool)
-//require.NoError(t, err)
-//return user
-//}
+// func mustMakeUserBody(t *testing.T, repo *GormRepository, name, password string) *UserBody {
+// t.Helper()
+// user, err := saveUser(repo.db, userID uuid.UUID, privilege bool)
+// require.NoError(t, err)
+// return user
+// }
 
 // mustMakeGroup make group has no members
 func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *User) {
@@ -183,11 +183,11 @@ func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *Us
 	return group, user
 }
 
-//func mustAddGroupMember(t *testing.T, repo *GormRepository, groupID uuid.UUID, userID uuid.UUID) {
-//t.Helper()
-//err := repo.AddUserToGroup(groupID, userID)
-//require.NoError(t, err)
-//}
+// func mustAddGroupMember(t *testing.T, repo *GormRepository, groupID uuid.UUID, userID uuid.UUID) {
+// t.Helper()
+// err := repo.AddUserToGroup(groupID, userID)
+// require.NoError(t, err)
+// }
 
 // mustMakeRoom make room. now -1h ~ now + 1h
 func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *User) {

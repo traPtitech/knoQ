@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/traPtitech/knoQ/domain/filter"
+	"github.com/traPtitech/knoQ/domain/filters"
 )
 
 type ScheduleStatus int
@@ -82,7 +82,7 @@ type EventRepository interface {
 	UpsertMeEventSchedule(eventID uuid.UUID, schedule ScheduleStatus, info *ConInfo) error
 
 	GetEvent(eventID uuid.UUID, info *ConInfo) (*Event, error)
-	GetEvents(expr filter.Expr, info *ConInfo) ([]*Event, error)
+	GetEvents(expr filters.Expr, info *ConInfo) ([]*Event, error)
 	IsEventAdmins(eventID uuid.UUID, info *ConInfo) bool
 
 	// GetEventActivities(day int) ([]*Event, error)

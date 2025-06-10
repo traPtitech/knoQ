@@ -8,7 +8,7 @@ import (
 )
 
 // BeforeSave is hook
-func (e *Event) BeforeSave(tx *gorm.DB) (err error) {
+func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 	if e.ID == uuid.Nil {
 		e.ID, err = uuid.NewV4()
 		if err != nil {
@@ -134,7 +134,7 @@ func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
 
 	// 名前からIDを探す
 	// タグが存在しなければ、作ってイベントにタグを追加する
-	//（自動で作ることを想定 FullSaveAssociations: true等）
+	// （自動で作ることを想定 FullSaveAssociations: true等）
 	// 存在すれば、作らずにイベントにタグを追加する
 	if et.Tag.ID == uuid.Nil {
 		tag := Tag{
@@ -172,7 +172,7 @@ func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 // BeforeSave is hook
-func (r *Room) BeforeSave(tx *gorm.DB) (err error) {
+func (r *Room) BeforeSave(_ *gorm.DB) (err error) {
 	if r.ID != uuid.Nil {
 		return nil
 	}
@@ -210,7 +210,7 @@ func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 }
 
 // BeforeSave is hook
-func (g *Group) BeforeSave(tx *gorm.DB) (err error) {
+func (g *Group) BeforeSave(_ *gorm.DB) (err error) {
 	if g.ID != uuid.Nil {
 		return nil
 	}
@@ -265,7 +265,7 @@ func (g *Group) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 // BeforeCreate is hook
-func (t *Tag) BeforeCreate(tx *gorm.DB) (err error) {
+func (t *Tag) BeforeCreate(_ *gorm.DB) (err error) {
 	if t.ID != uuid.Nil {
 		return nil
 	}
@@ -277,7 +277,7 @@ func (t *Tag) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 // BeforeCreate is hook
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+func (u *User) BeforeCreate(_ *gorm.DB) (err error) {
 	if u.ID != uuid.Nil {
 		return nil
 	}
@@ -288,7 +288,7 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (t *Token) BeforeSave(tx *gorm.DB) (err error) {
+func (t *Token) BeforeSave(_ *gorm.DB) (err error) {
 	if t.AccessToken != "" {
 		cipherText, err := encryptByGCM(tokenKey, t.AccessToken)
 		if err != nil {

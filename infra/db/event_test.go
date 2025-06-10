@@ -32,7 +32,7 @@ func Test_createEvent(t *testing.T) {
 		},
 	}
 
-	t.Run("create event", func(t *testing.T) {
+	t.Run("create event", func(_ *testing.T) {
 		event, err := createEvent(r.db, params)
 		require.NoError(err)
 		assert.NotNil(event.ID)
@@ -43,7 +43,7 @@ func Test_createEvent(t *testing.T) {
 		assert.NotNil(e.Tags[0].Tag.Name)
 	})
 
-	t.Run("create event with exsiting tags", func(t *testing.T) {
+	t.Run("create event with exsiting tags", func(_ *testing.T) {
 		_, err := createOrGetTag(r.db, "Go")
 		require.NoError(err)
 
@@ -55,7 +55,7 @@ func Test_createEvent(t *testing.T) {
 		require.NoError(err)
 	})
 
-	t.Run("wrong time", func(t *testing.T) {
+	t.Run("wrong time", func(_ *testing.T) {
 		var p WriteEventParams
 		require.NoError(copier.Copy(&p, &params))
 
@@ -64,7 +64,7 @@ func Test_createEvent(t *testing.T) {
 		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 
-	t.Run("wrong room time", func(t *testing.T) {
+	t.Run("wrong room time", func(_ *testing.T) {
 		var p WriteEventParams
 		require.NoError(copier.Copy(&p, &params))
 
@@ -109,7 +109,7 @@ func Test_updateEvent(t *testing.T) {
 		},
 	}
 
-	t.Run("update event", func(t *testing.T) {
+	t.Run("update event", func(_ *testing.T) {
 		_, err := updateEvent(r.db, event.ID, params)
 		require.NoError(err)
 
@@ -130,7 +130,7 @@ func Test_updateEvent(t *testing.T) {
 func Test_addEventTag(t *testing.T) {
 	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
 
-	t.Run("add tag", func(t *testing.T) {
+	t.Run("add tag", func(_ *testing.T) {
 		err := addEventTag(r.db, event.ID, domain.EventTagParams{
 			Name: "foo",
 		})
@@ -150,7 +150,7 @@ func Test_addEventTag(t *testing.T) {
 func Test_deleteEvent(t *testing.T) {
 	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
 
-	t.Run("delete event", func(t *testing.T) {
+	t.Run("delete event", func(_ *testing.T) {
 		err := deleteEvent(r.db, event.ID)
 		require.NoError(err)
 
@@ -167,7 +167,7 @@ func Test_deleteEvent(t *testing.T) {
 func Test_deleteEventTag(t *testing.T) {
 	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
 
-	t.Run("delete eventTag", func(t *testing.T) {
+	t.Run("delete eventTag", func(_ *testing.T) {
 		err := deleteEventTag(r.db, event.ID, "gin", false)
 		require.NoError(err)
 
@@ -176,7 +176,7 @@ func Test_deleteEventTag(t *testing.T) {
 		assert.Empty(e.Tags)
 	})
 
-	t.Run("delete locked tag", func(t *testing.T) {
+	t.Run("delete locked tag", func(_ *testing.T) {
 		err := addEventTag(r.db, event.ID, domain.EventTagParams{
 			Name: "LOCK", Locked: true,
 		})
@@ -201,7 +201,7 @@ func Test_deleteEventTag(t *testing.T) {
 		assert.ErrorIs(err, gorm.ErrRecordNotFound)
 	})
 
-	t.Run("delete non-tag", func(t *testing.T) {
+	t.Run("delete non-tag", func(_ *testing.T) {
 		err := deleteEventTag(r.db, event.ID, random.AlphaNumeric(8, false), false)
 		assert.ErrorIs(err, gorm.ErrRecordNotFound)
 	})
@@ -210,7 +210,7 @@ func Test_deleteEventTag(t *testing.T) {
 func Test_getEvent(t *testing.T) {
 	r, assert, require, _, _, _, event := setupRepoWithUserGroupRoomEvent(t, common)
 
-	t.Run("get Event", func(t *testing.T) {
+	t.Run("get Event", func(_ *testing.T) {
 		e, err := getEvent(r.db, event.ID)
 		require.NoError(err)
 		assert.Equal(event.Name, e.Name)
