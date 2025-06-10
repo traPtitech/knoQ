@@ -90,7 +90,7 @@ func (*v7currentUserMeta) TableName() string {
 	return "user_meta"
 }
 
-func Convv7currentUserMetaTov7newUser(src v7currentUserMeta) (dst v7newUser) {
+func Convv7currentUserMetaTov7newUser(src v7currentUserMeta) (dst v7newUser) { //nolint:revive
 	dst.ID = src.ID
 	dst.IcalSecret = src.IcalSecret
 	dst.Privilege = src.Admin
@@ -102,7 +102,7 @@ func Convv7currentUserMetaTov7newUser(src v7currentUserMeta) (dst v7newUser) {
 	return
 }
 
-func ConvSPv7currentUserMetaToSPv7newUser(src []*v7currentUserMeta) (dst []*v7newUser) {
+func ConvSPv7currentUserMetaToSPv7newUser(src []*v7currentUserMeta) (dst []*v7newUser) { //nolint:revive
 	dst = make([]*v7newUser, len(src))
 	for i := range src {
 		dst[i] = new(v7newUser)

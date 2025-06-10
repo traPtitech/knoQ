@@ -28,8 +28,8 @@ type RuntimeCallerStruct struct {
 	ok             bool
 }
 
-func (ER RuntimeCallerStruct) Error() string {
-	return fmt.Sprintf("%s:%d", ER.SourceFile, ER.Line)
+func (er RuntimeCallerStruct) Error() string {
+	return fmt.Sprintf("%s:%d", er.SourceFile, er.Line)
 }
 
 func newRuntimeCallerStruct(pc uintptr, file string, line int, ok bool) RuntimeCallerStruct {
@@ -163,6 +163,6 @@ func HTTPErrorHandler(err error, c echo.Context) {
 	}
 }
 
-func NotFoundHandler(c echo.Context) error {
+func NotFoundHandler(_ echo.Context) error {
 	return notFound(nil)
 }
