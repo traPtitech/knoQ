@@ -81,7 +81,7 @@ type EventRepository interface {
 	GetEvents(expr filters.Expr, info *ConInfo) ([]*Event, error)
 	IsEventAdmins(eventID uuid.UUID, info *ConInfo) bool
 
-	GetEventsWithGroup(expr filter.Expr, info *ConInfo) ([]*Event, error)
+	GetEventsWithGroup(expr filters.Expr, info *ConInfo) ([]*Event, error)
 
 	// GetEventActivities(day int) ([]*Event, error)
 }

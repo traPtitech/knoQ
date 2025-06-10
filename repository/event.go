@@ -180,7 +180,7 @@ func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*d
 	return events, nil
 }
 
-func (repo *Repository) GetEventsWithGroup(expr filter.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
+func (repo *Repository) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
