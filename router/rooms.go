@@ -26,6 +26,7 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 
 // HandleCreateVerifedRooms csvを解析し、進捗部屋を作成
 func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
+
 	userID, err := getRequestUserID(c)
 	if err != nil {
 		return notFound(err)
@@ -36,8 +37,8 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	// 構造体の変換
-	RoomsRes := make([]presentation.RoomRes, 0, len(req))
+	//構造体の変換
+	var RoomsRes []presentation.RoomRes
 
 	for _, v := range req {
 
@@ -47,6 +48,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 		}
 
 		room, err := h.Repo.CreateVerifiedRoom(*params, getConinfo(c))
+
 		if err != nil {
 			return judgeErrorResponse(err)
 		}

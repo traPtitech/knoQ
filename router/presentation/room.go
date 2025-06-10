@@ -74,6 +74,7 @@ func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 }
 
 func ChangeRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (*domain.WriteRoomParams, error) {
+
 	layout := "2006/01/02 15:04"
 	var params domain.WriteRoomParams
 	var err error
@@ -92,4 +93,5 @@ func ChangeRoomCSVReqTodomainWriteRoomParams(src RoomCSVReq, userID uuid.UUID) (
 	params.Admins = []uuid.UUID{userID}
 
 	return &params, err
+
 }

@@ -186,7 +186,7 @@ func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
 	}
 }
 
-func (repo *Repository) GetGradeGroupNames(_ *domain.ConInfo) ([]string, error) {
+func (repo *Repository) GetGradeGroupNames(info *domain.ConInfo) ([]string, error) {
 	groups, err := repo.TraQRepo.GetAllGroups()
 	if err != nil {
 		return nil, defaultErrorHandling(err)

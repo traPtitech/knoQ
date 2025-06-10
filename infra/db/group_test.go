@@ -22,7 +22,7 @@ func Test_createGroup(t *testing.T) {
 		},
 	}
 
-	t.Run("create group", func(_ *testing.T) {
+	t.Run("create group", func(t *testing.T) {
 		group, err := createGroup(r.db, params)
 		require.NoError(err)
 		assert.NotNil(group.ID)
@@ -69,7 +69,7 @@ func Test_updateGroup(t *testing.T) {
 		},
 	}
 
-	t.Run("update group", func(_ *testing.T) {
+	t.Run("update group", func(t *testing.T) {
 		_, err := updateGroup(r.db, group.ID, params)
 		require.NoError(err)
 
@@ -139,7 +139,7 @@ func Test_addMemberToGroup(t *testing.T) {
 func Test_deleteGroup(t *testing.T) {
 	r, assert, _, _, group := setupRepoWithUserGroup(t, common)
 
-	t.Run("delete group", func(_ *testing.T) {
+	t.Run("delete group", func(t *testing.T) {
 		err := deleteGroup(r.db, group.ID)
 		assert.NoError(err)
 	})
@@ -153,7 +153,7 @@ func Test_deleteGroup(t *testing.T) {
 func Test_deleteMemberOfGroup(t *testing.T) {
 	r, assert, require, user, group := setupRepoWithUserGroup(t, common)
 
-	t.Run("delete member", func(_ *testing.T) {
+	t.Run("delete member", func(t *testing.T) {
 		err := addMemberToGroup(r.db, group.ID, user.ID)
 		require.NoError(err)
 
@@ -173,7 +173,7 @@ func Test_deleteMemberOfGroup(t *testing.T) {
 func Test_getGroup(t *testing.T) {
 	r, assert, require, _, group := setupRepoWithUserGroup(t, common)
 
-	t.Run("get group", func(_ *testing.T) {
+	t.Run("get group", func(t *testing.T) {
 		g, err := getGroup(r.db, group.ID)
 		require.NoError(err)
 		assert.Equal(group.Name, g.Name)

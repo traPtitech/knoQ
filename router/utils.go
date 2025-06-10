@@ -5,20 +5,20 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/domain/filters"
+	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/router/presentation"
 )
 
-func getUserRelationFilter(values url.Values, userID uuid.UUID) filters.Expr {
+func getUserRelationFilter(values url.Values, userID uuid.UUID) filter.Expr {
 	urel := presentation.GetUserRelationQuery(values)
 	switch urel {
 	case presentation.RelationBelongs:
-		return filters.FilterBelongs(userID)
+		return filter.FilterBelongs(userID)
 	case presentation.RelationAdmins:
-		return filters.FilterAdmins(userID)
+		return filter.FilterAdmins(userID)
 	}
 
-	return filters.FilterBelongs(userID)
+	return filter.FilterBelongs(userID)
 }
 
 func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {

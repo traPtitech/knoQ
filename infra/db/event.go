@@ -7,7 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/domain/filters"
+	"github.com/traPtitech/knoQ/domain/filter"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -62,7 +62,7 @@ func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 	return es, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*Event, error) {
+func (repo *GormRepository) GetAllEvents(expr filter.Expr) ([]*Event, error) {
 	filterFormat, filterArgs, err := createEventFilter(expr)
 	if err != nil {
 		return nil, err
@@ -152,65 +152,65 @@ func getEvents(db *gorm.DB, query string, args []interface{}) ([]*Event, error) 
 	return events, err
 }
 
-func createEventFilter(expr filters.Expr) (string, []interface{}, error) {
+func createEventFilter(expr filter.Expr) (string, []interface{}, error) {
 	if expr == nil {
 		return "", []interface{}{}, nil
 	}
 
-	attrMap := map[filters.Attr]string{
-		filters.AttrUser:     "event_attendees.user_id",
-		filters.AttrBelong:   "group_members.user_id",
-		filters.AttrAdmin:    "event_admins.user_id",
-		filters.AttrAttendee: "event_attendees.user_id",
+	attrMap := map[filter.Attr]string{
+		filter.AttrUser:     "event_attendees.user_id",
+		filter.AttrBelong:   "group_members.user_id",
+		filter.AttrAdmin:    "event_admins.user_id",
+		filter.AttrAttendee: "event_attendees.user_id",
 
-		filters.AttrName:      "events.name",
-		filters.AttrGroup:     "events.group_id",
-		filters.AttrRoom:      "events.room_id",
-		filters.AttrTag:       "event_tags.tag_id",
-		filters.AttrEvent:     "events.id",
-		filters.AttrTimeStart: "events.time_start",
-		filters.AttrTimeEnd:   "events.time_end",
+		filter.AttrName:      "events.name",
+		filter.AttrGroup:     "events.group_id",
+		filter.AttrRoom:      "events.room_id",
+		filter.AttrTag:       "event_tags.tag_id",
+		filter.AttrEvent:     "events.id",
+		filter.AttrTimeStart: "events.time_start",
+		filter.AttrTimeEnd:   "events.time_end",
 	}
-	defaultRelationMap := map[filters.Relation]string{
-		filters.Eq:       "=",
-		filters.Neq:      "!=",
-		filters.Greter:   ">",
-		filters.GreterEq: ">=",
-		filters.Less:     "<",
-		filters.LessEq:   "<=",
+	defaultRelationMap := map[filter.Relation]string{
+		filter.Eq:       "=",
+		filter.Neq:      "!=",
+		filter.Greter:   ">",
+		filter.GreterEq: ">=",
+		filter.Less:     "<",
+		filter.LessEq:   "<=",
 	}
 
-	var cf func(e filters.Expr) (string, []interface{}, error)
-	cf = func(e filters.Expr) (string, []interface{}, error) {
+	var cf func(e filter.Expr) (string, []interface{}, error)
+	cf = func(e filter.Expr) (string, []interface{}, error) {
 		var filterFormat string
 		var filterArgs []interface{}
 
 		switch e := e.(type) {
-		case *filters.CmpExpr:
+		case *filter.CmpExpr:
 			switch e.Attr {
-			case filters.AttrName:
+			case filter.AttrName:
 				name, ok := e.Value.(string)
 				if !ok {
 					return "", nil, ErrExpression
 				}
-				rel := map[filters.Relation]string{
-					filters.Eq:  "=",
-					filters.Neq: "!=",
+				rel := map[filter.Relation]string{
+					filter.Eq:  "=",
+					filter.Neq: "!=",
 				}[e.Relation]
 				filterFormat = fmt.Sprintf("events.name %v ?", rel)
 				filterArgs = []interface{}{name}
-			case filters.AttrTimeStart:
+			case filter.AttrTimeStart:
 				fallthrough
-			case filters.AttrTimeEnd:
+			case filter.AttrTimeEnd:
 				t, ok := e.Value.(time.Time)
 				if !ok {
 					return "", nil, ErrExpression
 				}
 				filterFormat = fmt.Sprintf("%v %v ?", attrMap[e.Attr], defaultRelationMap[e.Relation])
 				filterArgs = []interface{}{t}
-			case filters.AttrUser:
+			case filter.AttrUser:
 				fallthrough
-			case filters.AttrAttendee:
+			case filter.AttrAttendee:
 				id, ok := e.Value.(uuid.UUID)
 				if !ok {
 					return "", nil, ErrExpression
@@ -226,13 +226,13 @@ func createEventFilter(expr filters.Expr) (string, []interface{}, error) {
 				filterArgs = []interface{}{id}
 			}
 
-		case *filters.LogicOpExpr:
-			op := map[filters.LogicOp]string{
-				filters.And: "AND",
-				filters.Or:  "OR",
+		case *filter.LogicOpExpr:
+			op := map[filter.LogicOp]string{
+				filter.And: "AND",
+				filter.Or:  "OR",
 			}[e.LogicOp]
-			lFilter, lFilterArgs, lerr := cf(e.LHS)
-			rFilter, rFilterArgs, rerr := cf(e.RHS)
+			lFilter, lFilterArgs, lerr := cf(e.Lhs)
+			rFilter, rFilterArgs, rerr := cf(e.Rhs)
 
 			if lerr != nil && rerr != nil {
 				return "", nil, ErrExpression
@@ -245,8 +245,7 @@ func createEventFilter(expr filters.Expr) (string, []interface{}, error) {
 			}
 
 			filterFormat = fmt.Sprintf("( %v ) %v ( %v )", lFilter, op, rFilter)
-			filterArgs = lFilterArgs
-			filterArgs = append(filterArgs, rFilterArgs...)
+			filterArgs = append(lFilterArgs, rFilterArgs...)
 
 		default:
 			return "", nil, ErrExpression

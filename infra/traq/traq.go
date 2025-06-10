@@ -12,7 +12,7 @@ import (
 )
 
 // TraQRepository is traq
-type TraQRepository struct { //nolint:revive
+type TraQRepository struct {
 	Config            *oauth2.Config
 	URL               string
 	ServerAccessToken string

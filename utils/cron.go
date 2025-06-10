@@ -7,7 +7,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/domain/filters"
+	"github.com/traPtitech/knoQ/domain/filter"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/utils/tz"
 	"golang.org/x/exp/slices"
@@ -27,7 +27,7 @@ func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, 
 		tomorrow := now.AddDate(0, 0, 1)
 
 		rooms, _ := repo.GetAllRooms(now, tomorrow, uuid.Nil)
-		expr, err := filters.FilterDuration(now, tomorrow)
+		expr, err := filter.FilterDuration(now, tomorrow)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -163,12 +163,14 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin
 
 	if len(events) == 0 {
 		eventMessage = "本日開催予定のイベントはありません。\n"
+
 	} else {
 		for _, event := range events {
 			eventMessage += fmt.Sprintf("- [%s](%s/events/%s) %s ~ %s @%s %s\n", event.Name, origin, event.ID,
 				event.TimeStart.In(tz.JST).Format("01/02 15:04"), event.TimeEnd.In(tz.JST).Format("01/02 15:04"),
 				event.Room.Place, combined[event.AllowTogether])
 		}
+
 	}
 
 	return fmt.Sprintf("## %s の進捗部屋\n%s## %s 開催予定のイベント\n%s", date, roomMessage, date, eventMessage)

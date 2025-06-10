@@ -1,4 +1,4 @@
-package filters
+package filter
 
 type Relation int
 
@@ -40,8 +40,8 @@ type Expr interface {
 
 type LogicOpExpr struct {
 	LogicOp LogicOp
-	LHS     Expr
-	RHS     Expr
+	Lhs     Expr
+	Rhs     Expr
 }
 
 type CmpExpr struct {

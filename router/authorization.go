@@ -11,10 +11,8 @@ import (
 	"github.com/traPtitech/knoQ/utils/random"
 )
 
-var (
-	verifierCache = cache.New(5*time.Minute, 10*time.Minute)
-	stateCache    = cache.New(5*time.Minute, 10*time.Minute)
-)
+var verifierCache = cache.New(5*time.Minute, 10*time.Minute)
+var stateCache = cache.New(5*time.Minute, 10*time.Minute)
 
 type AuthParams struct {
 	URL string `json:"url"`

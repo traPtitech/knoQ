@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	VERSION     = "UNKNOWN"
-	REVISION    = "UNKNOWN"
+	VERSION     string = "UNKNOWN"
+	REVISION    string = "UNKNOWN"
 	DEVELOPMENT bool
 )
 

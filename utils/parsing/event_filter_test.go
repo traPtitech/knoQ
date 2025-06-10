@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/traPtitech/knoQ/domain/filters"
+	"github.com/traPtitech/knoQ/domain/filter"
 )
 
 /*---------------------------------------------------------------------------*/
@@ -22,10 +22,8 @@ var lexCasesSuccess = []struct {
 	{"user==user&&tag==tag", NewTokenStream(Token{Attr, "user"}, Token{EqOp, ""},
 		Token{Attr, "user"}, Token{AndOp, ""}, Token{Attr, "tag"},
 		Token{EqOp, ""}, Token{Attr, "tag"})},
-	{
-		"123e4567-e89b-12d3-a456-426652340000",
-		NewTokenStream(Token{UUID, "123e4567-e89b-12d3-a456-426652340000"}),
-	},
+	{"123e4567-e89b-12d3-a456-426652340000",
+		NewTokenStream(Token{UUID, "123e4567-e89b-12d3-a456-426652340000"})},
 }
 
 func TestLex_Success(t *testing.T) {
@@ -61,7 +59,7 @@ func TestLex_Failure(t *testing.T) {
 
 var parseCasesSuccess = []struct {
 	in  string
-	out filters.Expr
+	out filter.Expr
 }{
 	{
 		"",
@@ -69,29 +67,29 @@ var parseCasesSuccess = []struct {
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000",
-		&filters.CmpExpr{Attr: filters.AttrUser, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+		&filter.CmpExpr{Attr: filter.AttrUser, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 	},
 	{
 		"(((user==123e4567-e89b-12d3-a456-426652340000)))",
-		&filters.CmpExpr{Attr: filters.AttrUser, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+		&filter.CmpExpr{Attr: filter.AttrUser, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&tag!=123e4567-e89b-12d3-a456-426652340000",
-		&filters.LogicOpExpr{
-			LogicOp: filters.And,
-			LHS:     &filters.CmpExpr{Attr: filters.AttrUser, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-			RHS:     &filters.CmpExpr{Attr: filters.AttrTag, Relation: filters.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+		&filter.LogicOpExpr{
+			LogicOp: filter.And,
+			Lhs:     &filter.CmpExpr{Attr: filter.AttrUser, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			Rhs:     &filter.CmpExpr{Attr: filter.AttrTag, Relation: filter.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 		},
 	},
 	{
 		"user==123e4567-e89b-12d3-a456-426652340000&&(tag!=123e4567-e89b-12d3-a456-426652340000||event==123e4567-e89b-12d3-a456-426652340000)",
-		&filters.LogicOpExpr{
-			LogicOp: filters.And,
-			LHS:     &filters.CmpExpr{Attr: filters.AttrUser, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-			RHS: &filters.LogicOpExpr{
-				LogicOp: filters.Or,
-				LHS:     &filters.CmpExpr{Attr: filters.AttrTag, Relation: filters.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
-				RHS:     &filters.CmpExpr{Attr: filters.AttrEvent, Relation: filters.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+		&filter.LogicOpExpr{
+			LogicOp: filter.And,
+			Lhs:     &filter.CmpExpr{Attr: filter.AttrUser, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+			Rhs: &filter.LogicOpExpr{
+				LogicOp: filter.Or,
+				Lhs:     &filter.CmpExpr{Attr: filter.AttrTag, Relation: filter.Neq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
+				Rhs:     &filter.CmpExpr{Attr: filter.AttrEvent, Relation: filter.Eq, Value: uuid.FromStringOrNil("123e4567-e89b-12d3-a456-426652340000")},
 			},
 		},
 	},

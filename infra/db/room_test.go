@@ -24,13 +24,13 @@ func Test_createRoom(t *testing.T) {
 		},
 	}
 
-	t.Run("create room", func(_ *testing.T) {
+	t.Run("create room", func(t *testing.T) {
 		room, err := createRoom(r.db, params)
 		require.NoError(err)
 		assert.NotNil(room.ID)
 	})
 
-	t.Run("wrong time", func(_ *testing.T) {
+	t.Run("wrong time", func(t *testing.T) {
 		var p CreateRoomParams
 		require.NoError(copier.Copy(&p, &params))
 
@@ -53,7 +53,7 @@ func Test_updateRoom(t *testing.T) {
 		},
 	}
 
-	t.Run("update room", func(_ *testing.T) {
+	t.Run("update room", func(t *testing.T) {
 		_, err := updateRoom(r.db, room.ID, params)
 		require.NoError(err)
 
@@ -63,7 +63,7 @@ func Test_updateRoom(t *testing.T) {
 		assert.Equal(params.Place, ro.Place)
 	})
 
-	t.Run("update room with verified", func(_ *testing.T) {
+	t.Run("update room with verified", func(t *testing.T) {
 		var p CreateRoomParams
 		require.NoError(copier.Copy(&p, &params))
 		p.Verified = true
