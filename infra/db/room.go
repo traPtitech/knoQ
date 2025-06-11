@@ -20,7 +20,6 @@ func roomFullPreload(tx *gorm.DB) *gorm.DB {
 type CreateRoomParams struct {
 	domain.WriteRoomParams
 
-	Verified  bool
 	CreatedBy uuid.UUID
 }
 
@@ -97,7 +96,7 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, params UpdateRoomParams) (*Room, 
 	room := ConvUpdateRoomParamsToRoom(params)
 	room.ID = roomID
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
-		Omit("verified", "CreatedAt").Save(&room).Error
+		Omit("CreatedAt").Save(&room).Error
 	return &room, err
 }
 

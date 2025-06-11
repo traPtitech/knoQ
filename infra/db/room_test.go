@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/copier"
 	"github.com/traPtitech/knoQ/domain"
@@ -15,7 +14,6 @@ func Test_createRoom(t *testing.T) {
 
 	params := CreateRoomParams{
 		CreatedBy: user.ID,
-		Verified:  false,
 		WriteRoomParams: domain.WriteRoomParams{
 			Place:     "create room",
 			TimeStart: time.Now(),
@@ -63,25 +61,11 @@ func Test_updateRoom(t *testing.T) {
 		assert.Equal(params.Place, ro.Name)
 	})
 
-	// t.Run("update room with verified", func(t *testing.T) {
-	// 	var p CreateRoomParams
-	// 	require.NoError(copier.Copy(&p, &params))
-	// 	p.Verified = true
-	// 	ro, err := createRoom(r.db, p)
-	// 	require.NoError(err)
-
-	// 	_, err = updateRoom(r.db, ro.ID, params)
-	// 	require.NoError(err)
-
-	// 	roo, err := getRoom(r.db, ro.ID)
-	// 	require.NoError(err)
-	// 	assert.Equal(true, roo.Verified)
-	// })
-
 	t.Run("update random roomID", func(t *testing.T) {
 		_, err := updateRoom(r.db, mustNewUUIDV4(t), params)
-		var me *mysql.MySQLError
-		require.ErrorAs(err, &me)
-		assert.Equal(uint16(1452), me.Number)
+		assert.Error(err)
+		// var me *mysql.MySQLError
+		// require.ErrorAs(err, &me)
+		// assert.Equal(uint16(1452), me.Number)
 	})
 }

@@ -48,10 +48,12 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	if src.Room != nil {
+	dst.IsRoomEvent = src.IsRoomEvent
+	if dst.IsRoomEvent && src.Room != nil {
 		dst.Room = new(domain.Room)
 		*dst.Room = convRoomTodomainRoom(*src.Room)
 	}
+	dst.Venue = src.Venue
 	dst.Group = convGroupTodomainGroup(src.Group)
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
@@ -216,6 +218,7 @@ func ConvUpdateRoomParamsToRoom(src UpdateRoomParams) (dst Room) {
 	dst.TimeEnd = src.WriteRoomParams.TimeEnd
 	dst.Admins = make([]*User, len(src.WriteRoomParams.Admins))
 	for i := range src.WriteRoomParams.Admins {
+		dst.Admins[i] = new(User)
 		*dst.Admins[i] = ConvuuidUUIDToUserMeta(src.WriteRoomParams.Admins[i])
 	}
 	return
@@ -338,7 +341,7 @@ func convEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.IsRoomEvent = src.IsRoomEvent
-	if dst.IsRoomEvent {
+	if dst.IsRoomEvent && src.Room != nil {
 		dst.Room = new(domain.Room)
 		*dst.Room = convRoomTodomainRoom(*src.Room)
 	} else {

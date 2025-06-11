@@ -1,6 +1,7 @@
 package db
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -21,6 +22,7 @@ func Test_createEvent(t *testing.T) {
 		WriteEventParams: domain.WriteEventParams{
 			Name:          "first event",
 			GroupID:       mustNewUUIDV4(t),
+			IsRoomEvent:   true,
 			RoomID:        roomID,
 			TimeStart:     time.Now(),
 			TimeEnd:       time.Now().Add(1 * time.Minute),
@@ -50,43 +52,46 @@ func Test_createEvent(t *testing.T) {
 		var p WriteEventParams
 		require.NoError(copier.Copy(&p, &params))
 
+		p.Name = "second event"
 		p.Tags = append(p.Tags, domain.EventTagParams{Name: "Go"})
 		_, err = createEvent(r.db, p)
 		require.NoError(err)
 	})
 
-	t.Run("wrong time", func(_ *testing.T) {
+	t.Run("start time is after end time", func(_ *testing.T) {
 		var p WriteEventParams
 		require.NoError(copier.Copy(&p, &params))
 
+		p.Name = "third event"
 		p.TimeStart = time.Now().Add(10 * time.Minute)
 		_, err := createEvent(r.db, p)
 		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 
-	t.Run("wrong room time", func(_ *testing.T) {
+	t.Run("invalid room time concistancy", func(_ *testing.T) {
 		var p WriteEventParams
 		require.NoError(copier.Copy(&p, &params))
 
-		p.AllowTogether = false
+		p.Name = "fourth event"
+		p.AllowTogether = false // allowtogather が false なので衝突判定が出る
 		_, err := createEvent(r.db, p)
 		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 
-	// t.Run("create event with place", func(t *testing.T) {
-	// 	var p WriteEventParams
-	// 	require.NoError(copier.Copy(&p, &params))
+	t.Run("create non-room event", func(_ *testing.T) {
+		var p WriteEventParams
+		require.NoError(copier.Copy(&p, &params))
 
-	// 	p.RoomID = uuid.NullUUID{}
-	// 	p.Place = "instant room"
-	// 	event, err := createEvent(r.db.Debug(), p)
-	// 	require.NoError(err)
+		p.IsRoomEvent = false
+		p.RoomID = uuid.NullUUID{}
+		p.Venue = sql.NullString{Valid: true, String: "instant room"}
+		event, err := createEvent(r.db.Debug(), p)
+		require.NoError(err)
 
-	// 	e, err := getEvent(eventFullPreload(r.db), event.ID)
-	// 	require.NoError(err)
-	// 	assert.NotEqual(uuid.Nil, e.RoomID)
-	// 	assert.Equal(p.Place, e.Room.Name)
-	// })
+		e, err := getEvent(eventFullPreload(r.db), event.ID)
+		require.NoError(err)
+		assert.NotEqual(uuid.Nil, e.RoomID)
+	})
 }
 
 func Test_updateEvent(t *testing.T) {
@@ -97,6 +102,7 @@ func Test_updateEvent(t *testing.T) {
 		CreatedBy: user.ID,
 		WriteEventParams: domain.WriteEventParams{
 			Name:          "update event",
+			IsRoomEvent:   true,
 			GroupID:       mustNewUUIDV4(t),
 			RoomID:        roomID,
 			TimeStart:     time.Now(),

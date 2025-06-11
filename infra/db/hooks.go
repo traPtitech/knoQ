@@ -7,7 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// BeforeSave is hook
+// create時 Save -> Create
+// update時 Save -> Update
+
+// イベントの開始終了時間に関する整合性の確認
 func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 	if e.ID == uuid.Nil {
 		e.ID, err = uuid.NewV4()
@@ -16,45 +19,44 @@ func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 		}
 	}
 
-	// if e.RoomID == uuid.Nil {
-	// 	if e.Room.Place != "" {
-	// 		e.Room.Verified = false
-	// 		e.Room.TimeStart = e.TimeStart
-	// 		e.Room.TimeEnd = e.TimeEnd
-	// 		e.Room.CreatedByRefer = e.CreatedByRefer
-	// 		e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
-	// 	} else {
-	// 		return NewValueError(ErrRoomUndefined, "roomID", "place")
-	// 	}
-	// }
+	if e.IsRoomEvent {
+		if !e.RoomID.Valid {
+			return errors.New("room events' room id should be valid")
+		}
+		if e.Venue.Valid {
+			return errors.New("room events' venue should be invalid")
+		}
+	} else {
+		if e.RoomID.Valid {
+			return errors.New("non-room events' room id should be invalid")
+		}
+		if !e.Venue.Valid {
+			return errors.New("non-room events' venue should be valid")
+		}
+	}
 
-	// 時間整合性
 	Devent := ConvEventTodomainEvent(*e)
 	if !Devent.TimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
 	}
+
 	return nil
 }
 
-// BeforeCreate is hook
+// 進捗部屋イベントの開始終了時間に関する整合性の確認
 func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
-	if !e.IsRoomEvent {
+	if !e.IsRoomEvent { // 進捗部屋イベントではないため
 		return nil
 	}
 
-	// 時間整合性
-	roomID := e.Room.ID
-	r, err := getRoom(tx.Preload("Events"), roomID)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
-		// 後で作られる
-		return nil
-	}
+	r, err := getRoom(tx.Preload("Events"), e.RoomID.UUID) // e.RoomID.UUID は
 	if err != nil {
 		return err
 	}
+
 	e.Room = r
 	Devent := ConvEventTodomainEvent(*e)
+
 	if !Devent.RoomTimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
 	}
@@ -63,23 +65,17 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 
 // BeforeUpdate is hook
 func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
-	if !e.IsRoomEvent {
-		return nil
-	}
+	if e.IsRoomEvent {
+		r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID.UUID)
+		if err != nil {
+			return err
+		}
 
-	// 時間整合性
-	roomID := e.Room.ID
-	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), roomID)
-	if err == nil {
 		e.Room = r
 		Devent := ConvEventTodomainEvent(*e)
 		if !Devent.RoomTimeConsistency() {
 			return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
 		}
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
-		// 後で作られる
-		return err
 	}
 
 	// delete current m2m

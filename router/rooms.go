@@ -9,20 +9,20 @@ import (
 )
 
 // HandlePostRoom traPで確保した部屋情報を作成
-func (h *Handlers) HandlePostRoom(c echo.Context) error {
-	var req presentation.RoomReq
-	if err := c.Bind(&req); err != nil {
-		return badRequest(err)
-	}
+// func (h *Handlers) HandlePostRoom(c echo.Context) error {
+// 	var req presentation.RoomReq
+// 	if err := c.Bind(&req); err != nil {
+// 		return badRequest(err)
+// 	}
 
-	roomParams := presentation.ConvRoomReqTodomainWriteRoomParams(req)
+// 	roomParams := presentation.ConvRoomReqTodomainWriteRoomParams(req)
 
-	room, err := h.Repo.CreateUnVerifiedRoom(roomParams, getConinfo(c))
-	if err != nil {
-		return judgeErrorResponse(err)
-	}
-	return c.JSON(http.StatusCreated, presentation.ConvdomainRoomToRoomRes(*room))
-}
+// 	room, err := h.Repo.CreateUnVerifiedRoom(roomParams, getConinfo(c))
+// 	if err != nil {
+// 		return judgeErrorResponse(err)
+// 	}
+// 	return c.JSON(http.StatusCreated, presentation.ConvdomainRoomToRoomRes(*room))
+// }
 
 // HandleCreateVerifedRooms csvを解析し、進捗部屋を作成
 func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {

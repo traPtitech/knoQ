@@ -28,7 +28,7 @@ type WriteRoomParams struct {
 }
 
 type RoomRepository interface {
-	CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
+	// CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
 	CreateVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
 
 	UpdateRoom(roomID uuid.UUID, params WriteRoomParams, info *ConInfo) (*Room, error)

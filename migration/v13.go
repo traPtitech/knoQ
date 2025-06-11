@@ -58,7 +58,7 @@ func (v13OldEvent) TableName() string {
 
 type v13NewEvent struct {
 	ID          uuid.UUID      `gorm:"type:char(36);primaryKey"`
-	IsRoomEvent bool           // 新規カラム
+	IsRoomEvent bool           `gorm:"<-:create;not null"`   // 新規カラム
 	Venue       sql.NullString `gorm:"type:varchar(255)"`    // 新規カラム
 	RoomID      uuid.NullUUID  `gorm:"type:char(36); index"` // NULL許容に変更
 }
