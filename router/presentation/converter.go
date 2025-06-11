@@ -41,47 +41,39 @@ func ConvRoomReqTodomainWriteRoomParams(src RoomReq) (dst domain.WriteRoomParams
 	return
 }
 
+func ConvDomainEventsToEventsResElems(src []*domain.Event) []EventsResElement {
+	return lo.Map(src, func(e *domain.Event, _ int) EventsResElement {
+		roomID := uuid.Nil
+		place := e.Venue.String
+		if e.IsRoomEvent {
+			roomID = e.Room.ID
+			place = e.Room.Name
+		}
 
-func ConvSPdomainEventToSEventRes(src []*domain.Event) []EventRes {
-	return lo.Map(
-		src, func(e *domain.Event, _ int) EventRes {
-			roomID := uuid.Nil
-			place := e.Venue.String
-			if e.IsRoomEvent {
-				roomID = e.Room.ID
-				place = e.Room.Name
-			}
-			if e == nil {
-				println("hell")
-				return EventRes{}
-			}
-      
-			return EventRes{
-				ID:            e.ID,
-				Name:          e.Name,
-				Description:   e.Description,
-				AllowTogether: e.AllowTogether,
-				TimeStart:     e.TimeStart,
-				TimeEnd:       e.TimeEnd,
-				RoomID:        roomID,
-				GroupID:       e.Group.ID,
-				Place:         place,
-				GroupName:     e.Group.Name,
-				Admins: lo.Map(e.Admins, func(a domain.User, _ int) uuid.UUID {
-					return a.ID
-				}),
-				Tags: lo.Map(e.Tags, func(t domain.EventTag, _ int) EventTagRes {
-					return convdomainEventTagToEventTagRes(t)
-				}),
-				CreatedBy: e.CreatedBy.ID,
-				Open:      e.Open,
-				Attendees: lo.Map(e.Attendees, func(a domain.Attendee, _ int) EventAttendeeRes {
-					return convdomainAttendeeToEventAttendeeRes(a)
-				}),
-				Model: Model(e.Model),
-			}
-		},
-	)
+		return EventsResElement{
+			ID:            e.ID,
+			Name:          e.Name,
+			Description:   e.Description,
+			AllowTogether: e.AllowTogether,
+			TimeStart:     e.TimeStart,
+			TimeEnd:       e.TimeEnd,
+			RoomID:        roomID,
+			GroupID:       e.Group.ID,
+			Place:         place,
+			Admins: lo.Map(e.Admins, func(a domain.User, _ int) uuid.UUID {
+				return a.ID
+			}),
+			Tags: lo.Map(e.Tags, func(t domain.EventTag, _ int) EventTagRes {
+				return EventTagRes{ID: t.Tag.ID, Name: t.Tag.Name, Locked: t.Locked}
+			}),
+			CreatedBy: e.CreatedBy.ID,
+			Open:      e.Open,
+			Attendees: lo.Map(e.Attendees, func(a domain.Attendee, _ int) uuid.UUID {
+				return a.UserID
+			}),
+			Model: Model(e.Model),
+		}
+	})
 }
 
 func ConvSPdomainGroupToSPGroupRes(src []*domain.Group) (dst []*GroupRes) {
