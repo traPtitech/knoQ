@@ -148,7 +148,7 @@ func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*d
 			ID:          e.ID,
 			Name:        e.Name,
 			Description: e.Description,
-			Room:        domain.Room{ID: e.RoomID, Place: e.Room.Place},
+			Room:        &domain.Room{ID: e.RoomID.UUID, Name: e.Room.Name},
 			Group:       domain.Group{ID: e.GroupID},
 			TimeStart:   e.TimeStart,
 			TimeEnd:     e.TimeEnd,

@@ -158,13 +158,6 @@ func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 	return &user
 }
 
-// func mustMakeUserBody(t *testing.T, repo *GormRepository, name, password string) *UserBody {
-// t.Helper()
-// user, err := saveUser(repo.db, userID uuid.UUID, privilege bool)
-// require.NoError(t, err)
-// return user
-// }
-
 // mustMakeGroup make group has no members
 func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *User) {
 	t.Helper()
@@ -213,12 +206,13 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Gr
 	t.Helper()
 	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10, false))
 	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10, false))
-
+	roomID := uuid.NullUUID{Valid: true, UUID: room.ID}
 	params := WriteEventParams{
 		WriteEventParams: domain.WriteEventParams{
 			Name:          name,
+			IsRoomEvent:   true,
 			GroupID:       group.ID,
-			RoomID:        room.ID,
+			RoomID:        roomID,
 			TimeStart:     time.Now(),
 			TimeEnd:       time.Now().Add(1 * time.Minute),
 			AllowTogether: true,
