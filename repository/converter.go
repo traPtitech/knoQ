@@ -27,10 +27,12 @@ func ConvuuidUUIDTodomainUser(src uuid.UUID) (dst domain.User) {
 	dst.ID = src
 	return
 }
+
 func ConvtraqUserGroupMemberTodomainUser(src traq.UserGroupMember) (dst domain.User) {
 	dst.ID = uuid.Must(uuid.FromString(src.GetId()))
 	return
 }
+
 func ConvtraqUserGroupTodomainGroup(src traq.UserGroup) (dst domain.Group) {
 	dst.ID = uuid.Must(uuid.FromString(src.GetId()))
 	dst.Name = src.Name
@@ -43,10 +45,11 @@ func ConvtraqUserGroupTodomainGroup(src traq.UserGroup) (dst domain.Group) {
 	for i := range src.Admins {
 		dst.Admins[i] = ConvuuidUUIDTodomainUser(uuid.Must(uuid.FromString(src.GetAdmins()[i])))
 	}
-	dst.Model.CreatedAt = src.CreatedAt
-	dst.Model.UpdatedAt = src.UpdatedAt
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
 	return
 }
+
 func ConvtraqUserTodomainUser(src traq.User) (dst domain.User) {
 	dst.ID = uuid.Must(uuid.FromString(src.GetId()))
 	dst.Name = src.Name

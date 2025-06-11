@@ -192,7 +192,7 @@ func advanceToken(b *[]byte) (Token, error) {
 		*b = (*b)[1:]
 
 	default:
-		return Token{Unknown, ""}, errors.New("Unknown token")
+		return Token{Unknown, ""}, errors.New("unknown token")
 	}
 
 	return token, nil

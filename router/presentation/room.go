@@ -64,7 +64,7 @@ func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 	dst.RoomReq.TimeEnd = src.TimeEnd
 	dst.RoomReq.Admins = make([]uuid.UUID, len(src.Admins))
 	for i := range src.Admins {
-		dst.RoomReq.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
+		dst.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
 	}
 	dst.CreatedBy = convdomainUserTouuidUUID(src.CreatedBy)
 	dst.FreeTimes = ConvSdomainStartEndTimeToSStartEndTime(src.CalcAvailableTime(false))

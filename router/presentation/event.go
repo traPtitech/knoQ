@@ -106,6 +106,24 @@ type EventRes struct {
 	Model
 }
 
+type EventsResElement struct {
+	ID            uuid.UUID     `json:"eventId"`
+	Name          string        `json:"name"`
+	Description   string        `json:"description"`
+	AllowTogether bool          `json:"sharedRoom"`
+	TimeStart     time.Time     `json:"timeStart"`
+	TimeEnd       time.Time     `json:"timeEnd"`
+	RoomID        uuid.UUID     `json:"roomId" cvt:"Room"`
+	GroupID       uuid.UUID     `json:"groupId" cvt:"Group"`
+	Place         string        `json:"place" cvt:"Room"`
+	Admins        []uuid.UUID   `json:"admins"`
+	Tags          []EventTagRes `json:"tags"`
+	CreatedBy     uuid.UUID     `json:"createdBy"`
+	Open          bool          `json:"open"`
+	Attendees     []uuid.UUID   `json:"attendees"`
+	Model
+}
+
 func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.VEvent {
 	vevent := ics.NewEvent(e.ID.String())
 	vevent.SetDtStampTime(time.Now().UTC())
@@ -145,10 +163,10 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 
 func ICalFormat(events []*domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.Calendar {
 	var std ics.Standard
-	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetfrom), "+0900")
-	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetto), "+0900")
-	std.ComponentBase.AddProperty(ics.ComponentProperty(ics.PropertyTzname), "JST")
-	std.ComponentBase.AddProperty(ics.ComponentPropertyDtStart, "19700101T000000")
+	std.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetfrom), "+0900")
+	std.AddProperty(ics.ComponentProperty(ics.PropertyTzoffsetto), "+0900")
+	std.AddProperty(ics.ComponentProperty(ics.PropertyTzname), "JST")
+	std.AddProperty(ics.ComponentPropertyDtStart, "19700101T000000")
 
 	tz := ics.NewTimezone("Asia/Tokyo")
 	tz.Components = append(tz.Components, &std)
