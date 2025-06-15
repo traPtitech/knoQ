@@ -86,13 +86,7 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 	if err != nil {
 		return badRequest(err, message("parse error"))
 	}
-
-	start, end, err := presentation.GetTiemRange(values)
-	if err != nil {
-		return badRequest(err, message("invalid time"))
-	}
-
-	durationExpr, err := filters.FilterDuration(start, end)
+	durationExpr, err := getDurationFilter(values)
 	if err != nil {
 		return badRequest(err, message("filter duration error"))
 	}
@@ -120,12 +114,7 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 
 	groupExpr := filters.FilterGroupIDs(groupID)
 
-	start, end, err := presentation.GetTiemRange(values)
-	if err != nil {
-		return badRequest(err, message("invalid time"))
-	}
-
-	durationExpr, err := filters.FilterDuration(start, end)
+	durationExpr, err := getDurationFilter(values)
 	if err != nil {
 		return badRequest(err, message("filter duration error"))
 	}
@@ -204,12 +193,7 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 
 	relationExpr := getUserRelationFilter(values, userID)
 
-	start, end, err := presentation.GetTiemRange(values)
-	if err != nil {
-		return badRequest(err, message("invalid time"))
-	}
-
-	durationExpr, err := filters.FilterDuration(start, end)
+	durationExpr, err := getDurationFilter(values)
 	if err != nil {
 		return badRequest(err, message("filter duration error"))
 	}
@@ -234,12 +218,7 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 
 	relationExpr := getUserRelationFilter(values, userID)
 
-	start, end, err := presentation.GetTiemRange(values)
-	if err != nil {
-		return badRequest(err, message("invalid time"))
-	}
-
-	durationExpr, err := filters.FilterDuration(start, end)
+	durationExpr, err := getDurationFilter(values)
 	if err != nil {
 		return badRequest(err, message("filter duration error"))
 	}
@@ -266,12 +245,7 @@ func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 
 	roomExpr := filters.FilterRoomIDs(roomID)
 
-	start, end, err := presentation.GetTiemRange(values)
-	if err != nil {
-		return badRequest(err, message("invalid time"))
-	}
-
-	durationExpr, err := filters.FilterDuration(start, end)
+	durationExpr, err := getDurationFilter(values)
 	if err != nil {
 		return badRequest(err, message("filter duration error"))
 	}
