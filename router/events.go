@@ -115,8 +115,24 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	events, err := h.Repo.GetEvents(filters.FilterGroupIDs(groupID),
-		getConinfo(c))
+
+	values := c.QueryParams()
+
+	groupExpr := filters.FilterGroupIDs(groupID)
+
+	start, end, err := presentation.GetTiemRange(values)
+	if err != nil {
+		return badRequest(err, message("invalid time"))
+	}
+
+	durationExpr, err := filters.FilterDuration(start, end)
+	if err != nil {
+		return badRequest(err, message("filter duration error"))
+	}
+
+	combinedExpr := filters.AddAnd(groupExpr, durationExpr)
+
+	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -184,9 +200,23 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 		return notFound(err)
 	}
 
-	events, err := h.Repo.GetEvents(
-		getUserRelationFilter(c.QueryParams(), userID),
-		getConinfo(c))
+	values := c.QueryParams()
+
+	relationExpr := getUserRelationFilter(values, userID)
+
+	start, end, err := presentation.GetTiemRange(values)
+	if err != nil {
+		return badRequest(err, message("invalid time"))
+	}
+
+	durationExpr, err := filters.FilterDuration(start, end)
+	if err != nil {
+		return badRequest(err, message("filter duration error"))
+	}
+
+	combinedExpr := filters.AddAnd(relationExpr, durationExpr)
+
+	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -200,9 +230,23 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 		return notFound(err)
 	}
 
-	events, err := h.Repo.GetEvents(
-		getUserRelationFilter(c.QueryParams(), userID),
-		getConinfo(c))
+	values := c.QueryParams()
+
+	relationExpr := getUserRelationFilter(values, userID)
+
+	start, end, err := presentation.GetTiemRange(values)
+	if err != nil {
+		return badRequest(err, message("invalid time"))
+	}
+
+	durationExpr, err := filters.FilterDuration(start, end)
+	if err != nil {
+		return badRequest(err, message("filter duration error"))
+	}
+
+	combinedExpr := filters.AddAnd(relationExpr, durationExpr)
+
+	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -218,8 +262,24 @@ func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 		return notFound(err)
 	}
 
+	values := c.QueryParams()
+
+	roomExpr := filters.FilterRoomIDs(roomID)
+
+	start, end, err := presentation.GetTiemRange(values)
+	if err != nil {
+		return badRequest(err, message("invalid time"))
+	}
+
+	durationExpr, err := filters.FilterDuration(start, end)
+	if err != nil {
+		return badRequest(err, message("filter duration error"))
+	}
+
+	combinedExpr := filters.AddAnd(roomExpr, durationExpr)
+
 	events, err := h.Repo.GetEvents(
-		filters.FilterRoomIDs(roomID),
+		combinedExpr,
 		getConinfo(c),
 	)
 	if err != nil {
