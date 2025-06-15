@@ -28,3 +28,17 @@ func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 	}
 	return userMap
 }
+
+func getDurationFilter(values url.Values) (filters.Expr, error) {
+	start, end, err := presentation.GetTiemRange(values)
+	if err != nil {
+		return nil, err
+	}
+
+	durationExpr, err := filters.FilterDuration(start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	return durationExpr, nil
+}
