@@ -144,11 +144,17 @@ func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*d
 		return nil, defaultErrorHandling(err)
 	}
 	events := lo.Map(es, func(e *db.Event, _ int) *domain.Event {
+		var room *domain.Room
+		if e.IsRoomEvent {
+			room = new(domain.Room)
+			*room = domain.Room{ID: e.RoomID.UUID, Name: e.Room.Name}
+		}
 		return &domain.Event{
 			ID:          e.ID,
 			Name:        e.Name,
+			IsRoomEvent: e.IsRoomEvent,
 			Description: e.Description,
-			Room:        &domain.Room{ID: e.RoomID.UUID, Name: e.Room.Name},
+			Room:        room,
 			Group:       domain.Group{ID: e.GroupID},
 			TimeStart:   e.TimeStart,
 			TimeEnd:     e.TimeEnd,

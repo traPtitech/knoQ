@@ -59,10 +59,10 @@ func ConvSPdomainRoomToSPRoomRes(src []*domain.Room) (dst []*RoomRes) {
 func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 	dst.ID = src.ID
 	dst.Verified = true // Room は全て進捗部屋
-	dst.RoomReq.Place = src.Name
-	dst.RoomReq.TimeStart = src.TimeStart
-	dst.RoomReq.TimeEnd = src.TimeEnd
-	dst.RoomReq.Admins = make([]uuid.UUID, len(src.Admins))
+	dst.Place = src.Name
+	dst.TimeStart = src.TimeStart
+	dst.TimeEnd = src.TimeEnd
+	dst.Admins = make([]uuid.UUID, len(src.Admins))
 	for i := range src.Admins {
 		dst.Admins[i] = convdomainUserTouuidUUID(src.Admins[i])
 	}

@@ -11,10 +11,10 @@ import (
 
 func ConvCreateRoomParamsToRoom(src CreateRoomParams) (dst Room) {
 	dst.CreatedByRefer = src.CreatedBy
-	dst.Name = src.WriteRoomParams.Place
-	dst.TimeStart = src.WriteRoomParams.TimeStart
-	dst.TimeEnd = src.WriteRoomParams.TimeEnd
-	dst.Admins = lo.Map(src.WriteRoomParams.Admins, func(i uuid.UUID, _ int) *User {
+	dst.Name = src.Place
+	dst.TimeStart = src.TimeStart
+	dst.TimeEnd = src.TimeEnd
+	dst.Admins = lo.Map(src.Admins, func(i uuid.UUID, _ int) *User {
 		u := new(User)
 		*u = ConvuuidUUIDToUserMeta(i)
 		return u
@@ -72,10 +72,10 @@ func ConvEventTodomainEvent(src Event) (dst domain.Event) {
 		dst.Attendees[i] = convEventAttendeeTodomainAttendee(src.Attendees[i])
 	}
 	dst.Open = src.Open
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = new(time.Time)
-	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
 	return
 }
 
@@ -103,10 +103,10 @@ func ConvGroupTodomainGroup(src Group) (dst domain.Group) {
 		dst.Admins[i] = convGroupAdminTodomainUser(src.Admins[i])
 	}
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = new(time.Time)
-	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
 	return
 }
 
@@ -129,10 +129,10 @@ func ConvRoomTodomainRoom(src Room) (dst domain.Room) {
 		dst.Admins[i] = convUserTodomainUser(*src.Admins[i])
 	}
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = new(time.Time)
-	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
 	return
 }
 
@@ -204,22 +204,22 @@ func ConvTagTodomainEventTag(src Tag) (dst domain.EventTag) {
 func ConvTagTodomainTag(src Tag) (dst domain.Tag) {
 	dst.ID = src.ID
 	dst.Name = src.Name
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = new(time.Time)
-	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
 	return
 }
 
 func ConvUpdateRoomParamsToRoom(src UpdateRoomParams) (dst Room) {
 	dst.CreatedByRefer = src.CreatedBy
-	dst.Name = src.WriteRoomParams.Place
-	dst.TimeStart = src.WriteRoomParams.TimeStart
-	dst.TimeEnd = src.WriteRoomParams.TimeEnd
-	dst.Admins = make([]*User, len(src.WriteRoomParams.Admins))
-	for i := range src.WriteRoomParams.Admins {
+	dst.Name = src.Place
+	dst.TimeStart = src.TimeStart
+	dst.TimeEnd = src.TimeEnd
+	dst.Admins = make([]*User, len(src.Admins))
+	for i := range src.Admins {
 		dst.Admins[i] = new(User)
-		*dst.Admins[i] = ConvuuidUUIDToUserMeta(src.WriteRoomParams.Admins[i])
+		*dst.Admins[i] = ConvuuidUUIDToUserMeta(src.Admins[i])
 	}
 	return
 }
@@ -237,39 +237,39 @@ func ConvUserTodomainUser(src User) (dst domain.User) {
 
 func ConvWriteEventParamsToEvent(src WriteEventParams) (dst Event) {
 	dst.CreatedByRefer = src.CreatedBy
-	dst.Name = src.WriteEventParams.Name
-	dst.Description = src.WriteEventParams.Description
-	dst.GroupID = src.WriteEventParams.GroupID
+	dst.Name = src.Name
+	dst.Description = src.Description
+	dst.GroupID = src.GroupID
 	dst.IsRoomEvent = src.IsRoomEvent
-	dst.RoomID = src.WriteEventParams.RoomID
-	dst.Venue = src.WriteEventParams.Venue
-	dst.TimeStart = src.WriteEventParams.TimeStart
-	dst.TimeEnd = src.WriteEventParams.TimeEnd
-	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
-	for i := range src.WriteEventParams.Admins {
-		dst.Admins[i] = convuuidUUIDToEventAdmin(src.WriteEventParams.Admins[i])
+	dst.RoomID = src.RoomID
+	dst.Venue = src.Venue
+	dst.TimeStart = src.TimeStart
+	dst.TimeEnd = src.TimeEnd
+	dst.Admins = make([]EventAdmin, len(src.Admins))
+	for i := range src.Admins {
+		dst.Admins[i] = convuuidUUIDToEventAdmin(src.Admins[i])
 	}
-	dst.AllowTogether = src.WriteEventParams.AllowTogether
-	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
-	for i := range src.WriteEventParams.Tags {
-		dst.Tags[i] = convdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
+	dst.AllowTogether = src.AllowTogether
+	dst.Tags = make([]EventTag, len(src.Tags))
+	for i := range src.Tags {
+		dst.Tags[i] = convdomainEventTagParamsToEventTag(src.Tags[i])
 	}
-	dst.Open = src.WriteEventParams.Open
+	dst.Open = src.Open
 	return
 }
 
 func ConvWriteGroupParamsToGroup(src WriteGroupParams) (dst Group) {
 	dst.CreatedByRefer = src.CreatedBy
-	dst.Name = src.WriteGroupParams.Name
-	dst.Description = src.WriteGroupParams.Description
-	dst.JoinFreely = src.WriteGroupParams.JoinFreely
-	dst.Members = make([]GroupMember, len(src.WriteGroupParams.Members))
-	for i := range src.WriteGroupParams.Members {
-		dst.Members[i] = convuuidUUIDToGroupMember(src.WriteGroupParams.Members[i])
+	dst.Name = src.Name
+	dst.Description = src.Description
+	dst.JoinFreely = src.JoinFreely
+	dst.Members = make([]GroupMember, len(src.Members))
+	for i := range src.Members {
+		dst.Members[i] = convuuidUUIDToGroupMember(src.Members[i])
 	}
-	dst.Admins = make([]GroupAdmin, len(src.WriteGroupParams.Admins))
-	for i := range src.WriteGroupParams.Admins {
-		dst.Admins[i] = convuuidUUIDToGroupAdmin(src.WriteGroupParams.Admins[i])
+	dst.Admins = make([]GroupAdmin, len(src.Admins))
+	for i := range src.Admins {
+		dst.Admins[i] = convuuidUUIDToGroupAdmin(src.Admins[i])
 	}
 	return
 }
@@ -367,10 +367,10 @@ func convEventTodomainEvent(src Event) (dst domain.Event) {
 		dst.Attendees[i] = convEventAttendeeTodomainAttendee(src.Attendees[i])
 	}
 	dst.Open = src.Open
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = new(time.Time)
-	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
 	return
 }
 
@@ -398,10 +398,10 @@ func convGroupTodomainGroup(src Group) (dst domain.Group) {
 		dst.Admins[i] = convGroupAdminTodomainUser(src.Admins[i])
 	}
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = new(time.Time)
-	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
 	return
 }
 
@@ -419,20 +419,20 @@ func convRoomTodomainRoom(src Room) (dst domain.Room) {
 		dst.Admins[i] = convUserTodomainUser(*src.Admins[i])
 	}
 	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = new(time.Time)
-	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
 	return
 }
 
 func convTagTodomainTag(src Tag) (dst domain.Tag) {
 	dst.ID = src.ID
 	dst.Name = src.Name
-	dst.Model.CreatedAt = src.Model.CreatedAt
-	dst.Model.UpdatedAt = src.Model.UpdatedAt
-	dst.Model.DeletedAt = new(time.Time)
-	(*dst.Model.DeletedAt) = convgormDeletedAtTotimeTime(src.Model.DeletedAt)
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
 	return
 }
 

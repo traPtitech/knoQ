@@ -227,6 +227,24 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 		dst.Room = ConvdomainRoomToRoomRes(*src.Room)
 		dst.Place = src.Room.Name
 	} else {
+		// TODO: 要確認
+		// これをしないと フロントエンドの
+		// /events/:eventid ページがデータが読み込めませんでしたになる
+		// null 値で送っては行けなさそう(?)
+		dst.Room = RoomRes{
+			ID:       uuid.Nil,
+			Verified: false,
+			RoomReq: RoomReq{
+				Place:     src.Venue.String,
+				TimeStart: src.TimeStart,
+				TimeEnd:   src.TimeEnd,
+				Admins:    []uuid.UUID{src.CreatedBy.ID},
+			},
+			FreeTimes:   []StartEndTime{},
+			SharedTimes: []StartEndTime{},
+			CreatedBy:   src.CreatedBy.ID,
+			Model:       Model(src.Model),
+		}
 		dst.Place = src.Venue.String
 	}
 	dst.Group = convdomainGroupToGroupRes(src.Group)
