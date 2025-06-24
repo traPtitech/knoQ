@@ -274,6 +274,8 @@ paths:
         - events
       parameters:
         - $ref: '#/components/parameters/userRelation'
+        - $ref: '#/components/parameters/dateBegin'
+        - $ref: '#/components/parameters/dateEnd'
       operationId: getMyEvents
       description: 所属しているイベントを返す
       responses:
@@ -287,6 +289,8 @@ paths:
         - events
       parameters:
         - $ref: '#/components/parameters/userRelation'
+        - $ref: '#/components/parameters/dateBegin'
+        - $ref: '#/components/parameters/dateEnd'
       operationId: getUserEvents
       description: 所属しているイベントを返す
       responses:
@@ -299,6 +303,9 @@ paths:
     get:
       tags:
         - events
+      parameters:
+        - $ref: '#/components/parameters/dateBegin'
+        - $ref: '#/components/parameters/dateEnd'
       operationId: getEventsOfRoom
       description: 指定した部屋で行われるイベントを返す
       responses:
@@ -310,6 +317,9 @@ paths:
     get:
       tags:
         - events
+      parameters:
+        - $ref: '#/components/parameters/dateBegin'
+        - $ref: '#/components/parameters/dateEnd'
       operationId: getEventsOfGroup
       description: groupIdのeventsを取得
       responses:
