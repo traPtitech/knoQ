@@ -58,8 +58,8 @@ func ConvSPdomainRoomToSPRoomRes(src []*domain.Room) (dst []*RoomRes) {
 // //go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s domain.Room -d RoomRes -o converter.go .
 func ConvdomainRoomToRoomRes(src domain.Room) (dst RoomRes) {
 	dst.ID = src.ID
-	dst.Verified = src.Verified
-	dst.Place = src.Place
+	dst.Verified = true // Room は全て進捗部屋
+	dst.Place = src.Name
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
 	dst.Admins = make([]uuid.UUID, len(src.Admins))
