@@ -45,7 +45,7 @@ func ConvDomainEventsToEventsResElems(src []*domain.Event) []EventsResElement {
 	return lo.Map(src, func(e *domain.Event, _ int) EventsResElement {
 		roomID := uuid.Nil
 		place := e.Venue.String
-		if e.IsRoomEvent {
+		if e.IsRoomEvent && e.Room != nil {
 			roomID = e.Room.ID
 			place = e.Room.Name
 		}

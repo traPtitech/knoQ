@@ -223,7 +223,7 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	if src.IsRoomEvent {
+	if src.IsRoomEvent && src.Room != nil { // Event が Room(進捗部屋) を使うと宣言した後に，その Room が削除されると Room == nil になる
 		dst.Room = ConvdomainRoomToRoomRes(*src.Room)
 		dst.Place = src.Room.Name
 	} else {
