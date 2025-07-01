@@ -107,7 +107,7 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 		roomsAPI := apiWithAuth.Group("/rooms")
 		{
 			roomsAPI.GET("", h.HandleGetRooms)
-			roomsAPI.POST("", h.HandlePostRoom)
+			// roomsAPI.POST("", h.HandlePostRoom)
 			roomsAPI.GET("/:roomid", h.HandleGetRoom)
 			roomsAPI.DELETE("/:roomid", h.HandleDeleteRoom)
 
