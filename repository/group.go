@@ -194,7 +194,7 @@ func (repo *Repository) GetGradeGroupNames(_ *domain.ConInfo) ([]string, error) 
 
 	names := make([]string, 0)
 	for _, g := range groups {
-		if g.Type == "grade" {
+		if g.Type == "grade" && len(g.Members) != 0 {
 			names = append(names, g.Name)
 		}
 	}
