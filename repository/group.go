@@ -192,13 +192,33 @@ func (repo *Repository) GetGradeGroupNames(_ *domain.ConInfo) ([]string, error) 
 		return nil, defaultErrorHandling(err)
 	}
 
-	names := make([]string, 0)
-	for _, g := range groups {
-		if g.Type == "grade" && len(g.Members) != 0 {
-			names = append(names, g.Name)
+	// 凍結されたグループメンバーのみのmapを作成
+	activeUsersID, err := repo.TraQRepo.GetUsers(false)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+	activeUsersMap := make(map[string]struct{}, len(activeUsersID))
+	for _, user := range activeUsersID {
+		if user.Bot {
+			continue
 		}
+		activeUsersMap[user.Id] = struct{}{}
 	}
 
+	names := make([]string, 0)
+	for _, g := range groups {
+		if g.Type == "grade" && len(g.Members) != 0 && g.Name != "00B" {
+			for _, member := range g.Members {
+				// グループメンバーが全員凍結されている場合は除外
+				_, ok := activeUsersMap[member.Id]
+				// アクティブメンバーが一人でもいる場合は追加
+				if ok {
+					names = append(names, g.Name)
+					break
+				}
+			}
+		}
+	}
 	return names, nil
 }
 
