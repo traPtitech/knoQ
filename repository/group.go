@@ -192,7 +192,7 @@ func (repo *Repository) GetGradeGroupNames(_ *domain.ConInfo) ([]string, error) 
 		return nil, defaultErrorHandling(err)
 	}
 
-	// 凍結されたグループメンバーのみのmapを作成
+	// アクティブユーザーのみのmapを作成
 	activeUsersID, err := repo.TraQRepo.GetUsers(false)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
