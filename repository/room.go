@@ -8,23 +8,12 @@ import (
 	"github.com/traPtitech/knoQ/infra/db"
 )
 
-func (repo *Repository) CreateUnVerifiedRoom(params domain.WriteRoomParams, info *domain.ConInfo) (*domain.Room, error) {
-	p := db.CreateRoomParams{
-		WriteRoomParams: params,
-		Verified:        false,
-		CreatedBy:       info.ReqUserID,
-	}
-	r, err := repo.GormRepo.CreateRoom(p)
-	return r, defaultErrorHandling(err)
-}
-
 func (repo *Repository) CreateVerifiedRoom(params domain.WriteRoomParams, info *domain.ConInfo) (*domain.Room, error) {
 	if !repo.IsPrivilege(info) {
 		return nil, domain.ErrForbidden
 	}
 	p := db.CreateRoomParams{
 		WriteRoomParams: params,
-		Verified:        true,
 		CreatedBy:       info.ReqUserID,
 	}
 	r, err := repo.GormRepo.CreateRoom(p)

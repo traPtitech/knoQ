@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -19,7 +20,9 @@ type Event struct {
 	ID            uuid.UUID
 	Name          string
 	Description   string
-	Room          Room
+	IsRoomEvent   bool
+	Room          *Room
+	Venue         sql.NullString
 	Group         Group
 	TimeStart     time.Time
 	TimeEnd       time.Time
@@ -48,9 +51,10 @@ type Attendee struct {
 type WriteEventParams struct {
 	Name          string
 	Description   string
+	IsRoomEvent   bool
 	GroupID       uuid.UUID
-	RoomID        uuid.UUID
-	Place         string // option
+	RoomID        uuid.NullUUID
+	Venue         sql.NullString // option
 	TimeStart     time.Time
 	TimeEnd       time.Time
 	Admins        []uuid.UUID
@@ -86,11 +90,18 @@ type EventRepository interface {
 	// GetEventActivities(day int) ([]*Event, error)
 }
 
+// イベントの開始時間が終了時間より前であることを確認する
 func (e *Event) TimeConsistency() bool {
 	return e.TimeStart.Before(e.TimeEnd)
 }
 
+// 進捗部屋開催のイベントにおいて
+// 他イベントとの衝突における整合性の確認
 func (e *Event) RoomTimeConsistency() bool {
+	if !e.IsRoomEvent {
+		return true
+	}
+
 	times := e.Room.CalcAvailableTime(e.AllowTogether)
 	for _, t := range times {
 		start := t.TimeStart
