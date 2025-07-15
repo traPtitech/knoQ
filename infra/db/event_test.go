@@ -238,3 +238,15 @@ func containsEventTag(tags []EventTag, tagName string) (exist bool) {
 	}
 	return
 }
+
+// イベントが進捗部屋を利用しようとしていたが，進捗部屋が削除された
+func Test_deleteEventRoom(t *testing.T) {
+	r, assert, require, _, _, room, event := setupRepoWithUserGroupRoomEvent(t, common)
+	t.Run("delete Event's Room", func(_ *testing.T) {
+		err := r.DeleteRoom(room.ID)
+		require.NoError(err)
+		e, err := r.GetEvent(event.ID)
+		assert.Equal(e.RoomID.Valid, false) // イベントの部屋 ID は NULL
+		assert.Equal(e.IsRoomEvent, true)   // しかし進捗部屋イベントではある
+	})
+}

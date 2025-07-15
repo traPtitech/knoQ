@@ -64,8 +64,5 @@ func Test_updateRoom(t *testing.T) {
 	t.Run("update random roomID", func(t *testing.T) {
 		_, err := updateRoom(r.db, mustNewUUIDV4(t), params)
 		assert.Error(err)
-		// var me *mysql.MySQLError
-		// require.ErrorAs(err, &me)
-		// assert.Equal(uint16(1452), me.Number)
 	})
 }
