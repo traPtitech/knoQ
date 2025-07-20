@@ -1,0 +1,9 @@
+# gomod
+/go.mod @iChemy
+/go.sum @iChemy
+
+# github-actions
+/.github/workflows/ @iChemy
+
+# docker
+/Dockerfile @iChemy
