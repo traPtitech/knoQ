@@ -5,8 +5,6 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 10
-    reviewers:
-      - "iChemy"
     commit-message:
       prefix: ":arrow_up: "
     groups:
@@ -22,8 +20,6 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 10
-    reviewers:
-      - "iChemy"
     commit-message:
       prefix: ":arrow_up: "
     groups:
@@ -36,8 +32,6 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 10
-    reviewers:
-      - "iChemy"
     commit-message:
       prefix: ":arrow_up: "
     groups:
