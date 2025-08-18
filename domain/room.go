@@ -7,10 +7,8 @@ import (
 )
 
 type Room struct {
-	ID    uuid.UUID
-	Place string
-	// Verified indicates if the room has been verified by privileged users.
-	Verified  bool
+	ID        uuid.UUID
+	Name      string
 	TimeStart time.Time
 	TimeEnd   time.Time
 	Events    []Event
@@ -30,7 +28,7 @@ type WriteRoomParams struct {
 }
 
 type RoomRepository interface {
-	CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
+	// CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
 	CreateVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
 
 	UpdateRoom(roomID uuid.UUID, params WriteRoomParams, info *ConInfo) (*Room, error)
@@ -79,7 +77,6 @@ func timeRangesSub(as []StartEndTime, b StartEndTime) (cs []StartEndTime) {
 }
 
 func timeRangeSub(a StartEndTime, b StartEndTime) []StartEndTime {
-
 	/*
 		a: ---s#####e---
 		b: s##########e-

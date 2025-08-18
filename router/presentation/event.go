@@ -137,7 +137,7 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 	e.Description += "イベント詳細ページ\n"
 	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
 	vevent.SetDescription(e.Description)
-	vevent.SetLocation(e.Room.Place)
+	vevent.SetLocation(e.Room.Name)
 	vevent.SetOrganizer(e.CreatedBy.DisplayName)
 	for _, v := range e.Attendees {
 		user, ok := userMap[v.UserID]
@@ -223,9 +223,31 @@ func ConvdomainEventToEventDetailRes(src domain.Event) (dst EventDetailRes) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description
-	dst.Room = ConvdomainRoomToRoomRes(src.Room)
+	if src.IsRoomEvent && src.Room != nil { // Event が Room(進捗部屋) を使うと宣言した後に，その Room が削除されると Room == nil になる
+		dst.Room = ConvdomainRoomToRoomRes(*src.Room)
+		dst.Place = src.Room.Name
+	} else {
+		// TODO: 要確認
+		// これをしないと フロントエンドの
+		// /events/:eventid ページがデータが読み込めませんでしたになる
+		// null 値で送っては行けなさそう(?)
+		dst.Room = RoomRes{
+			ID:       uuid.Nil,
+			Verified: false,
+			RoomReq: RoomReq{
+				Place:     src.Venue.String,
+				TimeStart: src.TimeStart,
+				TimeEnd:   src.TimeEnd,
+				Admins:    []uuid.UUID{src.CreatedBy.ID},
+			},
+			FreeTimes:   []StartEndTime{},
+			SharedTimes: []StartEndTime{},
+			CreatedBy:   src.CreatedBy.ID,
+			Model:       Model(src.Model),
+		}
+		dst.Place = src.Venue.String
+	}
 	dst.Group = convdomainGroupToGroupRes(src.Group)
-	dst.Place = src.Room.Place
 	dst.GroupName = src.Group.Name
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd

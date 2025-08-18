@@ -79,7 +79,6 @@ func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*Event, error) {
 
 func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
 	event := ConvWriteEventParamsToEvent(params)
-
 	err := db.Create(&event).Error
 	return &event, err
 }
