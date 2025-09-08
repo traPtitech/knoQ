@@ -73,10 +73,7 @@ func main() {
 		URL:               "https://q.trap.jp/api/v3",
 		ServerAccessToken: traqAccessToken,
 	}
-	repo := &repository.Repository{
-		GormRepo: gormRepo,
-		TraQRepo: traqRepo,
-	}
+	repo := repository.NewRepository(gormRepo, traqRepo)
 	handler := &router.Handlers{
 		Repo:       repo,
 		Logger:     logger,
@@ -102,7 +99,7 @@ func main() {
 	_, err = c.AddFunc(
 		"0 8 * * *",
 		utils.InitPostEventToTraQ(
-			&repo.GormRepo,
+			&gormRepo,
 			handler.WebhookSecret,
 			handler.DailyChannelID,
 			handler.WebhookID,

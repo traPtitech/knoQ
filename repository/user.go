@@ -13,7 +13,7 @@ import (
 
 const traQIssuerName = "traQ"
 
-func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
+func (repo *repository) SyncUsers(info *domain.ConInfo) error {
 	if !repo.IsPrivilege(info) {
 		return domain.ErrForbidden
 	}
@@ -45,11 +45,11 @@ func (repo *Repository) SyncUsers(info *domain.ConInfo) error {
 	return defaultErrorHandling(err)
 }
 
-func (repo *Repository) GetOAuthURL() (url, state, codeVerifier string) {
+func (repo *repository) GetOAuthURL() (url, state, codeVerifier string) {
 	return repo.TraQRepo.GetOAuthURL()
 }
 
-func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.User, error) {
+func (repo *repository) LoginUser(query, state, codeVerifier string) (*domain.User, error) {
 	t, err := repo.TraQRepo.GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -87,7 +87,7 @@ func (repo *Repository) LoginUser(query, state, codeVerifier string) (*domain.Us
 	return u, defaultErrorHandling(err)
 }
 
-func (repo *Repository) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.User, error) {
+func (repo *repository) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.User, error) {
 	userMeta, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -106,11 +106,11 @@ func (repo *Repository) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.Us
 	return nil, errors.New("not implemented")
 }
 
-func (repo *Repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
+func (repo *repository) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
 	return repo.GetUser(info.ReqUserID, info)
 }
 
-func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, _ *domain.ConInfo) ([]*domain.User, error) {
+func (repo *repository) GetAllUsers(includeSuspend, includeBot bool, _ *domain.ConInfo) ([]*domain.User, error) {
 	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -140,13 +140,13 @@ func (repo *Repository) GetAllUsers(includeSuspend, includeBot bool, _ *domain.C
 	return users, nil
 }
 
-func (repo *Repository) ReNewMyiCalSecret(info *domain.ConInfo) (secret string, err error) {
+func (repo *repository) ReNewMyiCalSecret(info *domain.ConInfo) (secret string, err error) {
 	secret = random.AlphaNumeric(16, true)
 	err = repo.GormRepo.UpdateiCalSecret(info.ReqUserID, secret)
 	return
 }
 
-func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
+func (repo *repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 	user, err := repo.GormRepo.GetUser(info.ReqUserID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
@@ -160,7 +160,7 @@ func (repo *Repository) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 	return user.IcalSecret, nil
 }
 
-func (repo *Repository) IsPrivilege(info *domain.ConInfo) bool {
+func (repo *repository) IsPrivilege(info *domain.ConInfo) bool {
 	user, err := repo.GormRepo.GetUser(info.ReqUserID)
 	if err != nil {
 		return false
@@ -177,7 +177,7 @@ func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
 	return userMap
 }
 
-func (repo *Repository) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.User, error) {
+func (repo *repository) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.User, error) {
 	if userMeta.ID != uuid.Must(uuid.FromString(userBody.GetId())) {
 		return nil, errors.New("id does not match")
 	}
@@ -194,7 +194,7 @@ func (repo *Repository) mergeUser(userMeta *db.User, userBody *traq.User) (*doma
 	}, nil
 }
 
-func (repo *Repository) GrantPrivilege(userID uuid.UUID) error {
+func (repo *repository) GrantPrivilege(userID uuid.UUID) error {
 	user, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
 		return defaultErrorHandling(err)
