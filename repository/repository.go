@@ -13,11 +13,10 @@ type Repository interface {
 }
 
 func NewRepository(gormRepo db.GormRepository, traQRepo traq.TraQRepository) Repository {
-	repo := repository{
+	return &repository{
 		GormRepo: gormRepo,
 		TraQRepo: traQRepo,
 	}
-	return repo
 }
 
 type repository struct {
