@@ -20,37 +20,37 @@ type WriteGroupParams struct {
 	CreatedBy uuid.UUID
 }
 
-func (repo *GormRepository) CreateGroup(params WriteGroupParams) (*Group, error) {
+func (repo *gormRepository) CreateGroup(params WriteGroupParams) (*Group, error) {
 	g, err := createGroup(repo.db, params)
 	return g, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
+func (repo *gormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
 	g, err := updateGroup(repo.db, groupID, params)
 	return g, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
+func (repo *gormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
 	err := addMemberToGroup(repo.db, groupID, userID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteGroup(groupID uuid.UUID) error {
+func (repo *gormRepository) DeleteGroup(groupID uuid.UUID) error {
 	err := deleteGroup(repo.db, groupID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error {
+func (repo *gormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error {
 	err := deleteMemberOfGroup(repo.db, groupID, userID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
+func (repo *gormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
 	gs, err := getGroup(groupFullPreload(repo.db), groupID)
 	return gs, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
+func (repo *gormRepository) GetAllGroups() ([]*Group, error) {
 	cmd := groupFullPreload(repo.db)
 	gs, err := getGroups(cmd.Joins(
 		"LEFT JOIN events ON groups.id = events.group_id "+
@@ -59,7 +59,7 @@ func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
 	return gs, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+func (repo *gormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	cmd := groupFullPreload(repo.db)
 	filterFormat, filterArgs, err := createGroupFilter(filters.FilterBelongs(userID))
 	if err != nil {
@@ -73,7 +73,7 @@ func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, er
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+func (repo *gormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	cmd := groupFullPreload(repo.db)
 	filterFormat, filterArgs, err := createGroupFilter(filters.FilterAdmins(userID))
 	if err != nil {
