@@ -55,7 +55,7 @@ func main() {
 	domain.REVISION = revision
 	domain.DEVELOPMENT, _ = strconv.ParseBool(development)
 
-	gormRepo := db.GormRepository{}
+	gormRepo := db.NewGormRepository()
 	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, tz.JST)
 	if err != nil {
 		panic(err)
@@ -99,7 +99,7 @@ func main() {
 	_, err = c.AddFunc(
 		"0 8 * * *",
 		utils.InitPostEventToTraQ(
-			&gormRepo,
+			gormRepo,
 			handler.WebhookSecret,
 			handler.DailyChannelID,
 			handler.WebhookID,
