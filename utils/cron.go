@@ -21,7 +21,7 @@ type timeTable struct {
 
 // InitPostEventToTraQ 現在(job実行)から24時間以内に始まるイベントを取得し、
 // webhookでtraQに送るjobを作成。
-func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, origin string) func() {
+func InitPostEventToTraQ(repo db.GormRepository, secret, channelID, webhookID, origin string) func() {
 	job := func() {
 		now := setTimeFromString(time.Now().In(tz.JST), "06:00:00")
 		tomorrow := now.AddDate(0, 0, 1)

@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (repo *GormRepository) GetToken(userID uuid.UUID) (*oauth2.Token, error) {
+func (repo *gormRepository) GetToken(userID uuid.UUID) (*oauth2.Token, error) {
 	return getToken(repo.db, userID)
 }
 

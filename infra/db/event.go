@@ -27,42 +27,42 @@ type WriteEventParams struct {
 	CreatedBy uuid.UUID
 }
 
-func (repo *GormRepository) CreateEvent(params WriteEventParams) (*Event, error) {
+func (repo *gormRepository) CreateEvent(params WriteEventParams) (*Event, error) {
 	e, err := createEvent(repo.db, params)
 	return e, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*Event, error) {
+func (repo *gormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*Event, error) {
 	e, err := updateEvent(repo.db, eventID, params)
 	return e, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
+func (repo *gormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
 	err := addEventTag(repo.db, eventID, params)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteEvent(eventID uuid.UUID) error {
+func (repo *gormRepository) DeleteEvent(eventID uuid.UUID) error {
 	err := deleteEvent(repo.db, eventID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
+func (repo *gormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
 	err := deleteEventTag(repo.db, eventID, tagName, deleteLocked)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
+func (repo *gormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
 	err := upsertEventSchedule(repo.db, eventID, userID, scheduleStatus)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
+func (repo *gormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
 	es, err := getEvent(eventFullPreload(repo.db), eventID)
 	return es, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*Event, error) {
+func (repo *gormRepository) GetAllEvents(expr filters.Expr) ([]*Event, error) {
 	filterFormat, filterArgs, err := createEventFilter(expr)
 	if err != nil {
 		return nil, err
