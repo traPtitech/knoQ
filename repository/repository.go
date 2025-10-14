@@ -6,13 +6,8 @@ import (
 	"github.com/traPtitech/knoQ/infra/traq"
 )
 
-// repository struct の実装を隠蔽する
-// あくまで domain.Repository の実装としてのみ存在させる
-type Repository interface {
-	domain.Repository
-}
 
-func NewRepository(gormRepo db.GormRepository, traQRepo traq.TraQRepository) Repository {
+func NewRepository(gormRepo db.GormRepository, traQRepo traq.TraQRepository) domain.Repository {
 	return &repository{
 		GormRepo: gormRepo,
 		TraQRepo: traQRepo,
