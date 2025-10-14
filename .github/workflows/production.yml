@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Set IMAGE_TAG env
         run: echo "IMAGE_TAG=$(echo ${GITHUB_REF:11})" >> $GITHUB_ENV
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set KNOQ_VERSION env
         run: echo "KNOQ_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
       - name: Set KNOQ_REVISION env
