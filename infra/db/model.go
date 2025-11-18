@@ -73,14 +73,6 @@ type User struct {
 	Token      Token    `gorm:"foreignKey:UserID; constraint:OnDelete:CASCADE;"`
 }
 
-type UserBody struct {
-	ID          uuid.UUID `gorm:"type:char(36); primaryKey;"`
-	Name        string    `gorm:"type:varchar(32);"`
-	DisplayName string    `gorm:"type:varchar(32);"`
-	Icon        string
-	User        User `gorm:"->; foreignKey:ID; constraint:OnDelete:CASCADE;" cvt:"->"`
-}
-
 type RoomAdmin struct {
 	UserID uuid.UUID `gorm:"type:char(36); primaryKey"`
 	RoomID uuid.UUID `gorm:"type:char(36); primaryKey"`
