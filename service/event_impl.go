@@ -1,8 +1,9 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/gofrs/uuid"
-	"github.com/samber/lo"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filters"
 	"github.com/traPtitech/knoQ/infra/db"
@@ -93,34 +94,36 @@ func (repo *service) DeleteEventTag(eventID uuid.UUID, tagName string, info *dom
 }
 
 func (repo *service) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*domain.Event, error) {
-	e, err := repo.GormRepo.GetEvent(eventID)
+	event, err := repo.GormRepo.GetEvent(eventID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	event := db.ConvEventTodomainEvent(*e)
+
+	fmt.Printf("\n\n%+v\n\n", event)
+
 	// add traQ groups and users
-	g, err := repo.GetGroup(e.GroupID, info)
+	g, err := repo.GetGroup(event.Group.ID, info) // TODO ここは正しい挙動する?
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	event.Group = *g
 	users, err := repo.GetAllUsers(false, true, info)
 	if err != nil {
-		return &event, err
+		return event, err
 	}
 	userMap := createUserMap(users)
-	c, ok := userMap[e.CreatedByRefer]
+	c, ok := userMap[event.CreatedBy.ID]
 	if ok {
 		event.CreatedBy = *c
 	}
-	for j, eventAdmin := range e.Admins {
-		a, ok := userMap[eventAdmin.UserID]
+	for j, eventAdmin := range event.Admins {
+		a, ok := userMap[eventAdmin.ID]
 		if ok {
 			event.Admins[j] = *a
 		}
 	}
 
-	return &event, nil
+	return event, nil
 }
 
 func (repo *service) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain.ScheduleStatus, info *domain.ConInfo) error {
@@ -143,49 +146,17 @@ func (repo *service) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*doma
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	events := lo.Map(es, func(e *db.Event, _ int) *domain.Event {
-		return &domain.Event{
-			ID:          e.ID,
-			Name:        e.Name,
-			Description: e.Description,
-			Room:        domain.Room{ID: e.RoomID, Place: e.Room.Place},
-			Group:       domain.Group{ID: e.GroupID},
-			TimeStart:   e.TimeStart,
-			TimeEnd:     e.TimeEnd,
-			CreatedBy:   domain.User{ID: e.CreatedByRefer},
-			Admins: lo.Map(e.Admins, func(a db.EventAdmin, _ int) domain.User {
-				return domain.User{ID: a.UserID}
-			}),
-			Tags: lo.Map(e.Tags, func(t db.EventTag, _ int) domain.EventTag {
-				return domain.EventTag{
-					Tag:    domain.Tag{ID: t.TagID, Name: t.Tag.Name},
-					Locked: t.Locked,
-				}
-			}),
-			AllowTogether: e.AllowTogether,
-			Attendees: lo.Map(e.Attendees, func(a db.EventAttendee, _ int) domain.Attendee {
-				return domain.Attendee{UserID: a.UserID}
-			}),
-			Open: e.Open,
 
-			Model: domain.Model{
-				CreatedAt: e.CreatedAt,
-				UpdatedAt: e.UpdatedAt,
-			},
-		}
-	})
-
-	return events, nil
+	return es, nil
 }
 
 func (repo *service) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
-	es, err := repo.GormRepo.GetAllEvents(expr)
+	events, err := repo.GormRepo.GetAllEvents(expr)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	events := db.ConvSPEventToSPdomainEvent(es)
 
 	// add traQ groups and users
 	groups, err := repo.GetAllGroups(info)
@@ -199,16 +170,16 @@ func (repo *service) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo)
 	}
 	userMap := createUserMap(users)
 	for i := range events {
-		g, ok := groupMap[es[i].GroupID]
+		g, ok := groupMap[events[i].Group.ID]
 		if ok {
 			events[i].Group = *g
 		}
-		c, ok := userMap[es[i].CreatedByRefer]
+		c, ok := userMap[events[i].CreatedBy.ID]
 		if ok {
 			events[i].CreatedBy = *c
 		}
-		for j, eventAdmin := range es[i].Admins {
-			a, ok := userMap[eventAdmin.UserID]
+		for j, eventAdmin := range events[i].Admins {
+			a, ok := userMap[eventAdmin.ID]
 			if ok {
 				events[i].Admins[j] = *a
 			}
@@ -224,7 +195,7 @@ func (repo *service) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) bool
 		return false
 	}
 	for _, admin := range event.Admins {
-		if info.ReqUserID == admin.UserID {
+		if info.ReqUserID == admin.ID {
 			return true
 		}
 	}

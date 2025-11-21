@@ -99,7 +99,7 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 	return roomAvailable
 }
 
-func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
+func createMessage(t time.Time, rooms []*domain.Room, events []*domain.Event, origin string) string {
 	date := t.In(tz.JST).Format("01/02(Mon)")
 	combined := map[bool]string{
 		true:  "(併用可)",
