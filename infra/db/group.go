@@ -20,14 +20,16 @@ type WriteGroupParams struct {
 	CreatedBy uuid.UUID
 }
 
-func (repo *GormRepository) CreateGroup(params WriteGroupParams) (*Group, error) {
+func (repo *GormRepository) CreateGroup(params WriteGroupParams) (*domain.Group, error) {
 	g, err := createGroup(repo.db, params)
-	return g, defaultErrorHandling(err)
+	domainGroup := convGroupTodomainGroup(*g)
+	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
+func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupParams) (*domain.Group, error) {
 	g, err := updateGroup(repo.db, groupID, params)
-	return g, defaultErrorHandling(err)
+	domainGroup := convGroupTodomainGroup(*g)
+	return &domainGroup, defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
@@ -45,18 +47,20 @@ func (repo *GormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
-	gs, err := getGroup(groupFullPreload(repo.db), groupID)
-	return gs, defaultErrorHandling(err)
+func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*domain.Group, error) {
+	g, err := getGroup(groupFullPreload(repo.db), groupID)
+	domainGroup := convGroupTodomainGroup(*g)
+	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
+func (repo *GormRepository) GetAllGroups() ([]*domain.Group, error) {
 	cmd := groupFullPreload(repo.db)
 	gs, err := getGroups(cmd.Joins(
 		"LEFT JOIN events ON groups.id = events.group_id "+
 			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
 			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), "", nil)
-	return gs, defaultErrorHandling(err)
+
+	return ConvSPGroupToSPdomainGroup(gs), defaultErrorHandling(err)
 }
 
 func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {

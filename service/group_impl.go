@@ -20,8 +20,8 @@ func (repo *service) CreateGroup(params domain.WriteGroupParams, info *domain.Co
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	group := db.ConvGroupTodomainGroup(*g)
-	return &group, nil
+
+	return g, nil
 }
 
 func (repo *service) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupParams, info *domain.ConInfo) (*domain.Group, error) {
@@ -36,8 +36,8 @@ func (repo *service) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupPara
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	group := db.ConvGroupTodomainGroup(*g)
-	return &group, nil
+
+	return g, nil
 }
 
 // AddMeToGroup add me to that group if that group is open.
@@ -64,38 +64,40 @@ func (repo *service) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) erro
 }
 
 func (repo *service) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*domain.Group, error) {
-	var group domain.Group
-	g, err := repo.GormRepo.GetGroup(groupID)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// trap
-			if groupID == traPGroupID {
-				return repo.getTraPGroup(info), nil
-			}
-
-			// traq group
-			g, err := repo.TraQRepo.GetGroup(groupID)
-			if err != nil {
-				return nil, defaultErrorHandling(err)
-			}
-			group = ConvtraqUserGroupTodomainGroup(*g)
-			group.IsTraQGroup = true
-		} else {
-			return nil, defaultErrorHandling(err)
-		}
-	} else {
-		group = db.ConvGroupTodomainGroup(*g)
+	domainGroup, err := repo.GormRepo.GetGroup(groupID)
+	if err == nil {
+		return domainGroup, nil
 	}
+
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, defaultErrorHandling(err)
+	}
+
+	// 以下 Not Found 用処理
+
+	// traP全員用グループ
+	if groupID == traPGroupID {
+		return repo.getTraPGroup(info), nil
+	}
+
+	// traQ Group or error
+	traQGroup, err := repo.TraQRepo.GetGroup(groupID)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+
+	group := ConvtraqUserGroupTodomainGroup(*traQGroup)
+	group.IsTraQGroup = true
+
 	return &group, nil
 }
-
 func (repo *service) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, error) {
 	groups := make([]*domain.Group, 0)
 	gg, err := repo.GormRepo.GetAllGroups()
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	groups = append(groups, db.ConvSPGroupToSPdomainGroup(gg)...)
+	groups = append(groups, gg...)
 	tg, err := repo.TraQRepo.GetAllGroups()
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -138,7 +140,7 @@ func (repo *service) IsGroupAdmins(groupID uuid.UUID, info *domain.ConInfo) bool
 		return false
 	}
 	for _, admin := range group.Admins {
-		if info.ReqUserID == admin.UserID {
+		if info.ReqUserID == admin.ID {
 			return true
 		}
 	}
