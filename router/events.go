@@ -22,7 +22,7 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 	}
 	params := presentation.ConvEventReqWriteTodomainWriteEventParams(req)
 
-	event, err := h.Repo.CreateEvent(params, getConinfo(c))
+	event, err := h.Service.CreateEvent(params, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -43,7 +43,7 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 	}
 	params := presentation.ConvEventReqWriteTodomainWriteEventParams(req)
 
-	event, err := h.Repo.UpdateEvent(eventID, params, getConinfo(c))
+	event, err := h.Service.UpdateEvent(eventID, params, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -58,7 +58,7 @@ func (h *Handlers) HandleDeleteEvent(c echo.Context) error {
 		return notFound(err)
 	}
 
-	if err = h.Repo.DeleteEvent(eventID, getConinfo(c)); err != nil {
+	if err = h.Service.DeleteEvent(eventID, getConinfo(c)); err != nil {
 		return internalServerError(err)
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -71,7 +71,7 @@ func (h *Handlers) HandleGetEvent(c echo.Context) error {
 		return notFound(err)
 	}
 
-	event, err := h.Repo.GetEvent(eventID, getConinfo(c))
+	event, err := h.Service.GetEvent(eventID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -93,7 +93,7 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 
 	combinedExpr := filters.AddAnd(expr, durationExpr)
 
-	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
+	events, err := h.Service.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -121,7 +121,7 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 
 	combinedExpr := filters.AddAnd(groupExpr, durationExpr)
 
-	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
+	events, err := h.Service.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -140,7 +140,7 @@ func (h *Handlers) HandleAddEventTag(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	err = h.Repo.AddEventTag(eventID, req.Name, false, getConinfo(c))
+	err = h.Service.AddEventTag(eventID, req.Name, false, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -155,7 +155,7 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 	}
 	tagName := c.Param("tagName")
 
-	err = h.Repo.DeleteEventTag(eventID, tagName, getConinfo(c))
+	err = h.Service.DeleteEventTag(eventID, tagName, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -175,7 +175,7 @@ func (h *Handlers) HandleUpsertMeEventSchedule(c echo.Context) error {
 	}
 	params := domain.ScheduleStatus(req.Schedule)
 
-	err = h.Repo.UpsertMeEventSchedule(eventID, params, getConinfo(c))
+	err = h.Service.UpsertMeEventSchedule(eventID, params, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -200,7 +200,7 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 
 	combinedExpr := filters.AddAnd(relationExpr, durationExpr)
 
-	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
+	events, err := h.Service.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -225,7 +225,7 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 
 	combinedExpr := filters.AddAnd(relationExpr, durationExpr)
 
-	events, err := h.Repo.GetEvents(combinedExpr, getConinfo(c))
+	events, err := h.Service.GetEvents(combinedExpr, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -252,7 +252,7 @@ func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 
 	combinedExpr := filters.AddAnd(roomExpr, durationExpr)
 
-	events, err := h.Repo.GetEvents(
+	events, err := h.Service.GetEvents(
 		combinedExpr,
 		getConinfo(c),
 	)
@@ -272,7 +272,7 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 		return notFound(err)
 	}
 	info := &domain.ConInfo{ReqUserID: userID}
-	icalSecret, err := h.Repo.GetMyiCalSecret(info)
+	icalSecret, err := h.Service.GetMyiCalSecret(info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -286,12 +286,12 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return badRequest(err)
 	}
-	events, err := h.Repo.GetEventsWithGroup(expr, info)
+	events, err := h.Service.GetEventsWithGroup(expr, info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
 
-	users, err := h.Repo.GetAllUsers(false, true, info)
+	users, err := h.Service.GetAllUsers(false, true, info)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

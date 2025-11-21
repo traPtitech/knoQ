@@ -14,7 +14,7 @@ import (
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 // 認証状態を確認
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
-	user, err := h.Repo.GetUserMe(getConinfo(c))
+	user, err := h.Service.GetUserMe(getConinfo(c))
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidToken) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
@@ -28,7 +28,7 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 func (h *Handlers) HandleGetUsers(c echo.Context) error {
 	includeSuspend, _ := strconv.ParseBool(c.QueryParam("include-suspended"))
 
-	users, err := h.Repo.GetAllUsers(includeSuspend, true, getConinfo(c))
+	users, err := h.Service.GetAllUsers(includeSuspend, true, getConinfo(c))
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidToken) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
@@ -40,7 +40,7 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 }
 
 func (h *Handlers) HandleGetiCal(c echo.Context) error {
-	secret, err := h.Repo.GetMyiCalSecret(getConinfo(c))
+	secret, err := h.Service.GetMyiCalSecret(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -52,7 +52,7 @@ func (h *Handlers) HandleGetiCal(c echo.Context) error {
 }
 
 func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
-	secret, err := h.Repo.ReNewMyiCalSecret(getConinfo(c))
+	secret, err := h.Service.ReNewMyiCalSecret(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -67,7 +67,7 @@ func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 // 停止されているユーザーの`token`を削除して、
 // 活動中のユーザーを追加する(userIDをDBに保存)
 func (h *Handlers) HandleSyncUser(c echo.Context) error {
-	err := h.Repo.SyncUsers(getConinfo(c))
+	err := h.Service.SyncUsers(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -81,7 +81,7 @@ func (h *Handlers) HandleGrantPrivilege(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	err = h.Repo.GrantPrivilege(userID)
+	err = h.Service.GrantPrivilege(userID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

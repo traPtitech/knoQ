@@ -20,7 +20,7 @@ import (
 )
 
 type Handlers struct {
-	Repo              domain.Repository
+	Service           domain.Service
 	Logger            *zap.Logger
 	SessionKey        []byte
 	SessionOption     sessions.Options

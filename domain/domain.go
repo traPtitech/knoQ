@@ -24,10 +24,10 @@ type ConInfo struct {
 	ReqUserID uuid.UUID
 }
 
-type Repository interface {
-	EventRepository
-	GroupRepository
-	RoomRepository
-	TagRepository
-	UserRepository
+type Service interface {
+	EventService
+	GroupService
+	RoomService
+	TagService
+	UserService
 }

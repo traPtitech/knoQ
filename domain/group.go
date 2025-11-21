@@ -14,6 +14,10 @@ type Group struct {
 	Model
 }
 
+func (g *Group) AdminsValidation() bool {
+	return len(g.Admins) != 0
+}
+
 type WriteGroupParams struct {
 	Name        string
 	Description string
@@ -22,7 +26,7 @@ type WriteGroupParams struct {
 	Admins      []uuid.UUID
 }
 
-type GroupRepository interface {
+type GroupService interface {
 	CreateGroup(groupParams WriteGroupParams, info *ConInfo) (*Group, error)
 	UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams, info *ConInfo) (*Group, error)
 	// AddMeToGroup add me to that group if that group is open.
@@ -37,8 +41,4 @@ type GroupRepository interface {
 	GetUserAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
 	IsGroupAdmins(groupID uuid.UUID, info *ConInfo) bool
 	GetGradeGroupNames(info *ConInfo) ([]string, error)
-}
-
-func (g *Group) AdminsValidation() bool {
-	return len(g.Admins) != 0
 }

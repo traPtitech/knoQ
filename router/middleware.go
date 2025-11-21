@@ -89,7 +89,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized(err, needAuthorization(true))
 		}
 
-		user, err := h.Repo.GetUserMe(getConinfo(c))
+		user, err := h.Service.GetUserMe(getConinfo(c))
 		if err != nil {
 			return internalServerError(err)
 		}
@@ -106,7 +106,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func (h *Handlers) PrivilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// 判定
-		if !h.Repo.IsPrivilege(getConinfo(c)) {
+		if !h.Service.IsPrivilege(getConinfo(c)) {
 			return forbidden(
 				errors.New("not admin"),
 				message("You are not admin user."),
@@ -125,7 +125,7 @@ func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 		if err != nil {
 			return notFound(err)
 		}
-		if !h.Repo.IsGroupAdmins(groupID, getConinfo(c)) {
+		if !h.Service.IsGroupAdmins(groupID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
@@ -144,7 +144,7 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 			return notFound(err)
 		}
 
-		if !h.Repo.IsEventAdmins(eventID, getConinfo(c)) {
+		if !h.Service.IsEventAdmins(eventID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -164,7 +164,7 @@ func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc 
 			return notFound(err)
 		}
 
-		if !h.Repo.IsRoomAdmins(roomID, getConinfo(c)) {
+		if !h.Service.IsRoomAdmins(roomID, getConinfo(c)) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -188,7 +188,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, _, resBody []byte) {
 		return
 	}
 
-	users, err := h.Repo.GetAllUsers(false, true, getConinfo(c))
+	users, err := h.Service.GetAllUsers(false, true, getConinfo(c))
 	if err != nil {
 		return
 	}
@@ -202,7 +202,7 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, _, resBody []byte) {
 	// TODO fix: IDを環境変数などで定義すべき
 	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 	if e.Group.ID == traPGroupID {
-		groups, err := h.Repo.GetGradeGroupNames(getConinfo(c))
+		groups, err := h.Service.GetGradeGroupNames(getConinfo(c))
 		if err != nil {
 			h.Logger.Error("failed to get groups", zap.Error(err))
 			return

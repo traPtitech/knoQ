@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ import (
 
 var traPGroupID = uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 
-func (repo *Repository) CreateGroup(params domain.WriteGroupParams, info *domain.ConInfo) (*domain.Group, error) {
+func (repo *service) CreateGroup(params domain.WriteGroupParams, info *domain.ConInfo) (*domain.Group, error) {
 	p := db.WriteGroupParams{
 		WriteGroupParams: params,
 		CreatedBy:        info.ReqUserID,
@@ -24,7 +24,7 @@ func (repo *Repository) CreateGroup(params domain.WriteGroupParams, info *domain
 	return &group, nil
 }
 
-func (repo *Repository) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupParams, info *domain.ConInfo) (*domain.Group, error) {
+func (repo *service) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupParams, info *domain.ConInfo) (*domain.Group, error) {
 	if !repo.IsGroupAdmins(groupID, info) {
 		return nil, domain.ErrForbidden
 	}
@@ -41,14 +41,14 @@ func (repo *Repository) UpdateGroup(groupID uuid.UUID, params domain.WriteGroupP
 }
 
 // AddMeToGroup add me to that group if that group is open.
-func (repo *Repository) AddMeToGroup(groupID uuid.UUID, info *domain.ConInfo) error {
+func (repo *service) AddMeToGroup(groupID uuid.UUID, info *domain.ConInfo) error {
 	if !repo.IsGroupJoinFreely(groupID) {
 		return domain.ErrForbidden
 	}
 	return repo.GormRepo.AddMemberToGroup(groupID, info.ReqUserID)
 }
 
-func (repo *Repository) DeleteGroup(groupID uuid.UUID, info *domain.ConInfo) error {
+func (repo *service) DeleteGroup(groupID uuid.UUID, info *domain.ConInfo) error {
 	if !repo.IsGroupAdmins(groupID, info) {
 		return domain.ErrForbidden
 	}
@@ -56,14 +56,14 @@ func (repo *Repository) DeleteGroup(groupID uuid.UUID, info *domain.ConInfo) err
 }
 
 // DeleteMeGroup delete me in that group if that group is open.
-func (repo *Repository) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) error {
+func (repo *service) DeleteMeGroup(groupID uuid.UUID, info *domain.ConInfo) error {
 	if !repo.IsGroupJoinFreely(groupID) {
 		return domain.ErrForbidden
 	}
 	return repo.GormRepo.DeleteMemberOfGroup(groupID, info.ReqUserID)
 }
 
-func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*domain.Group, error) {
+func (repo *service) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*domain.Group, error) {
 	var group domain.Group
 	g, err := repo.GormRepo.GetGroup(groupID)
 	if err != nil {
@@ -89,7 +89,7 @@ func (repo *Repository) GetGroup(groupID uuid.UUID, info *domain.ConInfo) (*doma
 	return &group, nil
 }
 
-func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, error) {
+func (repo *service) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, error) {
 	groups := make([]*domain.Group, 0)
 	gg, err := repo.GormRepo.GetAllGroups()
 	if err != nil {
@@ -111,7 +111,7 @@ func (repo *Repository) GetAllGroups(info *domain.ConInfo) ([]*domain.Group, err
 	return groups, nil
 }
 
-func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.ConInfo) ([]uuid.UUID, error) {
+func (repo *service) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.ConInfo) ([]uuid.UUID, error) {
 	t, err := repo.GormRepo.GetToken(info.ReqUserID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -128,11 +128,11 @@ func (repo *Repository) GetUserBelongingGroupIDs(userID uuid.UUID, info *domain.
 	return append(append(ggIDs, traPGroupID), tgIDs...), nil
 }
 
-func (repo *Repository) GetUserAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+func (repo *service) GetUserAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	return repo.GormRepo.GetAdminGroupIDs(userID)
 }
 
-func (repo *Repository) IsGroupAdmins(groupID uuid.UUID, info *domain.ConInfo) bool {
+func (repo *service) IsGroupAdmins(groupID uuid.UUID, info *domain.ConInfo) bool {
 	group, err := repo.GormRepo.GetGroup(groupID)
 	if err != nil {
 		return false
@@ -145,7 +145,7 @@ func (repo *Repository) IsGroupAdmins(groupID uuid.UUID, info *domain.ConInfo) b
 	return false
 }
 
-func (repo *Repository) IsGroupJoinFreely(groupID uuid.UUID) bool {
+func (repo *service) IsGroupJoinFreely(groupID uuid.UUID) bool {
 	group, err := repo.GormRepo.GetGroup(groupID)
 	if err != nil {
 		return false
@@ -153,7 +153,7 @@ func (repo *Repository) IsGroupJoinFreely(groupID uuid.UUID) bool {
 	return group.JoinFreely
 }
 
-func (repo *Repository) IsGroupMember(userID, groupID uuid.UUID, info *domain.ConInfo) bool {
+func (repo *service) IsGroupMember(userID, groupID uuid.UUID, info *domain.ConInfo) bool {
 	group, err := repo.GetGroup(groupID, info)
 	if err != nil {
 		return false
@@ -167,7 +167,7 @@ func (repo *Repository) IsGroupMember(userID, groupID uuid.UUID, info *domain.Co
 	return false
 }
 
-func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
+func (repo *service) getTraPGroup(info *domain.ConInfo) *domain.Group {
 	members, err := repo.GetAllUsers(false, false, info)
 	if err != nil {
 		return nil
@@ -186,7 +186,7 @@ func (repo *Repository) getTraPGroup(info *domain.ConInfo) *domain.Group {
 	}
 }
 
-func (repo *Repository) GetGradeGroupNames(_ *domain.ConInfo) ([]string, error) {
+func (repo *service) GetGradeGroupNames(_ *domain.ConInfo) ([]string, error) {
 	groups, err := repo.TraQRepo.GetAllGroups()
 	if err != nil {
 		return nil, defaultErrorHandling(err)

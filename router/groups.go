@@ -17,7 +17,7 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 	}
 	groupParams := presentation.ConvGroupReqTodomainWriteGroupParams(req)
 
-	group, err := h.Repo.CreateGroup(groupParams, getConinfo(c))
+	group, err := h.Service.CreateGroup(groupParams, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -32,7 +32,7 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	group, err := h.Repo.GetGroup(groupID, getConinfo(c))
+	group, err := h.Service.GetGroup(groupID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -43,7 +43,7 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 
 // HandleGetGroups グループを取得
 func (h *Handlers) HandleGetGroups(c echo.Context) error {
-	groups, err := h.Repo.GetAllGroups(getConinfo(c))
+	groups, err := h.Service.GetAllGroups(getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -58,7 +58,7 @@ func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	if err := h.Repo.DeleteGroup(groupID, getConinfo(c)); err != nil {
+	if err := h.Service.DeleteGroup(groupID, getConinfo(c)); err != nil {
 		return judgeErrorResponse(err)
 	}
 
@@ -78,7 +78,7 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	}
 	groupParams := presentation.ConvGroupReqTodomainWriteGroupParams(req)
 
-	res, err := h.Repo.UpdateGroup(groupID, groupParams, getConinfo(c))
+	res, err := h.Service.UpdateGroup(groupID, groupParams, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -91,7 +91,7 @@ func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Repo.AddMeToGroup(groupID, getConinfo(c))
+	err = h.Service.AddMeToGroup(groupID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -105,7 +105,7 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Repo.DeleteMeGroup(groupID, getConinfo(c))
+	err = h.Service.DeleteMeGroup(groupID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -120,21 +120,21 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 	var err error
 	switch presentation.GetUserRelationQuery(c.QueryParams()) {
 	case presentation.RelationBelongs:
-		groupIDs, err = h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		groupIDs, err = h.Service.GetUserBelongingGroupIDs(userID, getConinfo(c))
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
 	case presentation.RelationAdmins:
-		groupIDs, err = h.Repo.GetUserAdminGroupIDs(userID)
+		groupIDs, err = h.Service.GetUserAdminGroupIDs(userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
 	case presentation.RelationBelongsOrAdmins:
-		belongingGroupIDs, err := h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		belongingGroupIDs, err := h.Service.GetUserBelongingGroupIDs(userID, getConinfo(c))
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
-		adminGroupIDs, err := h.Repo.GetUserAdminGroupIDs(userID)
+		adminGroupIDs, err := h.Service.GetUserAdminGroupIDs(userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
@@ -163,12 +163,12 @@ func (h *Handlers) HandleGetGroupIDsByUserID(c echo.Context) error {
 	var groupIDs []uuid.UUID
 	switch presentation.GetUserRelationQuery(c.QueryParams()) {
 	case presentation.RelationBelongs:
-		groupIDs, err = h.Repo.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		groupIDs, err = h.Service.GetUserBelongingGroupIDs(userID, getConinfo(c))
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
 	case presentation.RelationAdmins:
-		groupIDs, err = h.Repo.GetUserAdminGroupIDs(userID)
+		groupIDs, err = h.Service.GetUserAdminGroupIDs(userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}

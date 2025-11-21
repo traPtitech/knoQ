@@ -17,7 +17,7 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 
 	roomParams := presentation.ConvRoomReqTodomainWriteRoomParams(req)
 
-	room, err := h.Repo.CreateUnVerifiedRoom(roomParams, getConinfo(c))
+	room, err := h.Service.CreateUnVerifiedRoom(roomParams, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -46,7 +46,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 			return badRequest(err)
 		}
 
-		room, err := h.Repo.CreateVerifiedRoom(*params, getConinfo(c))
+		room, err := h.Service.CreateVerifiedRoom(*params, getConinfo(c))
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
@@ -69,7 +69,7 @@ func (h *Handlers) HandleGetRoom(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	room, err := h.Repo.GetRoom(roomID, excludeEventID)
+	room, err := h.Service.GetRoom(roomID, excludeEventID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -87,7 +87,7 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	if err != nil {
 		return badRequest(err)
 	}
-	rooms, err := h.Repo.GetAllRooms(start, end, excludeEventID)
+	rooms, err := h.Service.GetAllRooms(start, end, excludeEventID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -100,7 +100,7 @@ func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	err = h.Repo.DeleteRoom(roomID, getConinfo(c))
+	err = h.Service.DeleteRoom(roomID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -114,7 +114,7 @@ func (h *Handlers) HandleVerifyRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Repo.VerifyRoom(roomID, getConinfo(c))
+	err = h.Service.VerifyRoom(roomID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -127,7 +127,7 @@ func (h *Handlers) HandleUnVerifyRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Repo.UnVerifyRoom(roomID, getConinfo(c))
+	err = h.Service.UnVerifyRoom(roomID, getConinfo(c))
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

@@ -1,4 +1,4 @@
-package repository
+package service
 
 import (
 	"github.com/gofrs/uuid"
@@ -8,7 +8,7 @@ import (
 	"github.com/traPtitech/knoQ/infra/db"
 )
 
-func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
+func (repo *service) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
 	// groupの確認
 	group, err := repo.GetGroup(params.GroupID, info)
 	if err != nil {
@@ -29,7 +29,7 @@ func (repo *Repository) CreateEvent(params domain.WriteEventParams, info *domain
 	return repo.GetEvent(event.ID, info)
 }
 
-func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
+func (repo *service) UpdateEvent(eventID uuid.UUID, params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
 	if !repo.IsEventAdmins(eventID, info) {
 		return nil, domain.ErrForbidden
 	}
@@ -68,7 +68,7 @@ func (repo *Repository) UpdateEvent(eventID uuid.UUID, params domain.WriteEventP
 	return repo.GetEvent(event.ID, info)
 }
 
-func (repo *Repository) AddEventTag(eventID uuid.UUID, tagName string, locked bool, info *domain.ConInfo) error {
+func (repo *service) AddEventTag(eventID uuid.UUID, tagName string, locked bool, info *domain.ConInfo) error {
 	if locked && !repo.IsEventAdmins(eventID, info) {
 		return domain.ErrForbidden
 	}
@@ -77,7 +77,7 @@ func (repo *Repository) AddEventTag(eventID uuid.UUID, tagName string, locked bo
 	})
 }
 
-func (repo *Repository) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) error {
+func (repo *service) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) error {
 	if !repo.IsEventAdmins(eventID, info) {
 		return domain.ErrForbidden
 	}
@@ -86,13 +86,13 @@ func (repo *Repository) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) err
 }
 
 // DeleteTagInEvent delete a tag in that Event
-func (repo *Repository) DeleteEventTag(eventID uuid.UUID, tagName string, info *domain.ConInfo) error {
+func (repo *service) DeleteEventTag(eventID uuid.UUID, tagName string, info *domain.ConInfo) error {
 	deleteLocked := repo.IsEventAdmins(eventID, info)
 
 	return repo.GormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
 }
 
-func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*domain.Event, error) {
+func (repo *service) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*domain.Event, error) {
 	e, err := repo.GormRepo.GetEvent(eventID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -123,7 +123,7 @@ func (repo *Repository) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*doma
 	return &event, nil
 }
 
-func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain.ScheduleStatus, info *domain.ConInfo) error {
+func (repo *service) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain.ScheduleStatus, info *domain.ConInfo) error {
 	event, err := repo.GetEvent(eventID, info)
 	if err != nil {
 		return err
@@ -136,7 +136,7 @@ func (repo *Repository) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain
 	return defaultErrorHandling(err)
 }
 
-func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
+func (repo *service) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
@@ -178,7 +178,7 @@ func (repo *Repository) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*d
 	return events, nil
 }
 
-func (repo *Repository) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
+func (repo *service) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
@@ -218,7 +218,7 @@ func (repo *Repository) GetEventsWithGroup(expr filters.Expr, info *domain.ConIn
 	return events, nil
 }
 
-func (repo *Repository) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) bool {
+func (repo *service) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) bool {
 	event, err := repo.GormRepo.GetEvent(eventID)
 	if err != nil {
 		return false
@@ -248,7 +248,7 @@ func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 }
 
 // add traQ group and traP(111...)
-func addTraQGroupIDs(repo *Repository, userID uuid.UUID, expr filters.Expr) filters.Expr {
+func addTraQGroupIDs(repo *service, userID uuid.UUID, expr filters.Expr) filters.Expr {
 	t, err := repo.GormRepo.GetToken(userID)
 	if err != nil {
 		return expr

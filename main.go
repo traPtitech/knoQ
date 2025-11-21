@@ -11,7 +11,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/infra/traq"
-	"github.com/traPtitech/knoQ/repository"
+	"github.com/traPtitech/knoQ/service"
 	"github.com/traPtitech/knoQ/utils"
 	"github.com/traPtitech/knoQ/utils/tz"
 	"golang.org/x/oauth2"
@@ -73,12 +73,9 @@ func main() {
 		URL:               "https://q.trap.jp/api/v3",
 		ServerAccessToken: traqAccessToken,
 	}
-	repo := &repository.Repository{
-		GormRepo: gormRepo,
-		TraQRepo: traqRepo,
-	}
+	s := service.NewService(&gormRepo, &traqRepo)
 	handler := &router.Handlers{
-		Repo:       repo,
+		Service:    s,
 		Logger:     logger,
 		SessionKey: []byte(sessionKey),
 		ClientID:   clientID,
@@ -102,7 +99,7 @@ func main() {
 	_, err = c.AddFunc(
 		"0 8 * * *",
 		utils.InitPostEventToTraQ(
-			&repo.GormRepo,
+			&gormRepo,
 			handler.WebhookSecret,
 			handler.DailyChannelID,
 			handler.WebhookID,

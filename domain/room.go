@@ -19,31 +19,6 @@ type Room struct {
 	Model
 }
 
-type WriteRoomParams struct {
-	Place string
-
-	// Verifeid indicates if the room has been verified by privileged users.
-	TimeStart time.Time
-	TimeEnd   time.Time
-
-	Admins []uuid.UUID
-}
-
-type RoomRepository interface {
-	CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
-	CreateVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
-
-	UpdateRoom(roomID uuid.UUID, params WriteRoomParams, info *ConInfo) (*Room, error)
-	VerifyRoom(roomID uuid.UUID, info *ConInfo) error
-	UnVerifyRoom(roomID uuid.UUID, info *ConInfo) error
-
-	DeleteRoom(roomID uuid.UUID, info *ConInfo) error
-
-	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
-	GetAllRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
-	IsRoomAdmins(roomID uuid.UUID, info *ConInfo) bool
-}
-
 // StartEndTime has start and end time
 type StartEndTime struct {
 	TimeStart time.Time
@@ -164,4 +139,29 @@ func (r *Room) TimeConsistency() bool {
 
 func (r *Room) AdminsValidation() bool {
 	return len(r.Admins) != 0
+}
+
+type WriteRoomParams struct {
+	Place string
+
+	// Verifeid indicates if the room has been verified by privileged users.
+	TimeStart time.Time
+	TimeEnd   time.Time
+
+	Admins []uuid.UUID
+}
+
+type RoomService interface {
+	CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
+	CreateVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
+
+	UpdateRoom(roomID uuid.UUID, params WriteRoomParams, info *ConInfo) (*Room, error)
+	VerifyRoom(roomID uuid.UUID, info *ConInfo) error
+	UnVerifyRoom(roomID uuid.UUID, info *ConInfo) error
+
+	DeleteRoom(roomID uuid.UUID, info *ConInfo) error
+
+	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
+	GetAllRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
+	IsRoomAdmins(roomID uuid.UUID, info *ConInfo) bool
 }
