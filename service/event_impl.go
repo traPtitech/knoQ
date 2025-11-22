@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
@@ -9,16 +9,17 @@ import (
 	"github.com/traPtitech/knoQ/infra/db"
 )
 
-func (repo *service) CreateEvent(params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
+func (repo *service) CreateEvent(ctx context.Context, params domain.WriteEventParams) (*domain.Event, error) {
+	reqID, _ := domain.GetUserID(ctx)
 	// groupの確認
-	group, err := repo.GetGroup(params.GroupID, info)
+	group, err := repo.GetGroup(ctx, params.GroupID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	p := db.WriteEventParams{
 		WriteEventParams: params,
-		CreatedBy:        info.ReqUserID,
+		CreatedBy:        reqID,
 	}
 	event, err := repo.GormRepo.CreateEvent(p)
 	if err != nil {
@@ -27,28 +28,30 @@ func (repo *service) CreateEvent(params domain.WriteEventParams, info *domain.Co
 	for _, groupMember := range group.Members {
 		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
 	}
-	return repo.GetEvent(event.ID, info)
+	return repo.GetEvent(ctx, event.ID)
 }
 
-func (repo *service) UpdateEvent(eventID uuid.UUID, params domain.WriteEventParams, info *domain.ConInfo) (*domain.Event, error) {
-	if !repo.IsEventAdmins(eventID, info) {
+func (repo *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params domain.WriteEventParams) (*domain.Event, error) {
+	reqID, _ := domain.GetUserID(ctx)
+
+	if !repo.IsEventAdmins(ctx, eventID) {
 		return nil, domain.ErrForbidden
 	}
 
-	currentEvent, err := repo.GetEvent(eventID, info)
+	currentEvent, err := repo.GetEvent(ctx, eventID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	// groupの確認
-	group, err := repo.GetGroup(params.GroupID, info)
+	group, err := repo.GetGroup(ctx, params.GroupID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	p := db.WriteEventParams{
 		WriteEventParams: params,
-		CreatedBy:        info.ReqUserID,
+		CreatedBy:        reqID,
 	}
 	event, err := repo.GormRepo.UpdateEvent(eventID, p)
 	if err != nil {
@@ -66,11 +69,12 @@ func (repo *service) UpdateEvent(eventID uuid.UUID, params domain.WriteEventPara
 		}
 
 	}
-	return repo.GetEvent(event.ID, info)
+	return repo.GetEvent(ctx, event.ID)
 }
 
-func (repo *service) AddEventTag(eventID uuid.UUID, tagName string, locked bool, info *domain.ConInfo) error {
-	if locked && !repo.IsEventAdmins(eventID, info) {
+func (repo *service) AddEventTag(ctx context.Context, eventID uuid.UUID, tagName string, locked bool) error {
+
+	if locked && !repo.IsEventAdmins(ctx, eventID) {
 		return domain.ErrForbidden
 	}
 	return repo.GormRepo.AddEventTag(eventID, domain.EventTagParams{
@@ -78,8 +82,8 @@ func (repo *service) AddEventTag(eventID uuid.UUID, tagName string, locked bool,
 	})
 }
 
-func (repo *service) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) error {
-	if !repo.IsEventAdmins(eventID, info) {
+func (repo *service) DeleteEvent(ctx context.Context, eventID uuid.UUID) error {
+	if !repo.IsEventAdmins(ctx, eventID) {
 		return domain.ErrForbidden
 	}
 
@@ -87,27 +91,25 @@ func (repo *service) DeleteEvent(eventID uuid.UUID, info *domain.ConInfo) error 
 }
 
 // DeleteTagInEvent delete a tag in that Event
-func (repo *service) DeleteEventTag(eventID uuid.UUID, tagName string, info *domain.ConInfo) error {
-	deleteLocked := repo.IsEventAdmins(eventID, info)
+func (repo *service) DeleteEventTag(ctx context.Context, eventID uuid.UUID, tagName string) error {
+	deleteLocked := repo.IsEventAdmins(ctx, eventID)
 
 	return repo.GormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
 }
 
-func (repo *service) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*domain.Event, error) {
+func (repo *service) GetEvent(ctx context.Context, eventID uuid.UUID) (*domain.Event, error) {
 	event, err := repo.GormRepo.GetEvent(eventID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
-	fmt.Printf("\n\n%+v\n\n", event)
-
 	// add traQ groups and users
-	g, err := repo.GetGroup(event.Group.ID, info) // TODO ここは正しい挙動する?
+	g, err := repo.GetGroup(ctx, event.Group.ID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	event.Group = *g
-	users, err := repo.GetAllUsers(false, true, info)
+	users, err := repo.GetAllUsers(ctx, false, true)
 	if err != nil {
 		return event, err
 	}
@@ -126,21 +128,25 @@ func (repo *service) GetEvent(eventID uuid.UUID, info *domain.ConInfo) (*domain.
 	return event, nil
 }
 
-func (repo *service) UpsertMeEventSchedule(eventID uuid.UUID, schedule domain.ScheduleStatus, info *domain.ConInfo) error {
-	event, err := repo.GetEvent(eventID, info)
+func (repo *service) UpsertMeEventSchedule(ctx context.Context, eventID uuid.UUID, schedule domain.ScheduleStatus) error {
+	reqID, _ := domain.GetUserID(ctx)
+
+	event, err := repo.GetEvent(ctx, eventID)
 	if err != nil {
 		return err
 	}
-	if !repo.IsGroupMember(info.ReqUserID, event.Group.ID, info) && !event.Open {
+	if !repo.IsGroupMember(ctx, reqID, event.Group.ID) && !event.Open {
 		return domain.ErrForbidden
 	}
 
-	err = repo.GormRepo.UpsertEventSchedule(eventID, info.ReqUserID, schedule)
+	err = repo.GormRepo.UpsertEventSchedule(eventID, reqID, schedule)
 	return defaultErrorHandling(err)
 }
 
-func (repo *service) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
-	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
+func (repo *service) GetEvents(ctx context.Context, expr filters.Expr) ([]*domain.Event, error) {
+	reqID, _ := domain.GetUserID(ctx)
+
+	expr = addTraQGroupIDs(repo, reqID, expr)
 
 	es, err := repo.GormRepo.GetAllEvents(expr)
 	if err != nil {
@@ -150,8 +156,10 @@ func (repo *service) GetEvents(expr filters.Expr, info *domain.ConInfo) ([]*doma
 	return es, nil
 }
 
-func (repo *service) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo) ([]*domain.Event, error) {
-	expr = addTraQGroupIDs(repo, info.ReqUserID, expr)
+func (repo *service) GetEventsWithGroup(ctx context.Context, expr filters.Expr) ([]*domain.Event, error) {
+	reqID, _ := domain.GetUserID(ctx)
+
+	expr = addTraQGroupIDs(repo, reqID, expr)
 
 	events, err := repo.GormRepo.GetAllEvents(expr)
 	if err != nil {
@@ -159,12 +167,12 @@ func (repo *service) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo)
 	}
 
 	// add traQ groups and users
-	groups, err := repo.GetAllGroups(info)
+	groups, err := repo.GetAllGroups(ctx)
 	if err != nil {
 		return events, nil
 	}
 	groupMap := createGroupMap(groups)
-	users, err := repo.GetAllUsers(false, true, info)
+	users, err := repo.GetAllUsers(ctx, false, true)
 	if err != nil {
 		return events, err
 	}
@@ -189,13 +197,15 @@ func (repo *service) GetEventsWithGroup(expr filters.Expr, info *domain.ConInfo)
 	return events, nil
 }
 
-func (repo *service) IsEventAdmins(eventID uuid.UUID, info *domain.ConInfo) bool {
+func (repo *service) IsEventAdmins(ctx context.Context, eventID uuid.UUID) bool {
+	reqID, _ := domain.GetUserID(ctx)
+
 	event, err := repo.GormRepo.GetEvent(eventID)
 	if err != nil {
 		return false
 	}
 	for _, admin := range event.Admins {
-		if info.ReqUserID == admin.ID {
+		if reqID == admin.ID {
 			return true
 		}
 	}

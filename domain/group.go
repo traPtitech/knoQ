@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/gofrs/uuid"
+import (
+	"context"
+
+	"github.com/gofrs/uuid"
+)
 
 type Group struct {
 	ID          uuid.UUID
@@ -27,18 +31,18 @@ type WriteGroupParams struct {
 }
 
 type GroupService interface {
-	CreateGroup(groupParams WriteGroupParams, info *ConInfo) (*Group, error)
-	UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams, info *ConInfo) (*Group, error)
+	CreateGroup(ctx context.Context, groupParams WriteGroupParams) (*Group, error)
+	UpdateGroup(ctx context.Context, groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
 	// AddMeToGroup add me to that group if that group is open.
-	AddMeToGroup(groupID uuid.UUID, info *ConInfo) error
-	DeleteGroup(groupID uuid.UUID, info *ConInfo) error
+	AddMeToGroup(ctx context.Context, groupID uuid.UUID) error
+	DeleteGroup(ctx context.Context, groupID uuid.UUID) error
 	// DeleteMeGroup delete me in that group if that group is open.
-	DeleteMeGroup(groupID uuid.UUID, info *ConInfo) error
+	DeleteMeGroup(ctx context.Context, groupID uuid.UUID) error
 
-	GetGroup(groupID uuid.UUID, info *ConInfo) (*Group, error)
-	GetAllGroups(info *ConInfo) ([]*Group, error)
-	GetUserBelongingGroupIDs(userID uuid.UUID, info *ConInfo) ([]uuid.UUID, error)
-	GetUserAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
-	IsGroupAdmins(groupID uuid.UUID, info *ConInfo) bool
-	GetGradeGroupNames(info *ConInfo) ([]string, error)
+	GetGroup(ctx context.Context, groupID uuid.UUID) (*Group, error)
+	GetAllGroups(ctx context.Context) ([]*Group, error)
+	GetUserBelongingGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetUserAdminGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	IsGroupAdmins(ctx context.Context, groupID uuid.UUID) bool
+	GetGradeGroupNames(ctx context.Context) ([]string, error)
 }

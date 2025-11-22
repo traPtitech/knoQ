@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -13,8 +14,8 @@ import (
 
 const traQIssuerName = "traQ"
 
-func (repo *service) SyncUsers(info *domain.ConInfo) error {
-	if !repo.IsPrivilege(info) {
+func (repo *service) SyncUsers(ctx context.Context) error {
+	if !repo.IsPrivilege(ctx) {
 		return domain.ErrForbidden
 	}
 	traQUsers, err := repo.TraQRepo.GetUsers(true)
@@ -45,11 +46,11 @@ func (repo *service) SyncUsers(info *domain.ConInfo) error {
 	return defaultErrorHandling(err)
 }
 
-func (repo *service) GetOAuthURL() (url, state, codeVerifier string) {
+func (repo *service) GetOAuthURL(ctx context.Context) (url, state, codeVerifier string) {
 	return repo.TraQRepo.GetOAuthURL()
 }
 
-func (repo *service) LoginUser(query, state, codeVerifier string) (*domain.User, error) {
+func (repo *service) LoginUser(ctx context.Context, query, state, codeVerifier string) (*domain.User, error) {
 	t, err := repo.TraQRepo.GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -81,13 +82,11 @@ func (repo *service) LoginUser(query, state, codeVerifier string) (*domain.User,
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	u, err := repo.GetUser(user.ID, &domain.ConInfo{
-		ReqUserID: user.ID,
-	})
+	u, err := repo.GetUser(ctx, user.ID)
 	return u, defaultErrorHandling(err)
 }
 
-func (repo *service) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.User, error) {
+func (repo *service) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
 	userMeta, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -106,11 +105,12 @@ func (repo *service) GetUser(userID uuid.UUID, _ *domain.ConInfo) (*domain.User,
 	return nil, errors.New("not implemented")
 }
 
-func (repo *service) GetUserMe(info *domain.ConInfo) (*domain.User, error) {
-	return repo.GetUser(info.ReqUserID, info)
+func (repo *service) GetUserMe(ctx context.Context) (*domain.User, error) {
+	reqID, _ := domain.GetUserID(ctx)
+	return repo.GetUser(ctx, reqID)
 }
 
-func (repo *service) GetAllUsers(includeSuspend, includeBot bool, _ *domain.ConInfo) ([]*domain.User, error) {
+func (repo *service) GetAllUsers(ctx context.Context, includeSuspend, includeBot bool) ([]*domain.User, error) {
 	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -140,14 +140,16 @@ func (repo *service) GetAllUsers(includeSuspend, includeBot bool, _ *domain.ConI
 	return users, nil
 }
 
-func (repo *service) ReNewMyiCalSecret(info *domain.ConInfo) (secret string, err error) {
+func (repo *service) ReNewMyiCalSecret(ctx context.Context) (secret string, err error) {
 	secret = random.AlphaNumeric(16, true)
-	err = repo.GormRepo.UpdateiCalSecret(info.ReqUserID, secret)
+	reqID, _ := domain.GetUserID(ctx)
+	err = repo.GormRepo.UpdateiCalSecret(reqID, secret)
 	return
 }
 
-func (repo *service) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
-	user, err := repo.GormRepo.GetUser(info.ReqUserID)
+func (repo *service) GetMyiCalSecret(ctx context.Context) (string, error) {
+	reqID, _ := domain.GetUserID(ctx)
+	user, err := repo.GormRepo.GetUser(reqID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
 	}
@@ -160,8 +162,10 @@ func (repo *service) GetMyiCalSecret(info *domain.ConInfo) (string, error) {
 	return user.IcalSecret, nil
 }
 
-func (repo *service) IsPrivilege(info *domain.ConInfo) bool {
-	user, err := repo.GormRepo.GetUser(info.ReqUserID)
+func (repo *service) IsPrivilege(ctx context.Context) bool {
+	reqID, _ := domain.GetUserID(ctx)
+
+	user, err := repo.GormRepo.GetUser(reqID)
 	if err != nil {
 		return false
 	}
@@ -194,7 +198,7 @@ func (repo *service) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.
 	}, nil
 }
 
-func (repo *service) GrantPrivilege(userID uuid.UUID) error {
+func (repo *service) GrantPrivilege(ctx context.Context, userID uuid.UUID) error {
 	user, err := repo.GormRepo.GetUser(userID)
 	if err != nil {
 		return defaultErrorHandling(err)

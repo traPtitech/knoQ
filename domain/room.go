@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -152,16 +153,16 @@ type WriteRoomParams struct {
 }
 
 type RoomService interface {
-	CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
-	CreateVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
+	CreateUnVerifiedRoom(ctx context.Context, params WriteRoomParams) (*Room, error)
+	CreateVerifiedRoom(ctx context.Context, params WriteRoomParams) (*Room, error)
 
-	UpdateRoom(roomID uuid.UUID, params WriteRoomParams, info *ConInfo) (*Room, error)
-	VerifyRoom(roomID uuid.UUID, info *ConInfo) error
-	UnVerifyRoom(roomID uuid.UUID, info *ConInfo) error
+	UpdateRoom(ctx context.Context, roomID uuid.UUID, params WriteRoomParams) (*Room, error)
+	VerifyRoom(ctx context.Context, roomID uuid.UUID) error
+	UnVerifyRoom(ctx context.Context, roomID uuid.UUID) error
 
-	DeleteRoom(roomID uuid.UUID, info *ConInfo) error
+	DeleteRoom(ctx context.Context, roomID uuid.UUID) error
 
-	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
-	GetAllRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
-	IsRoomAdmins(roomID uuid.UUID, info *ConInfo) bool
+	GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
+	GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
+	IsRoomAdmins(ctx context.Context, roomID uuid.UUID) bool
 }

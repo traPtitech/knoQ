@@ -16,8 +16,8 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 	}
 
 	roomParams := presentation.ConvRoomReqTodomainWriteRoomParams(req)
-
-	room, err := h.Service.CreateUnVerifiedRoom(roomParams, getConinfo(c))
+	ctx := c.Request().Context()
+	room, err := h.Service.CreateUnVerifiedRoom(ctx, roomParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -38,7 +38,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 
 	// 構造体の変換
 	RoomsRes := make([]presentation.RoomRes, 0, len(req))
-
+	ctx := c.Request().Context()
 	for _, v := range req {
 
 		params, err := presentation.ChangeRoomCSVReqTodomainWriteRoomParams(v, userID)
@@ -46,7 +46,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 			return badRequest(err)
 		}
 
-		room, err := h.Service.CreateVerifiedRoom(*params, getConinfo(c))
+		room, err := h.Service.CreateVerifiedRoom(ctx, *params)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
@@ -69,7 +69,8 @@ func (h *Handlers) HandleGetRoom(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	room, err := h.Service.GetRoom(roomID, excludeEventID)
+	ctx := c.Request().Context()
+	room, err := h.Service.GetRoom(ctx, roomID, excludeEventID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -87,7 +88,9 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	if err != nil {
 		return badRequest(err)
 	}
-	rooms, err := h.Service.GetAllRooms(start, end, excludeEventID)
+
+	ctx := c.Request().Context()
+	rooms, err := h.Service.GetAllRooms(ctx, start, end, excludeEventID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -100,7 +103,9 @@ func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	err = h.Service.DeleteRoom(roomID, getConinfo(c))
+
+	ctx := c.Request().Context()
+	err = h.Service.DeleteRoom(ctx, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -114,7 +119,9 @@ func (h *Handlers) HandleVerifyRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Service.VerifyRoom(roomID, getConinfo(c))
+	ctx := c.Request().Context()
+
+	err = h.Service.VerifyRoom(ctx, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -127,7 +134,9 @@ func (h *Handlers) HandleUnVerifyRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Service.UnVerifyRoom(roomID, getConinfo(c))
+	ctx := c.Request().Context()
+
+	err = h.Service.UnVerifyRoom(ctx, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

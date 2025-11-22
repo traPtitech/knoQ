@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/gofrs/uuid"
+import (
+	"context"
+
+	"github.com/gofrs/uuid"
+)
 
 type User struct {
 	ID          uuid.UUID
@@ -12,19 +16,19 @@ type User struct {
 }
 
 type UserService interface {
-	GetOAuthURL() (url, state, codeVerifier string)
+	GetOAuthURL(ctx context.Context) (url, state, codeVerifier string)
 	// LoginUser OAuthによってユーザーを得る
-	LoginUser(query, state, codeVerifier string) (*User, error)
+	LoginUser(ctx context.Context, query, state, codeVerifier string) (*User, error)
 
-	GetUser(userID uuid.UUID, info *ConInfo) (*User, error)
-	GetUserMe(info *ConInfo) (*User, error)
-	GetAllUsers(includeSuspend, includeBot bool, info *ConInfo) ([]*User, error)
-	// ReplaceToken(userID uuid.UUID, token string, info *ConInfo) error
+	GetUser(ctx context.Context, userID uuid.UUID) (*User, error)
+	GetUserMe(ctx context.Context) (*User, error)
+	GetAllUsers(ctx context.Context, includeSuspend, includeBot bool) ([]*User, error)
+	// ReplaceToken(userID uuid.UUID, token string) error
 	// GetToken(info *ConInfo) (string, error)
-	ReNewMyiCalSecret(info *ConInfo) (string, error)
-	GetMyiCalSecret(info *ConInfo) (string, error)
+	ReNewMyiCalSecret(ctx context.Context) (string, error)
+	GetMyiCalSecret(ctx context.Context) (string, error)
 
-	IsPrivilege(info *ConInfo) bool
-	GrantPrivilege(userID uuid.UUID) error
-	SyncUsers(info *ConInfo) error
+	IsPrivilege(ctx context.Context) bool
+	GrantPrivilege(ctx context.Context, userID uuid.UUID) error
+	SyncUsers(ctx context.Context) error
 }

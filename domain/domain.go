@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -18,10 +19,21 @@ type Model struct {
 	DeletedAt *time.Time
 }
 
-// ConInfo is Connection infomation
-type ConInfo struct {
-	// Token     string
-	ReqUserID uuid.UUID
+type contextKey string
+
+const (
+	userIDKey contextKey = "userID"
+)
+
+// Context に UserID をセットするヘルパー
+func SetUserID(ctx context.Context, id uuid.UUID) context.Context {
+	return context.WithValue(ctx, userIDKey, id)
+}
+
+// Context から UserID を取得するヘルパー
+func GetUserID(ctx context.Context) (uuid.UUID, bool) {
+	id, ok := ctx.Value(userIDKey).(uuid.UUID)
+	return id, ok
 }
 
 type Service interface {

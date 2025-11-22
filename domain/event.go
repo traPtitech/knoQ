@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -85,22 +86,22 @@ type EventTagParams struct {
 
 // EventRepository is implemented by ...
 type EventService interface {
-	CreateEvent(eventParams WriteEventParams, info *ConInfo) (*Event, error)
+	CreateEvent(ctx context.Context, eventParams WriteEventParams) (*Event, error)
 
-	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams, info *ConInfo) (*Event, error)
-	AddEventTag(eventID uuid.UUID, tagName string, locked bool, info *ConInfo) error
+	UpdateEvent(ctx context.Context, eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
+	AddEventTag(ctx context.Context, eventID uuid.UUID, tagName string, locked bool) error
 
-	DeleteEvent(eventID uuid.UUID, info *ConInfo) error
+	DeleteEvent(ctx context.Context, eventID uuid.UUID) error
 	// DeleteTagInEvent delete a tag in that Event
-	DeleteEventTag(eventID uuid.UUID, tagName string, info *ConInfo) error
+	DeleteEventTag(ctx context.Context, eventID uuid.UUID, tagName string) error
 
-	UpsertMeEventSchedule(eventID uuid.UUID, schedule ScheduleStatus, info *ConInfo) error
+	UpsertMeEventSchedule(ctx context.Context, eventID uuid.UUID, schedule ScheduleStatus) error
 
-	GetEvent(eventID uuid.UUID, info *ConInfo) (*Event, error)
-	GetEvents(expr filters.Expr, info *ConInfo) ([]*Event, error)
-	IsEventAdmins(eventID uuid.UUID, info *ConInfo) bool
+	GetEvent(ctx context.Context, eventID uuid.UUID) (*Event, error)
+	GetEvents(ctx context.Context, expr filters.Expr) ([]*Event, error)
+	IsEventAdmins(ctx context.Context, eventID uuid.UUID) bool
 
-	GetEventsWithGroup(expr filters.Expr, info *ConInfo) ([]*Event, error)
+	GetEventsWithGroup(ctx context.Context, expr filters.Expr) ([]*Event, error)
 
 	// GetEventActivities(day int) ([]*Event, error)
 }

@@ -17,7 +17,8 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 	}
 	groupParams := presentation.ConvGroupReqTodomainWriteGroupParams(req)
 
-	group, err := h.Service.CreateGroup(groupParams, getConinfo(c))
+	ctx := c.Request().Context()
+	group, err := h.Service.CreateGroup(ctx, groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -31,8 +32,8 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-
-	group, err := h.Service.GetGroup(groupID, getConinfo(c))
+	ctx := c.Request().Context()
+	group, err := h.Service.GetGroup(ctx, groupID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -43,7 +44,8 @@ func (h *Handlers) HandleGetGroup(c echo.Context) error {
 
 // HandleGetGroups グループを取得
 func (h *Handlers) HandleGetGroups(c echo.Context) error {
-	groups, err := h.Service.GetAllGroups(getConinfo(c))
+	ctx := c.Request().Context()
+	groups, err := h.Service.GetAllGroups(ctx)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -57,8 +59,8 @@ func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-
-	if err := h.Service.DeleteGroup(groupID, getConinfo(c)); err != nil {
+	ctx := c.Request().Context()
+	if err := h.Service.DeleteGroup(ctx, groupID); err != nil {
 		return judgeErrorResponse(err)
 	}
 
@@ -77,8 +79,8 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 		return badRequest(err, message(err.Error()))
 	}
 	groupParams := presentation.ConvGroupReqTodomainWriteGroupParams(req)
-
-	res, err := h.Service.UpdateGroup(groupID, groupParams, getConinfo(c))
+	ctx := c.Request().Context()
+	res, err := h.Service.UpdateGroup(ctx, groupID, groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -90,8 +92,8 @@ func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-
-	err = h.Service.AddMeToGroup(groupID, getConinfo(c))
+	ctx := c.Request().Context()
+	err = h.Service.AddMeToGroup(ctx, groupID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -105,7 +107,8 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Service.DeleteMeGroup(groupID, getConinfo(c))
+	ctx := c.Request().Context()
+	err = h.Service.DeleteMeGroup(ctx, groupID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -118,23 +121,25 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 
 	var groupIDs []uuid.UUID
 	var err error
+
+	ctx := c.Request().Context()
 	switch presentation.GetUserRelationQuery(c.QueryParams()) {
 	case presentation.RelationBelongs:
-		groupIDs, err = h.Service.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		groupIDs, err = h.Service.GetUserBelongingGroupIDs(ctx, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
 	case presentation.RelationAdmins:
-		groupIDs, err = h.Service.GetUserAdminGroupIDs(userID)
+		groupIDs, err = h.Service.GetUserAdminGroupIDs(ctx, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
 	case presentation.RelationBelongsOrAdmins:
-		belongingGroupIDs, err := h.Service.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		belongingGroupIDs, err := h.Service.GetUserBelongingGroupIDs(ctx, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
-		adminGroupIDs, err := h.Service.GetUserAdminGroupIDs(userID)
+		adminGroupIDs, err := h.Service.GetUserAdminGroupIDs(ctx, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
@@ -161,14 +166,16 @@ func (h *Handlers) HandleGetGroupIDsByUserID(c echo.Context) error {
 		return notFound(err, message(err.Error()))
 	}
 	var groupIDs []uuid.UUID
+	ctx := c.Request().Context()
+
 	switch presentation.GetUserRelationQuery(c.QueryParams()) {
 	case presentation.RelationBelongs:
-		groupIDs, err = h.Service.GetUserBelongingGroupIDs(userID, getConinfo(c))
+		groupIDs, err = h.Service.GetUserBelongingGroupIDs(ctx, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
 	case presentation.RelationAdmins:
-		groupIDs, err = h.Service.GetUserAdminGroupIDs(userID)
+		groupIDs, err = h.Service.GetUserAdminGroupIDs(ctx, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}

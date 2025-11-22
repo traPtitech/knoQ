@@ -80,6 +80,13 @@ func ServerVersionMiddleware(version string) echo.MiddlewareFunc {
 	}
 }
 
+func setUserID(c echo.Context, userID uuid.UUID) echo.Context {
+	ctx := domain.SetUserID(c.Request().Context(), userID)
+	c.SetRequest(c.Request().WithContext(ctx))
+
+	return c
+}
+
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 // TODO funcname fix
 func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -89,7 +96,10 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized(err, needAuthorization(true))
 		}
 
-		user, err := h.Service.GetUserMe(getConinfo(c))
+		c = setUserID(c, userID)
+
+		ctx := c.Request().Context()
+		user, err := h.Service.GetUserMe(ctx)
 		if err != nil {
 			return internalServerError(err)
 		}
@@ -98,6 +108,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if user.State != 1 {
 			return forbidden(errors.New("invalid user"))
 		}
+
 		return next(c)
 	}
 }
@@ -106,7 +117,8 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func (h *Handlers) PrivilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// 判定
-		if !h.Service.IsPrivilege(getConinfo(c)) {
+		ctx := c.Request().Context()
+		if !h.Service.IsPrivilege(ctx) {
 			return forbidden(
 				errors.New("not admin"),
 				message("You are not admin user."),
@@ -125,7 +137,8 @@ func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 		if err != nil {
 			return notFound(err)
 		}
-		if !h.Service.IsGroupAdmins(groupID, getConinfo(c)) {
+		ctx := c.Request().Context()
+		if !h.Service.IsGroupAdmins(ctx, groupID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
@@ -144,7 +157,7 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 			return notFound(err)
 		}
 
-		if !h.Service.IsEventAdmins(eventID, getConinfo(c)) {
+		if !h.Service.IsEventAdmins(c.Request().Context(), eventID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -163,8 +176,8 @@ func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc 
 		if err != nil {
 			return notFound(err)
 		}
-
-		if !h.Service.IsRoomAdmins(roomID, getConinfo(c)) {
+		ctx := c.Request().Context()
+		if !h.Service.IsRoomAdmins(ctx, roomID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -188,7 +201,8 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, _, resBody []byte) {
 		return
 	}
 
-	users, err := h.Service.GetAllUsers(false, true, getConinfo(c))
+	ctx := c.Request().Context()
+	users, err := h.Service.GetAllUsers(ctx, false, true)
 	if err != nil {
 		return
 	}
@@ -202,7 +216,8 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, _, resBody []byte) {
 	// TODO fix: IDを環境変数などで定義すべき
 	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 	if e.Group.ID == traPGroupID {
-		groups, err := h.Service.GetGradeGroupNames(getConinfo(c))
+
+		groups, err := h.Service.GetGradeGroupNames(ctx)
 		if err != nil {
 			h.Logger.Error("failed to get groups", zap.Error(err))
 			return

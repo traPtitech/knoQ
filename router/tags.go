@@ -14,7 +14,8 @@ func (h *Handlers) HandlePostTag(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	tag, err := h.Service.CreateOrGetTag(req.Name)
+	ctx := c.Request().Context()
+	tag, err := h.Service.CreateOrGetTag(ctx, req.Name)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -23,7 +24,8 @@ func (h *Handlers) HandlePostTag(c echo.Context) error {
 }
 
 func (h *Handlers) HandleGetTags(c echo.Context) error {
-	tags, err := h.Service.GetAllTags()
+	ctx := c.Request().Context()
+	tags, err := h.Service.GetAllTags(ctx)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
