@@ -14,20 +14,14 @@ func groupFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Members").Preload("Admins").Preload("CreatedBy")
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteGroupParams -d Group -o converter.go .
-type WriteGroupParams struct {
-	domain.WriteGroupParams
-	CreatedBy uuid.UUID
-}
-
-func (repo *GormRepository) CreateGroup(params WriteGroupParams) (*domain.Group, error) {
-	g, err := createGroup(repo.db, params)
+func (repo *GormRepository) CreateGroup(args domain.UpsertGroupArgs) (*domain.Group, error) {
+	g, err := createGroup(repo.db, args)
 	domainGroup := convGroupTodomainGroup(*g)
 	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupParams) (*domain.Group, error) {
-	g, err := updateGroup(repo.db, groupID, params)
+func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, args domain.UpsertGroupArgs) (*domain.Group, error) {
+	g, err := updateGroup(repo.db, groupID, args)
 	domainGroup := convGroupTodomainGroup(*g)
 	return &domainGroup, defaultErrorHandling(err)
 }
@@ -101,8 +95,8 @@ func convSPGroupToSuuidUUID(src []*Group) (dst []uuid.UUID) {
 	return
 }
 
-func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {
-	group := ConvWriteGroupParamsToGroup(groupParams)
+func createGroup(db *gorm.DB, args domain.UpsertGroupArgs) (*Group, error) {
+	group := ConvWriteGroupParamsToGroup(args)
 	err := db.Create(&group).Error
 	if err != nil {
 		return nil, err
@@ -110,8 +104,8 @@ func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {
 	return &group, nil
 }
 
-func updateGroup(db *gorm.DB, groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
-	group := ConvWriteGroupParamsToGroup(params)
+func updateGroup(db *gorm.DB, groupID uuid.UUID, args domain.UpsertGroupArgs) (*Group, error) {
+	group := ConvWriteGroupParamsToGroup(args)
 	group.ID = groupID
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
 		Omit("CreatedAt").Save(&group).Error

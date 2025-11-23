@@ -162,7 +162,7 @@ func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *User) {
 	t.Helper()
 	user := mustMakeUser(t, repo, false)
-	params := WriteGroupParams{
+	params := domain.UpsertGroupArgs{
 		WriteGroupParams: domain.WriteGroupParams{
 			Name:       name,
 			Members:    nil,
@@ -187,7 +187,7 @@ func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *Use
 	t.Helper()
 
 	user := mustMakeUser(t, repo, false)
-	params := CreateRoomParams{
+	params := domain.CreateRoomArgs{
 		WriteRoomParams: domain.WriteRoomParams{
 			Place:     place,
 			TimeStart: time.Now().Add(-1 * time.Hour),
@@ -207,7 +207,7 @@ func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Gr
 	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10, false))
 	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10, false))
 
-	params := WriteEventParams{
+	params := domain.UpsertEventArgs{
 		WriteEventParams: domain.WriteEventParams{
 			Name:          name,
 			GroupID:       group.ID,

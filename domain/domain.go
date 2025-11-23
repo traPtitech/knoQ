@@ -43,3 +43,9 @@ type Service interface {
 	TagService
 	UserService
 }
+
+type Repository interface {
+	EventRepository
+	GroupRepository
+	RoomRepository
+}

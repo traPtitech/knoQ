@@ -6,13 +6,12 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/infra/db"
 )
 
 func (repo *service) CreateUnVerifiedRoom(ctx context.Context, params domain.WriteRoomParams) (*domain.Room, error) {
 	reqID, _ := domain.GetUserID(ctx)
 
-	p := db.CreateRoomParams{
+	p := domain.CreateRoomArgs{
 		WriteRoomParams: params,
 		Verified:        false,
 		CreatedBy:       reqID,
@@ -27,7 +26,7 @@ func (repo *service) CreateVerifiedRoom(ctx context.Context, params domain.Write
 	if !repo.IsPrivilege(ctx) {
 		return nil, domain.ErrForbidden
 	}
-	p := db.CreateRoomParams{
+	p := domain.CreateRoomArgs{
 		WriteRoomParams: params,
 		Verified:        true,
 		CreatedBy:       reqID,
@@ -43,7 +42,7 @@ func (repo *service) UpdateRoom(ctx context.Context, roomID uuid.UUID, params do
 		return nil, domain.ErrForbidden
 	}
 
-	p := db.UpdateRoomParams{
+	p := domain.UpdateRoomArgs{
 		WriteRoomParams: params,
 		CreatedBy:       reqID,
 	}

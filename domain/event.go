@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+
 	"github.com/traPtitech/knoQ/domain/filters"
 )
 
@@ -104,4 +105,27 @@ type EventService interface {
 	GetEventsWithGroup(ctx context.Context, expr filters.Expr) ([]*Event, error)
 
 	// GetEventActivities(day int) ([]*Event, error)
+}
+
+type UpsertEventArgs struct {
+	WriteEventParams
+	CreatedBy uuid.UUID
+}
+
+type EventRepository interface {
+	CreateEvent(args UpsertEventArgs) (*Event, error)
+
+	UpdateEvent(eventID uuid.UUID, args UpsertEventArgs) (*Event, error)
+
+	AddEventTag(eventID uuid.UUID, params EventTagParams) error
+
+	DeleteEvent(eventID uuid.UUID) error
+
+	DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error
+
+	UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus ScheduleStatus) error
+
+	GetEvent(eventID uuid.UUID) (*Event, error)
+
+	GetAllEvents(expr filters.Expr) ([]*Event, error)
 }

@@ -166,3 +166,29 @@ type RoomService interface {
 	GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
 	IsRoomAdmins(ctx context.Context, roomID uuid.UUID) bool
 }
+
+type CreateRoomArgs struct {
+	WriteRoomParams
+	Verified  bool
+	CreatedBy uuid.UUID
+}
+
+type UpdateRoomArgs struct {
+	WriteRoomParams
+
+	CreatedBy uuid.UUID
+}
+
+type RoomRepository interface {
+	CreateRoom(args CreateRoomArgs) (*Room, error)
+
+	UpdateRoom(roomID uuid.UUID, args UpdateRoomArgs) (*Room, error)
+
+	UpdateRoomVerified(roomID uuid.UUID, verified bool) error
+
+	DeleteRoom(roomID uuid.UUID) error
+
+	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
+
+	GetAllRooms(start, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
+}

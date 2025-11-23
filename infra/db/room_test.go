@@ -13,7 +13,7 @@ import (
 func Test_createRoom(t *testing.T) {
 	r, assert, require, user := setupRepoWithUser(t, common)
 
-	params := CreateRoomParams{
+	params := domain.CreateRoomArgs{
 		CreatedBy: user.ID,
 		Verified:  false,
 		WriteRoomParams: domain.WriteRoomParams{
@@ -31,7 +31,7 @@ func Test_createRoom(t *testing.T) {
 	})
 
 	t.Run("wrong time", func(_ *testing.T) {
-		var p CreateRoomParams
+		var p domain.CreateRoomArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.TimeStart = time.Now().Add(10 * time.Minute)
@@ -43,7 +43,7 @@ func Test_createRoom(t *testing.T) {
 func Test_updateRoom(t *testing.T) {
 	r, assert, require, user, room := setupRepoWithUserRoom(t, common)
 
-	params := UpdateRoomParams{
+	params := domain.UpdateRoomArgs{
 		CreatedBy: user.ID,
 		WriteRoomParams: domain.WriteRoomParams{
 			Place:     "update room",
@@ -64,7 +64,7 @@ func Test_updateRoom(t *testing.T) {
 	})
 
 	t.Run("update room with verified", func(_ *testing.T) {
-		var p CreateRoomParams
+		var p domain.CreateRoomArgs
 		require.NoError(copier.Copy(&p, &params))
 		p.Verified = true
 		ro, err := createRoom(r.db, p)

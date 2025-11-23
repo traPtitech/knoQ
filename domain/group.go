@@ -46,3 +46,28 @@ type GroupService interface {
 	IsGroupAdmins(ctx context.Context, groupID uuid.UUID) bool
 	GetGradeGroupNames(ctx context.Context) ([]string, error)
 }
+
+type UpsertGroupArgs struct {
+	WriteGroupParams
+	CreatedBy uuid.UUID
+}
+
+type GroupRepository interface {
+	CreateGroup(args UpsertGroupArgs) (*Group, error)
+
+	UpdateGroup(groupID uuid.UUID, args UpsertGroupArgs) (*Group, error)
+
+	AddMemberToGroup(groupID, userID uuid.UUID) error
+
+	DeleteGroup(groupID uuid.UUID) error
+
+	DeleteMemberOfGroup(groupID, userID uuid.UUID) error
+
+	GetGroup(groupID uuid.UUID) (*Group, error)
+
+	GetAllGroups() ([]*Group, error)
+
+	GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
+
+	GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
+}

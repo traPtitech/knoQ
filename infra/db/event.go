@@ -21,20 +21,14 @@ func eventFullPreload(tx *gorm.DB) *gorm.DB {
 		Preload("CreatedBy")
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteEventParams -d Event -o converter.go .
-type WriteEventParams struct {
-	domain.WriteEventParams
-	CreatedBy uuid.UUID
-}
-
-func (repo *GormRepository) CreateEvent(params WriteEventParams) (*domain.Event, error) {
-	e, err := createEvent(repo.db, params)
+func (repo *GormRepository) CreateEvent(args domain.UpsertEventArgs) (*domain.Event, error) {
+	e, err := createEvent(repo.db, args)
 	de := convEventTodomainEvent(*e)
 	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*domain.Event, error) {
-	e, err := updateEvent(repo.db, eventID, params)
+func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, args domain.UpsertEventArgs) (*domain.Event, error) {
+	e, err := updateEvent(repo.db, eventID, args)
 	de := convEventTodomainEvent(*e)
 	return &de, defaultErrorHandling(err)
 }
@@ -80,15 +74,15 @@ func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, er
 	return ConvSPEventToSPdomainEvent(es), defaultErrorHandling(err)
 }
 
-func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
-	event := ConvWriteEventParamsToEvent(params)
+func createEvent(db *gorm.DB, args domain.UpsertEventArgs) (*Event, error) {
+	event := ConvWriteEventParamsToEvent(args)
 
 	err := db.Create(&event).Error
 	return &event, err
 }
 
-func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Event, error) {
-	event := ConvWriteEventParamsToEvent(params)
+func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*Event, error) {
+	event := ConvWriteEventParamsToEvent(args)
 	event.ID = eventID
 
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).

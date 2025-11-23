@@ -6,7 +6,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filters"
-	"github.com/traPtitech/knoQ/infra/db"
 )
 
 func (repo *service) CreateEvent(ctx context.Context, params domain.WriteEventParams) (*domain.Event, error) {
@@ -17,7 +16,7 @@ func (repo *service) CreateEvent(ctx context.Context, params domain.WriteEventPa
 		return nil, defaultErrorHandling(err)
 	}
 
-	p := db.WriteEventParams{
+	p := domain.UpsertEventArgs{
 		WriteEventParams: params,
 		CreatedBy:        reqID,
 	}
@@ -49,7 +48,7 @@ func (repo *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params 
 		return nil, defaultErrorHandling(err)
 	}
 
-	p := db.WriteEventParams{
+	p := domain.UpsertEventArgs{
 		WriteEventParams: params,
 		CreatedBy:        reqID,
 	}

@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/infra/db"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +14,7 @@ var traPGroupID = uuid.Must(uuid.FromString("11111111-1111-1111-1111-11111111111
 func (repo *service) CreateGroup(ctx context.Context, params domain.WriteGroupParams) (*domain.Group, error) {
 	reqID, _ := domain.GetUserID(ctx)
 
-	p := db.WriteGroupParams{
+	p := domain.UpsertGroupArgs{
 		WriteGroupParams: params,
 		CreatedBy:        reqID,
 	}
@@ -33,7 +32,7 @@ func (repo *service) UpdateGroup(ctx context.Context, groupID uuid.UUID, params 
 	if !repo.IsGroupAdmins(ctx, groupID) {
 		return nil, domain.ErrForbidden
 	}
-	p := db.WriteGroupParams{
+	p := domain.UpsertGroupArgs{
 		WriteGroupParams: params,
 		CreatedBy:        reqID,
 	}
