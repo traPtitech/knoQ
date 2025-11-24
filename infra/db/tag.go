@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (repo *GormRepository) CreateOrGetTag(name string) (*domain.Tag, error) {
+func (repo *gormRepository) CreateOrGetTag(name string) (*domain.Tag, error) {
 	tag, err := createOrGetTag(repo.db, name)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -15,7 +15,7 @@ func (repo *GormRepository) CreateOrGetTag(name string) (*domain.Tag, error) {
 	return &t, nil
 }
 
-func (repo *GormRepository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
+func (repo *gormRepository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
 	tag, err := getTag(repo.db, tagID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -24,7 +24,7 @@ func (repo *GormRepository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
 	return &t, nil
 }
 
-func (repo *GormRepository) GetAllTags() ([]*domain.Tag, error) {
+func (repo *gormRepository) GetAllTags() ([]*domain.Tag, error) {
 	tags, err := getAllTags(repo.db)
 	if err != nil {
 		return nil, defaultErrorHandling(err)

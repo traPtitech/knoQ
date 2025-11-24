@@ -2,8 +2,10 @@ package domain
 
 import (
 	"context"
+	"time"
 
 	"github.com/gofrs/uuid"
+	"golang.org/x/oauth2"
 )
 
 type User struct {
@@ -13,6 +15,13 @@ type User struct {
 	Icon        string
 	Privileged  bool
 	State       int
+
+	Provider *Provider
+}
+
+type Provider struct {
+	Issuer  string
+	Subject string // TODO: これは何?
 }
 
 type UserService interface {
@@ -31,4 +40,40 @@ type UserService interface {
 	IsPrivilege(ctx context.Context) bool
 	GrantPrivilege(ctx context.Context, userID uuid.UUID) error
 	SyncUsers(ctx context.Context) error
+}
+
+type TokenArgs struct {
+	AccessToken  string
+	TokenType    string
+	RefreshToken string
+	Expiry       time.Time
+}
+
+type ProviderArgs struct {
+	Issuer  string
+	Subject string
+}
+
+type SaveUserArgs struct {
+	UserID uuid.UUID
+	State  int
+	TokenArgs
+	ProviderArgs
+}
+
+type SyncUserArgs struct {
+	UserID uuid.UUID
+	State  int
+	ProviderArgs
+}
+
+type UserRepository interface {
+	SaveUser(args SaveUserArgs) (*User, error)
+	UpdateiCalSecret(userID uuid.UUID, secret string) error
+	GetUser(userID uuid.UUID) (*User, error)
+	GetAllUsers(onlyActive bool) ([]*User, error)
+	SyncUsers(argss []SyncUserArgs) error
+	GrantPrivilege(userID uuid.UUID) error
+	GetICalSecret(userID uuid.UUID) (string, error)
+	GetToken(userID uuid.UUID) (*oauth2.Token, error)
 }

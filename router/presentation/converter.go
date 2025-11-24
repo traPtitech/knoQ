@@ -163,7 +163,14 @@ func ConvdomainTagToTagRes(src domain.Tag) (dst TagRes) {
 }
 
 func ConvdomainUserToUserRes(src domain.User) (dst UserRes) {
-	dst = UserRes(src)
+	dst = UserRes{
+		ID:          src.ID,
+		Name:        src.Name,
+		DisplayName: src.DisplayName,
+		Icon:        src.Icon,
+		Privileged:  src.Privileged,
+		State:       src.State,
+	}
 	return
 }
 
@@ -232,7 +239,14 @@ func convdomainTagTouuidUUID(src domain.Tag) (dst uuid.UUID) {
 }
 
 func convdomainUserToUserRes(src domain.User) (dst UserRes) {
-	dst = UserRes(src)
+	dst = UserRes{
+		ID:          src.ID,
+		Name:        src.Name,
+		DisplayName: src.DisplayName,
+		Icon:        src.Icon,
+		Privileged:  src.Privileged,
+		State:       src.State,
+	}
 	return
 }
 

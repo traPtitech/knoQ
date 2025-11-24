@@ -55,8 +55,7 @@ func main() {
 	domain.REVISION = revision
 	domain.DEVELOPMENT, _ = strconv.ParseBool(development)
 
-	gormRepo := db.GormRepository{}
-	err := gormRepo.Setup(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, tz.JST)
+	gormRepo, err := db.NewRepository(mariadbHost, mariadbUser, mariadbPassword, mariadbDatabase, mariadbPort, tokenKey, gormLogLevel, tz.JST)
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +72,7 @@ func main() {
 		URL:               "https://q.trap.jp/api/v3",
 		ServerAccessToken: traqAccessToken,
 	}
-	s := service.NewService(&gormRepo, &traqRepo)
+	s := service.NewService(gormRepo, &traqRepo)
 	handler := &router.Handlers{
 		Service:    s,
 		Logger:     logger,
@@ -99,7 +98,7 @@ func main() {
 	_, err = c.AddFunc(
 		"0 8 * * *",
 		utils.InitPostEventToTraQ(
-			&gormRepo,
+			gormRepo,
 			handler.WebhookSecret,
 			handler.DailyChannelID,
 			handler.WebhookID,

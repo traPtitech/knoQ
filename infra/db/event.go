@@ -21,45 +21,45 @@ func eventFullPreload(tx *gorm.DB) *gorm.DB {
 		Preload("CreatedBy")
 }
 
-func (repo *GormRepository) CreateEvent(args domain.UpsertEventArgs) (*domain.Event, error) {
+func (repo *gormRepository) CreateEvent(args domain.UpsertEventArgs) (*domain.Event, error) {
 	e, err := createEvent(repo.db, args)
 	de := convEventTodomainEvent(*e)
 	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, args domain.UpsertEventArgs) (*domain.Event, error) {
+func (repo *gormRepository) UpdateEvent(eventID uuid.UUID, args domain.UpsertEventArgs) (*domain.Event, error) {
 	e, err := updateEvent(repo.db, eventID, args)
 	de := convEventTodomainEvent(*e)
 	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
+func (repo *gormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
 	err := addEventTag(repo.db, eventID, params)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteEvent(eventID uuid.UUID) error {
+func (repo *gormRepository) DeleteEvent(eventID uuid.UUID) error {
 	err := deleteEvent(repo.db, eventID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
+func (repo *gormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
 	err := deleteEventTag(repo.db, eventID, tagName, deleteLocked)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
+func (repo *gormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
 	err := upsertEventSchedule(repo.db, eventID, userID, scheduleStatus)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*domain.Event, error) {
+func (repo *gormRepository) GetEvent(eventID uuid.UUID) (*domain.Event, error) {
 	e, err := getEvent(eventFullPreload(repo.db), eventID)
 	de := convEventTodomainEvent(*e)
 	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, error) {
+func (repo *gormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, error) {
 	filterFormat, filterArgs, err := createEventFilter(expr)
 	if err != nil {
 		return nil, err

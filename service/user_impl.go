@@ -8,7 +8,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/go-traq"
 	"github.com/traPtitech/knoQ/domain"
-	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/utils/random"
 )
 
@@ -23,26 +22,25 @@ func (repo *service) SyncUsers(ctx context.Context) error {
 		return defaultErrorHandling(err)
 	}
 
-	users := make([]*db.User, 0)
+	argss := make([]domain.SyncUserArgs, 0)
 	for _, u := range traQUsers {
 		if u.Bot {
 			continue
 		}
 
 		uid := uuid.Must(uuid.FromString(u.GetId()))
-		user := &db.User{
-			ID:    uid,
-			State: int(u.State),
-			Provider: db.Provider{
-				UserID:  uid,
+		a := domain.SyncUserArgs{
+			UserID: uid,
+			State:  int(u.State),
+			ProviderArgs: domain.ProviderArgs{
 				Issuer:  traQIssuerName,
 				Subject: u.GetId(),
 			},
 		}
-		users = append(users, user)
+		argss = append(argss, a)
 	}
 
-	err = repo.GormRepo.SyncUsers(users)
+	err = repo.GormRepo.SyncUsers(argss)
 	return defaultErrorHandling(err)
 }
 
@@ -60,20 +58,17 @@ func (repo *service) LoginUser(ctx context.Context, query, state, codeVerifier s
 		return nil, defaultErrorHandling(err)
 	}
 	uid := uuid.Must(uuid.FromString(traQUser.GetId()))
-	user := db.User{
-		ID:    uid,
-		State: 1,
-		Token: db.Token{
-			UserID: uid,
-			Oauth2Token: &db.Oauth2Token{
-				AccessToken:  t.AccessToken,
-				TokenType:    t.TokenType,
-				RefreshToken: t.RefreshToken,
-				Expiry:       t.Expiry,
-			},
+
+	user := domain.SaveUserArgs{
+		UserID: uid,
+		State:  1,
+		TokenArgs: domain.TokenArgs{
+			AccessToken:  t.AccessToken,
+			TokenType:    t.TokenType,
+			RefreshToken: t.RefreshToken,
+			Expiry:       t.Expiry,
 		},
-		Provider: db.Provider{
-			UserID:  uid,
+		ProviderArgs: domain.ProviderArgs{
 			Issuer:  traQIssuerName,
 			Subject: traQUser.GetId(),
 		},
@@ -82,7 +77,7 @@ func (repo *service) LoginUser(ctx context.Context, query, state, codeVerifier s
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	u, err := repo.GetUser(ctx, user.ID)
+	u, err := repo.GetUser(ctx, user.UserID)
 	return u, defaultErrorHandling(err)
 }
 
@@ -156,10 +151,15 @@ func (repo *service) GetMyiCalSecret(ctx context.Context) (string, error) {
 	if user.State != 1 {
 		return "", domain.ErrForbidden
 	}
-	if user.IcalSecret == "" {
+	// TODO: userid に対応する ical secret を返す関数を実装
+	secret, err := repo.GormRepo.GetICalSecret(reqID)
+	if err != nil {
+		return "", defaultErrorHandling(err)
+	}
+	if secret == "" {
 		return "", domain.ErrNotFound
 	}
-	return user.IcalSecret, nil
+	return secret, nil
 }
 
 func (repo *service) IsPrivilege(ctx context.Context) bool {
@@ -169,7 +169,7 @@ func (repo *service) IsPrivilege(ctx context.Context) bool {
 	if err != nil {
 		return false
 	}
-	return user.Privilege
+	return user.Privileged
 }
 
 func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
@@ -181,7 +181,7 @@ func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
 	return userMap
 }
 
-func (repo *service) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.User, error) {
+func (repo *service) mergeUser(userMeta *domain.User, userBody *traq.User) (*domain.User, error) {
 	if userMeta.ID != uuid.Must(uuid.FromString(userBody.GetId())) {
 		return nil, errors.New("id does not match")
 	}
@@ -193,7 +193,7 @@ func (repo *service) mergeUser(userMeta *db.User, userBody *traq.User) (*domain.
 		Name:        userBody.Name,
 		DisplayName: userBody.DisplayName,
 		Icon:        repo.TraQRepo.URL + "/public/icon/" + userBody.Name,
-		Privileged:  userMeta.Privilege,
+		Privileged:  userMeta.Privileged,
 		State:       userMeta.State,
 	}, nil
 }
@@ -203,7 +203,7 @@ func (repo *service) GrantPrivilege(ctx context.Context, userID uuid.UUID) error
 	if err != nil {
 		return defaultErrorHandling(err)
 	}
-	if user.Privilege {
+	if user.Privileged {
 		return fmt.Errorf("%w: user has been already privileged", domain.ErrBadRequest)
 	}
 	err = repo.GormRepo.GrantPrivilege(userID)

@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
+	"github.com/traPtitech/knoQ/domain"
 	"gorm.io/gorm"
 )
 
@@ -11,41 +13,70 @@ func userPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Provider")
 }
 
-func (repo *GormRepository) SaveUser(user User) (*User, error) {
+// LoginUser のときのみ，プロバイダ，トークン情報が含まれる
+func (repo *gormRepository) SaveUser(args domain.SaveUserArgs) (*domain.User, error) {
+	user := User{
+		ID:    args.UserID,
+		State: args.State,
+		Token: Token{
+			UserID: args.UserID,
+			Oauth2Token: &Oauth2Token{
+				AccessToken:  args.AccessToken,
+				TokenType:    args.TokenType,
+				RefreshToken: args.RefreshToken,
+				Expiry:       args.Expiry,
+			},
+		},
+		Provider: Provider{
+			UserID:  args.UserID,
+			Issuer:  args.Issuer,
+			Subject: args.Subject,
+		},
+	}
 	u, err := saveUser(repo.db, &user)
-	return u, defaultErrorHandling(err)
+	du := convUserTodomainUser(*u)
+	return &du, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) error {
+func (repo *gormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) error {
 	err := updateiCalSecret(repo.db, userID, secret)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
+func (repo *gormRepository) GetUser(userID uuid.UUID) (*domain.User, error) {
 	u, err := getUser(userPreload(repo.db), userID)
-	return u, defaultErrorHandling(err)
+	du := convUserTodomainUser(*u)
+	return &du, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllUsers(onlyActive bool) ([]*User, error) {
+func (repo *gormRepository) GetAllUsers(onlyActive bool) ([]*domain.User, error) {
 	us, err := getAllUsers(userPreload(repo.db), onlyActive)
-	return us, defaultErrorHandling(err)
+	dus := lo.Map(us, func(u *User, _ int) *domain.User {
+		return &domain.User{
+			ID:         u.ID,
+			Privileged: u.Privilege,
+			State:      u.State,
+		}
+	})
+	return dus, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) SyncUsers(users []*User) error {
+func (repo *gormRepository) SyncUsers(argss []domain.SyncUserArgs) error {
+
 	err := repo.db.Transaction(func(tx *gorm.DB) error {
 		existingUsers, err := getAllUsers(tx, false)
 		if err != nil {
 			return err
 		}
 
-		for _, u := range users {
+		for _, args := range argss {
 			exist := false
 			for _, eu := range existingUsers {
-				if u.ID == eu.ID {
+				if args.UserID == eu.ID {
 					// contains
 					exist = true
-					if u.State != eu.State {
-						eu.State = u.State
+					if args.State != eu.State {
+						eu.State = args.State
 						_, err := saveUser(tx, eu)
 						if err != nil {
 							return err
@@ -54,7 +85,15 @@ func (repo *GormRepository) SyncUsers(users []*User) error {
 					break
 				}
 			}
-
+			u := &User{
+				ID:    args.UserID,
+				State: args.State,
+				Provider: Provider{
+					UserID:  args.UserID,
+					Issuer:  args.Issuer,
+					Subject: args.Subject,
+				},
+			}
 			if !exist {
 				_, err := saveUser(tx, u)
 				if err != nil {
@@ -110,7 +149,7 @@ func getAllUsers(db *gorm.DB, onlyActive bool) ([]*User, error) {
 	return users, err
 }
 
-func (repo *GormRepository) GrantPrivilege(userID uuid.UUID) error {
+func (repo *gormRepository) GrantPrivilege(userID uuid.UUID) error {
 	err := grantPrivilege(repo.db, userID)
 	return defaultErrorHandling(err)
 }
@@ -118,4 +157,13 @@ func (repo *GormRepository) GrantPrivilege(userID uuid.UUID) error {
 func grantPrivilege(db *gorm.DB, userID uuid.UUID) error {
 	err := db.Model(&User{ID: userID}).Update("privilege", true).Error
 	return err
+}
+
+func (repo *gormRepository) GetICalSecret(userID uuid.UUID) (string, error) {
+	u, err := getUser(repo.db, userID)
+	if err != nil {
+		return "", defaultErrorHandling(err)
+	}
+
+	return u.IcalSecret, nil
 }

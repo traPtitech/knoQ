@@ -48,4 +48,6 @@ type Repository interface {
 	EventRepository
 	GroupRepository
 	RoomRepository
+	TagRepository
+	UserRepository
 }
