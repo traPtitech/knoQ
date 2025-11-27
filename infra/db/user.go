@@ -56,6 +56,10 @@ func (repo *gormRepository) GetAllUsers(onlyActive bool) ([]*domain.User, error)
 			ID:         u.ID,
 			Privileged: u.Privilege,
 			State:      u.State,
+			Provider: &domain.Provider{
+				Issuer:  u.Provider.Issuer,
+				Subject: u.Provider.Subject,
+			},
 		}
 	})
 	return dus, defaultErrorHandling(err)

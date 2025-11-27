@@ -223,25 +223,27 @@ func ConvUserTodomainUser(src User) (dst domain.User) {
 	return
 }
 
-func ConvWriteEventParamsToEvent(src domain.UpsertEventArgs) (dst Event) {
+func ConvWriteEventParamsToEvent(src domain.UpdateEventArgs) (dst Event) {
 	dst.CreatedByRefer = src.CreatedBy
-	dst.Name = src.WriteEventParams.Name
-	dst.Description = src.WriteEventParams.Description
-	dst.GroupID = src.WriteEventParams.GroupID
-	dst.RoomID = src.WriteEventParams.RoomID
-	dst.Room.Place = src.WriteEventParams.Place
-	dst.TimeStart = src.WriteEventParams.TimeStart
-	dst.TimeEnd = src.WriteEventParams.TimeEnd
-	dst.Admins = make([]EventAdmin, len(src.WriteEventParams.Admins))
-	for i := range src.WriteEventParams.Admins {
-		dst.Admins[i] = convuuidUUIDToEventAdmin(src.WriteEventParams.Admins[i])
+	dst.Name = src.Name
+	dst.Description = src.Description
+	dst.GroupID = src.GroupID
+	dst.RoomID = src.RoomID
+	// すでに部屋は日進捗部屋を含め作られたり更新されていることが想定される
+	// そのため，部屋作成や更新にかかわるフィールドは空にする必要がある
+	// dst.Room.Place = src.WriteEventParams.Place
+	dst.TimeStart = src.TimeStart
+	dst.TimeEnd = src.TimeEnd
+	dst.Admins = make([]EventAdmin, len(src.Admins))
+	for i := range src.Admins {
+		dst.Admins[i] = convuuidUUIDToEventAdmin(src.Admins[i])
 	}
-	dst.AllowTogether = src.WriteEventParams.AllowTogether
-	dst.Tags = make([]EventTag, len(src.WriteEventParams.Tags))
-	for i := range src.WriteEventParams.Tags {
-		dst.Tags[i] = convdomainEventTagParamsToEventTag(src.WriteEventParams.Tags[i])
+	dst.AllowTogether = src.AllowTogether
+	dst.Tags = make([]EventTag, len(src.Tags))
+	for i := range src.Tags {
+		dst.Tags[i] = convdomainEventTagParamsToEventTag(src.Tags[i])
 	}
-	dst.Open = src.WriteEventParams.Open
+	dst.Open = src.Open
 	return
 }
 
@@ -413,6 +415,10 @@ func convTagTodomainTag(src Tag) (dst domain.Tag) {
 func convUserTodomainUser(src User) (dst domain.User) {
 	dst.ID = src.ID
 	dst.State = src.State
+	dst.Provider = &domain.Provider{
+		Issuer:  src.Provider.Issuer,
+		Subject: src.Provider.Subject,
+	}
 	return
 }
 func convdomainEventTagParamsToEventTag(src domain.EventTagParams) (dst EventTag) {

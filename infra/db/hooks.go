@@ -7,71 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// BeforeSave is hook
-func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
-	if e.ID == uuid.Nil {
-		e.ID, err = uuid.NewV4()
-		if err != nil {
-			return err
-		}
-	}
-
-	if e.RoomID == uuid.Nil {
-		if e.Room.Place != "" {
-			e.Room.Verified = false
-			e.Room.TimeStart = e.TimeStart
-			e.Room.TimeEnd = e.TimeEnd
-			e.Room.CreatedByRefer = e.CreatedByRefer
-			e.Room.Admins = ConvSEventAdminToSRoomAdmin(e.Admins)
-		} else {
-			return NewValueError(ErrRoomUndefined, "roomID", "place")
-		}
-	}
-
-	// 時間整合性
-	Devent := ConvEventTodomainEvent(*e)
-	if !Devent.TimeConsistency() {
-		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
-	}
-	return nil
-}
-
-// BeforeCreate is hook
-func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
-	// 時間整合性
-	r, err := getRoom(tx.Preload("Events"), e.RoomID)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
-		// 後で作られる
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-	e.Room = *r
-	Devent := ConvEventTodomainEvent(*e)
-	if !Devent.RoomTimeConsistency() {
-		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
-	}
-	return nil
-}
-
 // BeforeUpdate is hook
 func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
-	// 時間整合性
-	r, err := getRoom(tx.Preload("Events", "id != ?", e.ID), e.RoomID)
-	if err == nil {
-		e.Room = *r
-		Devent := ConvEventTodomainEvent(*e)
-		if !Devent.RoomTimeConsistency() {
-			return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
-		}
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
-		// 後で作られる
-		return err
-	}
-
 	// delete current m2m
 	err = tx.Where("event_id = ?", e.ID).Delete(&EventTag{}).Error
 	if err != nil {

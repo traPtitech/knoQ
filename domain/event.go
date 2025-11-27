@@ -107,15 +107,41 @@ type EventService interface {
 	// GetEventActivities(day int) ([]*Event, error)
 }
 
-type UpsertEventArgs struct {
-	WriteEventParams
-	CreatedBy uuid.UUID
+type CreateEventArgs struct {
+	ID            uuid.UUID
+	CreatedBy     uuid.UUID
+	Name          string
+	Description   string
+	GroupID       uuid.UUID
+	RoomID        uuid.UUID
+	TimeStart     time.Time
+	TimeEnd       time.Time
+	Admins        []uuid.UUID
+	Tags          []EventTagParams
+	AllowTogether bool
+	Open          bool
+}
+
+type UpdateEventArgs struct {
+	CreatedBy     uuid.UUID
+	Name          string
+	Description   string
+	GroupID       uuid.UUID
+	RoomID        uuid.UUID
+	TimeStart     time.Time
+	TimeEnd       time.Time
+	Admins        []uuid.UUID
+	Tags          []EventTagParams
+	AllowTogether bool
+	Open          bool
 }
 
 type EventRepository interface {
-	CreateEvent(args UpsertEventArgs) (*Event, error)
+	// 進捗部屋でない部屋は事前に作成しておく必要がある
+	CreateEvent(args CreateEventArgs) (*Event, error)
 
-	UpdateEvent(eventID uuid.UUID, args UpsertEventArgs) (*Event, error)
+	// 進捗部屋でない部屋は事前に作成しておく必要がある
+	UpdateEvent(eventID uuid.UUID, args UpdateEventArgs) (*Event, error)
 
 	AddEventTag(eventID uuid.UUID, params EventTagParams) error
 

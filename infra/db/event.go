@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filters"
 	"gorm.io/gorm"
@@ -21,13 +22,13 @@ func eventFullPreload(tx *gorm.DB) *gorm.DB {
 		Preload("CreatedBy")
 }
 
-func (repo *gormRepository) CreateEvent(args domain.UpsertEventArgs) (*domain.Event, error) {
+func (repo *gormRepository) CreateEvent(args domain.CreateEventArgs) (*domain.Event, error) {
 	e, err := createEvent(repo.db, args)
 	de := convEventTodomainEvent(*e)
 	return &de, defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) UpdateEvent(eventID uuid.UUID, args domain.UpsertEventArgs) (*domain.Event, error) {
+func (repo *gormRepository) UpdateEvent(eventID uuid.UUID, args domain.UpdateEventArgs) (*domain.Event, error) {
 	e, err := updateEvent(repo.db, eventID, args)
 	de := convEventTodomainEvent(*e)
 	return &de, defaultErrorHandling(err)
@@ -74,14 +75,31 @@ func (repo *gormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, er
 	return ConvSPEventToSPdomainEvent(es), defaultErrorHandling(err)
 }
 
-func createEvent(db *gorm.DB, args domain.UpsertEventArgs) (*Event, error) {
-	event := ConvWriteEventParamsToEvent(args)
+func createEvent(db *gorm.DB, args domain.CreateEventArgs) (*Event, error) {
+	event := Event{
+		ID:          args.ID,
+		Name:        args.Name,
+		Description: args.Description,
+		GroupID:     args.GroupID,
+		RoomID:      args.RoomID,
+		TimeStart:   args.TimeStart,
+		TimeEnd:     args.TimeEnd,
+		Admins: lo.Map(args.Admins, func(id uuid.UUID, _ int) EventAdmin {
+			return convuuidUUIDToEventAdmin(id)
+		}),
+		AllowTogether: args.AllowTogether,
+		Tags: lo.Map(args.Tags, func(param domain.EventTagParams, _ int) EventTag {
+			return convdomainEventTagParamsToEventTag(param)
+		}),
+		Open:           args.Open,
+		CreatedByRefer: args.CreatedBy,
+	}
 
 	err := db.Create(&event).Error
 	return &event, err
 }
 
-func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*Event, error) {
+func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpdateEventArgs) (*Event, error) {
 	event := ConvWriteEventParamsToEvent(args)
 	event.ID = eventID
 

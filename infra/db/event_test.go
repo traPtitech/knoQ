@@ -15,26 +15,25 @@ import (
 func Test_createEvent(t *testing.T) {
 	r, assert, require, user, room := setupRepoWithUserRoom(t, common)
 
-	params := domain.UpsertEventArgs{
-		CreatedBy: user.ID,
-		WriteEventParams: domain.WriteEventParams{
-			Name:          "first event",
-			GroupID:       mustNewUUIDV4(t),
-			RoomID:        room.ID,
-			TimeStart:     time.Now(),
-			TimeEnd:       time.Now().Add(1 * time.Minute),
-			AllowTogether: true,
-			Admins:        []uuid.UUID{user.ID},
-			Tags: []domain.EventTagParams{
-				{Name: "go", Locked: true}, {Name: "golang"},
-			},
+	params := domain.CreateEventArgs{
+		ID:            uuid.Must(uuid.NewV7()),
+		CreatedBy:     user.ID,
+		Name:          "first event",
+		GroupID:       mustNewUUIDV4(t),
+		RoomID:        room.ID,
+		TimeStart:     time.Now(),
+		TimeEnd:       time.Now().Add(1 * time.Minute),
+		AllowTogether: true,
+		Admins:        []uuid.UUID{user.ID},
+		Tags: []domain.EventTagParams{
+			{Name: "go", Locked: true}, {Name: "golang"},
 		},
 	}
 
 	t.Run("create event", func(_ *testing.T) {
 		event, err := createEvent(r.db, params)
 		require.NoError(err)
-		assert.NotNil(event.ID)
+		// assert.NotNil(event.ID)
 
 		// tags
 		e, err := getEvent(r.db.Preload("Tags").Preload("Tags.Tag"), event.ID)
@@ -46,7 +45,7 @@ func Test_createEvent(t *testing.T) {
 		_, err := createOrGetTag(r.db, "Go")
 		require.NoError(err)
 
-		var p domain.UpsertEventArgs
+		var p domain.CreateEventArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.Tags = append(p.Tags, domain.EventTagParams{Name: "Go"})
@@ -55,7 +54,7 @@ func Test_createEvent(t *testing.T) {
 	})
 
 	t.Run("wrong time", func(_ *testing.T) {
-		var p domain.UpsertEventArgs
+		var p domain.CreateEventArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.TimeStart = time.Now().Add(10 * time.Minute)
@@ -64,7 +63,7 @@ func Test_createEvent(t *testing.T) {
 	})
 
 	t.Run("wrong room time", func(_ *testing.T) {
-		var p domain.UpsertEventArgs
+		var p domain.CreateEventArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.AllowTogether = false
@@ -72,38 +71,39 @@ func Test_createEvent(t *testing.T) {
 		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 
+	// これは想定挙動ではない
+	// 部屋とイベントは別々に作られるべき
+	// 一緒に作りたいなら呼び出し側(サービスなど)がこれを行うべき
 	t.Run("create event with place", func(_ *testing.T) {
-		var p domain.UpsertEventArgs
+		var p domain.CreateEventArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.RoomID = uuid.Nil
-		p.Place = "instant room"
+		// p.Place = "instant room"
 		event, err := createEvent(r.db.Debug(), p)
 		require.NoError(err)
 
 		e, err := getEvent(eventFullPreload(r.db), event.ID)
 		require.NoError(err)
 		assert.NotEqual(uuid.Nil, e.RoomID)
-		assert.Equal(p.Place, e.Room.Place)
+		// assert.Equal(p.Place, e.Room.Place)
 	})
 }
 
 func Test_updateEvent(t *testing.T) {
 	r, assert, require, user, _, room, event := setupRepoWithUserGroupRoomEvent(t, common)
 
-	params := domain.UpsertEventArgs{
-		CreatedBy: user.ID,
-		WriteEventParams: domain.WriteEventParams{
-			Name:          "update event",
-			GroupID:       mustNewUUIDV4(t),
-			RoomID:        room.ID,
-			TimeStart:     time.Now(),
-			TimeEnd:       time.Now().Add(1 * time.Minute),
-			AllowTogether: true,
-			Admins:        []uuid.UUID{user.ID},
-			Tags: []domain.EventTagParams{
-				{Name: "go", Locked: true}, {Name: "golang2"},
-			},
+	params := domain.UpdateEventArgs{
+		CreatedBy:     user.ID,
+		Name:          "update event",
+		GroupID:       mustNewUUIDV4(t),
+		RoomID:        room.ID,
+		TimeStart:     time.Now(),
+		TimeEnd:       time.Now().Add(1 * time.Minute),
+		AllowTogether: true,
+		Admins:        []uuid.UUID{user.ID},
+		Tags: []domain.EventTagParams{
+			{Name: "go", Locked: true}, {Name: "golang2"},
 		},
 	}
 

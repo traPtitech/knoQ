@@ -45,6 +45,19 @@ func (r *Room) CalcAvailableTime(allowTogether bool) []StartEndTime {
 	return availabletime
 }
 
+func (r *Room) ValidateEventTimeAvilability(allowTogether bool, start, end time.Time) bool {
+	times := r.CalcAvailableTime(allowTogether)
+	for _, t := range times {
+		start := t.TimeStart
+		end := t.TimeEnd
+		if start.Equal(start) || start.Before(start) &&
+			(end.Equal(end) || end.After(end)) {
+			return true
+		}
+	}
+	return false
+}
+
 // as: 利用可能な時間帯のリスト
 // b: イベントの時間
 func timeRangesSub(as []StartEndTime, b StartEndTime) (cs []StartEndTime) {

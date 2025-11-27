@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
@@ -16,9 +17,52 @@ func (repo *service) CreateEvent(ctx context.Context, params domain.WriteEventPa
 		return nil, defaultErrorHandling(err)
 	}
 
-	p := domain.UpsertEventArgs{
-		WriteEventParams: params,
-		CreatedBy:        reqID,
+	if !params.TimeStart.Before(params.TimeEnd) {
+		return nil, errors.New("event time consistency")
+	}
+
+	var r *domain.Room
+	if params.RoomID.IsNil() {
+		r, err = repo.GormRepo.CreateRoom(domain.CreateRoomArgs{
+			WriteRoomParams: domain.WriteRoomParams{
+				Place:     params.Place,
+				TimeStart: params.TimeStart,
+				TimeEnd:   params.TimeEnd,
+				Admins:    params.Admins,
+			},
+			Verified:  false, // イベント専用部屋なので
+			CreatedBy: reqID,
+		})
+
+		if err != nil {
+			return nil, defaultErrorHandling(err)
+		}
+
+		params.RoomID = r.ID
+	} else {
+		r, err = repo.GormRepo.GetRoom(params.RoomID, uuid.Nil)
+		if err != nil {
+			return nil, defaultErrorHandling(err)
+		}
+	}
+
+	if !r.ValidateEventTimeAvilability(params.AllowTogether, params.TimeStart, params.TimeEnd) {
+		return nil, errors.New("room time consistency")
+	}
+
+	p := domain.CreateEventArgs{
+		Name:          params.Name,
+		Description:   params.Description,
+		GroupID:       params.GroupID,
+		RoomID:        params.RoomID,
+		TimeStart:     params.TimeStart,
+		TimeEnd:       params.TimeEnd,
+		Admins:        params.Admins,
+		Tags:          params.Tags,
+		AllowTogether: params.AllowTogether,
+		Open:          params.Open,
+		CreatedBy:     reqID,
+		ID:            uuid.Must(uuid.NewV7()),
 	}
 	event, err := repo.GormRepo.CreateEvent(p)
 	if err != nil {
@@ -48,9 +92,51 @@ func (repo *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params 
 		return nil, defaultErrorHandling(err)
 	}
 
-	p := domain.UpsertEventArgs{
-		WriteEventParams: params,
-		CreatedBy:        reqID,
+	if !params.TimeStart.Before(params.TimeEnd) {
+		return nil, errors.New("event time consistency")
+	}
+
+	var r *domain.Room
+	if params.RoomID.IsNil() {
+		r, err = repo.GormRepo.CreateRoom(domain.CreateRoomArgs{
+			WriteRoomParams: domain.WriteRoomParams{
+				Place:     params.Place,
+				TimeStart: params.TimeStart,
+				TimeEnd:   params.TimeEnd,
+				Admins:    params.Admins,
+			},
+			Verified:  false, // イベント専用部屋なので
+			CreatedBy: reqID,
+		})
+
+		if err != nil {
+			return nil, defaultErrorHandling(err)
+		}
+
+		params.RoomID = r.ID
+	} else {
+		r, err = repo.GormRepo.GetRoom(params.RoomID, eventID)
+		if err != nil {
+			return nil, defaultErrorHandling(err)
+		}
+	}
+
+	if !r.ValidateEventTimeAvilability(params.AllowTogether, params.TimeStart, params.TimeEnd) {
+		return nil, errors.New("room time consistency")
+	}
+
+	p := domain.UpdateEventArgs{
+		Name:          params.Name,
+		Description:   params.Description,
+		GroupID:       params.GroupID,
+		RoomID:        params.RoomID,
+		TimeStart:     params.TimeStart,
+		TimeEnd:       params.TimeEnd,
+		Admins:        params.Admins,
+		Tags:          params.Tags,
+		AllowTogether: params.AllowTogether,
+		Open:          params.Open,
+		CreatedBy:     reqID,
 	}
 	event, err := repo.GormRepo.UpdateEvent(eventID, p)
 	if err != nil {

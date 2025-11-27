@@ -207,18 +207,17 @@ func mustMakeEvent(t *testing.T, repo *gormRepository, name string) (*Event, *Gr
 	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10, false))
 	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10, false))
 
-	params := domain.UpsertEventArgs{
-		WriteEventParams: domain.WriteEventParams{
-			Name:          name,
-			GroupID:       group.ID,
-			RoomID:        room.ID,
-			TimeStart:     time.Now(),
-			TimeEnd:       time.Now().Add(1 * time.Minute),
-			AllowTogether: true,
-			Admins:        []uuid.UUID{user.ID},
-			Tags: []domain.EventTagParams{
-				{Name: "gin"},
-			},
+	params := domain.CreateEventArgs{
+		ID:            uuid.Must(uuid.NewV7()),
+		Name:          name,
+		GroupID:       group.ID,
+		RoomID:        room.ID,
+		TimeStart:     time.Now(),
+		TimeEnd:       time.Now().Add(1 * time.Minute),
+		AllowTogether: true,
+		Admins:        []uuid.UUID{user.ID},
+		Tags: []domain.EventTagParams{
+			{Name: "gin"},
 		},
 		CreatedBy: user.ID,
 	}
