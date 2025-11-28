@@ -8,10 +8,10 @@ import (
 	"github.com/traPtitech/knoQ/domain/filters"
 )
 
-func (repo *service) CreateEvent(ctx context.Context, params domain.WriteEventParams) (*domain.Event, error) {
+func (s *service) CreateEvent(ctx context.Context, params domain.WriteEventParams) (*domain.Event, error) {
 	reqID, _ := domain.GetUserID(ctx)
 	// groupの確認
-	group, err := repo.GetGroup(ctx, params.GroupID)
+	group, err := s.GetGroup(ctx, params.GroupID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -20,30 +20,30 @@ func (repo *service) CreateEvent(ctx context.Context, params domain.WriteEventPa
 		WriteEventParams: params,
 		CreatedBy:        reqID,
 	}
-	event, err := repo.GormRepo.CreateEvent(p)
+	event, err := s.GormRepo.CreateEvent(p)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	for _, groupMember := range group.Members {
-		_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
+		_ = s.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
 	}
-	return repo.GetEvent(ctx, event.ID)
+	return s.GetEvent(ctx, event.ID)
 }
 
-func (repo *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params domain.WriteEventParams) (*domain.Event, error) {
+func (s *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params domain.WriteEventParams) (*domain.Event, error) {
 	reqID, _ := domain.GetUserID(ctx)
 
-	if !repo.IsEventAdmins(ctx, eventID) {
+	if !s.IsEventAdmins(ctx, eventID) {
 		return nil, domain.ErrForbidden
 	}
 
-	currentEvent, err := repo.GetEvent(ctx, eventID)
+	currentEvent, err := s.GetEvent(ctx, eventID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	// groupの確認
-	group, err := repo.GetGroup(ctx, params.GroupID)
+	group, err := s.GetGroup(ctx, params.GroupID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -52,7 +52,7 @@ func (repo *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params 
 		WriteEventParams: params,
 		CreatedBy:        reqID,
 	}
-	event, err := repo.GormRepo.UpdateEvent(eventID, p)
+	event, err := s.GormRepo.UpdateEvent(eventID, p)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -64,51 +64,51 @@ func (repo *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params 
 			}
 		}
 		if !exist {
-			_ = repo.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
+			_ = s.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
 		}
 
 	}
-	return repo.GetEvent(ctx, event.ID)
+	return s.GetEvent(ctx, event.ID)
 }
 
-func (repo *service) AddEventTag(ctx context.Context, eventID uuid.UUID, tagName string, locked bool) error {
+func (s *service) AddEventTag(ctx context.Context, eventID uuid.UUID, tagName string, locked bool) error {
 
-	if locked && !repo.IsEventAdmins(ctx, eventID) {
+	if locked && !s.IsEventAdmins(ctx, eventID) {
 		return domain.ErrForbidden
 	}
-	return repo.GormRepo.AddEventTag(eventID, domain.EventTagParams{
+	return s.GormRepo.AddEventTag(eventID, domain.EventTagParams{
 		Name: tagName, Locked: locked,
 	})
 }
 
-func (repo *service) DeleteEvent(ctx context.Context, eventID uuid.UUID) error {
-	if !repo.IsEventAdmins(ctx, eventID) {
+func (s *service) DeleteEvent(ctx context.Context, eventID uuid.UUID) error {
+	if !s.IsEventAdmins(ctx, eventID) {
 		return domain.ErrForbidden
 	}
 
-	return repo.GormRepo.DeleteEvent(eventID)
+	return s.GormRepo.DeleteEvent(eventID)
 }
 
 // DeleteTagInEvent delete a tag in that Event
-func (repo *service) DeleteEventTag(ctx context.Context, eventID uuid.UUID, tagName string) error {
-	deleteLocked := repo.IsEventAdmins(ctx, eventID)
+func (s *service) DeleteEventTag(ctx context.Context, eventID uuid.UUID, tagName string) error {
+	deleteLocked := s.IsEventAdmins(ctx, eventID)
 
-	return repo.GormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
+	return s.GormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
 }
 
-func (repo *service) GetEvent(ctx context.Context, eventID uuid.UUID) (*domain.Event, error) {
-	event, err := repo.GormRepo.GetEvent(eventID)
+func (s *service) GetEvent(ctx context.Context, eventID uuid.UUID) (*domain.Event, error) {
+	event, err := s.GormRepo.GetEvent(eventID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	// add traQ groups and users
-	g, err := repo.GetGroup(ctx, event.Group.ID)
+	g, err := s.GetGroup(ctx, event.Group.ID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	event.Group = *g
-	users, err := repo.GetAllUsers(ctx, false, true)
+	users, err := s.GetAllUsers(ctx, false, true)
 	if err != nil {
 		return event, err
 	}
@@ -127,27 +127,27 @@ func (repo *service) GetEvent(ctx context.Context, eventID uuid.UUID) (*domain.E
 	return event, nil
 }
 
-func (repo *service) UpsertMeEventSchedule(ctx context.Context, eventID uuid.UUID, schedule domain.ScheduleStatus) error {
+func (s *service) UpsertMeEventSchedule(ctx context.Context, eventID uuid.UUID, schedule domain.ScheduleStatus) error {
 	reqID, _ := domain.GetUserID(ctx)
 
-	event, err := repo.GetEvent(ctx, eventID)
+	event, err := s.GetEvent(ctx, eventID)
 	if err != nil {
 		return err
 	}
-	if !repo.IsGroupMember(ctx, reqID, event.Group.ID) && !event.Open {
+	if !s.IsGroupMember(ctx, reqID, event.Group.ID) && !event.Open {
 		return domain.ErrForbidden
 	}
 
-	err = repo.GormRepo.UpsertEventSchedule(eventID, reqID, schedule)
+	err = s.GormRepo.UpsertEventSchedule(eventID, reqID, schedule)
 	return defaultErrorHandling(err)
 }
 
-func (repo *service) GetEvents(ctx context.Context, expr filters.Expr) ([]*domain.Event, error) {
+func (s *service) GetEvents(ctx context.Context, expr filters.Expr) ([]*domain.Event, error) {
 	reqID, _ := domain.GetUserID(ctx)
 
-	expr = addTraQGroupIDs(repo, reqID, expr)
+	expr = addTraQGroupIDs(s, reqID, expr)
 
-	es, err := repo.GormRepo.GetAllEvents(expr)
+	es, err := s.GormRepo.GetAllEvents(expr)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -155,23 +155,23 @@ func (repo *service) GetEvents(ctx context.Context, expr filters.Expr) ([]*domai
 	return es, nil
 }
 
-func (repo *service) GetEventsWithGroup(ctx context.Context, expr filters.Expr) ([]*domain.Event, error) {
+func (s *service) GetEventsWithGroup(ctx context.Context, expr filters.Expr) ([]*domain.Event, error) {
 	reqID, _ := domain.GetUserID(ctx)
 
-	expr = addTraQGroupIDs(repo, reqID, expr)
+	expr = addTraQGroupIDs(s, reqID, expr)
 
-	events, err := repo.GormRepo.GetAllEvents(expr)
+	events, err := s.GormRepo.GetAllEvents(expr)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	// add traQ groups and users
-	groups, err := repo.GetAllGroups(ctx)
+	groups, err := s.GetAllGroups(ctx)
 	if err != nil {
 		return events, nil
 	}
 	groupMap := createGroupMap(groups)
-	users, err := repo.GetAllUsers(ctx, false, true)
+	users, err := s.GetAllUsers(ctx, false, true)
 	if err != nil {
 		return events, err
 	}
@@ -196,10 +196,10 @@ func (repo *service) GetEventsWithGroup(ctx context.Context, expr filters.Expr) 
 	return events, nil
 }
 
-func (repo *service) IsEventAdmins(ctx context.Context, eventID uuid.UUID) bool {
+func (s *service) IsEventAdmins(ctx context.Context, eventID uuid.UUID) bool {
 	reqID, _ := domain.GetUserID(ctx)
 
-	event, err := repo.GormRepo.GetEvent(eventID)
+	event, err := s.GormRepo.GetEvent(eventID)
 	if err != nil {
 		return false
 	}
@@ -228,8 +228,8 @@ func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 }
 
 // add traQ group and traP(111...)
-func addTraQGroupIDs(repo *service, userID uuid.UUID, expr filters.Expr) filters.Expr {
-	t, err := repo.GormRepo.GetToken(userID)
+func addTraQGroupIDs(s *service, userID uuid.UUID, expr filters.Expr) filters.Expr {
+	t, err := s.GormRepo.GetToken(userID)
 	if err != nil {
 		return expr
 	}
@@ -244,12 +244,12 @@ func addTraQGroupIDs(repo *service, userID uuid.UUID, expr filters.Expr) filters
 				if !ok {
 					return e
 				}
-				groupIDs, err := repo.TraQRepo.GetUserBelongingGroupIDs(t, id)
+				groupIDs, err := s.TraQRepo.GetUserBelongingGroupIDs(t, id)
 				if err != nil {
 					return e
 				}
 				// add traP
-				user, err := repo.GormRepo.GetUser(id)
+				user, err := s.GormRepo.GetUser(id)
 				if err != nil {
 					return e
 				}

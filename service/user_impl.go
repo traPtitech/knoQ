@@ -13,11 +13,11 @@ import (
 
 const traQIssuerName = "traQ"
 
-func (repo *service) SyncUsers(ctx context.Context) error {
-	if !repo.IsPrivilege(ctx) {
+func (s *service) SyncUsers(ctx context.Context) error {
+	if !s.IsPrivilege(ctx) {
 		return domain.ErrForbidden
 	}
-	traQUsers, err := repo.TraQRepo.GetUsers(true)
+	traQUsers, err := s.TraQRepo.GetUsers(true)
 	if err != nil {
 		return defaultErrorHandling(err)
 	}
@@ -40,20 +40,20 @@ func (repo *service) SyncUsers(ctx context.Context) error {
 		argss = append(argss, a)
 	}
 
-	err = repo.GormRepo.SyncUsers(argss)
+	err = s.GormRepo.SyncUsers(argss)
 	return defaultErrorHandling(err)
 }
 
-func (repo *service) GetOAuthURL(ctx context.Context) (url, state, codeVerifier string) {
-	return repo.TraQRepo.GetOAuthURL()
+func (s *service) GetOAuthURL(ctx context.Context) (url, state, codeVerifier string) {
+	return s.TraQRepo.GetOAuthURL()
 }
 
-func (repo *service) LoginUser(ctx context.Context, query, state, codeVerifier string) (*domain.User, error) {
-	t, err := repo.TraQRepo.GetOAuthToken(query, state, codeVerifier)
+func (s *service) LoginUser(ctx context.Context, query, state, codeVerifier string) (*domain.User, error) {
+	t, err := s.TraQRepo.GetOAuthToken(query, state, codeVerifier)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	traQUser, err := repo.TraQRepo.GetUserMe(t)
+	traQUser, err := s.TraQRepo.GetUserMe(t)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -73,45 +73,44 @@ func (repo *service) LoginUser(ctx context.Context, query, state, codeVerifier s
 			Subject: traQUser.GetId(),
 		},
 	}
-	_, err = repo.GormRepo.SaveUser(user)
+	_, err = s.GormRepo.SaveUser(user)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	u, err := repo.GetUser(ctx, user.UserID)
+	u, err := s.GetUser(ctx, user.UserID)
 	return u, defaultErrorHandling(err)
 }
 
-func (repo *service) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
-	userMeta, err := repo.GormRepo.GetUser(userID)
+func (s *service) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
+	userMeta, err := s.GormRepo.GetUser(userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
 	if userMeta.Provider.Issuer == traQIssuerName {
-		userBody, err := repo.TraQRepo.GetUser(userID)
+		userBody, err := s.TraQRepo.GetUser(userID)
 		if err != nil {
 			return nil, defaultErrorHandling(err)
 		}
-		user, _ := repo.mergeUser(userMeta, userBody)
+		user, _ := s.mergeUser(userMeta, userBody)
 		return user, nil
 	}
-	// userBody, err := repo.gormRepo.GetUserBody(userID)
 
 	return nil, errors.New("not implemented")
 }
 
-func (repo *service) GetUserMe(ctx context.Context) (*domain.User, error) {
+func (s *service) GetUserMe(ctx context.Context) (*domain.User, error) {
 	reqID, _ := domain.GetUserID(ctx)
-	return repo.GetUser(ctx, reqID)
+	return s.GetUser(ctx, reqID)
 }
 
-func (repo *service) GetAllUsers(ctx context.Context, includeSuspend, includeBot bool) ([]*domain.User, error) {
-	userMetas, err := repo.GormRepo.GetAllUsers(!includeSuspend)
+func (s *service) GetAllUsers(ctx context.Context, includeSuspend, includeBot bool) ([]*domain.User, error) {
+	userMetas, err := s.GormRepo.GetAllUsers(!includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 	// TODO fix
-	traQUserBodys, err := repo.TraQRepo.GetUsers(includeSuspend)
+	traQUserBodys, err := s.TraQRepo.GetUsers(includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -125,7 +124,7 @@ func (repo *service) GetAllUsers(ctx context.Context, includeSuspend, includeBot
 		if !includeBot && userBody.Bot {
 			continue
 		}
-		user, err := repo.mergeUser(userMeta, userBody)
+		user, err := s.mergeUser(userMeta, userBody)
 		if err != nil {
 			continue
 		}
@@ -135,16 +134,16 @@ func (repo *service) GetAllUsers(ctx context.Context, includeSuspend, includeBot
 	return users, nil
 }
 
-func (repo *service) ReNewMyiCalSecret(ctx context.Context) (secret string, err error) {
+func (s *service) ReNewMyiCalSecret(ctx context.Context) (secret string, err error) {
 	secret = random.AlphaNumeric(16, true)
 	reqID, _ := domain.GetUserID(ctx)
-	err = repo.GormRepo.UpdateiCalSecret(reqID, secret)
+	err = s.GormRepo.UpdateiCalSecret(reqID, secret)
 	return
 }
 
-func (repo *service) GetMyiCalSecret(ctx context.Context) (string, error) {
+func (s *service) GetMyiCalSecret(ctx context.Context) (string, error) {
 	reqID, _ := domain.GetUserID(ctx)
-	user, err := repo.GormRepo.GetUser(reqID)
+	user, err := s.GormRepo.GetUser(reqID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
 	}
@@ -152,7 +151,7 @@ func (repo *service) GetMyiCalSecret(ctx context.Context) (string, error) {
 		return "", domain.ErrForbidden
 	}
 	// TODO: userid に対応する ical secret を返す関数を実装
-	secret, err := repo.GormRepo.GetICalSecret(reqID)
+	secret, err := s.GormRepo.GetICalSecret(reqID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
 	}
@@ -162,10 +161,10 @@ func (repo *service) GetMyiCalSecret(ctx context.Context) (string, error) {
 	return secret, nil
 }
 
-func (repo *service) IsPrivilege(ctx context.Context) bool {
+func (s *service) IsPrivilege(ctx context.Context) bool {
 	reqID, _ := domain.GetUserID(ctx)
 
-	user, err := repo.GormRepo.GetUser(reqID)
+	user, err := s.GormRepo.GetUser(reqID)
 	if err != nil {
 		return false
 	}
@@ -181,7 +180,7 @@ func traQUserMap(users []traq.User) map[uuid.UUID]*traq.User {
 	return userMap
 }
 
-func (repo *service) mergeUser(userMeta *domain.User, userBody *traq.User) (*domain.User, error) {
+func (s *service) mergeUser(userMeta *domain.User, userBody *traq.User) (*domain.User, error) {
 	if userMeta.ID != uuid.Must(uuid.FromString(userBody.GetId())) {
 		return nil, errors.New("id does not match")
 	}
@@ -192,20 +191,20 @@ func (repo *service) mergeUser(userMeta *domain.User, userBody *traq.User) (*dom
 		ID:          userMeta.ID,
 		Name:        userBody.Name,
 		DisplayName: userBody.DisplayName,
-		Icon:        repo.TraQRepo.URL + "/public/icon/" + userBody.Name,
+		Icon:        s.TraQRepo.URL + "/public/icon/" + userBody.Name,
 		Privileged:  userMeta.Privileged,
 		State:       userMeta.State,
 	}, nil
 }
 
-func (repo *service) GrantPrivilege(ctx context.Context, userID uuid.UUID) error {
-	user, err := repo.GormRepo.GetUser(userID)
+func (s *service) GrantPrivilege(ctx context.Context, userID uuid.UUID) error {
+	user, err := s.GormRepo.GetUser(userID)
 	if err != nil {
 		return defaultErrorHandling(err)
 	}
 	if user.Privileged {
 		return fmt.Errorf("%w: user has been already privileged", domain.ErrBadRequest)
 	}
-	err = repo.GormRepo.GrantPrivilege(userID)
+	err = s.GormRepo.GrantPrivilege(userID)
 	return defaultErrorHandling(err)
 }

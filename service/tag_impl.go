@@ -7,17 +7,17 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 )
 
-func (repo *service) CreateOrGetTag(ctx context.Context, name string) (*domain.Tag, error) {
-	t, err := repo.GormRepo.CreateOrGetTag(name)
+func (s *service) CreateOrGetTag(ctx context.Context, name string) (*domain.Tag, error) {
+	t, err := s.GormRepo.CreateOrGetTag(name)
 	return t, defaultErrorHandling(err)
 }
 
-func (repo *service) GetTag(ctx context.Context, tagID uuid.UUID) (*domain.Tag, error) {
-	t, err := repo.GormRepo.GetTag(tagID)
+func (s *service) GetTag(ctx context.Context, tagID uuid.UUID) (*domain.Tag, error) {
+	t, err := s.GormRepo.GetTag(tagID)
 	return t, defaultErrorHandling(err)
 }
 
-func (repo *service) GetAllTags(ctx context.Context) ([]*domain.Tag, error) {
-	ts, err := repo.GormRepo.GetAllTags()
+func (s *service) GetAllTags(ctx context.Context) ([]*domain.Tag, error) {
+	ts, err := s.GormRepo.GetAllTags()
 	return ts, defaultErrorHandling(err)
 }
