@@ -65,7 +65,7 @@ func (repo *gormRepository) GetAllUsers(onlyActive bool) ([]*domain.User, error)
 	return dus, defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) SyncUsers(argss []domain.SyncUserArgs) error {
+func (repo *gormRepository) SyncUsers(args []domain.SyncUserArgs) error {
 
 	err := repo.db.Transaction(func(tx *gorm.DB) error {
 		existingUsers, err := getAllUsers(tx, false)
@@ -73,14 +73,14 @@ func (repo *gormRepository) SyncUsers(argss []domain.SyncUserArgs) error {
 			return err
 		}
 
-		for _, args := range argss {
+		for _, arg := range args {
 			exist := false
 			for _, eu := range existingUsers {
-				if args.UserID == eu.ID {
+				if arg.UserID == eu.ID {
 					// contains
 					exist = true
-					if args.State != eu.State {
-						eu.State = args.State
+					if arg.State != eu.State {
+						eu.State = arg.State
 						_, err := saveUser(tx, eu)
 						if err != nil {
 							return err
@@ -90,12 +90,12 @@ func (repo *gormRepository) SyncUsers(argss []domain.SyncUserArgs) error {
 				}
 			}
 			u := &User{
-				ID:    args.UserID,
-				State: args.State,
+				ID:    arg.UserID,
+				State: arg.State,
 				Provider: Provider{
-					UserID:  args.UserID,
-					Issuer:  args.Issuer,
-					Subject: args.Subject,
+					UserID:  arg.UserID,
+					Issuer:  arg.Issuer,
+					Subject: arg.Subject,
 				},
 			}
 			if !exist {

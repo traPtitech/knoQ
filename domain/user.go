@@ -72,7 +72,7 @@ type UserRepository interface {
 	UpdateiCalSecret(userID uuid.UUID, secret string) error
 	GetUser(userID uuid.UUID) (*User, error)
 	GetAllUsers(onlyActive bool) ([]*User, error)
-	SyncUsers(argss []SyncUserArgs) error
+	SyncUsers(args []SyncUserArgs) error
 	GrantPrivilege(userID uuid.UUID) error
 	GetICalSecret(userID uuid.UUID) (string, error)
 	GetToken(userID uuid.UUID) (*oauth2.Token, error)

@@ -22,7 +22,7 @@ func (s *service) SyncUsers(ctx context.Context) error {
 		return defaultErrorHandling(err)
 	}
 
-	argss := make([]domain.SyncUserArgs, 0)
+	args := make([]domain.SyncUserArgs, 0)
 	for _, u := range traQUsers {
 		if u.Bot {
 			continue
@@ -37,10 +37,10 @@ func (s *service) SyncUsers(ctx context.Context) error {
 				Subject: u.GetId(),
 			},
 		}
-		argss = append(argss, a)
+		args = append(args, a)
 	}
 
-	err = s.GormRepo.SyncUsers(argss)
+	err = s.GormRepo.SyncUsers(args)
 	return defaultErrorHandling(err)
 }
 
