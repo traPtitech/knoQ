@@ -31,7 +31,7 @@ type UpdateRoomParams struct {
 	CreatedBy uuid.UUID
 }
 
-func (repo GormRepository) CreateRoom(params CreateRoomParams) (*domain.Room, error) {
+func (repo gormRepository) CreateRoom(params CreateRoomParams) (*domain.Room, error) {
 	room, err := createRoom(repo.db, params)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -40,7 +40,7 @@ func (repo GormRepository) CreateRoom(params CreateRoomParams) (*domain.Room, er
 	return &r, nil
 }
 
-func (repo GormRepository) UpdateRoom(roomID uuid.UUID, params UpdateRoomParams) (*domain.Room, error) {
+func (repo gormRepository) UpdateRoom(roomID uuid.UUID, params UpdateRoomParams) (*domain.Room, error) {
 	room, err := updateRoom(repo.db, roomID, params)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -49,15 +49,15 @@ func (repo GormRepository) UpdateRoom(roomID uuid.UUID, params UpdateRoomParams)
 	return &r, nil
 }
 
-func (repo GormRepository) UpdateRoomVerified(roomID uuid.UUID, verified bool) error {
+func (repo gormRepository) UpdateRoomVerified(roomID uuid.UUID, verified bool) error {
 	return updateRoomVerified(repo.db, roomID, verified)
 }
 
-func (repo GormRepository) DeleteRoom(roomID uuid.UUID) error {
+func (repo gormRepository) DeleteRoom(roomID uuid.UUID) error {
 	return deleteRoom(repo.db, roomID)
 }
 
-func (repo GormRepository) GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
+func (repo gormRepository) GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
 	var room *Room
 	var err error
 	if excludeEventID == uuid.Nil {
@@ -72,7 +72,7 @@ func (repo GormRepository) GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (
 	return &r, nil
 }
 
-func (repo GormRepository) GetAllRooms(start, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
+func (repo gormRepository) GetAllRooms(start, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
 	var rooms []*Room
 	var err error
 	if excludeEventID == uuid.Nil {

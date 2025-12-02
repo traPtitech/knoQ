@@ -11,27 +11,27 @@ func userPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Provider")
 }
 
-func (repo *GormRepository) SaveUser(user User) (*User, error) {
+func (repo *gormRepository) SaveUser(user User) (*User, error) {
 	u, err := saveUser(repo.db, &user)
 	return u, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) error {
+func (repo *gormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) error {
 	err := updateiCalSecret(repo.db, userID, secret)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetUser(userID uuid.UUID) (*User, error) {
+func (repo *gormRepository) GetUser(userID uuid.UUID) (*User, error) {
 	u, err := getUser(userPreload(repo.db), userID)
 	return u, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllUsers(onlyActive bool) ([]*User, error) {
+func (repo *gormRepository) GetAllUsers(onlyActive bool) ([]*User, error) {
 	us, err := getAllUsers(userPreload(repo.db), onlyActive)
 	return us, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) SyncUsers(users []*User) error {
+func (repo *gormRepository) SyncUsers(users []*User) error {
 	err := repo.db.Transaction(func(tx *gorm.DB) error {
 		existingUsers, err := getAllUsers(tx, false)
 		if err != nil {
@@ -110,7 +110,7 @@ func getAllUsers(db *gorm.DB, onlyActive bool) ([]*User, error) {
 	return users, err
 }
 
-func (repo *GormRepository) GrantPrivilege(userID uuid.UUID) error {
+func (repo *gormRepository) GrantPrivilege(userID uuid.UUID) error {
 	err := grantPrivilege(repo.db, userID)
 	return defaultErrorHandling(err)
 }
