@@ -4,7 +4,7 @@ info:
   title: traP knoQ
   description: |
     This is a sample knoQ server.
-  version: 2.1.5
+  version: 2.2.0
 
 servers:
   - url: http://knoq.trap.jp/api
@@ -436,46 +436,6 @@ paths:
         '404':
           description: Not Found
 
-  /draft-events/{draftEventID}/tags:
-    parameters:
-      - $ref: '#/components/parameters/draftEventID'
-    post:
-      tags:
-        - draft-events
-      operationId: addDraftEventTag
-      summary: タグを追加
-      requestBody:
-        $ref: '#/components/requestBodies/EventTag'
-      responses:
-        '204':
-          $ref: '#/components/responses/Nocontent'
-        '403':
-          description: Forbidden
-        '404':
-          description: Not Found
-
-  /draft-events/{draftEventID}/tags/{tagName}:
-    parameters:
-      - $ref: '#/components/parameters/draftEventID'
-      - name: tagName
-        in: path
-        required: true
-        schema:
-          type: string
-    delete:
-      tags:
-        - draft-events
-      operationId: deleteDraftEventTag
-      summary: タグを削除
-      description: locked=falseだけ
-      responses:
-        '204':
-          $ref: '#/components/responses/Nocontent'
-        '403':
-          description: Forbidden
-        '404':
-          description: Not Found
-
   /draft-events/{draftEventID}/availability:
     parameters:
       - $ref: '#/components/parameters/draftEventID'
@@ -879,7 +839,7 @@ paths:
         - name: code
           in: query
           required: true
-          description: OAuth2.0のcosde
+          description: OAuth2.0のcode
           schema:
             type: string
       responses:
@@ -1255,8 +1215,6 @@ components:
           type: integer
           nullable: true
           description: リマインド時間（イベント開始の何分前か）
-        draftEventId:
-          $ref: '#/components/schemas/UUID'
         isCancelled:
           type: boolean
           description: この回がキャンセルされているか（繰り返しイベント展開時）
@@ -1347,8 +1305,6 @@ components:
           type: integer
           nullable: true
           description: リマインド時間（イベント開始の何分前か）
-        draftEventId:
-          $ref: '#/components/schemas/UUID'
       required:
         - eventId
         - name
@@ -1407,8 +1363,6 @@ components:
         reminderMinutes:
           type: integer
           nullable: true
-        draftEventId:
-          $ref: '#/components/schemas/UUID'
       required:
         - name
         - description
@@ -1498,6 +1452,10 @@ components:
           type: string
           nullable: true
           description: 変更後の場所
+        note:
+          type: string
+          nullable: true
+          description: 備考
         createdAt:
           $ref: '#/components/schemas/DateTime'
       required:
@@ -1536,13 +1494,6 @@ components:
         - confirmed
       description: ステータス（open=調整中, closed=締切済み, confirmed=イベント確定済み）
 
-    TimeSlotUnit:
-      type: string
-      enum:
-        - 30min
-        - class_period
-      default: 30min
-      description: 時間の刻み方（30min=30分単位, class_period=大学の授業時程）
 
     RequestCandidateSlot:
       type: object
@@ -1570,7 +1521,7 @@ components:
 
     CandidateSlot:
       type: object
-      description: 候補スロット（サーバーがtimeSlotUnitに基づいて分割した細かい時間枠）
+      description: 候補スロット
       properties:
         slotId:
           $ref: '#/components/schemas/UUID'
@@ -1592,8 +1543,6 @@ components:
         name:
           type: string
           example: 第n回進捗回
-        groupId:
-          $ref: '#/components/schemas/UUID'
         deadline:
           $ref: '#/components/schemas/DateTime'
         status:
@@ -1615,7 +1564,6 @@ components:
       required:
         - draftEventId
         - name
-        - groupId
         - deadline
         - status
         - respondedCount
@@ -1637,26 +1585,16 @@ components:
         description:
           type: string
           example: 第n回の進捗会です。
-        groupId:
-          $ref: '#/components/schemas/UUID'
-        group:
-          $ref: '#/components/schemas/ResponseGroup'
-        roomId:
-          $ref: '#/components/schemas/UUID'
-        room:
-          $ref: '#/components/schemas/ResponseRoom'
         open:
           type: boolean
           description: グループ外のユーザーが参加予定を出来るか
         deadline:
           $ref: '#/components/schemas/DateTime'
-        timeSlotUnit:
-          $ref: '#/components/schemas/TimeSlotUnit'
         candidateSlots:
           type: array
           items:
             $ref: '#/components/schemas/CandidateSlot'
-          description: 候補スロットの一覧（timeSlotUnitに基づいて分割済み）
+          description: 候補スロットの一覧
         status:
           $ref: '#/components/schemas/DraftEventStatus'
         respondedCount:
@@ -1667,10 +1605,6 @@ components:
           $ref: '#/components/schemas/UserIdArray'
         invitees:
           $ref: '#/components/schemas/UserIdArray'
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/EventTag'
         createdBy:
           $ref: '#/components/schemas/UUID'
         createdAt:
@@ -1680,16 +1614,13 @@ components:
       required:
         - draftEventId
         - name
-        - groupId
         - deadline
-        - timeSlotUnit
         - candidateSlots
         - status
         - respondedCount
         - totalInvitees
         - admins
         - invitees
-        - tags
         - createdBy
         - createdAt
         - updatedAt
@@ -1703,21 +1634,15 @@ components:
         description:
           type: string
           example: 第n回の進捗会です。
-        groupId:
-          $ref: '#/components/schemas/UUID'
-        roomId:
-          $ref: '#/components/schemas/UUID'
         open:
           type: boolean
         deadline:
           $ref: '#/components/schemas/DateTime'
-        timeSlotUnit:
-          $ref: '#/components/schemas/TimeSlotUnit'
         candidateSlots:
           type: array
           items:
             $ref: '#/components/schemas/RequestCandidateSlot'
-          description: 候補日時の枠（サーバー側でtimeSlotUnitに基づいて分割される）
+          description: 候補日時の枠
         admins:
           $ref: '#/components/schemas/UserIdArray'
         invitees:
@@ -1728,7 +1653,6 @@ components:
             $ref: '#/components/schemas/RequestEventTag'
       required:
         - name
-        - groupId
         - deadline
         - candidateSlots
         - admins
@@ -1751,13 +1675,11 @@ components:
           type: boolean
         deadline:
           $ref: '#/components/schemas/DateTime'
-        timeSlotUnit:
-          $ref: '#/components/schemas/TimeSlotUnit'
         additionalCandidateSlots:
           type: array
           items:
             $ref: '#/components/schemas/RequestCandidateSlot'
-          description: 追加する候補日時の枠（サーバー側でtimeSlotUnitに基づいて分割される）
+          description: 追加する候補日時の枠
         invitees:
           $ref: '#/components/schemas/UserIdArray'
 
@@ -1882,7 +1804,6 @@ components:
     IcalToken:
       type: string
       description: userIdとicalのsecretをつなげたもの
-
 
   requestBodies:
     Group:
