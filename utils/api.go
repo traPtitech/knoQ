@@ -17,7 +17,7 @@ func RequestWebhook(message, secret, channelID, webhookID string, embed int) err
 	apiClient := traq.NewAPIClient(configuration)
 
 	xTRAQSignature := calcSignature(message, secret)
-	res, err := apiClient.WebhookApi.PostWebhook(context.TODO(), webhookID).
+	res, err := apiClient.WebhookAPI.PostWebhook(context.TODO(), webhookID).
 		XTRAQChannelId(channelID).XTRAQSignature(xTRAQSignature).
 		Embed(int32(embed)).Body(message).Execute()
 	if err != nil {

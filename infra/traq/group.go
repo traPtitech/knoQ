@@ -13,7 +13,7 @@ func (repo *TraQRepository) GetGroup(groupID uuid.UUID) (*traq.UserGroup, error)
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	// TODO: 一定期間キャッシュする
-	group, resp, err := apiClient.GroupApi.GetUserGroup(ctx, groupID.String()).Execute()
+	group, resp, err := apiClient.GroupAPI.GetUserGroup(ctx, groupID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (repo *TraQRepository) GetAllGroups() ([]traq.UserGroup, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, repo.ServerAccessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
 	// TODO: 一定期間キャッシュする
-	groups, resp, err := apiClient.GroupApi.GetUserGroups(ctx).Execute()
+	groups, resp, err := apiClient.GroupAPI.GetUserGroups(ctx).Execute()
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (repo *TraQRepository) GetAllGroups() ([]traq.UserGroup, error) {
 func (repo *TraQRepository) GetUserBelongingGroupIDs(token *oauth2.Token, userID uuid.UUID) ([]uuid.UUID, error) {
 	ctx := context.WithValue(context.TODO(), traq.ContextAccessToken, token.AccessToken)
 	apiClient := traq.NewAPIClient(traq.NewConfiguration())
-	user, resp, err := apiClient.UserApi.GetUser(ctx, userID.String()).Execute()
+	user, resp, err := apiClient.UserAPI.GetUser(ctx, userID.String()).Execute()
 	if err != nil {
 		return nil, err
 	}
