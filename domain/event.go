@@ -53,7 +53,7 @@ func (e *Event) RoomTimeConsistency() bool {
 	for _, t := range times {
 		start := t.TimeStart
 		end := t.TimeEnd
-		if start.Equal(e.TimeStart) || start.Before(e.TimeStart) &&
+		if (start.Equal(e.TimeStart) || start.Before(e.TimeStart)) &&
 			(end.Equal(e.TimeEnd) || end.After(e.TimeEnd)) {
 			return true
 		}
