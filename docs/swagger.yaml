@@ -17,8 +17,6 @@ tags:
     description: traPが借りている講義室
   - name: events
     description: 予約
-  - name: event-exceptions
-    description: 繰り返しイベントの例外（個別回の変更・キャンセル）
   - name: draft-events
     description: 日程調整中のdraftイベント
   - name: availability
@@ -165,9 +163,7 @@ paths:
       tags:
         - events
       summary: 使用宣言の情報を取得
-      description: |
-        使用宣言の情報を取得。
-        繰り返しイベントは指定期間内の各回に展開されて返される。
+      description: 使用宣言の情報を取得。
       operationId: getEvents
       parameters:
         - $ref: '#/components/parameters/dateBegin'
@@ -180,8 +176,7 @@ paths:
       tags:
         - events
       summary: 部屋の使用宣言を行う
-      description: |
-        部屋の使用宣言を行う。
+      description: 部屋の使用宣言を行う。
       operationId: addEvents
       requestBody:
         $ref: '#/components/requestBodies/Event'
@@ -209,10 +204,7 @@ paths:
       tags:
         - events
       summary: 部屋の使用宣言を更新
-      description: |
-        adminsのみ。
-        繰り返しイベントの場合，全ての回に影響する。
-        個別の回のみ変更する場合は `/events/{eventID}/exceptions` を使用する。
+      description: adminsのみ。
       operationId: updateEvent
       requestBody:
         $ref: '#/components/requestBodies/Event'
@@ -227,9 +219,7 @@ paths:
       tags:
         - events
       summary: 使用宣言を削除
-      description: |
-        adminsのみ。
-        繰り返しイベントの場合，全ての回が削除される。
+      description: adminsのみ。
       operationId: deleteEvent
       responses:
         '204':
@@ -285,77 +275,6 @@ paths:
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
-
-  /events/{eventID}/exceptions:
-    parameters:
-      - $ref: '#/components/parameters/eventID'
-    post:
-      tags:
-        - event-exceptions
-      operationId: addEventException
-      summary: 例外作成（個別回の変更・キャンセル）
-      description: |
-        繰り返しイベントの特定の回を変更またはキャンセルする。
-        `originalTimeStart` で対象の回を指定する。
-        adminsのみ。
-      requestBody:
-        $ref: '#/components/requestBodies/EventException'
-      responses:
-        '201':
-          $ref: '#/components/responses/EventException'
-        '400':
-          description: Bad Request
-        '403':
-          description: Forbidden
-        '404':
-          description: Not Found
-        '409':
-          description: Conflict（指定された回には既に例外が存在する）
-
-  /events/{eventID}/exceptions/{exceptionID}:
-    parameters:
-      - $ref: '#/components/parameters/eventID'
-      - $ref: '#/components/parameters/exceptionID'
-    get:
-      tags:
-        - event-exceptions
-      operationId: getEventException
-      summary: 例外取得
-      responses:
-        '200':
-          $ref: '#/components/responses/EventException'
-        '404':
-          description: Not Found
-    put:
-      tags:
-        - event-exceptions
-      operationId: updateEventException
-      summary: 例外更新
-      description: adminsのみ
-      requestBody:
-        $ref: '#/components/requestBodies/EventException'
-      responses:
-        '200':
-          $ref: '#/components/responses/EventException'
-        '400':
-          description: Bad Request
-        '403':
-          description: Forbidden
-        '404':
-          description: Not Found
-    delete:
-      tags:
-        - event-exceptions
-      operationId: deleteEventException
-      summary: 例外削除
-      description: adminsのみ
-      responses:
-        '204':
-          $ref: '#/components/responses/Nocontent'
-        '403':
-          description: Forbidden
-        '404':
-          description: Not Found
 
   /draft-events:
     post:
@@ -1151,15 +1070,6 @@ components:
       required:
         - schedule
 
-    RRule:
-      type: string
-      nullable: true
-      description: |
-        RFC 5545 RRULE形式の繰り返しルール。
-        例: `FREQ=WEEKLY;BYDAY=MO,WE,FR`
-      example: 'FREQ=WEEKLY;BYDAY=MO'
-      maxLength: 255
-
     ResponseEvent:
       type: object
       properties:
@@ -1202,29 +1112,6 @@ components:
           $ref: '#/components/schemas/DateTime'
         updatedAt:
           $ref: '#/components/schemas/DateTime'
-        isRecurring:
-          type: boolean
-          description: 繰り返しイベントかどうか
-          default: false
-        rrule:
-          $ref: '#/components/schemas/RRule'
-        durationMinutes:
-          type: integer
-          description: 所要時間（分）
-        reminderMinutes:
-          type: integer
-          nullable: true
-          description: リマインド時間（イベント開始の何分前か）
-        isCancelled:
-          type: boolean
-          description: この回がキャンセルされているか（繰り返しイベント展開時）
-        isModified:
-          type: boolean
-          description: この回が変更されているか（繰り返しイベント展開時）
-        originalTimeStart:
-          $ref: '#/components/schemas/DateTime'
-        exceptionId:
-          $ref: '#/components/schemas/UUID'
       required:
         - eventId
         - name
@@ -1242,8 +1129,6 @@ components:
         - createdBy
         - createdAt
         - updatedAt
-        - isRecurring
-        - durationMinutes
 
     ResponseEventDetail:
       type: object
@@ -1292,19 +1177,6 @@ components:
           $ref: '#/components/schemas/DateTime'
         updatedAt:
           $ref: '#/components/schemas/DateTime'
-        isRecurring:
-          type: boolean
-          description: 繰り返しイベントかどうか
-          default: false
-        rrule:
-          $ref: '#/components/schemas/RRule'
-        durationMinutes:
-          type: integer
-          description: 所要時間（分）
-        reminderMinutes:
-          type: integer
-          nullable: true
-          description: リマインド時間（イベント開始の何分前か）
       required:
         - eventId
         - name
@@ -1323,8 +1195,6 @@ components:
         - createdBy
         - createdAt
         - updatedAt
-        - isRecurring
-        - durationMinutes
 
     RequestEventInstant:
       type: object
@@ -1355,14 +1225,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RequestEventTag'
-        isRecurring:
-          type: boolean
-          default: false
-        rrule:
-          $ref: '#/components/schemas/RRule'
-        reminderMinutes:
-          type: integer
-          nullable: true
       required:
         - name
         - description
@@ -1401,14 +1263,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RequestEventTag'
-        isRecurring:
-          type: boolean
-          default: false
-        rrule:
-          $ref: '#/components/schemas/RRule'
-        reminderMinutes:
-          type: integer
-          nullable: true
       required:
         - name
         - description
@@ -1424,68 +1278,6 @@ components:
         - $ref: '#/components/schemas/RequestEventInstant'
         - $ref: '#/components/schemas/RequestEventStock'
 
-    ExceptionType:
-      type: string
-      enum:
-        - cancelled
-        - modified
-      description: 例外タイプ（cancelled=キャンセル, modified=変更）
-
-    ResponseEventException:
-      type: object
-      properties:
-        exceptionId:
-          $ref: '#/components/schemas/UUID'
-        eventId:
-          $ref: '#/components/schemas/UUID'
-        originalTimeStart:
-          $ref: '#/components/schemas/DateTime'
-        exceptionType:
-          $ref: '#/components/schemas/ExceptionType'
-        timeStart:
-          $ref: '#/components/schemas/DateTime'
-        timeEnd:
-          $ref: '#/components/schemas/DateTime'
-        roomId:
-          $ref: '#/components/schemas/UUID'
-        place:
-          type: string
-          nullable: true
-          description: 変更後の場所
-        note:
-          type: string
-          nullable: true
-          description: 備考
-        createdAt:
-          $ref: '#/components/schemas/DateTime'
-      required:
-        - exceptionId
-        - eventId
-        - originalTimeStart
-        - exceptionType
-        - createdAt
-
-    RequestEventException:
-      type: object
-      properties:
-        originalTimeStart:
-          $ref: '#/components/schemas/DateTime'
-        exceptionType:
-          $ref: '#/components/schemas/ExceptionType'
-        timeStart:
-          $ref: '#/components/schemas/DateTime'
-        timeEnd:
-          $ref: '#/components/schemas/DateTime'
-        roomId:
-          $ref: '#/components/schemas/UUID'
-        note:
-          type: string
-          maxLength: 500
-          description: 備考
-      required:
-        - originalTimeStart
-        - exceptionType
-
     DraftEventStatus:
       type: string
       enum:
@@ -1493,7 +1285,6 @@ components:
         - closed
         - confirmed
       description: ステータス（open=調整中, closed=締切済み, confirmed=イベント確定済み）
-
 
     RequestCandidateSlot:
       type: object
@@ -1669,8 +1460,6 @@ components:
         description:
           type: string
           example: 第n回の進捗会です。
-        roomId:
-          $ref: '#/components/schemas/UUID'
         open:
           type: boolean
         deadline:
@@ -1854,14 +1643,6 @@ components:
           schema:
             $ref: '#/components/schemas/RequestSchedule'
 
-    EventException:
-      description: 繰り返しイベントの例外
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/RequestEventException'
-
     DraftEvent:
       description: draftイベントの作成
       required: true
@@ -1983,22 +1764,6 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/ResponseTag'
-
-    EventException:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ResponseEventException'
-
-    EventExceptionArray:
-      description: successful operation
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/ResponseEventException'
 
     DraftEvent:
       description: successful operation
@@ -2153,15 +1918,6 @@ components:
       name: eventID
       in: path
       required: true
-      schema:
-        type: string
-        format: uuid
-
-    exceptionID:
-      name: exceptionID
-      in: path
-      required: true
-      description: イベント例外ID
       schema:
         type: string
         format: uuid
