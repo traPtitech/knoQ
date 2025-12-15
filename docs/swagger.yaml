@@ -477,6 +477,21 @@ paths:
         '200':
           $ref: '#/components/responses/EventArray'
 
+  /rooms/{roomID}/events:
+    parameters:
+      - $ref: '#/components/parameters/roomID'
+    get:
+      tags:
+        - events
+      parameters:
+        - $ref: '#/components/parameters/dateBegin'
+        - $ref: '#/components/parameters/dateEnd'
+      operationId: getEventsOfRoom
+      description: 指定した部屋で行われるイベントを返す
+      responses:
+        '200':
+          $ref: '#/components/responses/EventArray'
+
   /groups/{groupID}/events:
     parameters:
       - $ref: '#/components/parameters/groupID'
