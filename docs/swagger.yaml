@@ -446,19 +446,6 @@ paths:
         '200':
           $ref: '#/components/responses/DraftEventArray'
 
-  /groups/{groupID}/draft-events:
-    parameters:
-      - $ref: '#/components/parameters/groupID'
-    get:
-      tags:
-        - draft-events
-      parameters:
-        - $ref: '#/components/parameters/draftEventStatus'
-      operationId: getDraftEventsOfGroup
-      description: グループのdraftイベントを取得
-      responses:
-        '200':
-          $ref: '#/components/responses/DraftEventArray'
 
   /users/me/events:
     get:
