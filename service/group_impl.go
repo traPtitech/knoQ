@@ -11,8 +11,7 @@ import (
 
 var traPGroupID = uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 
-func (s *service) CreateGroup(ctx context.Context, params domain.WriteGroupParams) (*domain.Group, error) {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) CreateGroup(ctx context.Context, reqID uuid.UUID, params domain.WriteGroupParams) (*domain.Group, error) {
 
 	p := domain.UpsertGroupArgs{
 		WriteGroupParams: params,
@@ -26,10 +25,8 @@ func (s *service) CreateGroup(ctx context.Context, params domain.WriteGroupParam
 	return g, nil
 }
 
-func (s *service) UpdateGroup(ctx context.Context, groupID uuid.UUID, params domain.WriteGroupParams) (*domain.Group, error) {
-	reqID, _ := domain.GetUserID(ctx)
-
-	if !s.IsGroupAdmins(ctx, groupID) {
+func (s *service) UpdateGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID, params domain.WriteGroupParams) (*domain.Group, error) {
+	if !s.IsGroupAdmins(ctx, reqID, groupID) {
 		return nil, domain.ErrForbidden
 	}
 	p := domain.UpsertGroupArgs{
@@ -45,8 +42,7 @@ func (s *service) UpdateGroup(ctx context.Context, groupID uuid.UUID, params dom
 }
 
 // AddMeToGroup add me to that group if that group is open.
-func (s *service) AddMeToGroup(ctx context.Context, groupID uuid.UUID) error {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) AddMeToGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error {
 
 	if !s.IsGroupJoinFreely(ctx, groupID) {
 		return domain.ErrForbidden
@@ -54,17 +50,15 @@ func (s *service) AddMeToGroup(ctx context.Context, groupID uuid.UUID) error {
 	return s.GormRepo.AddMemberToGroup(groupID, reqID)
 }
 
-func (s *service) DeleteGroup(ctx context.Context, groupID uuid.UUID) error {
-	if !s.IsGroupAdmins(ctx, groupID) {
+func (s *service) DeleteGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error {
+	if !s.IsGroupAdmins(ctx, reqID, groupID) {
 		return domain.ErrForbidden
 	}
 	return s.GormRepo.DeleteGroup(groupID)
 }
 
 // DeleteMeGroup delete me in that group if that group is open.
-func (s *service) DeleteMeGroup(ctx context.Context, groupID uuid.UUID) error {
-	reqID, _ := domain.GetUserID(ctx)
-
+func (s *service) DeleteMeGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error {
 	if !s.IsGroupJoinFreely(ctx, groupID) {
 		return domain.ErrForbidden
 	}
@@ -122,8 +116,7 @@ func (s *service) GetAllGroups(ctx context.Context) ([]*domain.Group, error) {
 	return groups, nil
 }
 
-func (s *service) GetUserBelongingGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) GetUserBelongingGroupIDs(ctx context.Context, reqID uuid.UUID, userID uuid.UUID) ([]uuid.UUID, error) {
 
 	t, err := s.GormRepo.GetToken(reqID)
 	if err != nil {
@@ -145,9 +138,7 @@ func (s *service) GetUserAdminGroupIDs(ctx context.Context, userID uuid.UUID) ([
 	return s.GormRepo.GetAdminGroupIDs(userID)
 }
 
-func (s *service) IsGroupAdmins(ctx context.Context, groupID uuid.UUID) bool {
-	reqID, _ := domain.GetUserID(ctx)
-
+func (s *service) IsGroupAdmins(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) bool {
 	group, err := s.GormRepo.GetGroup(groupID)
 	if err != nil {
 		return false

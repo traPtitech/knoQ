@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 
+	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/router/presentation"
 
 	"github.com/labstack/echo/v4"
@@ -17,7 +18,8 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 
 	roomParams := presentation.ConvRoomReqTodomainWriteRoomParams(req)
 	ctx := c.Request().Context()
-	room, err := h.Service.CreateUnVerifiedRoom(ctx, roomParams)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	room, err := h.Service.CreateUnVerifiedRoom(ctx, reqID, roomParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -39,6 +41,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 	// 構造体の変換
 	RoomsRes := make([]presentation.RoomRes, 0, len(req))
 	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	for _, v := range req {
 
 		params, err := presentation.ChangeRoomCSVReqTodomainWriteRoomParams(v, userID)
@@ -46,7 +49,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 			return badRequest(err)
 		}
 
-		room, err := h.Service.CreateVerifiedRoom(ctx, *params)
+		room, err := h.Service.CreateVerifiedRoom(ctx, reqID, *params)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
@@ -105,7 +108,8 @@ func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	err = h.Service.DeleteRoom(ctx, roomID)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.DeleteRoom(ctx, reqID, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -120,8 +124,8 @@ func (h *Handlers) HandleVerifyRoom(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-
-	err = h.Service.VerifyRoom(ctx, roomID)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.VerifyRoom(ctx, reqID, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -135,8 +139,8 @@ func (h *Handlers) HandleUnVerifyRoom(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-
-	err = h.Service.UnVerifyRoom(ctx, roomID)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.UnVerifyRoom(ctx, reqID, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

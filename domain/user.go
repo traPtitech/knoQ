@@ -30,16 +30,16 @@ type UserService interface {
 	LoginUser(ctx context.Context, query, state, codeVerifier string) (*User, error)
 
 	GetUser(ctx context.Context, userID uuid.UUID) (*User, error)
-	GetUserMe(ctx context.Context) (*User, error)
+	GetUserMe(ctx context.Context, reqID uuid.UUID) (*User, error)
 	GetAllUsers(ctx context.Context, includeSuspend, includeBot bool) ([]*User, error)
 	// ReplaceToken(userID uuid.UUID, token string) error
 	// GetToken(info *ConInfo) (string, error)
-	ReNewMyiCalSecret(ctx context.Context) (string, error)
-	GetMyiCalSecret(ctx context.Context) (string, error)
+	ReNewMyiCalSecret(ctx context.Context, reqID uuid.UUID) (string, error)
+	GetMyiCalSecret(ctx context.Context, reqID uuid.UUID) (string, error)
 
-	IsPrivilege(ctx context.Context) bool
+	IsPrivilege(ctx context.Context, reqID uuid.UUID) bool
 	GrantPrivilege(ctx context.Context, userID uuid.UUID) error
-	SyncUsers(ctx context.Context) error
+	SyncUsers(ctx context.Context, reqID uuid.UUID) error
 }
 
 type TokenArgs struct {

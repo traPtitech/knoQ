@@ -13,8 +13,8 @@ import (
 
 const traQIssuerName = "traQ"
 
-func (s *service) SyncUsers(ctx context.Context) error {
-	if !s.IsPrivilege(ctx) {
+func (s *service) SyncUsers(ctx context.Context, reqID uuid.UUID) error {
+	if !s.IsPrivilege(ctx, reqID) {
 		return domain.ErrForbidden
 	}
 	traQUsers, err := s.TraQRepo.GetUsers(true)
@@ -99,8 +99,7 @@ func (s *service) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, 
 	return nil, errors.New("not implemented")
 }
 
-func (s *service) GetUserMe(ctx context.Context) (*domain.User, error) {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) GetUserMe(ctx context.Context, reqID uuid.UUID) (*domain.User, error) {
 	return s.GetUser(ctx, reqID)
 }
 
@@ -134,15 +133,13 @@ func (s *service) GetAllUsers(ctx context.Context, includeSuspend, includeBot bo
 	return users, nil
 }
 
-func (s *service) ReNewMyiCalSecret(ctx context.Context) (secret string, err error) {
+func (s *service) ReNewMyiCalSecret(ctx context.Context, reqID uuid.UUID) (secret string, err error) {
 	secret = random.AlphaNumeric(16, true)
-	reqID, _ := domain.GetUserID(ctx)
 	err = s.GormRepo.UpdateiCalSecret(reqID, secret)
 	return
 }
 
-func (s *service) GetMyiCalSecret(ctx context.Context) (string, error) {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) GetMyiCalSecret(ctx context.Context, reqID uuid.UUID) (string, error) {
 	user, err := s.GormRepo.GetUser(reqID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
@@ -161,9 +158,7 @@ func (s *service) GetMyiCalSecret(ctx context.Context) (string, error) {
 	return secret, nil
 }
 
-func (s *service) IsPrivilege(ctx context.Context) bool {
-	reqID, _ := domain.GetUserID(ctx)
-
+func (s *service) IsPrivilege(ctx context.Context, reqID uuid.UUID) bool {
 	user, err := s.GormRepo.GetUser(reqID)
 	if err != nil {
 		return false

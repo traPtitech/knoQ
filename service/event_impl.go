@@ -8,8 +8,7 @@ import (
 	"github.com/traPtitech/knoQ/domain/filters"
 )
 
-func (s *service) CreateEvent(ctx context.Context, params domain.WriteEventParams) (*domain.Event, error) {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domain.WriteEventParams) (*domain.Event, error) {
 	// groupの確認
 	group, err := s.GetGroup(ctx, params.GroupID)
 	if err != nil {
@@ -30,10 +29,9 @@ func (s *service) CreateEvent(ctx context.Context, params domain.WriteEventParam
 	return s.GetEvent(ctx, event.ID)
 }
 
-func (s *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params domain.WriteEventParams) (*domain.Event, error) {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, params domain.WriteEventParams) (*domain.Event, error) {
 
-	if !s.IsEventAdmins(ctx, eventID) {
+	if !s.IsEventAdmins(ctx, reqID, eventID) {
 		return nil, domain.ErrForbidden
 	}
 
@@ -71,9 +69,9 @@ func (s *service) UpdateEvent(ctx context.Context, eventID uuid.UUID, params dom
 	return s.GetEvent(ctx, event.ID)
 }
 
-func (s *service) AddEventTag(ctx context.Context, eventID uuid.UUID, tagName string, locked bool) error {
+func (s *service) AddEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, tagName string, locked bool) error {
 
-	if locked && !s.IsEventAdmins(ctx, eventID) {
+	if locked && !s.IsEventAdmins(ctx, reqID, eventID) {
 		return domain.ErrForbidden
 	}
 	return s.GormRepo.AddEventTag(eventID, domain.EventTagParams{
@@ -81,8 +79,8 @@ func (s *service) AddEventTag(ctx context.Context, eventID uuid.UUID, tagName st
 	})
 }
 
-func (s *service) DeleteEvent(ctx context.Context, eventID uuid.UUID) error {
-	if !s.IsEventAdmins(ctx, eventID) {
+func (s *service) DeleteEvent(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID) error {
+	if !s.IsEventAdmins(ctx, reqID, eventID) {
 		return domain.ErrForbidden
 	}
 
@@ -90,8 +88,8 @@ func (s *service) DeleteEvent(ctx context.Context, eventID uuid.UUID) error {
 }
 
 // DeleteTagInEvent delete a tag in that Event
-func (s *service) DeleteEventTag(ctx context.Context, eventID uuid.UUID, tagName string) error {
-	deleteLocked := s.IsEventAdmins(ctx, eventID)
+func (s *service) DeleteEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, tagName string) error {
+	deleteLocked := s.IsEventAdmins(ctx, reqID, eventID)
 
 	return s.GormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
 }
@@ -127,9 +125,7 @@ func (s *service) GetEvent(ctx context.Context, eventID uuid.UUID) (*domain.Even
 	return event, nil
 }
 
-func (s *service) UpsertMeEventSchedule(ctx context.Context, eventID uuid.UUID, schedule domain.ScheduleStatus) error {
-	reqID, _ := domain.GetUserID(ctx)
-
+func (s *service) UpsertMeEventSchedule(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, schedule domain.ScheduleStatus) error {
 	event, err := s.GetEvent(ctx, eventID)
 	if err != nil {
 		return err
@@ -142,8 +138,7 @@ func (s *service) UpsertMeEventSchedule(ctx context.Context, eventID uuid.UUID, 
 	return defaultErrorHandling(err)
 }
 
-func (s *service) GetEvents(ctx context.Context, expr filters.Expr) ([]*domain.Event, error) {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) GetEvents(ctx context.Context, reqID uuid.UUID, expr filters.Expr) ([]*domain.Event, error) {
 
 	expr = addTraQGroupIDs(s, reqID, expr)
 
@@ -155,9 +150,7 @@ func (s *service) GetEvents(ctx context.Context, expr filters.Expr) ([]*domain.E
 	return es, nil
 }
 
-func (s *service) GetEventsWithGroup(ctx context.Context, expr filters.Expr) ([]*domain.Event, error) {
-	reqID, _ := domain.GetUserID(ctx)
-
+func (s *service) GetEventsWithGroup(ctx context.Context, reqID uuid.UUID, expr filters.Expr) ([]*domain.Event, error) {
 	expr = addTraQGroupIDs(s, reqID, expr)
 
 	events, err := s.GormRepo.GetAllEvents(expr)
@@ -196,9 +189,7 @@ func (s *service) GetEventsWithGroup(ctx context.Context, expr filters.Expr) ([]
 	return events, nil
 }
 
-func (s *service) IsEventAdmins(ctx context.Context, eventID uuid.UUID) bool {
-	reqID, _ := domain.GetUserID(ctx)
-
+func (s *service) IsEventAdmins(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID) bool {
 	event, err := s.GormRepo.GetEvent(eventID)
 	if err != nil {
 		return false

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/router/presentation"
 
@@ -15,7 +16,8 @@ import (
 // 認証状態を確認
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 	ctx := c.Request().Context()
-	user, err := h.Service.GetUserMe(ctx)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	user, err := h.Service.GetUserMe(ctx, reqID)
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidToken) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
@@ -43,8 +45,8 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 
 func (h *Handlers) HandleGetiCal(c echo.Context) error {
 	ctx := c.Request().Context()
-
-	secret, err := h.Service.GetMyiCalSecret(ctx)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	secret, err := h.Service.GetMyiCalSecret(ctx, reqID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -57,7 +59,8 @@ func (h *Handlers) HandleGetiCal(c echo.Context) error {
 
 func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 	ctx := c.Request().Context()
-	secret, err := h.Service.ReNewMyiCalSecret(ctx)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	secret, err := h.Service.ReNewMyiCalSecret(ctx, reqID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -73,7 +76,8 @@ func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 // 活動中のユーザーを追加する(userIDをDBに保存)
 func (h *Handlers) HandleSyncUser(c echo.Context) error {
 	ctx := c.Request().Context()
-	err := h.Service.SyncUsers(ctx)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err := h.Service.SyncUsers(ctx, reqID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

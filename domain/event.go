@@ -87,22 +87,22 @@ type EventTagParams struct {
 
 // EventRepository is implemented by ...
 type EventService interface {
-	CreateEvent(ctx context.Context, eventParams WriteEventParams) (*Event, error)
+	CreateEvent(ctx context.Context, reqID uuid.UUID, eventParams WriteEventParams) (*Event, error)
 
-	UpdateEvent(ctx context.Context, eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
-	AddEventTag(ctx context.Context, eventID uuid.UUID, tagName string, locked bool) error
+	UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
+	AddEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, tagName string, locked bool) error
 
-	DeleteEvent(ctx context.Context, eventID uuid.UUID) error
+	DeleteEvent(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID) error
 	// DeleteTagInEvent delete a tag in that Event
-	DeleteEventTag(ctx context.Context, eventID uuid.UUID, tagName string) error
+	DeleteEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, tagName string) error
 
-	UpsertMeEventSchedule(ctx context.Context, eventID uuid.UUID, schedule ScheduleStatus) error
+	UpsertMeEventSchedule(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, schedule ScheduleStatus) error
 
 	GetEvent(ctx context.Context, eventID uuid.UUID) (*Event, error)
-	GetEvents(ctx context.Context, expr filters.Expr) ([]*Event, error)
-	IsEventAdmins(ctx context.Context, eventID uuid.UUID) bool
+	GetEvents(ctx context.Context, reqID uuid.UUID, expr filters.Expr) ([]*Event, error)
+	IsEventAdmins(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID) bool
 
-	GetEventsWithGroup(ctx context.Context, expr filters.Expr) ([]*Event, error)
+	GetEventsWithGroup(ctx context.Context, reqID uuid.UUID, expr filters.Expr) ([]*Event, error)
 
 	// GetEventActivities(day int) ([]*Event, error)
 }

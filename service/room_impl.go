@@ -8,9 +8,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 )
 
-func (s *service) CreateUnVerifiedRoom(ctx context.Context, params domain.WriteRoomParams) (*domain.Room, error) {
-	reqID, _ := domain.GetUserID(ctx)
-
+func (s *service) CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
 	p := domain.CreateRoomArgs{
 		WriteRoomParams: params,
 		Verified:        false,
@@ -20,10 +18,9 @@ func (s *service) CreateUnVerifiedRoom(ctx context.Context, params domain.WriteR
 	return r, defaultErrorHandling(err)
 }
 
-func (s *service) CreateVerifiedRoom(ctx context.Context, params domain.WriteRoomParams) (*domain.Room, error) {
-	reqID, _ := domain.GetUserID(ctx)
+func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
 
-	if !s.IsPrivilege(ctx) {
+	if !s.IsPrivilege(ctx, reqID) {
 		return nil, domain.ErrForbidden
 	}
 	p := domain.CreateRoomArgs{
@@ -35,10 +32,8 @@ func (s *service) CreateVerifiedRoom(ctx context.Context, params domain.WriteRoo
 	return r, defaultErrorHandling(err)
 }
 
-func (s *service) UpdateRoom(ctx context.Context, roomID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
-	reqID, _ := domain.GetUserID(ctx)
-
-	if !s.IsRoomAdmins(ctx, roomID) {
+func (s *service) UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
+	if !s.IsRoomAdmins(ctx, reqID, roomID) {
 		return nil, domain.ErrForbidden
 	}
 
@@ -51,24 +46,24 @@ func (s *service) UpdateRoom(ctx context.Context, roomID uuid.UUID, params domai
 	return r, defaultErrorHandling(err)
 }
 
-func (s *service) VerifyRoom(ctx context.Context, roomID uuid.UUID) error {
-	if !s.IsPrivilege(ctx) {
+func (s *service) VerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error {
+	if !s.IsPrivilege(ctx, reqID) {
 		return domain.ErrForbidden
 	}
 	err := s.GormRepo.UpdateRoomVerified(roomID, true)
 	return defaultErrorHandling(err)
 }
 
-func (s *service) UnVerifyRoom(ctx context.Context, roomID uuid.UUID) error {
-	if !s.IsPrivilege(ctx) {
+func (s *service) UnVerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error {
+	if !s.IsPrivilege(ctx, reqID) {
 		return domain.ErrForbidden
 	}
 	err := s.GormRepo.UpdateRoomVerified(roomID, false)
 	return defaultErrorHandling(err)
 }
 
-func (s *service) DeleteRoom(ctx context.Context, roomID uuid.UUID) error {
-	if !s.IsRoomAdmins(ctx, roomID) {
+func (s *service) DeleteRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error {
+	if !s.IsRoomAdmins(ctx, reqID, roomID) {
 		return domain.ErrForbidden
 	}
 	err := s.GormRepo.DeleteRoom(roomID)
@@ -85,9 +80,7 @@ func (s *service) GetAllRooms(ctx context.Context, start time.Time, end time.Tim
 	return rs, defaultErrorHandling(err)
 }
 
-func (s *service) IsRoomAdmins(ctx context.Context, roomID uuid.UUID) bool {
-	reqID, _ := domain.GetUserID(ctx)
-
+func (s *service) IsRoomAdmins(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) bool {
 	room, err := s.GetRoom(ctx, roomID, uuid.Nil)
 	if err != nil {
 		return false

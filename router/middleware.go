@@ -80,11 +80,12 @@ func ServerVersionMiddleware(version string) echo.MiddlewareFunc {
 	}
 }
 
-func setUserID(c echo.Context, userID uuid.UUID) echo.Context {
-	ctx := domain.SetUserID(c.Request().Context(), userID)
-	c.SetRequest(c.Request().WithContext(ctx))
+const (
+	userIDKey string = "userID"
+)
 
-	return c
+func setUserID(c echo.Context, userID uuid.UUID) {
+	c.Set(userIDKey, userID)
 }
 
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
@@ -96,10 +97,10 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized(err, needAuthorization(true))
 		}
 
-		c = setUserID(c, userID)
+		setUserID(c, userID)
 
 		ctx := c.Request().Context()
-		user, err := h.Service.GetUserMe(ctx)
+		user, err := h.Service.GetUserMe(ctx, userID)
 		if err != nil {
 			return internalServerError(err)
 		}
@@ -118,7 +119,8 @@ func (h *Handlers) PrivilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFu
 	return func(c echo.Context) error {
 		// 判定
 		ctx := c.Request().Context()
-		if !h.Service.IsPrivilege(ctx) {
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsPrivilege(ctx, reqID) {
 			return forbidden(
 				errors.New("not admin"),
 				message("You are not admin user."),
@@ -138,7 +140,8 @@ func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 			return notFound(err)
 		}
 		ctx := c.Request().Context()
-		if !h.Service.IsGroupAdmins(ctx, groupID) {
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsGroupAdmins(ctx, reqID, groupID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
@@ -157,7 +160,9 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 			return notFound(err)
 		}
 
-		if !h.Service.IsEventAdmins(c.Request().Context(), eventID) {
+		ctx := c.Request().Context()
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsEventAdmins(ctx, reqID, eventID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -177,7 +182,8 @@ func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc 
 			return notFound(err)
 		}
 		ctx := c.Request().Context()
-		if !h.Service.IsRoomAdmins(ctx, roomID) {
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsRoomAdmins(ctx, reqID, roomID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),

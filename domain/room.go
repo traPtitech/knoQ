@@ -153,18 +153,18 @@ type WriteRoomParams struct {
 }
 
 type RoomService interface {
-	CreateUnVerifiedRoom(ctx context.Context, params WriteRoomParams) (*Room, error)
-	CreateVerifiedRoom(ctx context.Context, params WriteRoomParams) (*Room, error)
+	CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)
+	CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)
 
-	UpdateRoom(ctx context.Context, roomID uuid.UUID, params WriteRoomParams) (*Room, error)
-	VerifyRoom(ctx context.Context, roomID uuid.UUID) error
+	UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID, params WriteRoomParams) (*Room, error)
+	VerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
 	UnVerifyRoom(ctx context.Context, roomID uuid.UUID) error
 
-	DeleteRoom(ctx context.Context, roomID uuid.UUID) error
+	DeleteRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
 
 	GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
 	GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
-	IsRoomAdmins(ctx context.Context, roomID uuid.UUID) bool
+	IsRoomAdmins(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) bool
 }
 
 type CreateRoomArgs struct {

@@ -31,19 +31,19 @@ type WriteGroupParams struct {
 }
 
 type GroupService interface {
-	CreateGroup(ctx context.Context, groupParams WriteGroupParams) (*Group, error)
-	UpdateGroup(ctx context.Context, groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
+	CreateGroup(ctx context.Context, reqID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
+	UpdateGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
 	// AddMeToGroup add me to that group if that group is open.
-	AddMeToGroup(ctx context.Context, groupID uuid.UUID) error
-	DeleteGroup(ctx context.Context, groupID uuid.UUID) error
+	AddMeToGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error
+	DeleteGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error
 	// DeleteMeGroup delete me in that group if that group is open.
-	DeleteMeGroup(ctx context.Context, groupID uuid.UUID) error
+	DeleteMeGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error
 
 	GetGroup(ctx context.Context, groupID uuid.UUID) (*Group, error)
 	GetAllGroups(ctx context.Context) ([]*Group, error)
-	GetUserBelongingGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	GetUserBelongingGroupIDs(ctx context.Context, reqID uuid.UUID, userID uuid.UUID) ([]uuid.UUID, error)
 	GetUserAdminGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
-	IsGroupAdmins(ctx context.Context, groupID uuid.UUID) bool
+	IsGroupAdmins(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) bool
 	GetGradeGroupNames(ctx context.Context) ([]string, error)
 }
 

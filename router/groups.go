@@ -18,7 +18,8 @@ func (h *Handlers) HandlePostGroup(c echo.Context) error {
 	groupParams := presentation.ConvGroupReqTodomainWriteGroupParams(req)
 
 	ctx := c.Request().Context()
-	group, err := h.Service.CreateGroup(ctx, groupParams)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	group, err := h.Service.CreateGroup(ctx, reqID, groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -60,7 +61,8 @@ func (h *Handlers) HandleDeleteGroup(c echo.Context) error {
 		return notFound(err)
 	}
 	ctx := c.Request().Context()
-	if err := h.Service.DeleteGroup(ctx, groupID); err != nil {
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	if err := h.Service.DeleteGroup(ctx, reqID, groupID); err != nil {
 		return judgeErrorResponse(err)
 	}
 
@@ -80,7 +82,8 @@ func (h *Handlers) HandleUpdateGroup(c echo.Context) error {
 	}
 	groupParams := presentation.ConvGroupReqTodomainWriteGroupParams(req)
 	ctx := c.Request().Context()
-	res, err := h.Service.UpdateGroup(ctx, groupID, groupParams)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	res, err := h.Service.UpdateGroup(ctx, reqID, groupID, groupParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -93,7 +96,8 @@ func (h *Handlers) HandleAddMeGroup(c echo.Context) error {
 		return notFound(err)
 	}
 	ctx := c.Request().Context()
-	err = h.Service.AddMeToGroup(ctx, groupID)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.AddMeToGroup(ctx, reqID, groupID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -108,7 +112,8 @@ func (h *Handlers) HandleDeleteMeGroup(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	err = h.Service.DeleteMeGroup(ctx, groupID)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.DeleteMeGroup(ctx, reqID, groupID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -123,9 +128,10 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 	var err error
 
 	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	switch presentation.GetUserRelationQuery(c.QueryParams()) {
 	case presentation.RelationBelongs:
-		groupIDs, err = h.Service.GetUserBelongingGroupIDs(ctx, userID)
+		groupIDs, err = h.Service.GetUserBelongingGroupIDs(ctx, reqID, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
@@ -135,7 +141,7 @@ func (h *Handlers) HandleGetMeGroupIDs(c echo.Context) error {
 			return judgeErrorResponse(err)
 		}
 	case presentation.RelationBelongsOrAdmins:
-		belongingGroupIDs, err := h.Service.GetUserBelongingGroupIDs(ctx, userID)
+		belongingGroupIDs, err := h.Service.GetUserBelongingGroupIDs(ctx, reqID, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
@@ -165,12 +171,13 @@ func (h *Handlers) HandleGetGroupIDsByUserID(c echo.Context) error {
 	if err != nil {
 		return notFound(err, message(err.Error()))
 	}
+
 	var groupIDs []uuid.UUID
 	ctx := c.Request().Context()
-
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	switch presentation.GetUserRelationQuery(c.QueryParams()) {
 	case presentation.RelationBelongs:
-		groupIDs, err = h.Service.GetUserBelongingGroupIDs(ctx, userID)
+		groupIDs, err = h.Service.GetUserBelongingGroupIDs(ctx, reqID, userID)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}

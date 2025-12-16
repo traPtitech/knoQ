@@ -21,8 +21,9 @@ func (h *Handlers) HandlePostEvent(c echo.Context) error {
 		return badRequest(err, message(err.Error()))
 	}
 	params := presentation.ConvEventReqWriteTodomainWriteEventParams(req)
-
-	event, err := h.Service.CreateEvent(c.Request().Context(), params)
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	event, err := h.Service.CreateEvent(ctx, reqID, params)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -43,7 +44,8 @@ func (h *Handlers) HandleUpdateEvent(c echo.Context) error {
 	}
 	params := presentation.ConvEventReqWriteTodomainWriteEventParams(req)
 
-	event, err := h.Service.UpdateEvent(c.Request().Context(), eventID, params)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	event, err := h.Service.UpdateEvent(c.Request().Context(), reqID, eventID, params)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -58,7 +60,8 @@ func (h *Handlers) HandleDeleteEvent(c echo.Context) error {
 		return notFound(err)
 	}
 
-	if err = h.Service.DeleteEvent(c.Request().Context(), eventID); err != nil {
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	if err = h.Service.DeleteEvent(c.Request().Context(), reqID, eventID); err != nil {
 		return internalServerError(err)
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -91,9 +94,10 @@ func (h *Handlers) HandleGetEvents(c echo.Context) error {
 		return badRequest(err, message("filter duration error"))
 	}
 
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	combinedExpr := filters.AddAnd(expr, durationExpr)
 
-	events, err := h.Service.GetEvents(c.Request().Context(), combinedExpr)
+	events, err := h.Service.GetEvents(c.Request().Context(), reqID, combinedExpr)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -119,9 +123,10 @@ func (h *Handlers) HandleGetEventsByGroupID(c echo.Context) error {
 		return badRequest(err, message("filter duration error"))
 	}
 
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	combinedExpr := filters.AddAnd(groupExpr, durationExpr)
 
-	events, err := h.Service.GetEvents(c.Request().Context(), combinedExpr)
+	events, err := h.Service.GetEvents(c.Request().Context(), reqID, combinedExpr)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -140,7 +145,8 @@ func (h *Handlers) HandleAddEventTag(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	err = h.Service.AddEventTag(c.Request().Context(), eventID, req.Name, false)
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.AddEventTag(c.Request().Context(), reqID, eventID, req.Name, false)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -153,9 +159,11 @@ func (h *Handlers) HandleDeleteEventTag(c echo.Context) error {
 	if err != nil {
 		return notFound(err, message(err.Error()))
 	}
+
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	tagName := c.Param("tagName")
 
-	err = h.Service.DeleteEventTag(c.Request().Context(), eventID, tagName)
+	err = h.Service.DeleteEventTag(c.Request().Context(), reqID, eventID, tagName)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -174,8 +182,9 @@ func (h *Handlers) HandleUpsertMeEventSchedule(c echo.Context) error {
 		return badRequest(err)
 	}
 	params := domain.ScheduleStatus(req.Schedule)
+	reqID := c.Get(userIDKey).(uuid.UUID)
 
-	err = h.Service.UpsertMeEventSchedule(c.Request().Context(), eventID, params)
+	err = h.Service.UpsertMeEventSchedule(c.Request().Context(), reqID, eventID, params)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -198,9 +207,10 @@ func (h *Handlers) HandleGetMeEvents(c echo.Context) error {
 		return badRequest(err, message("filter duration error"))
 	}
 
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	combinedExpr := filters.AddAnd(relationExpr, durationExpr)
 
-	events, err := h.Service.GetEvents(c.Request().Context(), combinedExpr)
+	events, err := h.Service.GetEvents(c.Request().Context(), reqID, combinedExpr)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -223,9 +233,11 @@ func (h *Handlers) HandleGetEventsByUserID(c echo.Context) error {
 		return badRequest(err, message("filter duration error"))
 	}
 
+	reqID := c.Get(userIDKey).(uuid.UUID)
+
 	combinedExpr := filters.AddAnd(relationExpr, durationExpr)
 
-	events, err := h.Service.GetEvents(c.Request().Context(), combinedExpr)
+	events, err := h.Service.GetEvents(c.Request().Context(), reqID, combinedExpr)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -250,10 +262,12 @@ func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 		return badRequest(err, message("filter duration error"))
 	}
 
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	combinedExpr := filters.AddAnd(roomExpr, durationExpr)
 
 	events, err := h.Service.GetEvents(
 		c.Request().Context(),
+		reqID,
 		combinedExpr,
 	)
 	if err != nil {
@@ -272,10 +286,8 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 		return notFound(err)
 	}
 
-	c = setUserID(c, userID)
-
 	ctx := c.Request().Context()
-	icalSecret, err := h.Service.GetMyiCalSecret(ctx)
+	icalSecret, err := h.Service.GetMyiCalSecret(ctx, userID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -289,7 +301,9 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	if err != nil {
 		return badRequest(err)
 	}
-	events, err := h.Service.GetEventsWithGroup(c.Request().Context(), expr)
+
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	events, err := h.Service.GetEventsWithGroup(c.Request().Context(), reqID, expr)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
