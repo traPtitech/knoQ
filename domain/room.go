@@ -158,7 +158,7 @@ type RoomService interface {
 
 	UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID, params WriteRoomParams) (*Room, error)
 	VerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
-	UnVerifyRoom(ctx context.Context, roomID uuid.UUID) error
+	UnVerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
 
 	DeleteRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
 
