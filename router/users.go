@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/router/presentation"
 
@@ -14,7 +15,9 @@ import (
 // HandleGetUserMe ヘッダー情報からuser情報を取得
 // 認証状態を確認
 func (h *Handlers) HandleGetUserMe(c echo.Context) error {
-	user, err := h.Repo.GetUserMe(getConinfo(c))
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	user, err := h.Service.GetUserMe(ctx, reqID)
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidToken) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
@@ -27,8 +30,9 @@ func (h *Handlers) HandleGetUserMe(c echo.Context) error {
 // HandleGetUsers ユーザーすべてを取得
 func (h *Handlers) HandleGetUsers(c echo.Context) error {
 	includeSuspend, _ := strconv.ParseBool(c.QueryParam("include-suspended"))
+	ctx := c.Request().Context()
 
-	users, err := h.Repo.GetAllUsers(includeSuspend, true, getConinfo(c))
+	users, err := h.Service.GetAllUsers(ctx, includeSuspend, true)
 	if err != nil {
 		if errors.Is(err, domain.ErrInvalidToken) {
 			return forbidden(err, message("token is invalid."), needAuthorization(true))
@@ -40,7 +44,9 @@ func (h *Handlers) HandleGetUsers(c echo.Context) error {
 }
 
 func (h *Handlers) HandleGetiCal(c echo.Context) error {
-	secret, err := h.Repo.GetMyiCalSecret(getConinfo(c))
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	secret, err := h.Service.GetMyiCalSecret(ctx, reqID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -52,7 +58,9 @@ func (h *Handlers) HandleGetiCal(c echo.Context) error {
 }
 
 func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
-	secret, err := h.Repo.ReNewMyiCalSecret(getConinfo(c))
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	secret, err := h.Service.ReNewMyiCalSecret(ctx, reqID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -67,7 +75,9 @@ func (h *Handlers) HandleUpdateiCal(c echo.Context) error {
 // 停止されているユーザーの`token`を削除して、
 // 活動中のユーザーを追加する(userIDをDBに保存)
 func (h *Handlers) HandleSyncUser(c echo.Context) error {
-	err := h.Repo.SyncUsers(getConinfo(c))
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err := h.Service.SyncUsers(ctx, reqID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -77,11 +87,12 @@ func (h *Handlers) HandleSyncUser(c echo.Context) error {
 
 // 権限のあるユーザーがないユーザーに権限を付与
 func (h *Handlers) HandleGrantPrivilege(c echo.Context) error {
+	ctx := c.Request().Context()
 	userID, err := getPathUserID(c)
 	if err != nil {
 		return notFound(err)
 	}
-	err = h.Repo.GrantPrivilege(userID)
+	err = h.Service.GrantPrivilege(ctx, userID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

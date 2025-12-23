@@ -8,7 +8,6 @@ import (
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/domain/filters"
-	"github.com/traPtitech/knoQ/infra/db"
 	"github.com/traPtitech/knoQ/utils/tz"
 	"golang.org/x/exp/slices"
 )
@@ -21,7 +20,7 @@ type timeTable struct {
 
 // InitPostEventToTraQ 現在(job実行)から24時間以内に始まるイベントを取得し、
 // webhookでtraQに送るjobを作成。
-func InitPostEventToTraQ(repo *db.GormRepository, secret, channelID, webhookID, origin string) func() {
+func InitPostEventToTraQ(repo domain.Repository, secret, channelID, webhookID, origin string) func() {
 	job := func() {
 		now := setTimeFromString(time.Now().In(tz.JST), "06:00:00")
 		tomorrow := now.AddDate(0, 0, 1)
@@ -99,7 +98,7 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 	return roomAvailable
 }
 
-func createMessage(t time.Time, rooms []*domain.Room, events []*db.Event, origin string) string {
+func createMessage(t time.Time, rooms []*domain.Room, events []*domain.Event, origin string) string {
 	date := t.In(tz.JST).Format("01/02(Mon)")
 	combined := map[bool]string{
 		true:  "(併用可)",

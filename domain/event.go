@@ -1,9 +1,11 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofrs/uuid"
+
 	"github.com/traPtitech/knoQ/domain/filters"
 )
 
@@ -42,7 +44,26 @@ type Attendee struct {
 	Schedule ScheduleStatus
 }
 
-// for repository
+func (e *Event) TimeConsistency() bool {
+	return e.TimeStart.Before(e.TimeEnd)
+}
+
+func (e *Event) RoomTimeConsistency() bool {
+	times := e.Room.CalcAvailableTime(e.AllowTogether)
+	for _, t := range times {
+		start := t.TimeStart
+		end := t.TimeEnd
+		if (start.Equal(e.TimeStart) || start.Before(e.TimeStart)) &&
+			(end.Equal(e.TimeEnd) || end.After(e.TimeEnd)) {
+			return true
+		}
+	}
+	return false
+}
+
+func (e *Event) AdminsValidation() bool {
+	return len(e.Admins) != 0
+}
 
 // WriteEventParams is used create and update
 type WriteEventParams struct {
@@ -65,44 +86,46 @@ type EventTagParams struct {
 }
 
 // EventRepository is implemented by ...
-type EventRepository interface {
-	CreateEvent(eventParams WriteEventParams, info *ConInfo) (*Event, error)
+type EventService interface {
+	CreateEvent(ctx context.Context, reqID uuid.UUID, eventParams WriteEventParams) (*Event, error)
 
-	UpdateEvent(eventID uuid.UUID, eventParams WriteEventParams, info *ConInfo) (*Event, error)
-	AddEventTag(eventID uuid.UUID, tagName string, locked bool, info *ConInfo) error
+	UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, eventParams WriteEventParams) (*Event, error)
+	AddEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, tagName string, locked bool) error
 
-	DeleteEvent(eventID uuid.UUID, info *ConInfo) error
+	DeleteEvent(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID) error
 	// DeleteTagInEvent delete a tag in that Event
-	DeleteEventTag(eventID uuid.UUID, tagName string, info *ConInfo) error
+	DeleteEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, tagName string) error
 
-	UpsertMeEventSchedule(eventID uuid.UUID, schedule ScheduleStatus, info *ConInfo) error
+	UpsertMeEventSchedule(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, schedule ScheduleStatus) error
 
-	GetEvent(eventID uuid.UUID, info *ConInfo) (*Event, error)
-	GetEvents(expr filters.Expr, info *ConInfo) ([]*Event, error)
-	IsEventAdmins(eventID uuid.UUID, info *ConInfo) bool
+	GetEvent(ctx context.Context, eventID uuid.UUID) (*Event, error)
+	GetEvents(ctx context.Context, reqID uuid.UUID, expr filters.Expr) ([]*Event, error)
+	IsEventAdmins(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID) bool
 
-	GetEventsWithGroup(expr filters.Expr, info *ConInfo) ([]*Event, error)
+	GetEventsWithGroup(ctx context.Context, reqID uuid.UUID, expr filters.Expr) ([]*Event, error)
 
 	// GetEventActivities(day int) ([]*Event, error)
 }
 
-func (e *Event) TimeConsistency() bool {
-	return e.TimeStart.Before(e.TimeEnd)
+type UpsertEventArgs struct {
+	WriteEventParams
+	CreatedBy uuid.UUID
 }
 
-func (e *Event) RoomTimeConsistency() bool {
-	times := e.Room.CalcAvailableTime(e.AllowTogether)
-	for _, t := range times {
-		start := t.TimeStart
-		end := t.TimeEnd
-		if start.Equal(e.TimeStart) || start.Before(e.TimeStart) &&
-			(end.Equal(e.TimeEnd) || end.After(e.TimeEnd)) {
-			return true
-		}
-	}
-	return false
-}
+type EventRepository interface {
+	CreateEvent(args UpsertEventArgs) (*Event, error)
 
-func (e *Event) AdminsValidation() bool {
-	return len(e.Admins) != 0
+	UpdateEvent(eventID uuid.UUID, args UpsertEventArgs) (*Event, error)
+
+	AddEventTag(eventID uuid.UUID, params EventTagParams) error
+
+	DeleteEvent(eventID uuid.UUID) error
+
+	DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error
+
+	UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus ScheduleStatus) error
+
+	GetEvent(eventID uuid.UUID) (*Event, error)
+
+	GetAllEvents(expr filters.Expr) ([]*Event, error)
 }

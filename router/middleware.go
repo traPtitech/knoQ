@@ -80,6 +80,14 @@ func ServerVersionMiddleware(version string) echo.MiddlewareFunc {
 	}
 }
 
+const (
+	userIDKey string = "userID"
+)
+
+func setUserID(c echo.Context, userID uuid.UUID) {
+	c.Set(userIDKey, userID)
+}
+
 // TraQUserMiddleware traQユーザーか判定するミドルウェア
 // TODO funcname fix
 func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -89,7 +97,10 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return unauthorized(err, needAuthorization(true))
 		}
 
-		user, err := h.Repo.GetUserMe(getConinfo(c))
+		setUserID(c, userID)
+
+		ctx := c.Request().Context()
+		user, err := h.Service.GetUserMe(ctx, userID)
 		if err != nil {
 			return internalServerError(err)
 		}
@@ -98,6 +109,7 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if user.State != 1 {
 			return forbidden(errors.New("invalid user"))
 		}
+
 		return next(c)
 	}
 }
@@ -106,7 +118,9 @@ func (h *Handlers) TraQUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 func (h *Handlers) PrivilegeUserMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// 判定
-		if !h.Repo.IsPrivilege(getConinfo(c)) {
+		ctx := c.Request().Context()
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsPrivilege(ctx, reqID) {
 			return forbidden(
 				errors.New("not admin"),
 				message("You are not admin user."),
@@ -125,7 +139,9 @@ func (h *Handlers) GroupAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 		if err != nil {
 			return notFound(err)
 		}
-		if !h.Repo.IsGroupAdmins(groupID, getConinfo(c)) {
+		ctx := c.Request().Context()
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsGroupAdmins(ctx, reqID, groupID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this group is created."),
@@ -144,7 +160,9 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 			return notFound(err)
 		}
 
-		if !h.Repo.IsEventAdmins(eventID, getConinfo(c)) {
+		ctx := c.Request().Context()
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsEventAdmins(ctx, reqID, eventID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -163,8 +181,9 @@ func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc 
 		if err != nil {
 			return notFound(err)
 		}
-
-		if !h.Repo.IsRoomAdmins(roomID, getConinfo(c)) {
+		ctx := c.Request().Context()
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsRoomAdmins(ctx, reqID, roomID) {
 			return forbidden(
 				errors.New("not createdBy"),
 				message("You are not user by whom this even is created."),
@@ -188,7 +207,8 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, _, resBody []byte) {
 		return
 	}
 
-	users, err := h.Repo.GetAllUsers(false, true, getConinfo(c))
+	ctx := c.Request().Context()
+	users, err := h.Service.GetAllUsers(ctx, false, true)
 	if err != nil {
 		return
 	}
@@ -202,7 +222,8 @@ func (h *Handlers) WebhookEventHandler(c echo.Context, _, resBody []byte) {
 	// TODO fix: IDを環境変数などで定義すべき
 	traPGroupID := uuid.Must(uuid.FromString("11111111-1111-1111-1111-111111111111"))
 	if e.Group.ID == traPGroupID {
-		groups, err := h.Repo.GetGradeGroupNames(getConinfo(c))
+
+		groups, err := h.Service.GetGradeGroupNames(ctx)
 		if err != nil {
 			h.Logger.Error("failed to get groups", zap.Error(err))
 			return

@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/gofrs/uuid"
+import (
+	"context"
+
+	"github.com/gofrs/uuid"
+)
 
 type Group struct {
 	ID          uuid.UUID
@@ -14,6 +18,10 @@ type Group struct {
 	Model
 }
 
+func (g *Group) AdminsValidation() bool {
+	return len(g.Admins) != 0
+}
+
 type WriteGroupParams struct {
 	Name        string
 	Description string
@@ -22,23 +30,44 @@ type WriteGroupParams struct {
 	Admins      []uuid.UUID
 }
 
-type GroupRepository interface {
-	CreateGroup(groupParams WriteGroupParams, info *ConInfo) (*Group, error)
-	UpdateGroup(groupID uuid.UUID, groupParams WriteGroupParams, info *ConInfo) (*Group, error)
+type GroupService interface {
+	CreateGroup(ctx context.Context, reqID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
+	UpdateGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID, groupParams WriteGroupParams) (*Group, error)
 	// AddMeToGroup add me to that group if that group is open.
-	AddMeToGroup(groupID uuid.UUID, info *ConInfo) error
-	DeleteGroup(groupID uuid.UUID, info *ConInfo) error
+	AddMeToGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error
+	DeleteGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error
 	// DeleteMeGroup delete me in that group if that group is open.
-	DeleteMeGroup(groupID uuid.UUID, info *ConInfo) error
+	DeleteMeGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error
 
-	GetGroup(groupID uuid.UUID, info *ConInfo) (*Group, error)
-	GetAllGroups(info *ConInfo) ([]*Group, error)
-	GetUserBelongingGroupIDs(userID uuid.UUID, info *ConInfo) ([]uuid.UUID, error)
-	GetUserAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
-	IsGroupAdmins(groupID uuid.UUID, info *ConInfo) bool
-	GetGradeGroupNames(info *ConInfo) ([]string, error)
+	GetGroup(ctx context.Context, groupID uuid.UUID) (*Group, error)
+	GetAllGroups(ctx context.Context) ([]*Group, error)
+	GetUserBelongingGroupIDs(ctx context.Context, reqID uuid.UUID, userID uuid.UUID) ([]uuid.UUID, error)
+	GetUserAdminGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	IsGroupAdmins(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) bool
+	GetGradeGroupNames(ctx context.Context) ([]string, error)
 }
 
-func (g *Group) AdminsValidation() bool {
-	return len(g.Admins) != 0
+type UpsertGroupArgs struct {
+	WriteGroupParams
+	CreatedBy uuid.UUID
+}
+
+type GroupRepository interface {
+	CreateGroup(args UpsertGroupArgs) (*Group, error)
+
+	UpdateGroup(groupID uuid.UUID, args UpsertGroupArgs) (*Group, error)
+
+	AddMemberToGroup(groupID, userID uuid.UUID) error
+
+	DeleteGroup(groupID uuid.UUID) error
+
+	DeleteMemberOfGroup(groupID, userID uuid.UUID) error
+
+	GetGroup(groupID uuid.UUID) (*Group, error)
+
+	GetAllGroups() ([]*Group, error)
+
+	GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
+
+	GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
 }

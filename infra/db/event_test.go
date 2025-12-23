@@ -15,7 +15,7 @@ import (
 func Test_createEvent(t *testing.T) {
 	r, assert, require, user, room := setupRepoWithUserRoom(t, common)
 
-	params := WriteEventParams{
+	params := domain.UpsertEventArgs{
 		CreatedBy: user.ID,
 		WriteEventParams: domain.WriteEventParams{
 			Name:          "first event",
@@ -46,7 +46,7 @@ func Test_createEvent(t *testing.T) {
 		_, err := createOrGetTag(r.db, "Go")
 		require.NoError(err)
 
-		var p WriteEventParams
+		var p domain.UpsertEventArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.Tags = append(p.Tags, domain.EventTagParams{Name: "Go"})
@@ -55,7 +55,7 @@ func Test_createEvent(t *testing.T) {
 	})
 
 	t.Run("wrong time", func(_ *testing.T) {
-		var p WriteEventParams
+		var p domain.UpsertEventArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.TimeStart = time.Now().Add(10 * time.Minute)
@@ -64,7 +64,7 @@ func Test_createEvent(t *testing.T) {
 	})
 
 	t.Run("wrong room time", func(_ *testing.T) {
-		var p WriteEventParams
+		var p domain.UpsertEventArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.AllowTogether = false
@@ -73,7 +73,7 @@ func Test_createEvent(t *testing.T) {
 	})
 
 	t.Run("create event with place", func(_ *testing.T) {
-		var p WriteEventParams
+		var p domain.UpsertEventArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.RoomID = uuid.Nil
@@ -91,7 +91,7 @@ func Test_createEvent(t *testing.T) {
 func Test_updateEvent(t *testing.T) {
 	r, assert, require, user, _, room, event := setupRepoWithUserGroupRoomEvent(t, common)
 
-	params := WriteEventParams{
+	params := domain.UpsertEventArgs{
 		CreatedBy: user.ID,
 		WriteEventParams: domain.WriteEventParams{
 			Name:          "update event",

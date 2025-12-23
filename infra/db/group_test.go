@@ -13,7 +13,7 @@ import (
 func Test_createGroup(t *testing.T) {
 	r, assert, require, user := setupRepoWithUser(t, common)
 
-	params := WriteGroupParams{
+	params := domain.UpsertGroupArgs{
 		CreatedBy: user.ID,
 		WriteGroupParams: domain.WriteGroupParams{
 			Name:    "first group",
@@ -29,7 +29,7 @@ func Test_createGroup(t *testing.T) {
 	})
 
 	t.Run("create group with invalid members", func(t *testing.T) {
-		var p WriteGroupParams
+		var p domain.UpsertGroupArgs
 		require.NoError(copier.Copy(&p, &params))
 		p.Members = append(p.Members, mustNewUUIDV4(t))
 		_, err := createGroup(r.db, p)
@@ -40,7 +40,7 @@ func Test_createGroup(t *testing.T) {
 	})
 
 	t.Run("create group with invalid admins", func(t *testing.T) {
-		var p WriteGroupParams
+		var p domain.UpsertGroupArgs
 		require.NoError(copier.Copy(&p, &params))
 
 		p.Admins = nil
@@ -60,7 +60,7 @@ func Test_createGroup(t *testing.T) {
 func Test_updateGroup(t *testing.T) {
 	r, assert, require, user, group := setupRepoWithUserGroup(t, common)
 
-	params := WriteGroupParams{
+	params := domain.UpsertGroupArgs{
 		CreatedBy: user.ID,
 		WriteGroupParams: domain.WriteGroupParams{
 			Name:    "update group",

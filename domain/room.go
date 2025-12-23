@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -17,31 +18,6 @@ type Room struct {
 	Admins    []User
 	CreatedBy User
 	Model
-}
-
-type WriteRoomParams struct {
-	Place string
-
-	// Verifeid indicates if the room has been verified by privileged users.
-	TimeStart time.Time
-	TimeEnd   time.Time
-
-	Admins []uuid.UUID
-}
-
-type RoomRepository interface {
-	CreateUnVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
-	CreateVerifiedRoom(params WriteRoomParams, info *ConInfo) (*Room, error)
-
-	UpdateRoom(roomID uuid.UUID, params WriteRoomParams, info *ConInfo) (*Room, error)
-	VerifyRoom(roomID uuid.UUID, info *ConInfo) error
-	UnVerifyRoom(roomID uuid.UUID, info *ConInfo) error
-
-	DeleteRoom(roomID uuid.UUID, info *ConInfo) error
-
-	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
-	GetAllRooms(start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
-	IsRoomAdmins(roomID uuid.UUID, info *ConInfo) bool
 }
 
 // StartEndTime has start and end time
@@ -164,4 +140,55 @@ func (r *Room) TimeConsistency() bool {
 
 func (r *Room) AdminsValidation() bool {
 	return len(r.Admins) != 0
+}
+
+type WriteRoomParams struct {
+	Place string
+
+	// Verifeid indicates if the room has been verified by privileged users.
+	TimeStart time.Time
+	TimeEnd   time.Time
+
+	Admins []uuid.UUID
+}
+
+type RoomService interface {
+	CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)
+	CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)
+
+	UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID, params WriteRoomParams) (*Room, error)
+	VerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
+	UnVerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
+
+	DeleteRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
+
+	GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
+	GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
+	IsRoomAdmins(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) bool
+}
+
+type CreateRoomArgs struct {
+	WriteRoomParams
+	Verified  bool
+	CreatedBy uuid.UUID
+}
+
+type UpdateRoomArgs struct {
+	WriteRoomParams
+
+	CreatedBy uuid.UUID
+}
+
+type RoomRepository interface {
+	CreateRoom(args CreateRoomArgs) (*Room, error)
+
+	UpdateRoom(roomID uuid.UUID, args UpdateRoomArgs) (*Room, error)
+
+	UpdateRoomVerified(roomID uuid.UUID, verified bool) error
+
+	DeleteRoom(roomID uuid.UUID) error
+
+	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
+
+	GetAllRooms(start, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
 }

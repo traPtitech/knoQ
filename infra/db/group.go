@@ -14,52 +14,50 @@ func groupFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Members").Preload("Admins").Preload("CreatedBy")
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteGroupParams -d Group -o converter.go .
-type WriteGroupParams struct {
-	domain.WriteGroupParams
-	CreatedBy uuid.UUID
+func (repo *gormRepository) CreateGroup(args domain.UpsertGroupArgs) (*domain.Group, error) {
+	g, err := createGroup(repo.db, args)
+	domainGroup := convGroupTodomainGroup(*g)
+	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) CreateGroup(params WriteGroupParams) (*Group, error) {
-	g, err := createGroup(repo.db, params)
-	return g, defaultErrorHandling(err)
+func (repo *gormRepository) UpdateGroup(groupID uuid.UUID, args domain.UpsertGroupArgs) (*domain.Group, error) {
+	g, err := updateGroup(repo.db, groupID, args)
+	domainGroup := convGroupTodomainGroup(*g)
+	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateGroup(groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
-	g, err := updateGroup(repo.db, groupID, params)
-	return g, defaultErrorHandling(err)
-}
-
-func (repo *GormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
+func (repo *gormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
 	err := addMemberToGroup(repo.db, groupID, userID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteGroup(groupID uuid.UUID) error {
+func (repo *gormRepository) DeleteGroup(groupID uuid.UUID) error {
 	err := deleteGroup(repo.db, groupID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error {
+func (repo *gormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error {
 	err := deleteMemberOfGroup(repo.db, groupID, userID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetGroup(groupID uuid.UUID) (*Group, error) {
-	gs, err := getGroup(groupFullPreload(repo.db), groupID)
-	return gs, defaultErrorHandling(err)
+func (repo *gormRepository) GetGroup(groupID uuid.UUID) (*domain.Group, error) {
+	g, err := getGroup(groupFullPreload(repo.db), groupID)
+	domainGroup := convGroupTodomainGroup(*g)
+	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllGroups() ([]*Group, error) {
+func (repo *gormRepository) GetAllGroups() ([]*domain.Group, error) {
 	cmd := groupFullPreload(repo.db)
 	gs, err := getGroups(cmd.Joins(
 		"LEFT JOIN events ON groups.id = events.group_id "+
 			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
 			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), "", nil)
-	return gs, defaultErrorHandling(err)
+
+	return ConvSPGroupToSPdomainGroup(gs), defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+func (repo *gormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	cmd := groupFullPreload(repo.db)
 	filterFormat, filterArgs, err := createGroupFilter(filters.FilterBelongs(userID))
 	if err != nil {
@@ -73,7 +71,7 @@ func (repo *GormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, er
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
+func (repo *gormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
 	cmd := groupFullPreload(repo.db)
 	filterFormat, filterArgs, err := createGroupFilter(filters.FilterAdmins(userID))
 	if err != nil {
@@ -97,8 +95,8 @@ func convSPGroupToSuuidUUID(src []*Group) (dst []uuid.UUID) {
 	return
 }
 
-func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {
-	group := ConvWriteGroupParamsToGroup(groupParams)
+func createGroup(db *gorm.DB, args domain.UpsertGroupArgs) (*Group, error) {
+	group := ConvWriteGroupParamsToGroup(args)
 	err := db.Create(&group).Error
 	if err != nil {
 		return nil, err
@@ -106,8 +104,8 @@ func createGroup(db *gorm.DB, groupParams WriteGroupParams) (*Group, error) {
 	return &group, nil
 }
 
-func updateGroup(db *gorm.DB, groupID uuid.UUID, params WriteGroupParams) (*Group, error) {
-	group := ConvWriteGroupParamsToGroup(params)
+func updateGroup(db *gorm.DB, groupID uuid.UUID, args domain.UpsertGroupArgs) (*Group, error) {
+	group := ConvWriteGroupParamsToGroup(args)
 	group.ID = groupID
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
 		Omit("CreatedAt").Save(&group).Error

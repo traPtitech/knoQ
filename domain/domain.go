@@ -2,8 +2,6 @@ package domain
 
 import (
 	"time"
-
-	"github.com/gofrs/uuid"
 )
 
 var (
@@ -18,10 +16,12 @@ type Model struct {
 	DeletedAt *time.Time
 }
 
-// ConInfo is Connection infomation
-type ConInfo struct {
-	// Token     string
-	ReqUserID uuid.UUID
+type Service interface {
+	EventService
+	GroupService
+	RoomService
+	TagService
+	UserService
 }
 
 type Repository interface {

@@ -16,7 +16,7 @@ require (
 	github.com/ory/dockertest/v3 v3.12.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/samber/lo v1.51.0
+	github.com/samber/lo v1.52.0
 	github.com/stretchr/testify v1.11.1
 	github.com/traPtitech/go-traq v0.0.0-20251201015624-285ca186fc5e
 	go.uber.org/zap v1.27.0
