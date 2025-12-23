@@ -302,8 +302,7 @@ func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	reqID := c.Get(userIDKey).(uuid.UUID)
-	events, err := h.Service.GetEventsWithGroup(c.Request().Context(), reqID, expr)
+	events, err := h.Service.GetEventsWithGroup(c.Request().Context(), userID, expr)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
