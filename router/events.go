@@ -281,7 +281,7 @@ func (h *Handlers) HandleGetEventsByRoomID(c echo.Context) error {
 func (h *Handlers) HandleGetiCalByPrivateID(c echo.Context) error {
 	// 認証
 	str := c.Param("userIDsecret")
-	if len(str) < 52 {
+	if len(str) < 36 {
 		return notFound(nil)
 	}
 	userID, err := uuid.FromString(str[:36])
