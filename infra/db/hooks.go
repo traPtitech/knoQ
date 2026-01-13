@@ -7,6 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
+/*
+やりたいこと
+
+Domain/ Service で行うべき責務を分離する
+dbでDomainを取り出さないでよくする
+
+データの整合性判定を Service に切り出す
+関連情報の更新をそれぞれの update/create/delete/upsert で明示的に行う
+AfterSave
+
+*/
+
 // BeforeSave is hook
 func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 	if e.ID == uuid.Nil {
@@ -16,6 +28,7 @@ func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 		}
 	}
 
+	// event の save のときに Room を設定している
 	if e.RoomID == uuid.Nil {
 		if e.Room.Place != "" {
 			e.Room.Verified = false
@@ -29,6 +42,7 @@ func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 	}
 
 	// 時間整合性
+	// これは Service でやるべきでは？
 	Devent := ConvEventTodomainEvent(*e)
 	if !Devent.TimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
@@ -39,6 +53,8 @@ func (e *Event) BeforeSave(_ *gorm.DB) (err error) {
 // BeforeCreate is hook
 func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 	// 時間整合性
+	// だから、これは Service でやるべきでは？
+	// イベントの情報が満たすべきことだからワンチャン Domain もある
 	r, err := getRoom(tx.Preload("Events"), e.RoomID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// 該当する部屋がない場合、部屋時間整合性は調べる必要がない
@@ -49,7 +65,10 @@ func (e *Event) BeforeCreate(tx *gorm.DB) (err error) {
 		return err
 	}
 	e.Room = *r
+	// dbまで下ったのに Domain を取り出すのはあまり良くなさそう
 	Devent := ConvEventTodomainEvent(*e)
+	// これ domain の整合性判定関数なのになんでDBで確認してるんだ？
+	// 少なくとも service でやるべきでは？
 	if !Devent.RoomTimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd", "room")
 	}
@@ -85,12 +104,16 @@ func (e *Event) BeforeUpdate(tx *gorm.DB) (err error) {
 	return nil
 }
 
+// dbが正しく動作しているかの確認
+// これはdbの責務なのでここ or db/event で行う
+// preloadも
 func (e *Event) AfterSave(tx *gorm.DB) (err error) {
 	event, err := getEvent(tx.Preload("Admins"), e.ID)
 	if err != nil {
 		return err
 	}
 	Devent := ConvEventTodomainEvent(*event)
+	// admin validation が domain のものなのは正しいのか？
 	if !Devent.AdminsValidation() {
 		return NewValueError(ErrNoAdmins, "admins")
 	}
@@ -102,6 +125,9 @@ func (e *Event) AfterSave(tx *gorm.DB) (err error) {
 	return nil
 }
 
+//  削除するイベントの関連情報も削除する (全て 論理削除)
+//  DBの責務ではあるが、 hooks がやるべきことか？
+//  event_attendees は delete しない (deleted_at フィールドがないため物理削除になるが、行わない)
 func (e *Event) BeforeDelete(tx *gorm.DB) (err error) {
 	// delete current m2m
 	err = tx.Where("event_id = ?", e.ID).Delete(&EventTag{}).Error
@@ -117,6 +143,7 @@ func (e *Event) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 // BeforeSave is hook
+// CreateEvent のDBの責務なので event が妥当
 func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
 	if et.EventID == uuid.Nil {
 		return NewValueError(gorm.ErrRecordNotFound, "eventID")
@@ -144,6 +171,7 @@ func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
 	return nil
 }
 
+// 妥当
 func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 	// タグのIDが空で名前が提供されている場合は、
 	// 名前に応じたタグを削除する
@@ -172,6 +200,7 @@ func (r *Room) BeforeSave(_ *gorm.DB) (err error) {
 	}
 
 	// 時間整合性
+	// これは domain が持つべき
 	Droom := ConvRoomTodomainRoom(*r)
 	if !Droom.TimeConsistency() {
 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
@@ -186,6 +215,7 @@ func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
 	}
 	return nil
 }
+
 
 func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 	room, err := getRoom(tx.Preload("Admins"), r.ID)
@@ -266,6 +296,7 @@ func (t *Tag) BeforeCreate(_ *gorm.DB) (err error) {
 	return nil
 }
 
+/*
 // BeforeCreate is hook
 func (u *User) BeforeCreate(_ *gorm.DB) (err error) {
 	if u.ID != uuid.Nil {
@@ -277,6 +308,7 @@ func (u *User) BeforeCreate(_ *gorm.DB) (err error) {
 	}
 	return nil
 }
+*/
 
 func (t *Token) BeforeSave(_ *gorm.DB) (err error) {
 	if t.AccessToken != "" {

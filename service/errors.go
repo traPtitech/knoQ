@@ -9,6 +9,17 @@ import (
 	"github.com/traPtitech/knoQ/infra/traq"
 )
 
+//  domain まで上がるかもしれない
+//  現状のdomainにはwebサービス一般のerrorだけがある
+var (
+	ErrInvalidArgs     = errors.New("invalid args")
+	ErrTimeConsistency = errors.New("inconsistent time")
+	ErrExpression      = errors.New("invalid expression")
+	ErrRoomUndefined   = errors.New("invalid room or args")
+	ErrNoAdmins        = errors.New("no admins")
+	ErrDuplicateEntry  = errors.New("duplicate entry")
+)
+
 func handleTraQError(err error) error {
 	if errors.Is(err, traq.ErrUnAuthorized) {
 		return domain.ErrInvalidToken

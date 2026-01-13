@@ -107,6 +107,8 @@ func createGroup(db *gorm.DB, args domain.UpsertGroupArgs) (*Group, error) {
 func updateGroup(db *gorm.DB, groupID uuid.UUID, args domain.UpsertGroupArgs) (*Group, error) {
 	group := ConvWriteGroupParamsToGroup(args)
 	group.ID = groupID
+	// FullSaveAssociations :true だと何が更新されるか不明瞭でよくない
+	// 特に、 hooks のせいで影響範囲が想定以上に大きくなりうる
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
 		Omit("CreatedAt").Save(&group).Error
 	return &group, err

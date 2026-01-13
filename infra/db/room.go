@@ -81,6 +81,9 @@ func createRoom(db *gorm.DB, args domain.CreateRoomArgs) (*Room, error) {
 func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Room, error) {
 	room := ConvUpdateRoomParamsToRoom(args)
 	room.ID = roomID
+	// よくないが、更新順序が不明
+	// Userを変更する可能性がある
+	// Events は readonly
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
 		Omit("verified", "CreatedAt").Save(&room).Error
 	return &room, err
