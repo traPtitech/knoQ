@@ -1,9 +1,9 @@
 # gomod
-/go.mod @Nzt3-gh @mamo
-/go.sum @Nzt3-gh @mamo
+/go.mod @Nzt3-gh @nyson411
+/go.sum @Nzt3-gh @nyson411
 
 # github-actions
-/.github/workflows/ @Nzt3-gh @mamo
+/.github/workflows/ @Nzt3-gh @nyson411
 
 # docker
-/Dockerfile @Nzt3-gh @mamo
+/Dockerfile @Nzt3-gh @nyson411
