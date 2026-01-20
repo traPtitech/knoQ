@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 
+	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/router/presentation"
 
 	"github.com/labstack/echo/v4"
@@ -16,8 +17,9 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 	}
 
 	roomParams := presentation.ConvRoomReqTodomainWriteRoomParams(req)
-
-	room, err := h.Repo.CreateUnVerifiedRoom(roomParams, getConinfo(c))
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	room, err := h.Service.CreateUnVerifiedRoom(ctx, reqID, roomParams)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -38,7 +40,8 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 
 	// 構造体の変換
 	RoomsRes := make([]presentation.RoomRes, 0, len(req))
-
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
 	for _, v := range req {
 
 		params, err := presentation.ChangeRoomCSVReqTodomainWriteRoomParams(v, userID)
@@ -46,7 +49,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 			return badRequest(err)
 		}
 
-		room, err := h.Repo.CreateVerifiedRoom(*params, getConinfo(c))
+		room, err := h.Service.CreateVerifiedRoom(ctx, reqID, *params)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
@@ -69,7 +72,8 @@ func (h *Handlers) HandleGetRoom(c echo.Context) error {
 		return badRequest(err)
 	}
 
-	room, err := h.Repo.GetRoom(roomID, excludeEventID)
+	ctx := c.Request().Context()
+	room, err := h.Service.GetRoom(ctx, roomID, excludeEventID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -87,7 +91,9 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	if err != nil {
 		return badRequest(err)
 	}
-	rooms, err := h.Repo.GetAllRooms(start, end, excludeEventID)
+
+	ctx := c.Request().Context()
+	rooms, err := h.Service.GetAllRooms(ctx, start, end, excludeEventID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -100,7 +106,10 @@ func (h *Handlers) HandleDeleteRoom(c echo.Context) error {
 	if err != nil {
 		return notFound(err)
 	}
-	err = h.Repo.DeleteRoom(roomID, getConinfo(c))
+
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.DeleteRoom(ctx, reqID, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -114,7 +123,9 @@ func (h *Handlers) HandleVerifyRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Repo.VerifyRoom(roomID, getConinfo(c))
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.VerifyRoom(ctx, reqID, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -127,7 +138,9 @@ func (h *Handlers) HandleUnVerifyRoom(c echo.Context) error {
 		return notFound(err)
 	}
 
-	err = h.Repo.UnVerifyRoom(roomID, getConinfo(c))
+	ctx := c.Request().Context()
+	reqID := c.Get(userIDKey).(uuid.UUID)
+	err = h.Service.UnVerifyRoom(ctx, reqID, roomID)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}

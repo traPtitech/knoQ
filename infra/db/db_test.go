@@ -25,7 +25,7 @@ const (
 	dbHost = "localhost"
 )
 
-var repositories = map[string]*GormRepository{}
+var repositories = map[string]*gormRepository{}
 
 func TestMain(m *testing.M) {
 	pool, err := dockertest.NewPool("")
@@ -90,7 +90,7 @@ func TestMain(m *testing.M) {
 		if err := db.Migrator().AutoMigrate(tables...); err != nil {
 			panic(err)
 		}
-		repo := GormRepository{
+		repo := gormRepository{
 			db: db,
 		}
 		repositories[key] = &repo
@@ -109,7 +109,7 @@ func mustNewUUIDV4(t *testing.T) uuid.UUID {
 	return id
 }
 
-func setupRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions) {
+func setupRepo(t *testing.T, repo string) (*gormRepository, *assert.Assertions, *require.Assertions) {
 	t.Helper()
 	r, ok := repositories[repo]
 	if !ok {
@@ -119,28 +119,28 @@ func setupRepo(t *testing.T, repo string) (*GormRepository, *assert.Assertions, 
 	return r, assert, require
 }
 
-func setupRepoWithUser(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User) {
+func setupRepoWithUser(t *testing.T, repo string) (*gormRepository, *assert.Assertions, *require.Assertions, *User) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
 	user := mustMakeUser(t, r, false)
 	return r, assert, require, user
 }
 
-func setupRepoWithUserGroup(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Group) {
+func setupRepoWithUserGroup(t *testing.T, repo string) (*gormRepository, *assert.Assertions, *require.Assertions, *User, *Group) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
 	group, user := mustMakeGroup(t, r, random.AlphaNumeric(10, false))
 	return r, assert, require, user, group
 }
 
-func setupRepoWithUserRoom(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Room) {
+func setupRepoWithUserRoom(t *testing.T, repo string) (*gormRepository, *assert.Assertions, *require.Assertions, *User, *Room) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
 	room, user := mustMakeRoom(t, r, "here")
 	return r, assert, require, user, room
 }
 
-func setupRepoWithUserGroupRoomEvent(t *testing.T, repo string) (*GormRepository, *assert.Assertions, *require.Assertions, *User, *Group, *Room, *Event) {
+func setupRepoWithUserGroupRoomEvent(t *testing.T, repo string) (*gormRepository, *assert.Assertions, *require.Assertions, *User, *Group, *Room, *Event) {
 	t.Helper()
 	r, assert, require := setupRepo(t, repo)
 
@@ -148,7 +148,7 @@ func setupRepoWithUserGroupRoomEvent(t *testing.T, repo string) (*GormRepository
 	return r, assert, require, user, group, room, event
 }
 
-func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
+func mustMakeUser(t *testing.T, repo *gormRepository, privilege bool) *User {
 	t.Helper()
 	user := User{
 		Privilege: privilege,
@@ -158,18 +158,11 @@ func mustMakeUser(t *testing.T, repo *GormRepository, privilege bool) *User {
 	return &user
 }
 
-// func mustMakeUserBody(t *testing.T, repo *GormRepository, name, password string) *UserBody {
-// t.Helper()
-// user, err := saveUser(repo.db, userID uuid.UUID, privilege bool)
-// require.NoError(t, err)
-// return user
-// }
-
 // mustMakeGroup make group has no members
-func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *User) {
+func mustMakeGroup(t *testing.T, repo *gormRepository, name string) (*Group, *User) {
 	t.Helper()
 	user := mustMakeUser(t, repo, false)
-	params := WriteGroupParams{
+	params := domain.UpsertGroupArgs{
 		WriteGroupParams: domain.WriteGroupParams{
 			Name:       name,
 			Members:    nil,
@@ -190,11 +183,11 @@ func mustMakeGroup(t *testing.T, repo *GormRepository, name string) (*Group, *Us
 // }
 
 // mustMakeRoom make room. now -1h ~ now + 1h
-func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *User) {
+func mustMakeRoom(t *testing.T, repo *gormRepository, place string) (*Room, *User) {
 	t.Helper()
 
 	user := mustMakeUser(t, repo, false)
-	params := CreateRoomParams{
+	params := domain.CreateRoomArgs{
 		WriteRoomParams: domain.WriteRoomParams{
 			Place:     place,
 			TimeStart: time.Now().Add(-1 * time.Hour),
@@ -209,12 +202,12 @@ func mustMakeRoom(t *testing.T, repo *GormRepository, place string) (*Room, *Use
 }
 
 // mustMakeEvent make event. now ~ now + 1m
-func mustMakeEvent(t *testing.T, repo *GormRepository, name string) (*Event, *Group, *Room, *User) {
+func mustMakeEvent(t *testing.T, repo *gormRepository, name string) (*Event, *Group, *Room, *User) {
 	t.Helper()
 	group, user := mustMakeGroup(t, repo, random.AlphaNumeric(10, false))
 	room, _ := mustMakeRoom(t, repo, random.AlphaNumeric(10, false))
 
-	params := WriteEventParams{
+	params := domain.UpsertEventArgs{
 		WriteEventParams: domain.WriteEventParams{
 			Name:          name,
 			GroupID:       group.ID,

@@ -13,7 +13,7 @@ jobs:
     name: Build Docker Image
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set KNOQ_VERSION env
         run: echo "KNOQ_VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
       - name: Set KNOQ_REVISION env

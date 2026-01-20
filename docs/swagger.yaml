@@ -4,7 +4,7 @@ info:
   title: traP knoQ
   description: |
     This is a sample knoQ server.
-  version: 2.1.5
+  version: 2.2.0
 
 servers:
   - url: http://knoq.trap.jp/api
@@ -17,6 +17,10 @@ tags:
     description: traPが借りている講義室
   - name: events
     description: 予約
+  - name: draft-events
+    description: 日程調整中のdraftイベント
+  - name: availability
+    description: 参加可能時間の投票
   - name: groups
     description: グループの情報
   - name: users
@@ -80,8 +84,7 @@ paths:
       tags:
         - rooms
       summary: 部屋の情報を削除
-      description: (関連する予約を削除する)
-        エラーを出して削除を促す予定
+      description: (関連する予約を削除する) エラーを出して削除を促す予定
       operationId: deleteRoom
       responses:
         '200':
@@ -138,15 +141,17 @@ paths:
                 properties:
                   Subject:
                     type: string
-                  Start date: &csvDate
+                  Start date:
                     type: string
-                  End date: *csvDate
-                  Start time: &csvTime
+                  End date:
                     type: string
-                  End time: *csvTime
+                  Start time:
+                    type: string
+                  End time:
+                    type: string
                   Location:
                     type: string
-            example: "Subject, Start date, End date, Start time, End time, Location\n, 2006/01/02, 2006/01/02, 15:04, 15:04, S516\n"
+            example: 'Subject, Start date, End date, Start time, End time, Location\n, 2006/01/02, 2006/01/02, 15:04, 15:04, S516\n'
       responses:
         '201':
           $ref: '#/components/responses/RoomArray'
@@ -158,7 +163,7 @@ paths:
       tags:
         - events
       summary: 使用宣言の情報を取得
-      description: 使用宣言の情報を取得
+      description: 使用宣言の情報を取得。
       operationId: getEvents
       parameters:
         - $ref: '#/components/parameters/dateBegin'
@@ -171,7 +176,7 @@ paths:
       tags:
         - events
       summary: 部屋の使用宣言を行う
-      description: 部屋の使用宣言を行う
+      description: 部屋の使用宣言を行う。
       operationId: addEvents
       requestBody:
         $ref: '#/components/requestBodies/Event'
@@ -182,6 +187,7 @@ paths:
           description: Bad Request
         '403':
           description: Forbidden
+
   /events/{eventID}:
     parameters:
       - $ref: '#/components/parameters/eventID'
@@ -198,7 +204,7 @@ paths:
       tags:
         - events
       summary: 部屋の使用宣言を更新
-      description: adminsのみ
+      description: adminsのみ。
       operationId: updateEvent
       requestBody:
         $ref: '#/components/requestBodies/Event'
@@ -213,7 +219,7 @@ paths:
       tags:
         - events
       summary: 使用宣言を削除
-      description: adminsのみ
+      description: adminsのみ。
       operationId: deleteEvent
       responses:
         '204':
@@ -222,6 +228,7 @@ paths:
           description: Forbidden
         '404':
           description: Not Found
+
   /events/{eventID}/attendees/me:
     parameters:
       - $ref: '#/components/parameters/eventID'
@@ -250,6 +257,7 @@ paths:
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
+
   /events/{eventID}/tags/{tagName}:
     parameters:
       - $ref: '#/components/parameters/eventID'
@@ -268,6 +276,177 @@ paths:
         '204':
           $ref: '#/components/responses/Nocontent'
 
+  /draft-events:
+    post:
+      tags:
+        - draft-events
+      operationId: addDraftEvent
+      summary: draftイベント作成
+      description: 日程調整用のdraftイベントを作成する
+      requestBody:
+        $ref: '#/components/requestBodies/DraftEvent'
+      responses:
+        '201':
+          $ref: '#/components/responses/DraftEvent'
+        '400':
+          description: Bad Request
+        '403':
+          description: Forbidden
+
+  /draft-events/{draftEventID}:
+    parameters:
+      - $ref: '#/components/parameters/draftEventID'
+    get:
+      tags:
+        - draft-events
+      operationId: getDraftEvent
+      summary: draftイベント取得
+      responses:
+        '200':
+          $ref: '#/components/responses/DraftEventDetail'
+        '404':
+          description: Not Found
+    put:
+      tags:
+        - draft-events
+      operationId: updateDraftEvent
+      summary: draftイベント編集
+      description: |
+        締切日までは全項目編集可能。
+        ただし，候補日時（candidateSlots）については追加のみ可能で，削除はできない。
+        adminsのみ。
+      requestBody:
+        $ref: '#/components/requestBodies/DraftEventUpdate'
+      responses:
+        '200':
+          $ref: '#/components/responses/DraftEventDetail'
+        '400':
+          description: Bad Request
+        '403':
+          description: Forbidden（権限なし，または締切日を過ぎている）
+        '404':
+          description: Not Found
+    delete:
+      tags:
+        - draft-events
+      operationId: deleteDraftEvent
+      summary: draftイベント削除
+      description: adminsのみ
+      responses:
+        '204':
+          $ref: '#/components/responses/Nocontent'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /draft-events/{draftEventID}/results:
+    parameters:
+      - $ref: '#/components/parameters/draftEventID'
+    get:
+      tags:
+        - draft-events
+      operationId: getDraftEventResults
+      summary: 日程調整結果取得
+      description: 各候補日時に対する参加可能人数と詳細を取得する
+      responses:
+        '200':
+          $ref: '#/components/responses/SchedulingResults'
+        '404':
+          description: Not Found
+
+  /draft-events/{draftEventID}/availability:
+    parameters:
+      - $ref: '#/components/parameters/draftEventID'
+    get:
+      tags:
+        - availability
+      operationId: getMyAvailability
+      summary: 自分の参加可能時間を取得
+      responses:
+        '200':
+          $ref: '#/components/responses/Availability'
+        '404':
+          description: Not Found（draftイベントが存在しない，または未回答）
+    post:
+      tags:
+        - availability
+      operationId: addAvailability
+      summary: 参加可能時間を登録
+      requestBody:
+        $ref: '#/components/requestBodies/Availability'
+      responses:
+        '201':
+          $ref: '#/components/responses/Availability'
+        '400':
+          description: Bad Request
+        '403':
+          description: Forbidden（締切日を過ぎている）
+        '409':
+          description: Conflict（既に回答済み。PUTで更新してください）
+    put:
+      tags:
+        - availability
+      operationId: updateAvailability
+      summary: 参加可能時間を更新
+      requestBody:
+        $ref: '#/components/requestBodies/Availability'
+      responses:
+        '200':
+          $ref: '#/components/responses/Availability'
+        '400':
+          description: Bad Request
+        '403':
+          description: Forbidden（締切日を過ぎている）
+        '404':
+          description: Not Found（未回答。POSTで登録してください）
+
+  /draft-events/{draftEventID}/availability/all:
+    parameters:
+      - $ref: '#/components/parameters/draftEventID'
+    get:
+      tags:
+        - availability
+      operationId: getAllAvailabilities
+      summary: 全員の参加可能時間を取得
+      description: adminsのみ
+      responses:
+        '200':
+          $ref: '#/components/responses/AvailabilityArray'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found
+
+  /users/me/draft-events:
+    get:
+      tags:
+        - draft-events
+      parameters:
+        - $ref: '#/components/parameters/userRelation'
+        - $ref: '#/components/parameters/draftEventStatus'
+      operationId: getMyDraftEvents
+      description: 自分が関係するdraftイベントを返す
+      responses:
+        '200':
+          $ref: '#/components/responses/DraftEventArray'
+
+  /users/{userID}/draft-events:
+    parameters:
+      - $ref: '#/components/parameters/userID'
+    get:
+      tags:
+        - draft-events
+      parameters:
+        - $ref: '#/components/parameters/userRelation'
+        - $ref: '#/components/parameters/draftEventStatus'
+      operationId: getUserDraftEvents
+      description: ユーザーが関係するdraftイベントを返す
+      responses:
+        '200':
+          $ref: '#/components/responses/DraftEventArray'
+
+
   /users/me/events:
     get:
       tags:
@@ -281,6 +460,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/EventArray'
+
   /users/{userID}/events:
     parameters:
       - $ref: '#/components/parameters/userID'
@@ -311,6 +491,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/EventArray'
+
   /groups/{groupID}/events:
     parameters:
       - $ref: '#/components/parameters/groupID'
@@ -386,7 +567,6 @@ paths:
       operationId: deleteGroup
       responses:
         '204':
-          description: successful operation
           $ref: '#/components/responses/Nocontent'
         '403':
           description: Forbidden
@@ -402,7 +582,6 @@ paths:
       operationId: addMeToGroup
       summary: 自分を追加。open=true
       description: 自分をメンバーに追加する
-
       responses:
         '204':
           $ref: '#/components/responses/Nocontent'
@@ -427,6 +606,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/UUIDArray'
+
   /users/{userID}/groups:
     parameters:
       - $ref: '#/components/parameters/userID'
@@ -437,7 +617,6 @@ paths:
         - $ref: '#/components/parameters/userRelation'
       operationId: getUserGroups
       description: ユーザーが所属しているグループのIDを返す
-
       responses:
         '200':
           $ref: '#/components/responses/UUIDArray'
@@ -453,12 +632,14 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/UserArray'
+
   /users/sync:
     post:
       tags:
         - users
       operationId: syncUsers
-      description: 管理者権限が必要。
+      description: |
+        管理者権限が必要。
         traQのuserと同期します。
         存在していないユーザーは作成されます。
         stateが同期されます。
@@ -476,6 +657,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/User'
+
   /users/me/ical:
     get:
       tags:
@@ -486,7 +668,6 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/icalSecret'
-
     put:
       tags:
         - users
@@ -496,6 +677,7 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/icalSecret'
+
   /users/{userID}/privileged:
     parameters:
       - $ref: '#/components/parameters/userID'
@@ -530,7 +712,7 @@ paths:
       tags:
         - tags
       summary: タグを作成。
-      description: すでにある場合は、error
+      description: すでにある場合は，error
       operationId: postTag
       requestBody:
         $ref: '#/components/requestBodies/Tag'
@@ -565,13 +747,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/authParams'
+                $ref: '#/components/schemas/AuthParams'
+
   /callback:
     get:
       tags:
         - authentication
       operationId: getCallback
-      description: コールバックを検知して、トークンを取得します。
+      description: コールバックを検知して，トークンを取得します。
       parameters:
         - $ref: '#/components/parameters/session'
         - name: code
@@ -602,7 +785,6 @@ paths:
             text/calendar:
               schema:
                 type: string
-              example: "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:github.com/lestrrat-go/ical\nBEGIN:VTIMEZONE\nTZID:Asia/Tokyo\nBEGIN:STANDARD\nDTSTART:19700101T000000\nTZNAME:JST\nTZOFFSETFROM:+9000\nTZOFFSETTO:+9000\nEND:STANDARD\nEND:VTIMEZONE\nBEGIN:VEVENT\nCREATED:20'200'827T09'400'8Z\nDESCRIPTION:asd¥n-----------------------------------¥nイベント詳細ページ¥nhttp://loc\nalhost:'400'0/events/855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nDTEND:20'200'828T1'400'00Z\nDTSTAMP:20'200'904T145144Z\nDTSTART:20'200'828T050000Z\nLAST-MODIFIED:20'200'827T09'400'8Z\nLOCATION:dfaaa\nORGANIZER:18984a38-4dc7-41ab-9c8d-f5469a8e30a9\nSUMMARY:sadfwe\nUID:855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nEND:VEVENT\nBEGIN:VEVENT\nCREATED:20'200'827T09'400'8Z\nDESCRIPTION:asd¥n-----------------------------------¥nイベント詳細ページ¥nhttp://loc\nalhost:'400'0/events/855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nDTEND:20'200'828T1'400'00Z\nDTSTAMP:20'200'904T145144Z\nDTSTART:20'200'828T050000Z\nLAST-MODIFIED:20'200'827T09'400'8Z\nLOCATION:dfaaa\nORGANIZER:18984a38-4dc7-41ab-9c8d-f5469a8e30a9\nSUMMARY:sadfwe\nUID:855cff6d-aef6-4de2-8ba5-bc0c3e76a617\nEND:VEVENT\nEND:VCALENDAR"
 
   /version:
     get:
@@ -620,39 +802,64 @@ paths:
                 properties:
                   version:
                     type: string
-                    example: v2.1.3
+                    example: v2.2.0
                   revision:
                     type: string
                     example: 587c185
+
 components:
   schemas:
-    # will delete
+    UUID:
+      type: string
+      format: uuid
+      example: '3fa85f64-5717-4562-b3fc-2c963f66afa6'
+
     UUIDs:
       type: array
       description: UUIDの配列
       items:
-        type: string
-        format: uuid
+        $ref: '#/components/schemas/UUID'
+
+    DateTime:
+      type: string
+      format: date-time
+      example: '2006-01-02T15:04:05Z'
+
+    UserIdArray:
+      type: array
+      description: ユーザーIDの配列
+      items:
+        $ref: '#/components/schemas/UUID'
+
+    Duration:
+      type: object
+      properties:
+        timeStart:
+          $ref: '#/components/schemas/DateTime'
+        timeEnd:
+          $ref: '#/components/schemas/DateTime'
+      required:
+        - timeStart
+        - timeEnd
 
     ResponseUser:
       type: object
       properties:
-        userId: &uuid
-          type: string
-          format: uuid
-        name: &userName
+        userId:
+          $ref: '#/components/schemas/UUID'
+        name:
           type: string
           example: fuji
-        displayName: &displayName
+        displayName:
           type: string
           example: ふじ
-        icon: &icon
+        icon:
           type: string
           format: url
           example: https://q.trap.jp/api/v3/public/icon/fuji
-        privileged: &privileged
+        privileged:
           type: boolean
-        state: &userState
+        state:
           type: integer
           description: 'ユーザーアカウント状態 0: 停止 1: 有効 2: 一時停止'
       required:
@@ -666,36 +873,36 @@ components:
     ResponseRoom:
       type: object
       properties:
-        roomId: *uuid
-        place: &place
+        roomId:
+          $ref: '#/components/schemas/UUID'
+        place:
           type: string
           example: S516
-        timeStart: &time
-          type: string
-          example: '2006-01-02T15:04:05Z'
-        timeEnd: *time
-        verified: &verified
+        timeStart:
+          $ref: '#/components/schemas/DateTime'
+        timeEnd:
+          $ref: '#/components/schemas/DateTime'
+        verified:
           type: boolean
           description: 部屋が使えることを保証する
         freeTimes:
           description: どのイベントも使用していない時間帯
           type: array
           items:
-            $ref: '#/components/schemas/duration'
+            $ref: '#/components/schemas/Duration'
         sharedTimes:
-          description: 部屋を共用すれば、使用できる時間帯
+          description: 部屋を共用すれば，使用できる時間帯
           type: array
           items:
-            $ref: '#/components/schemas/duration'
-        admins: &admins
-          type: array
-          description: 編集権を持つユーザー
-          items:
-            type: string
-            format: uuid
-        createdBy: *uuid
-        createdAt: *time
-        updatedAt: *time
+            $ref: '#/components/schemas/Duration'
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        createdBy:
+          $ref: '#/components/schemas/UUID'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
       required:
         - roomId
         - place
@@ -710,10 +917,15 @@ components:
     RequestRoom:
       type: object
       properties:
-        place: *place
-        timeStart: *time
-        timeEnd: *time
-        admins: *admins
+        place:
+          type: string
+          example: S516
+        timeStart:
+          $ref: '#/components/schemas/DateTime'
+        timeEnd:
+          $ref: '#/components/schemas/DateTime'
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
       required:
         - place
         - timeStart
@@ -723,28 +935,29 @@ components:
     ResponseGroup:
       type: object
       properties:
-        groupId: *uuid
-        name: &groupName
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        name:
           type: string
           example: room
-        description: &groupDescription
+        description:
           type: string
           example: Sysad班room開発グループ
-        open: &open
+        open:
           type: boolean
-        isTraQGroup: &isTraQGroup
+        isTraQGroup:
           type: boolean
           example: false
-        members: &members
-          type: array
-          description: グループのメンバー
-          items:
-            type: string
-            format: uuid
-        admins: *admins
-        createdBy: *uuid
-        createdAt: *time
-        updatedAt: *time
+        members:
+          $ref: '#/components/schemas/UserIdArray'
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        createdBy:
+          $ref: '#/components/schemas/UUID'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
       required:
         - groupId
         - name
@@ -760,11 +973,18 @@ components:
     RequestGroup:
       type: object
       properties:
-        name: *groupName
-        description: *groupDescription
-        open: *open
-        members: *members
-        admins: *admins
+        name:
+          type: string
+          example: room
+        description:
+          type: string
+          example: Sysad班room開発グループ
+        open:
+          type: boolean
+        members:
+          $ref: '#/components/schemas/UserIdArray'
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
       required:
         - name
         - description
@@ -773,13 +993,16 @@ components:
 
     ResponseTag:
       type: object
-      properties: &tag
-        tagId: *uuid
-        name: &tagName
+      properties:
+        tagId:
+          $ref: '#/components/schemas/UUID'
+        name:
           type: string
           example: Vue
-        createdAt: *time
-        updatedAt: *time
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
       required:
         - tagId
         - name
@@ -789,53 +1012,108 @@ components:
     RequestTag:
       type: object
       properties:
-        name: *tagName
+        name:
+          type: string
+          example: Vue
       required:
         - name
+
+    EventTag:
+      type: object
+      description: イベントに紐づくタグ
+      properties:
+        tagId:
+          $ref: '#/components/schemas/UUID'
+        name:
+          type: string
+          example: Vue
+        locked:
+          type: boolean
+      required:
+        - tagId
+        - name
+
+    RequestEventTag:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Vue
+        locked:
+          type: boolean
+      required:
+        - name
+
+    Schedule:
+      type: string
+      enum:
+        - pending
+        - absent
+        - attendance
+      description: pending or absent or attendance
+
+    Attendee:
+      type: object
+      description: ユーザの参加状況
+      properties:
+        userId:
+          $ref: '#/components/schemas/UUID'
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+      required:
+        - userId
+        - schedule
+
+    RequestSchedule:
+      type: object
+      properties:
+        schedule:
+          $ref: '#/components/schemas/Schedule'
+      required:
+        - schedule
 
     ResponseEvent:
       type: object
       properties:
-        eventId: *uuid
-        name: &eventName
+        eventId:
+          $ref: '#/components/schemas/UUID'
+        name:
           type: string
           example: 第n回進捗回
-        description: &eventDescription
+        description:
           type: string
           example: 第n回の進捗会です。
-        sharedRoom: &sharedRoom
+        sharedRoom:
           type: boolean
           description: 部屋の共用をするか
-        timeStart: *time
-        timeEnd: *time
-        place: *place
-        roomId: *uuid
-        groupId: *uuid
-        open: &eventOpen
+        timeStart:
+          $ref: '#/components/schemas/DateTime'
+        timeEnd:
+          $ref: '#/components/schemas/DateTime'
+        place:
+          type: string
+          example: S516
+        roomId:
+          $ref: '#/components/schemas/UUID'
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        open:
           type: boolean
           description: グループ外のユーザーが参加予定を出来るか
-        admins: *admins
-        tags: &eventTags
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        tags:
           type: array
           items:
-            type: object
-            description: タグの配列
-            properties:
-              tagId: *uuid
-              name: *tagName
-              locked: &locked
-                type: boolean
-            required:
-              - tagId
-              - name
+            $ref: '#/components/schemas/EventTag'
         attendees:
-          type: array
-          items:
-            type: string
-            format: uuid
-        createdBy: *uuid
-        createdAt: *time
-        updatedAt: *time
+          $ref: '#/components/schemas/UserIdArray'
+        createdBy:
+          $ref: '#/components/schemas/UUID'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
       required:
         - eventId
         - name
@@ -857,38 +1135,50 @@ components:
     ResponseEventDetail:
       type: object
       properties:
-        eventId: *uuid
-        name: *eventName
-        description: *eventDescription
-        sharedRoom: *sharedRoom
-        timeStart: *time
-        timeEnd: *time
-        place: *place
-        groupName: *groupName
-        open: *eventOpen
+        eventId:
+          $ref: '#/components/schemas/UUID'
+        name:
+          type: string
+          example: 第n回進捗回
+        description:
+          type: string
+          example: 第n回の進捗会です。
+        sharedRoom:
+          type: boolean
+          description: 部屋の共用をするか
+        timeStart:
+          $ref: '#/components/schemas/DateTime'
+        timeEnd:
+          $ref: '#/components/schemas/DateTime'
+        place:
+          type: string
+          example: S516
+        groupName:
+          type: string
+          example: room
+        open:
+          type: boolean
+          description: グループ外のユーザーが参加予定を出来るか
         room:
           $ref: '#/components/schemas/ResponseRoom'
         group:
           $ref: '#/components/schemas/ResponseGroup'
-        admins: *admins
-        tags: *eventTags
-        attendees: &attendees
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        tags:
           type: array
           items:
-            type: object
-            description: ユーザの参加状況
-            properties:
-              userId: *uuid
-              schedule: &schedule
-                type: string
-                enum: [pending, absent, attendance]
-                description: pending or absent or attendance
-            required:
-              - userId
-              - schedule
-        createdBy: *uuid
-        createdAt: *time
-        updatedAt: *time
+            $ref: '#/components/schemas/EventTag'
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendee'
+        createdBy:
+          $ref: '#/components/schemas/UUID'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
       required:
         - eventId
         - name
@@ -912,24 +1202,31 @@ components:
       type: object
       description: 部屋を作る
       properties:
-        name: *eventName
-        description: *eventDescription
-        sharedRoom: *sharedRoom
-        timeStart: *time
-        timeEnd: *time
-        place: *place
-        groupId: *uuid
-        open: *eventOpen
-        admins: *admins
-        tags: &reqEventTags
+        name:
+          type: string
+          example: 第n回進捗回
+        description:
+          type: string
+          example: 第n回の進捗会です。
+        sharedRoom:
+          type: boolean
+        timeStart:
+          $ref: '#/components/schemas/DateTime'
+        timeEnd:
+          $ref: '#/components/schemas/DateTime'
+        place:
+          type: string
+          example: S516
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        open:
+          type: boolean
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        tags:
           type: array
           items:
-            type: object
-            properties:
-              name: *tagName
-              locked: *locked
-            required:
-              - tagName
+            $ref: '#/components/schemas/RequestEventTag'
       required:
         - name
         - description
@@ -944,16 +1241,30 @@ components:
       type: object
       description: 既存の部屋を使う
       properties:
-        name: *eventName
-        description: *eventDescription
-        sharedRoom: *sharedRoom
-        timeStart: *time
-        timeEnd: *time
-        roomId: *uuid
-        groupId: *uuid
-        open: *eventOpen
-        admins: *admins
-        tags: *reqEventTags
+        name:
+          type: string
+          example: 第n回進捗回
+        description:
+          type: string
+          example: 第n回の進捗会です。
+        sharedRoom:
+          type: boolean
+        timeStart:
+          $ref: '#/components/schemas/DateTime'
+        timeEnd:
+          $ref: '#/components/schemas/DateTime'
+        roomId:
+          $ref: '#/components/schemas/UUID'
+        groupId:
+          $ref: '#/components/schemas/UUID'
+        open:
+          type: boolean
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestEventTag'
       required:
         - name
         - description
@@ -969,23 +1280,301 @@ components:
         - $ref: '#/components/schemas/RequestEventInstant'
         - $ref: '#/components/schemas/RequestEventStock'
 
-    RequestSchedule:
-      type: object
-      properties:
-        schedule: *schedule
-      required:
-        - schedule
+    DraftEventStatus:
+      type: string
+      enum:
+        - open
+        - closed
+        - confirmed
+      description: ステータス（open=調整中, closed=締切済み, confirmed=イベント確定済み）
 
-    duration:
+    RequestCandidateSlot:
       type: object
+      description: 候補日時の枠
       properties:
-        timeStart: *time
-        timeEnd: *time
+        date:
+          type: string
+          format: date
+          description: 候補日
+          example: '2024-12-20'
+        startTime:
+          type: string
+          pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+          description: 開始時刻 (HH:mm)
+          example: '10:00'
+        endTime:
+          type: string
+          pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+          description: 終了時刻 (HH:mm)
+          example: '18:00'
       required:
+        - date
+        - startTime
+        - endTime
+
+    CandidateSlot:
+      type: object
+      description: 候補スロット
+      properties:
+        slotId:
+          $ref: '#/components/schemas/UUID'
+        timeStart:
+          $ref: '#/components/schemas/DateTime'
+        timeEnd:
+          $ref: '#/components/schemas/DateTime'
+      required:
+        - slotId
         - timeStart
         - timeEnd
 
-    authParams:
+    ResponseDraftEvent:
+      type: object
+      description: draftイベント一覧用
+      properties:
+        draftEventId:
+          $ref: '#/components/schemas/UUID'
+        name:
+          type: string
+          example: 第n回進捗回
+        deadline:
+          $ref: '#/components/schemas/DateTime'
+        status:
+          $ref: '#/components/schemas/DraftEventStatus'
+        respondedCount:
+          type: integer
+          description: 回答済み人数
+        totalInvitees:
+          type: integer
+          description: 招待者総数
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        createdBy:
+          $ref: '#/components/schemas/UUID'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+      required:
+        - draftEventId
+        - name
+        - deadline
+        - status
+        - respondedCount
+        - totalInvitees
+        - admins
+        - createdBy
+        - createdAt
+        - updatedAt
+
+    ResponseDraftEventDetail:
+      type: object
+      description: draftイベント詳細
+      properties:
+        draftEventId:
+          $ref: '#/components/schemas/UUID'
+        name:
+          type: string
+          example: 第n回進捗回
+        description:
+          type: string
+          example: 第n回の進捗会です。
+        open:
+          type: boolean
+          description: グループ外のユーザーが参加予定を出来るか
+        deadline:
+          $ref: '#/components/schemas/DateTime'
+        candidateSlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/CandidateSlot'
+          description: 候補スロットの一覧
+        status:
+          $ref: '#/components/schemas/DraftEventStatus'
+        respondedCount:
+          type: integer
+        totalInvitees:
+          type: integer
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        invitees:
+          $ref: '#/components/schemas/UserIdArray'
+        createdBy:
+          $ref: '#/components/schemas/UUID'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+      required:
+        - draftEventId
+        - name
+        - deadline
+        - candidateSlots
+        - status
+        - respondedCount
+        - totalInvitees
+        - admins
+        - invitees
+        - createdBy
+        - createdAt
+        - updatedAt
+
+    RequestDraftEvent:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 第n回進捗回
+        description:
+          type: string
+          example: 第n回の進捗会です。
+        open:
+          type: boolean
+        deadline:
+          $ref: '#/components/schemas/DateTime'
+        candidateSlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestCandidateSlot'
+          description: 候補日時の枠
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
+        invitees:
+          $ref: '#/components/schemas/UserIdArray'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestEventTag'
+      required:
+        - name
+        - deadline
+        - candidateSlots
+        - admins
+
+    RequestDraftEventUpdate:
+      type: object
+      description: |
+        締切日までは全項目編集可能。
+        candidateSlotsは追加のみ可能（既存の候補は削除不可）
+      properties:
+        name:
+          type: string
+          example: 第n回進捗回
+        description:
+          type: string
+          example: 第n回の進捗会です。
+        open:
+          type: boolean
+        deadline:
+          $ref: '#/components/schemas/DateTime'
+        additionalCandidateSlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestCandidateSlot'
+          description: 追加する候補日時の枠
+        invitees:
+          $ref: '#/components/schemas/UserIdArray'
+
+    ResponseAvailability:
+      type: object
+      properties:
+        userId:
+          $ref: '#/components/schemas/UUID'
+        draftEventId:
+          $ref: '#/components/schemas/UUID'
+        slotIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/UUID'
+          description: 参加可能なスロットIDの配列
+        comment:
+          type: string
+          nullable: true
+          description: コメント
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+      required:
+        - userId
+        - draftEventId
+        - slotIds
+        - updatedAt
+
+    RequestAvailability:
+      type: object
+      properties:
+        slotIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/UUID'
+          description: 参加可能なスロットIDの配列
+        comment:
+          type: string
+          nullable: true
+          maxLength: 500
+      required:
+        - slotIds
+
+    SlotResult:
+      type: object
+      description: スロットごとの集計結果
+      properties:
+        slotId:
+          $ref: '#/components/schemas/UUID'
+        availableCount:
+          type: integer
+          description: 参加可能人数
+        availableUsers:
+          $ref: '#/components/schemas/UserIdArray'
+        availabilityRate:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: 参加可能率
+      required:
+        - slotId
+        - availableCount
+        - availableUsers
+        - availabilityRate
+
+    RespondentSummary:
+      type: object
+      description: 回答者情報
+      properties:
+        userId:
+          $ref: '#/components/schemas/UUID'
+        respondedAt:
+          $ref: '#/components/schemas/DateTime'
+        comment:
+          type: string
+          nullable: true
+      required:
+        - userId
+        - respondedAt
+
+    ResponseSchedulingResults:
+      type: object
+      properties:
+        draftEventId:
+          $ref: '#/components/schemas/UUID'
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SlotResult'
+          description: 各時間帯ごとの集計結果
+        respondents:
+          type: array
+          items:
+            $ref: '#/components/schemas/RespondentSummary'
+          description: 回答者一覧
+        nonRespondents:
+          $ref: '#/components/schemas/UserIdArray'
+      required:
+        - draftEventId
+        - results
+        - respondents
+        - nonRespondents
+
+    AuthParams:
       type: object
       properties:
         url:
@@ -995,7 +1584,7 @@ components:
       required:
         - url
 
-    icalSecret:
+    IcalSecret:
       type: object
       properties:
         secret:
@@ -1003,7 +1592,7 @@ components:
       required:
         - secret
 
-    icalToken:
+    IcalToken:
       type: string
       description: userIdとicalのsecretをつなげたもの
 
@@ -1039,19 +1628,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RequestEvent'
-            example:
-              name: イベント
-              description: これはイベントです。
-              sharedRoom: true
-              timeStart: '2006-01-02T15:04:05Z'
-              timeEnd: '2006-01-02T15:04:05Z'
-              place: Discord
-              groupId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
-              admins:
-                - 3fa85f64-5717-4562-b3fc-2c963f66afa6
-              tags:
-                - name: golang
-                  locked: true
 
     EventTag:
       description: イベントにタグを追加
@@ -1068,6 +1644,30 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/RequestSchedule'
+
+    DraftEvent:
+      description: draftイベントの作成
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RequestDraftEvent'
+
+    DraftEventUpdate:
+      description: draftイベントの更新
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RequestDraftEventUpdate'
+
+    Availability:
+      description: 参加可能時間
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RequestAvailability'
 
   responses:
     Nocontent:
@@ -1086,6 +1686,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ResponseRoom'
+
     RoomArray:
       description: successful operation
       content:
@@ -1094,6 +1695,7 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/ResponseRoom'
+
     Event:
       description: successful operation
       content:
@@ -1109,12 +1711,14 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/ResponseEvent'
+
     Group:
       description: successful operation
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ResponseGroup'
+
     GroupArray:
       description: successful operation
       content:
@@ -1123,12 +1727,14 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/ResponseGroup'
+
     User:
       description: successful operation
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/ResponseUser'
+
     UserArray:
       description: successful operation
       content:
@@ -1143,7 +1749,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/icalSecret'
+            $ref: '#/components/schemas/IcalSecret'
 
     Tag:
       description: successful operation
@@ -1151,6 +1757,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ResponseTag'
+
     TagArray:
       description: successful operation
       content:
@@ -1159,6 +1766,52 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/ResponseTag'
+
+    DraftEvent:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseDraftEvent'
+
+    DraftEventDetail:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseDraftEventDetail'
+
+    DraftEventArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ResponseDraftEvent'
+
+    Availability:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseAvailability'
+
+    AvailabilityArray:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/ResponseAvailability'
+
+    SchedulingResults:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseSchedulingResults'
 
   parameters:
     session:
@@ -1173,19 +1826,15 @@ components:
       in: path
       required: true
       schema:
-        $ref: '#/components/schemas/icalToken'
+        $ref: '#/components/schemas/IcalToken'
+
     eventFilter:
       name: q
       in: query
       schema:
         type: string
-      description: 'Syntax: <br>
-        top  : ε | expr,
-        expr : term ( ( "||" | "&&" ) term)*<br>
-        term : cmp | "(" expr ")"<br>
-        cmp  : Attr ( "==" | "!=" ) UUID<br>
-        Attr : "event" | "user" | "group" | "tag"
-        '
+      description: "Syntax: top: ε | expr, expr: term (('||' | '&&') term)*, term: cmp | '(' expr ')', cmp: Attr ('==' | '!=') UUID, Attr: 'event' | 'user' | 'group' | 'tag'"
+
     dateBegin:
       name: dateBegin
       in: query
@@ -1193,8 +1842,9 @@ components:
       required: false
       schema:
         type: string
-        format: datetime
+        format: date-time
       example: '2006-01-02T15:04:05Z'
+
     dateEnd:
       name: dateEnd
       in: query
@@ -1202,8 +1852,9 @@ components:
       required: false
       schema:
         type: string
-        format: datetime
+        format: date-time
       example: '2006-01-02T15:04:05Z'
+
     excludeEventID:
       name: excludeEventID
       in: query
@@ -1217,9 +1868,7 @@ components:
     include-suspended:
       name: include-suspended
       in: query
-      description: アカウントがアクティブでないユーザーを含めるかどうか。 |
-        traQ由来のquery。 |
-        de
+      description: アカウントがアクティブでないユーザーを含めるかどうか。
       required: false
       schema:
         type: boolean
@@ -1230,10 +1879,11 @@ components:
       in: query
       required: false
       description: |
-        どのような関係性でユーザーと結びつけるか。 取り得る値は、
-        admins(ユーザーが管理者), belongs(ユーザーが所属している), 
-        belongs-or-admins(ユーザーが管理者または所属している) 
-        イベントはさらに、attendees(not absent) 値がない場合は、belongs として振る舞う
+        どのような関係性でユーザーと結びつけるか。
+        取り得る値は，admins(ユーザーが管理者), belongs(ユーザーが所属している),
+        belongs-or-admins(ユーザーが管理者または所属している)
+        イベントはさらに，attendees(not absent)
+        値がない場合は，belongs として振る舞う
       schema:
         type: string
         enum:
@@ -1249,6 +1899,7 @@ components:
       schema:
         type: string
         format: uuid
+
     groupID:
       name: groupID
       in: path
@@ -1256,6 +1907,7 @@ components:
       schema:
         type: string
         format: uuid
+
     roomID:
       name: roomID
       in: path
@@ -1263,6 +1915,7 @@ components:
       schema:
         type: string
         format: uuid
+
     eventID:
       name: eventID
       in: path
@@ -1270,6 +1923,22 @@ components:
       schema:
         type: string
         format: uuid
+
+    draftEventID:
+      name: draftEventID
+      in: path
+      required: true
+      description: draftイベントID
+      schema:
+        type: string
+        format: uuid
+
+    draftEventStatus:
+      name: status
+      in: query
+      description: ステータスでフィルタ
+      schema:
+        $ref: '#/components/schemas/DraftEventStatus'
 
 externalDocs:
   description: Find out more about Swagger

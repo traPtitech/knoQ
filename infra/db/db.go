@@ -4,6 +4,7 @@ import (
 	"time"
 
 	gomysql "github.com/go-sql-driver/mysql"
+	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/migration"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -11,13 +12,13 @@ import (
 )
 
 // GormRepository implements domain
-type GormRepository struct {
+type gormRepository struct {
 	db *gorm.DB
 }
 
 var tokenKey []byte
 
-func (repo *GormRepository) Setup(host, user, password, database, port, key, logLevel string, loc *time.Location) error {
+func (repo *gormRepository) Setup(host, user, password, database, port, key, logLevel string, loc *time.Location) error {
 	loglevel := func() logger.LogLevel {
 		switch logLevel {
 		case "slient":
@@ -64,4 +65,10 @@ func (repo *GormRepository) Setup(host, user, password, database, port, key, log
 	}
 
 	return migration.Migrate(repo.db, tables)
+}
+
+func NewRepository(host, user, password, database, port, key, logLevel string, loc *time.Location) (domain.Repository, error) {
+	r := gormRepository{}
+	err := r.Setup(host, user, password, database, port, key, logLevel, loc)
+	return &r, err
 }

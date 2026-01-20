@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gofrs/uuid"
 	"github.com/jszwec/csvutil"
 	"github.com/traPtitech/knoQ/domain"
 
@@ -20,7 +19,7 @@ import (
 )
 
 type Handlers struct {
-	Repo              domain.Repository
+	Service           domain.Service
 	Logger            *zap.Logger
 	SessionKey        []byte
 	SessionOption     sessions.Options
@@ -155,14 +154,6 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 	}))
 
 	return e
-}
-
-func getConinfo(c echo.Context) *domain.ConInfo {
-	info := new(domain.ConInfo)
-	sess, _ := session.Get("session", c)
-	str := sess.Values["userID"].(string)
-	info.ReqUserID = uuid.FromStringOrNil(str)
-	return info
 }
 
 type CustomBinder struct{}

@@ -21,48 +21,45 @@ func eventFullPreload(tx *gorm.DB) *gorm.DB {
 		Preload("CreatedBy")
 }
 
-//go:generate go run github.com/fuji8/gotypeconverter/cmd/gotypeconverter@latest -s WriteEventParams -d Event -o converter.go .
-type WriteEventParams struct {
-	domain.WriteEventParams
-	CreatedBy uuid.UUID
+func (repo *gormRepository) CreateEvent(args domain.UpsertEventArgs) (*domain.Event, error) {
+	e, err := createEvent(repo.db, args)
+	de := convEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) CreateEvent(params WriteEventParams) (*Event, error) {
-	e, err := createEvent(repo.db, params)
-	return e, defaultErrorHandling(err)
+func (repo *gormRepository) UpdateEvent(eventID uuid.UUID, args domain.UpsertEventArgs) (*domain.Event, error) {
+	e, err := updateEvent(repo.db, eventID, args)
+	de := convEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpdateEvent(eventID uuid.UUID, params WriteEventParams) (*Event, error) {
-	e, err := updateEvent(repo.db, eventID, params)
-	return e, defaultErrorHandling(err)
-}
-
-func (repo *GormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
+func (repo *gormRepository) AddEventTag(eventID uuid.UUID, params domain.EventTagParams) error {
 	err := addEventTag(repo.db, eventID, params)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteEvent(eventID uuid.UUID) error {
+func (repo *gormRepository) DeleteEvent(eventID uuid.UUID) error {
 	err := deleteEvent(repo.db, eventID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
+func (repo *gormRepository) DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error {
 	err := deleteEventTag(repo.db, eventID, tagName, deleteLocked)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
+func (repo *gormRepository) UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
 	err := upsertEventSchedule(repo.db, eventID, userID, scheduleStatus)
 	return defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetEvent(eventID uuid.UUID) (*Event, error) {
-	es, err := getEvent(eventFullPreload(repo.db), eventID)
-	return es, defaultErrorHandling(err)
+func (repo *gormRepository) GetEvent(eventID uuid.UUID) (*domain.Event, error) {
+	e, err := getEvent(eventFullPreload(repo.db), eventID)
+	de := convEventTodomainEvent(*e)
+	return &de, defaultErrorHandling(err)
 }
 
-func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*Event, error) {
+func (repo *gormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, error) {
 	filterFormat, filterArgs, err := createEventFilter(expr)
 	if err != nil {
 		return nil, err
@@ -74,18 +71,18 @@ func (repo *GormRepository) GetAllEvents(expr filters.Expr) ([]*Event, error) {
 			"LEFT JOIN event_admins ON events.id = event_admins.event_id "+
 			"LEFT JOIN event_attendees ON events.id = event_attendees.event_id"),
 		filterFormat, filterArgs)
-	return es, defaultErrorHandling(err)
+	return ConvSPEventToSPdomainEvent(es), defaultErrorHandling(err)
 }
 
-func createEvent(db *gorm.DB, params WriteEventParams) (*Event, error) {
-	event := ConvWriteEventParamsToEvent(params)
+func createEvent(db *gorm.DB, args domain.UpsertEventArgs) (*Event, error) {
+	event := ConvWriteEventParamsToEvent(args)
 
 	err := db.Create(&event).Error
 	return &event, err
 }
 
-func updateEvent(db *gorm.DB, eventID uuid.UUID, params WriteEventParams) (*Event, error) {
-	event := ConvWriteEventParamsToEvent(params)
+func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*Event, error) {
+	event := ConvWriteEventParamsToEvent(args)
 	event.ID = eventID
 
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
