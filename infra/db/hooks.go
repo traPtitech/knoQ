@@ -231,29 +231,30 @@ func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 }
 
 // BeforeSave is hook
-func (g *Group) BeforeSave(_ *gorm.DB) (err error) {
-	if g.ID != uuid.Nil {
-		return nil
-	}
-	g.ID, err = uuid.NewV4()
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (g *Group) BeforeSave(_ *gorm.DB) (err error) {
+// 	if g.ID != uuid.Nil {
+// 		return nil
+// 	}
+// 	// 新規発行は create へ
+// 	g.ID, err = uuid.NewV4()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
-func (g *Group) BeforeUpdate(tx *gorm.DB) (err error) {
-	// delete current m2m
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (g *Group) BeforeUpdate(tx *gorm.DB) (err error) {
+// 	// delete current m2m
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 	group, err := getGroup(tx.Preload("Admins"), g.ID)
@@ -272,18 +273,19 @@ func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (g *Group) BeforeDelete(tx *gorm.DB) (err error) {
-	// delete current m2m
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
-	if err != nil {
-		return err
-	}
-	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// db/group deleteGroupに移動
+// func (g *Group) BeforeDelete(tx *gorm.DB) (err error) {
+// 	// delete current m2m
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupMember{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = tx.Where("group_id = ?", g.ID).Delete(&GroupAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 // BeforeCreate is hook
 func (t *Tag) BeforeCreate(_ *gorm.DB) (err error) {
