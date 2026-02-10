@@ -9,6 +9,10 @@ import (
 )
 
 func (s *service) CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
+	// 時間整合性の確認
+	if(!params.TimeStart.Before(params.TimeEnd)){
+		return nil,ErrTimeConsistency
+	}
 	p := domain.CreateRoomArgs{
 		WriteRoomParams: params,
 		Verified:        false,
@@ -22,6 +26,10 @@ func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, param
 
 	if !s.IsPrivilege(ctx, reqID) {
 		return nil, domain.ErrForbidden
+	}
+	// 時間整合性の確認
+	if(!params.TimeStart.Before(params.TimeEnd)){
+		return nil,ErrTimeConsistency
 	}
 	p := domain.CreateRoomArgs{
 		WriteRoomParams: params,
