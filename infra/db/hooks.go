@@ -194,6 +194,7 @@ func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 // 	if r.ID != uuid.Nil {
 // 		return nil
 // 	}
+//  // createRoomに移動
 // 	r.ID, err = uuid.NewV4()
 // 	if err != nil {
 // 		return err
@@ -208,13 +209,13 @@ func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 // 	return nil
 // }
 
-func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
-	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
+// 	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 
 func (r *Room) AfterSave(tx *gorm.DB) (err error) {

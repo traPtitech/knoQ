@@ -74,23 +74,30 @@ func (repo *gormRepository) GetAllRooms(start, end time.Time, excludeEventID uui
 
 func createRoom(db *gorm.DB, args domain.CreateRoomArgs) (*Room, error) {
 	room := ConvCreateRoomParamsToRoom(args)
-	err := db.Create(&room).Error
+	var err error
+	// IDを新規発行
+	room.ID ,err = uuid.NewV4()
+	if err != nil {
+		return nil,err
+	}
+	// 時間整合性は service で確認済み
+	err = db.Create(&room).Error
 	return &room, err
 }
 
 func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Room, error) {
 	room := ConvUpdateRoomParamsToRoom(args)
 	room.ID = roomID
-	// よくないが、更新順序が不明
-	// Userを変更する可能性がある
-	// Events は readonly
-	var err error
 	if room.ID == uuid.Nil {
-		room.ID,err = uuid.NewV4()
-		if err != nil {
-			return nil,err
-		} 
+		return nil,ErrRoomUndefined
 	}
+
+	// BeforeSave, BeforeUpdate が発火
+	err := db.Where("room_id", room.ID).Delete(&RoomAdmin{}).Error
+	if err!=nil{
+		return nil,err
+	}
+	// 時間整合性は service で確認済み
 	err = db.Omit("verified", "CreatedAt").Save(&room).Error
 
 	// err := db.Session(&gorm.Session{FullSaveAssociations: true}).
@@ -99,6 +106,7 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Roo
 }
 
 func updateRoomVerified(db *gorm.DB, roomID uuid.UUID, verified bool) error {
+	// hooksは発火しない
 	return db.Model(&Room{}).Where("id = ?", roomID).UpdateColumn("verified", verified).Error
 }
 
