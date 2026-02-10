@@ -85,6 +85,7 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 	event := ConvWriteEventParamsToEvent(args)
 	event.ID = eventID
 
+	// Event Save の明示的な呼び出し
 	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
 		Omit("CreatedAt").Save(&event).Error
 	return &event, err
