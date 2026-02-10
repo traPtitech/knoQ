@@ -99,7 +99,12 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Roo
 	}
 	// 時間整合性は service で確認済み
 	err = db.Omit("verified", "CreatedAt").Save(&room).Error
+	// Admins の更新
+	for admin := range room.Admins {
+		db.Save(&admin)
+	}
 
+	// Event,Userはreadonly
 	// err := db.Session(&gorm.Session{FullSaveAssociations: true}).
 		// Omit("verified", "CreatedAt").Save(&room).Error
 	return &room, err
