@@ -36,12 +36,20 @@ func (s *service) UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.U
 	if !s.IsRoomAdmins(ctx, reqID, roomID) {
 		return nil, domain.ErrForbidden
 	}
+	// そもそもNilだとIsRoomAdminsで弾かれるはず
+	// if roomID  == uuid.Nil {
+	// 	return nil,ErrRoomUndefined
+	// }
 
 	p := domain.UpdateRoomArgs{
 		WriteRoomParams: params,
 		CreatedBy:       reqID,
 	}
 
+	// 時間整合性の確認
+	if(!params.TimeStart.Before(params.TimeEnd)){
+		return nil,ErrTimeConsistency
+	}
 	r, err := s.GormRepo.UpdateRoom(roomID, p)
 	return r, defaultErrorHandling(err)
 }

@@ -9,8 +9,6 @@ import (
 	"github.com/traPtitech/knoQ/infra/traq"
 )
 
-//  domain まで上がるかもしれない
-//  現状のdomainにはwebサービス一般のerrorだけがある
 var (
 	ErrInvalidArgs     = errors.New("invalid args")
 	ErrTimeConsistency = errors.New("inconsistent time")

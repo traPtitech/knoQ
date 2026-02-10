@@ -84,8 +84,17 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Roo
 	// よくないが、更新順序が不明
 	// Userを変更する可能性がある
 	// Events は readonly
-	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
-		Omit("verified", "CreatedAt").Save(&room).Error
+	var err error
+	if room.ID == uuid.Nil {
+		room.ID,err = uuid.NewV4()
+		if err != nil {
+			return nil,err
+		} 
+	}
+	err = db.Omit("verified", "CreatedAt").Save(&room).Error
+
+	// err := db.Session(&gorm.Session{FullSaveAssociations: true}).
+		// Omit("verified", "CreatedAt").Save(&room).Error
 	return &room, err
 }
 

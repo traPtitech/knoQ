@@ -190,23 +190,23 @@ func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
 }
 
 // BeforeSave is hook
-func (r *Room) BeforeSave(_ *gorm.DB) (err error) {
-	if r.ID != uuid.Nil {
-		return nil
-	}
-	r.ID, err = uuid.NewV4()
-	if err != nil {
-		return err
-	}
+// func (r *Room) BeforeSave(_ *gorm.DB) (err error) {
+// 	if r.ID != uuid.Nil {
+// 		return nil
+// 	}
+// 	r.ID, err = uuid.NewV4()
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// 時間整合性
-	// これは domain が持つべき
-	Droom := ConvRoomTodomainRoom(*r)
-	if !Droom.TimeConsistency() {
-		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
-	}
-	return nil
-}
+// 	// 時間整合性
+// 	// Serviceに移動
+// 	Droom := ConvRoomTodomainRoom(*r)
+// 	if !Droom.TimeConsistency() {
+// 		return NewValueError(ErrTimeConsistency, "timeStart", "timeEnd")
+// 	}
+// 	return nil
+// }
 
 func (r *Room) BeforeUpdate(tx *gorm.DB) (err error) {
 	err = tx.Where("room_id", r.ID).Delete(&RoomAdmin{}).Error
