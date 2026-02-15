@@ -118,18 +118,18 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		existingUser, err := getUser(tx.Preload("Provider").Preload("Token"), user.ID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// BeforeCreate が呼ばれる
-			if user.ID != uuid.Nil  {
-				// 単純にIDが違う場合
-				return ErrRecordNotFound
-			} else {
-				// IDなしで新たに作成する場合
+			// Userを新たに Create
+			if user.ID == uuid.Nil  {
+				// IDを新たに作成する場合
 				user.ID ,err = uuid.NewV4()
 				if err != nil {
 					return err
 				}
-				return tx.Create(&user).Error
 			}
+			// 関連の作成
+			tx.Save(user.Provider)
+			saveToken(tx,&user.Token)
+			return tx.Create(user).Error
 		}
 		if err != nil {
 			return err
@@ -138,9 +138,11 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 		if user.IcalSecret == "" {
 			user.IcalSecret = existingUser.IcalSecret
 		}
-		// 良くない
-		// 何が更新される？
-		return tx.Session(&gorm.Session{FullSaveAssociations: true}).Updates(user).Error
+		// 関連の更新
+		tx.Updates(user.Provider)
+		saveToken(tx,&user.Token)
+		return tx.Updates(user).Error
+		// return tx.Session(&gorm.Session{FullSaveAssociations: true}).Updates(user).Error
 	})
 
 	return user, err
