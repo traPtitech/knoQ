@@ -89,6 +89,5 @@ func saveToken(db *gorm.DB, token *Token) error {
 			token.AccessToken = string(cipherText)
 		}
 	}
-	db.Save(token.Oauth2Token)
 	return db.Save(token).Error 
 }
