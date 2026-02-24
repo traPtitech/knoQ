@@ -288,16 +288,16 @@ func (g *Group) AfterSave(tx *gorm.DB) (err error) {
 // }
 
 // BeforeCreate is hook
-func (t *Tag) BeforeCreate(_ *gorm.DB) (err error) {
-	if t.ID != uuid.Nil {
-		return nil
-	}
-	t.ID, err = uuid.NewV4()
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// func (t *Tag) BeforeCreate(_ *gorm.DB) (err error) {
+// 	if t.ID != uuid.Nil {
+// 		return nil
+// 	}
+// 	t.ID, err = uuid.NewV4()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
 /*
 // BeforeCreate is hook
