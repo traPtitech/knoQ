@@ -80,6 +80,10 @@ type WriteEventParams struct {
 	Open          bool
 }
 
+func (e *WriteEventParams) TimeConsistency() bool {
+	return e.TimeStart.Before((e.TimeEnd))
+}
+
 type EventTagParams struct {
 	Name   string
 	Locked bool

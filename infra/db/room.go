@@ -80,13 +80,15 @@ func createRoom(db *gorm.DB, args domain.CreateRoomArgs) (*Room, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	err = db.Create(&room).Error
+	if err != nil {
+		return nil, err
+	}
 	for _, admin := range room.Admins {
 		db.Save(&admin)
 	}
 
 	// 時間整合性は service で確認済み
-	err = db.Create(&room).Error
 	return &room, err
 }
 

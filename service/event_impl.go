@@ -14,6 +14,9 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
+	if !params.TimeConsistency() {
+		return nil, ErrTimeConsistency
+	}
 
 	p := domain.UpsertEventArgs{
 		WriteEventParams: params,
@@ -65,6 +68,9 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 	group, err := s.GetGroup(ctx, params.GroupID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
+	}
+	if !params.TimeConsistency() {
+		return nil, ErrTimeConsistency
 	}
 
 	p := domain.UpsertEventArgs{
