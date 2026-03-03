@@ -19,6 +19,27 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 		WriteEventParams: params,
 		CreatedBy:        reqID,
 	}
+
+	if params.RoomID == uuid.Nil {
+		if params.Place != "" {
+			roomParams := domain.WriteRoomParams{
+				Place:     params.Place,
+				TimeStart: params.TimeStart,
+				TimeEnd:   params.TimeEnd,
+				Admins:    params.Admins,
+			}
+			// UnVerifiedを仮定
+			var r *domain.Room
+			r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
+			p.RoomID = r.ID
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, ErrRoomUndefined
+		}
+	}
+
 	event, err := s.GormRepo.CreateEvent(p)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -52,23 +73,25 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 	}
 	// RoomIDの存在を確認 RoomがなくPlaceがあれば新たに作成
 
-	// if params.RoomID == uuid.Nil {
-	// 	if params.Place == "" {
-	// 		roomParams := domain.WriteRoomParams {
-	// 			Place: params.Place,
-	// 			TimeStart: params.TimeStart,
-	// 			TimeEnd: params.TimeEnd,
-	// 			Admins: params.Admins,
-	// 		}
-	// 		// UnVerifiedを仮定
-	// 		_,err = s.CreateUnVerifiedRoom(ctx,reqID,roomParams)
-	// 		if err != nil {
-	// 			return nil,err
-	// 		}
-	// 	} else{
-	// 		return nil, ErrRoomUndefined
-	// 	}
-	// }
+	if params.RoomID == uuid.Nil {
+		if params.Place != "" {
+			roomParams := domain.WriteRoomParams{
+				Place:     params.Place,
+				TimeStart: params.TimeStart,
+				TimeEnd:   params.TimeEnd,
+				Admins:    params.Admins,
+			}
+			// UnVerifiedを仮定
+			var r *domain.Room
+			r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
+			p.RoomID = r.ID
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, ErrRoomUndefined
+		}
+	}
 
 	// Event Save を使っている
 	event, err := s.GormRepo.UpdateEvent(eventID, p)
