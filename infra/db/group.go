@@ -101,7 +101,7 @@ func createGroup(db *gorm.DB, args domain.UpsertGroupArgs) (*Group, error) {
 	var err error
 	group.ID, err = uuid.NewV4()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	err = db.Create(&group).Error
 	if err != nil {
@@ -117,23 +117,23 @@ func updateGroup(db *gorm.DB, groupID uuid.UUID, args domain.UpsertGroupArgs) (*
 	var err error
 	// CreatedBy は readonly
 	// GroupMember, GroupAdmin も User は readonly
-	
+
 	// err = db.Session(&gorm.Session{FullSaveAssociations: true}).
 	// Omit("CreatedAt").Save(&group).Error
 
 	// GroupMenberの削除
 	err = db.Where("group_id = ?", group.ID).Delete(&GroupMember{}).Error
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	// GroupAdminの削除
 	err = db.Where("group_id = ?", group.ID).Delete(&GroupAdmin{}).Error
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	err = db.Omit("CreatedAt").Save(&group).Error
-	
+
 	// GroupMember の更新
 	for member := range group.Members {
 		db.Save(&member)

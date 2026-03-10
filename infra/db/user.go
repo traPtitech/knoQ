@@ -119,16 +119,16 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 		existingUser, err := getUser(tx.Preload("Provider").Preload("Token"), user.ID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// Userを新たに Create
-			if user.ID == uuid.Nil  {
+			if user.ID == uuid.Nil {
 				// IDを新たに作成する場合
-				user.ID ,err = uuid.NewV4()
+				user.ID, err = uuid.NewV4()
 				if err != nil {
 					return err
 				}
 			}
 			// 関連の作成
 			tx.Save(user.Provider)
-			saveToken(tx,&user.Token)
+			saveToken(tx, &user.Token)
 			return tx.Create(user).Error
 		}
 		if err != nil {
@@ -140,7 +140,7 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 		}
 		// 関連の更新
 		tx.Updates(user.Provider)
-		saveToken(tx,&user.Token)
+		saveToken(tx, &user.Token)
 		return tx.Updates(user).Error
 		// return tx.Session(&gorm.Session{FullSaveAssociations: true}).Updates(user).Error
 	})
