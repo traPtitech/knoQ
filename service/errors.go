@@ -12,10 +12,8 @@ import (
 var (
 	ErrInvalidArgs     = errors.New("invalid args")
 	ErrTimeConsistency = errors.New("inconsistent time")
-	ErrExpression      = errors.New("invalid expression")
 	ErrRoomUndefined   = errors.New("invalid room or args")
 	ErrNoAdmins        = errors.New("no admins")
-	ErrDuplicateEntry  = errors.New("duplicate entry")
 )
 
 func handleTraQError(err error) error {
@@ -60,8 +58,26 @@ func handleDBError(err error) error {
 	return err
 }
 
+func handleServiceError(err error) error {
+	if errors.Is(err, ErrInvalidArgs) {
+		return domain.ErrBadRequest
+	}
+	if errors.Is(err, ErrTimeConsistency) {
+		return fmt.Errorf("%w: %s", domain.ErrBadRequest, err)
+	}
+	if errors.Is(err, ErrRoomUndefined) {
+		return fmt.Errorf("%w: %s", domain.ErrBadRequest, err)
+	}
+	if errors.Is(err, ErrNoAdmins) {
+		return fmt.Errorf("%w: %s", domain.ErrBadRequest, err)
+	}
+
+	return err
+}
+
 func defaultErrorHandling(err error) error {
 	err = handleTraQError(err)
 	err = handleDBError(err)
+	err = handleServiceError(err)
 	return err
 }
