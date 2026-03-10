@@ -128,7 +128,10 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 			}
 			// 関連の作成
 			tx.Save(user.Provider)
-			saveToken(tx, &user.Token)
+			err = saveToken(tx, &user.Token)
+			if err != nil {
+				return err
+			}
 			return tx.Create(user).Error
 		}
 		if err != nil {
@@ -140,7 +143,10 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 		}
 		// 関連の更新
 		tx.Updates(user.Provider)
-		saveToken(tx, &user.Token)
+		err = saveToken(tx, &user.Token)
+		if err != nil {
+			return err
+		}
 		return tx.Updates(user).Error
 		// return tx.Session(&gorm.Session{FullSaveAssociations: true}).Updates(user).Error
 	})
