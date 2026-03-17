@@ -127,7 +127,10 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 				}
 			}
 			// 関連の作成
-			tx.Save(user.Provider)
+			err = tx.Save(user.Provider).Error
+			if err != nil {
+				return err
+			}
 			if user.Token.Oauth2Token != nil {
 				user.Token.UserID = user.ID
 				if err := saveToken(tx, &user.Token); err != nil {
@@ -144,7 +147,10 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 			user.IcalSecret = existingUser.IcalSecret
 		}
 		// 関連の更新
-		tx.Updates(user.Provider)
+		err = tx.Updates(user.Provider).Error
+		if err != nil {
+			return err
+		}
 		if user.Token.Oauth2Token != nil {
 			user.Token.UserID = user.ID
 			if err := saveToken(tx, &user.Token); err != nil {
