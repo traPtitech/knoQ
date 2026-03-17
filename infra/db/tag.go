@@ -34,16 +34,12 @@ func (repo *gormRepository) GetAllTags() ([]*domain.Tag, error) {
 }
 
 func createOrGetTag(db *gorm.DB, name string) (*Tag, error) {
-	tag := Tag{Name: name}
-	var err error
-	if tag.ID == uuid.Nil {
-		// IDを新規発行する
-		tag.ID, err = uuid.NewV4()
-		if err != nil {
-			return nil, err
-		}
+	id,err :=  uuid.NewV4()
+	if err != nil {
+		return nil, err
 	}
-	err = db.FirstOrCreate(&tag).Error
+	tag := Tag{Name: name}
+	err = db.Where(&Tag{Name: name}).Attrs(Tag{ID: id}).FirstOrCreate(&tag).Error
 	return &tag, err
 }
 
