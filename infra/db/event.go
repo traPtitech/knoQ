@@ -83,6 +83,18 @@ func createEvent(db *gorm.DB, args domain.UpsertEventArgs) (*Event, error) {
 		return nil, err
 	}
 	event.Room = *r
+	
+	// tagを生成する
+	for i := range event.Tags {
+		tag, err := createOrGetTag(db, event.Tags[i].Tag.Name)
+		if err != nil {
+			return nil, err
+		}
+		event.Tags[i].EventID = event.ID
+		event.Tags[i].TagID = tag.ID
+		event.Tags[i].Tag = *tag
+	}
+
 	// 対応する Room, Group はService層で確認済み
 	event.ID, err = uuid.NewV4()
 	if err != nil {
@@ -103,6 +115,16 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 	}
 	event.Room = *r
 
+	// tagは自動生成する
+	for i := range event.Tags {
+		tag, err := createOrGetTag(db, event.Tags[i].Tag.Name)
+		if err != nil {
+			return nil, err
+		}
+		event.Tags[i].EventID = event.ID
+		event.Tags[i].TagID = tag.ID
+	}
+
 	// 対応する Room, Group はService層で確認済み
 	err = db.Save(&event).Error
 	if err != nil {
@@ -121,6 +143,12 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 			return nil, err
 		}
 	}
+	for _, etag := range event.Tags {
+		err = db.Save(&etag).Error
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return &event, err
 }
@@ -128,7 +156,9 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
 	eventTag := ConvdomainEventTagParamsToEventTag(params)
 	eventTag.EventID = eventID
-	err := db.Create(&eventTag).Error
+	tag, err := createOrGetTag(db, eventTag.Tag.Name)
+	eventTag.TagID = tag.ID
+	err = db.Create(&eventTag).Error
 	if errors.Is(defaultErrorHandling(err), ErrDuplicateEntry) {
 		return db.Omit("CreatedAt").Save(&eventTag).Error
 	}

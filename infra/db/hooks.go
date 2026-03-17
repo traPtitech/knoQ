@@ -1,8 +1,6 @@
 package db
 
 import (
-	"errors"
-
 	"github.com/gofrs/uuid"
 	"gorm.io/gorm"
 )
@@ -143,32 +141,32 @@ func (e *Event) AfterSave(tx *gorm.DB) (err error) {
 
 // BeforeSave is hook
 // CreateEvent のDBの責務なので event が妥当
-func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
-	if et.EventID == uuid.Nil {
-		return NewValueError(gorm.ErrRecordNotFound, "eventID")
-	}
+// func (et *EventTag) BeforeSave(tx *gorm.DB) (err error) {
+// 	if et.EventID == uuid.Nil {
+// 		return NewValueError(gorm.ErrRecordNotFound, "eventID")
+// 	}
 
-	// 名前からIDを探す
-	// タグが存在しなければ、作ってイベントにタグを追加する
-	// （自動で作ることを想定 FullSaveAssociations: true等）
-	// 存在すれば、作らずにイベントにタグを追加する
-	if et.Tag.ID == uuid.Nil {
-		tag := Tag{
-			Name: et.Tag.Name,
-		}
-		err = tx.Where(&tag).Take(&tag).Error
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil // 作られる
-		}
-		if err != nil {
-			return err
-		}
+// 	// 名前からIDを探す
+// 	// タグが存在しなければ、作ってイベントにタグを追加する
+// 	// （自動で作ることを想定 FullSaveAssociations: true等）
+// 	// 存在すれば、作らずにイベントにタグを追加する
+// 	if et.Tag.ID == uuid.Nil {
+// 		tag := Tag{
+// 			Name: et.Tag.Name,
+// 		}
+// 		err = tx.Where(&tag).Take(&tag).Error
+// 		if errors.Is(err, gorm.ErrRecordNotFound) {
+// 			return nil // 作られる
+// 		}
+// 		if err != nil {
+// 			return err
+// 		}
 
-		et.Tag.ID = tag.ID
-	}
+// 		et.Tag.ID = tag.ID
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 // 妥当
 func (et *EventTag) BeforeDelete(tx *gorm.DB) (err error) {
