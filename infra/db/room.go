@@ -104,7 +104,7 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Roo
 
 	// BeforeSave, BeforeUpdate が発火
 	// RoomAdmin を更新
-	err := db.Where("room_id", room.ID).Delete(&RoomAdmin{}).Error
+	err := db.Where("room_id = ?", room.ID).Delete(&RoomAdmin{}).Error
 	if err != nil {
 		return nil, err
 	}
