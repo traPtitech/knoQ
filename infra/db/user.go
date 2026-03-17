@@ -128,9 +128,11 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 			}
 			// 関連の作成
 			tx.Save(user.Provider)
-			err = saveToken(tx, &user.Token)
-			if err != nil {
-				return err
+			if user.Token.Oauth2Token != nil {
+				user.Token.UserID = user.ID
+				if err := saveToken(tx, &user.Token); err != nil {
+					return err
+				}
 			}
 			return tx.Create(user).Error
 		}
@@ -143,9 +145,11 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 		}
 		// 関連の更新
 		tx.Updates(user.Provider)
-		err = saveToken(tx, &user.Token)
-		if err != nil {
-			return err
+		if user.Token.Oauth2Token != nil {
+			user.Token.UserID = user.ID
+			if err := saveToken(tx, &user.Token); err != nil {
+				return err
+			}
 		}
 		return tx.Updates(user).Error
 		// return tx.Session(&gorm.Session{FullSaveAssociations: true}).Updates(user).Error
