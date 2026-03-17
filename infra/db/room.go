@@ -85,7 +85,10 @@ func createRoom(db *gorm.DB, args domain.CreateRoomArgs) (*Room, error) {
 		return nil, err
 	}
 	for _, admin := range room.Admins {
-		db.Save(&admin)
+		err = db.Save(&admin).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// 時間整合性は service で確認済み
@@ -106,7 +109,10 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Roo
 		return nil, err
 	}
 	for _, admin := range room.Admins {
-		db.Save(&admin)
+		err = db.Save(&admin).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 	// Room を更新
 	// 時間整合性は service で確認済み

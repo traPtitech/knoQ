@@ -110,10 +110,16 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 	}
 
 	for _, admin := range event.Admins {
-		db.Save(&admin)
+		err = db.Save(&admin).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 	for _, attendee := range event.Attendees {
-		db.Save(&attendee)
+		err = db.Save(&attendee).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &event, err

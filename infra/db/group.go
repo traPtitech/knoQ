@@ -135,12 +135,18 @@ func updateGroup(db *gorm.DB, groupID uuid.UUID, args domain.UpsertGroupArgs) (*
 	err = db.Omit("CreatedAt").Save(&group).Error
 
 	// GroupMember の更新
-	for member := range group.Members {
-		db.Save(&member)
+	for _, member := range group.Members {
+		err = db.Save(&member).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 	// GroupAdmin の更新
-	for admin := range group.Admins {
-		db.Save(&admin)
+	for _, admin := range group.Admins {
+		err := db.Save(&admin).Error
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &group, err
 }
