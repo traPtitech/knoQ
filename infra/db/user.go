@@ -127,6 +127,10 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 				}
 			}
 			// 関連の作成
+			err := tx.Create(user).Error
+			if err != nil {
+				return err;
+			}
 			err = tx.Save(user.Provider).Error
 			if err != nil {
 				return err
@@ -137,7 +141,7 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 					return err
 				}
 			}
-			return tx.Create(user).Error
+			return nil
 		}
 		if err != nil {
 			return err
