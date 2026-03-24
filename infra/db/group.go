@@ -85,6 +85,23 @@ func (repo *gormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, err
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
 
+func validateGroup(db *gorm.DB, g *Group) (err error) {
+	group, err := getGroup(db.Preload("Admins"), g.ID)
+	if err != nil {
+		return err
+	}
+	Dgroup := ConvGroupTodomainGroup(*group)
+	if !Dgroup.AdminsValidation() {
+		return NewValueError(ErrNoAdmins, "admins")
+	}
+	group, err = getGroup(groupFullPreload(db), g.ID)
+	if err != nil {
+		return err
+	}
+	*g = *group
+	return nil
+}
+
 func convSPGroupToSuuidUUID(src []*Group) (dst []uuid.UUID) {
 	dst = make([]uuid.UUID, len(src))
 	for i := range src {
@@ -104,6 +121,10 @@ func createGroup(db *gorm.DB, args domain.UpsertGroupArgs) (*Group, error) {
 		return nil, err
 	}
 	err = db.Create(&group).Error
+	if err != nil {
+		return nil, err
+	}
+	err = validateGroup(db, &group)
 	if err != nil {
 		return nil, err
 	}
@@ -151,6 +172,12 @@ func updateGroup(db *gorm.DB, groupID uuid.UUID, args domain.UpsertGroupArgs) (*
 			return nil, err
 		}
 	}
+
+	err = validateGroup(db, &group)
+	if err != nil {
+		return nil, err
+	}
+	
 	return &group, err
 }
 

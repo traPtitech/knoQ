@@ -252,22 +252,22 @@ func (r *Room) AfterSave(tx *gorm.DB) (err error) {
 // 	return nil
 // }
 
-func (g *Group) AfterSave(tx *gorm.DB) (err error) {
-	group, err := getGroup(tx.Preload("Admins"), g.ID)
-	if err != nil {
-		return err
-	}
-	Dgroup := ConvGroupTodomainGroup(*group)
-	if !Dgroup.AdminsValidation() {
-		return NewValueError(ErrNoAdmins, "admins")
-	}
-	group, err = getGroup(groupFullPreload(tx), g.ID)
-	if err != nil {
-		return err
-	}
-	*g = *group
-	return nil
-}
+// func (g *Group) AfterSave(tx *gorm.DB) (err error) {
+// 	group, err := getGroup(tx.Preload("Admins"), g.ID)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	Dgroup := ConvGroupTodomainGroup(*group)
+// 	if !Dgroup.AdminsValidation() {
+// 		return NewValueError(ErrNoAdmins, "admins")
+// 	}
+// 	group, err = getGroup(groupFullPreload(tx), g.ID)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	*g = *group
+// 	return nil
+// }
 
 // db/group deleteGroupに移動
 // func (g *Group) BeforeDelete(tx *gorm.DB) (err error) {
