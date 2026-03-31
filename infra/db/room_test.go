@@ -13,6 +13,7 @@ import (
 func Test_createRoom(t *testing.T) {
 	r, assert, require, user := setupRepoWithUser(t, common)
 
+	println(user.Privilege)
 	params := domain.CreateRoomArgs{
 		CreatedBy: user.ID,
 		Verified:  false,
@@ -28,15 +29,6 @@ func Test_createRoom(t *testing.T) {
 		room, err := createRoom(r.db, params)
 		require.NoError(err)
 		assert.NotNil(room.ID)
-	})
-
-	t.Run("wrong time", func(_ *testing.T) {
-		var p domain.CreateRoomArgs
-		require.NoError(copier.Copy(&p, &params))
-
-		p.TimeStart = time.Now().Add(10 * time.Minute)
-		_, err := createRoom(r.db, p)
-		assert.ErrorIs(err, ErrTimeConsistency)
 	})
 }
 

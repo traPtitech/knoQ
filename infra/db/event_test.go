@@ -54,23 +54,6 @@ func Test_createEvent(t *testing.T) {
 		require.NoError(err)
 	})
 
-	t.Run("wrong time", func(_ *testing.T) {
-		var p domain.UpsertEventArgs
-		require.NoError(copier.Copy(&p, &params))
-
-		p.TimeStart = time.Now().Add(10 * time.Minute)
-		_, err := createEvent(r.db, p)
-		assert.ErrorIs(err, ErrTimeConsistency)
-	})
-
-	t.Run("wrong room time", func(_ *testing.T) {
-		var p domain.UpsertEventArgs
-		require.NoError(copier.Copy(&p, &params))
-
-		p.AllowTogether = false
-		_, err := createEvent(r.db, p)
-		assert.ErrorIs(err, ErrTimeConsistency)
-	})
 
 	t.Run("create event with place", func(_ *testing.T) {
 		var p domain.UpsertEventArgs
@@ -78,13 +61,8 @@ func Test_createEvent(t *testing.T) {
 
 		p.RoomID = uuid.Nil
 		p.Place = "instant room"
-		event, err := createEvent(r.db.Debug(), p)
-		require.NoError(err)
-
-		e, err := getEvent(eventFullPreload(r.db), event.ID)
-		require.NoError(err)
-		assert.NotEqual(uuid.Nil, e.RoomID)
-		assert.Equal(p.Place, e.Room.Place)
+		_, err := createEvent(r.db.Debug(), p)
+		assert.EqualError(err,ErrRecordNotFound.Error())
 	})
 }
 

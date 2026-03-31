@@ -72,6 +72,18 @@ func (repo *gormRepository) GetAllRooms(start, end time.Time, excludeEventID uui
 	return r, nil
 }
 
+func validateRoom(db *gorm.DB, r *Room) (err error) {
+	room, err := getRoom(db.Preload("Admins"), r.ID)
+	if err != nil {
+		return err
+	}
+	Droom := ConvRoomTodomainRoom(*room)
+	if !Droom.AdminsValidation() {
+		return NewValueError(ErrNoAdmins, "admins")
+	}
+	return nil
+}
+
 func createRoom(db *gorm.DB, args domain.CreateRoomArgs) (*Room, error) {
 	room := ConvCreateRoomParamsToRoom(args)
 	var err error
@@ -91,6 +103,11 @@ func createRoom(db *gorm.DB, args domain.CreateRoomArgs) (*Room, error) {
 		}
 	}
 
+	err = validateRoom(db, &room)
+	if err != nil {
+		return nil, err
+	}
+	
 	// 時間整合性は service で確認済み
 	return &room, err
 }
@@ -102,9 +119,14 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Roo
 		return nil, ErrRoomUndefined
 	}
 
-	// BeforeSave, BeforeUpdate が発火
 	// RoomAdmin を更新
 	err := db.Where("room_id = ?", room.ID).Delete(&RoomAdmin{}).Error
+	if err != nil {
+		return nil, err
+	}
+	// Room を更新
+	// 時間整合性は service で確認済み
+	err = db.Omit("verified", "CreatedAt").Save(&room).Error
 	if err != nil {
 		return nil, err
 	}
@@ -114,13 +136,10 @@ func updateRoom(db *gorm.DB, roomID uuid.UUID, args domain.UpdateRoomArgs) (*Roo
 			return nil, err
 		}
 	}
-	// Room を更新
-	// 時間整合性は service で確認済み
-	err = db.Omit("verified", "CreatedAt").Save(&room).Error
-
-	// Event,Userはreadonly
-	// err := db.Session(&gorm.Session{FullSaveAssociations: true}).
-	// Omit("verified", "CreatedAt").Save(&room).Error
+	err = validateRoom(db, &room)
+	if err != nil {
+		return nil, err
+	}
 	return &room, err
 }
 

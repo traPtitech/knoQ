@@ -74,6 +74,23 @@ func (repo *gormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, er
 	return ConvSPEventToSPdomainEvent(es), defaultErrorHandling(err)
 }
 
+func validateEvent(db *gorm.DB, e *Event) (err error) {
+	event, err := getEvent(db.Preload("Admins"), e.ID)
+	if err != nil {
+		return err
+	}
+	Devent := ConvEventTodomainEvent(*event)
+	if !Devent.AdminsValidation() {
+		return NewValueError(ErrNoAdmins, "admins")
+	}
+	event, err = getEvent(eventFullPreload(db), e.ID)
+	if err != nil {
+		return err
+	}
+	*e = *event
+	return nil
+}
+
 func createEvent(db *gorm.DB, args domain.UpsertEventArgs) (*Event, error) {
 	event := ConvWriteEventParamsToEvent(args)
 	var err error
@@ -83,11 +100,11 @@ func createEvent(db *gorm.DB, args domain.UpsertEventArgs) (*Event, error) {
 		return nil, err
 	}
 	event.Room = *r
-	
+
 	// 対応する Room, Group はService層で確認済み
 	// event ID を発行
 	event.ID, err = uuid.NewV4()
-	
+
 	// Tagを生成する
 	for i := range event.Tags {
 		tag, err := createOrGetTag(db, event.Tags[i].Tag.Name)
@@ -103,6 +120,10 @@ func createEvent(db *gorm.DB, args domain.UpsertEventArgs) (*Event, error) {
 		return nil, err
 	}
 	err = db.Create(&event).Error
+	if err != nil {
+		return nil, err
+	}
+	err = validateEvent(db, &event)
 	return &event, err
 }
 
@@ -128,6 +149,16 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 		event.Tags[i].Tag = *tag
 	}
 
+	// 既存の関連データを削除
+	err = db.Where("event_id = ?", eventID).Delete(&EventAdmin{}).Error
+	if err != nil {
+		return nil, err
+	}
+	err = db.Where("event_id = ?", eventID).Delete(&EventTag{}).Error
+	if err != nil {
+		return nil, err
+	}
+
 	// 対応する Room, Group はService層で確認済み
 	err = db.Save(&event).Error
 	if err != nil {
@@ -140,12 +171,6 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 			return nil, err
 		}
 	}
-	for _, attendee := range event.Attendees {
-		err = db.Save(&attendee).Error
-		if err != nil {
-			return nil, err
-		}
-	}
 	for _, etag := range event.Tags {
 		err = db.Save(&etag).Error
 		if err != nil {
@@ -153,6 +178,7 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 		}
 	}
 
+	err = validateEvent(db, &event)
 	return &event, err
 }
 
@@ -164,6 +190,8 @@ func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) e
 		return err
 	}
 	eventTag.TagID = tag.ID
+	eventTag.Tag = *tag
+
 	err = db.Create(&eventTag).Error
 	if errors.Is(defaultErrorHandling(err), ErrDuplicateEntry) {
 		return db.Omit("CreatedAt").Save(&eventTag).Error
