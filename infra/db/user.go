@@ -131,9 +131,11 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 			if err != nil {
 				return err;
 			}
-			err = tx.Save(user.Provider).Error
-			if err != nil {
-				return err
+			if user.Provider.UserID != uuid.Nil {
+				err = tx.Save(user.Provider).Error
+				if err != nil {
+					return err
+				}
 			}
 			if user.Token.Oauth2Token != nil {
 				user.Token.UserID = user.ID
