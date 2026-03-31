@@ -118,7 +118,32 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		existingUser, err := getUser(tx.Preload("Provider").Preload("Token"), user.ID)
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return tx.Create(&user).Error
+			// Userを新たに Create
+			if user.ID == uuid.Nil {
+				// IDを新たに作成する場合
+				user.ID, err = uuid.NewV4()
+				if err != nil {
+					return err
+				}
+			}
+			// 関連の作成
+			err := tx.Create(user).Error
+			if err != nil {
+				return err;
+			}
+			if user.Provider.UserID != uuid.Nil {
+				err = tx.Save(user.Provider).Error
+				if err != nil {
+					return err
+				}
+			}
+			if user.Token.Oauth2Token != nil {
+				user.Token.UserID = user.ID
+				if err := saveToken(tx, &user.Token); err != nil {
+					return err
+				}
+			}
+			return nil
 		}
 		if err != nil {
 			return err
@@ -127,7 +152,19 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 		if user.IcalSecret == "" {
 			user.IcalSecret = existingUser.IcalSecret
 		}
-		return tx.Session(&gorm.Session{FullSaveAssociations: true}).Updates(user).Error
+		// 関連の更新
+		err = tx.Updates(user.Provider).Error
+		if err != nil {
+			return err
+		}
+		if user.Token.Oauth2Token != nil {
+			user.Token.UserID = user.ID
+			if err := saveToken(tx, &user.Token); err != nil {
+				return err
+			}
+		}
+		return tx.Updates(user).Error
+		// return tx.Session(&gorm.Session{FullSaveAssociations: true}).Updates(user).Error
 	})
 
 	return user, err

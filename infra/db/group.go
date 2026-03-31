@@ -85,6 +85,23 @@ func (repo *gormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, err
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
 
+func validateGroup(db *gorm.DB, g *Group) (err error) {
+	group, err := getGroup(db.Preload("Admins"), g.ID)
+	if err != nil {
+		return err
+	}
+	Dgroup := ConvGroupTodomainGroup(*group)
+	if !Dgroup.AdminsValidation() {
+		return NewValueError(ErrNoAdmins, "admins")
+	}
+	group, err = getGroup(groupFullPreload(db), g.ID)
+	if err != nil {
+		return err
+	}
+	*g = *group
+	return nil
+}
+
 func convSPGroupToSuuidUUID(src []*Group) (dst []uuid.UUID) {
 	dst = make([]uuid.UUID, len(src))
 	for i := range src {
@@ -97,7 +114,17 @@ func convSPGroupToSuuidUUID(src []*Group) (dst []uuid.UUID) {
 
 func createGroup(db *gorm.DB, args domain.UpsertGroupArgs) (*Group, error) {
 	group := ConvWriteGroupParamsToGroup(args)
-	err := db.Create(&group).Error
+	// IDを新規発行
+	var err error
+	group.ID, err = uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
+	err = db.Create(&group).Error
+	if err != nil {
+		return nil, err
+	}
+	err = validateGroup(db, &group)
 	if err != nil {
 		return nil, err
 	}
@@ -107,8 +134,50 @@ func createGroup(db *gorm.DB, args domain.UpsertGroupArgs) (*Group, error) {
 func updateGroup(db *gorm.DB, groupID uuid.UUID, args domain.UpsertGroupArgs) (*Group, error) {
 	group := ConvWriteGroupParamsToGroup(args)
 	group.ID = groupID
-	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
-		Omit("CreatedAt").Save(&group).Error
+	// groupIDは存在する
+	var err error
+	// CreatedBy は readonly
+	// GroupMember, GroupAdmin も User は readonly
+
+	// err = db.Session(&gorm.Session{FullSaveAssociations: true}).
+	// Omit("CreatedAt").Save(&group).Error
+
+	// GroupMenberの削除
+	err = db.Where("group_id = ?", group.ID).Delete(&GroupMember{}).Error
+	if err != nil {
+		return nil, err
+	}
+	// GroupAdminの削除
+	err = db.Where("group_id = ?", group.ID).Delete(&GroupAdmin{}).Error
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Omit("CreatedAt").Save(&group).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// GroupMember の更新
+	for _, member := range group.Members {
+		err = db.Save(&member).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+	// GroupAdmin の更新
+	for _, admin := range group.Admins {
+		err := db.Save(&admin).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = validateGroup(db, &group)
+	if err != nil {
+		return nil, err
+	}
+	
 	return &group, err
 }
 
@@ -121,7 +190,7 @@ func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 	onConflictClause := clause.OnConflict{
 		DoUpdates: clause.AssignmentColumns([]string{"updated_at", "deleted_at"}),
 	}
-
+	// groupMemberはhook登録なし
 	return db.Clauses(onConflictClause).Create(&groupMember).Error
 }
 
@@ -129,6 +198,17 @@ func deleteGroup(db *gorm.DB, groupID uuid.UUID) error {
 	group := Group{
 		ID: groupID,
 	}
+	// Group の GroupMember を削除
+	err := db.Where("group_id = ?", group.ID).Delete(&GroupMember{}).Error
+	if err != nil {
+		return err
+	}
+	// GroupAdmin を削除
+	err = db.Where("group_id = ?", group.ID).Delete(&GroupAdmin{}).Error
+	if err != nil {
+		return err
+	}
+	// Group を削除
 	return db.Delete(&group).Error
 }
 
@@ -137,6 +217,7 @@ func deleteMemberOfGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 		GroupID: groupID,
 		UserID:  userID,
 	}
+	// 1メンバーの削除 hooksは登録なし
 	return db.Delete(&groupMember).Error
 }
 

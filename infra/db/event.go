@@ -74,26 +74,125 @@ func (repo *gormRepository) GetAllEvents(expr filters.Expr) ([]*domain.Event, er
 	return ConvSPEventToSPdomainEvent(es), defaultErrorHandling(err)
 }
 
+func validateEvent(db *gorm.DB, e *Event) (err error) {
+	event, err := getEvent(db.Preload("Admins"), e.ID)
+	if err != nil {
+		return err
+	}
+	Devent := ConvEventTodomainEvent(*event)
+	if !Devent.AdminsValidation() {
+		return NewValueError(ErrNoAdmins, "admins")
+	}
+	event, err = getEvent(eventFullPreload(db), e.ID)
+	if err != nil {
+		return err
+	}
+	*e = *event
+	return nil
+}
+
 func createEvent(db *gorm.DB, args domain.UpsertEventArgs) (*Event, error) {
 	event := ConvWriteEventParamsToEvent(args)
+	var err error
+	var r *Room
+	r, err = getRoom(db, event.RoomID)
+	if err != nil {
+		return nil, err
+	}
+	event.Room = *r
 
-	err := db.Create(&event).Error
+	// 対応する Room, Group はService層で確認済み
+	// event ID を発行
+	event.ID, err = uuid.NewV4()
+
+	// Tagを生成する
+	for i := range event.Tags {
+		tag, err := createOrGetTag(db, event.Tags[i].Tag.Name)
+		if err != nil {
+			return nil, err
+		}
+		event.Tags[i].EventID = event.ID
+		event.Tags[i].TagID = tag.ID
+		event.Tags[i].Tag = *tag
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	err = db.Create(&event).Error
+	if err != nil {
+		return nil, err
+	}
+	err = validateEvent(db, &event)
 	return &event, err
 }
 
 func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*Event, error) {
 	event := ConvWriteEventParamsToEvent(args)
 	event.ID = eventID
+	var err error
+	var r *Room
+	r, err = getRoom(db, event.RoomID)
+	if err != nil {
+		return nil, err
+	}
+	event.Room = *r
 
-	err := db.Session(&gorm.Session{FullSaveAssociations: true}).
-		Omit("CreatedAt").Save(&event).Error
+	// tagは自動生成する
+	for i := range event.Tags {
+		tag, err := createOrGetTag(db, event.Tags[i].Tag.Name)
+		if err != nil {
+			return nil, err
+		}
+		event.Tags[i].EventID = event.ID
+		event.Tags[i].TagID = tag.ID
+		event.Tags[i].Tag = *tag
+	}
+
+	// 既存の関連データを削除
+	err = db.Where("event_id = ?", eventID).Delete(&EventAdmin{}).Error
+	if err != nil {
+		return nil, err
+	}
+	err = db.Where("event_id = ?", eventID).Delete(&EventTag{}).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// 対応する Room, Group はService層で確認済み
+	err = db.Save(&event).Error
+	if err != nil {
+		return nil, err
+	}
+
+	for _, admin := range event.Admins {
+		err = db.Save(&admin).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+	for _, etag := range event.Tags {
+		err = db.Save(&etag).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = validateEvent(db, &event)
 	return &event, err
 }
 
 func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) error {
 	eventTag := ConvdomainEventTagParamsToEventTag(params)
 	eventTag.EventID = eventID
-	err := db.Create(&eventTag).Error
+	tag, err := createOrGetTag(db, eventTag.Tag.Name)
+	if err != nil {
+		return err
+	}
+	eventTag.TagID = tag.ID
+	eventTag.Tag = *tag
+
+	err = db.Create(&eventTag).Error
 	if errors.Is(defaultErrorHandling(err), ErrDuplicateEntry) {
 		return db.Omit("CreatedAt").Save(&eventTag).Error
 	}
@@ -101,6 +200,14 @@ func addEventTag(db *gorm.DB, eventID uuid.UUID, params domain.EventTagParams) e
 }
 
 func deleteEvent(db *gorm.DB, eventID uuid.UUID) error {
+	err := db.Where("event_id = ?", eventID).Delete(&EventTag{}).Error
+	if err != nil {
+		return err
+	}
+	err = db.Where("event_id = ?", eventID).Delete(&EventAdmin{}).Error
+	if err != nil {
+		return err
+	}
 	return db.Delete(&Event{ID: eventID}).Error
 }
 

@@ -9,6 +9,9 @@ import (
 )
 
 func (s *service) CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
+	if !params.TimeConsistency() {
+		return nil, ErrTimeConsistency
+	}
 	p := domain.CreateRoomArgs{
 		WriteRoomParams: params,
 		Verified:        false,
@@ -23,6 +26,9 @@ func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, param
 	if !s.IsPrivilege(ctx, reqID) {
 		return nil, domain.ErrForbidden
 	}
+	if !params.TimeConsistency() {
+		return nil, ErrTimeConsistency
+	}
 	p := domain.CreateRoomArgs{
 		WriteRoomParams: params,
 		Verified:        true,
@@ -33,6 +39,9 @@ func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, param
 }
 
 func (s *service) UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
+	if roomID == uuid.Nil {
+		return nil, ErrRoomUndefined
+	}
 	if !s.IsRoomAdmins(ctx, reqID, roomID) {
 		return nil, domain.ErrForbidden
 	}
@@ -42,6 +51,9 @@ func (s *service) UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.U
 		CreatedBy:       reqID,
 	}
 
+	if !params.TimeConsistency() {
+		return nil, ErrTimeConsistency
+	}
 	r, err := s.GormRepo.UpdateRoom(roomID, p)
 	return r, defaultErrorHandling(err)
 }
