@@ -100,6 +100,7 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 			} else {
 				return nil, ErrRoomUndefined
 			}
+		}
 	}
 
 	// Event Save を使っている
