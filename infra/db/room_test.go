@@ -13,7 +13,6 @@ import (
 func Test_createRoom(t *testing.T) {
 	r, assert, require, user := setupRepoWithUser(t, common)
 
-	println(user.Privilege)
 	params := domain.CreateRoomArgs{
 		CreatedBy: user.ID,
 		Verified:  false,

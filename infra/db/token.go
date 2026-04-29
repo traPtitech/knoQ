@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -10,8 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func (repo *gormRepository) GetToken(userID uuid.UUID) (*oauth2.Token, error) {
-	return getToken(repo.db, userID)
+func (repo *gormRepository) GetToken(ctx context.Context, userID uuid.UUID) (*oauth2.Token, error) {
+	return getToken(getTx(ctx, repo.db), userID)
 }
 
 func getToken(db *gorm.DB, userID uuid.UUID) (*oauth2.Token, error) {
@@ -89,5 +90,5 @@ func saveToken(db *gorm.DB, token *Token) error {
 			token.AccessToken = string(cipherText)
 		}
 	}
-	return db.Save(token).Error 
+	return db.Save(token).Error
 }

@@ -117,19 +117,19 @@ type UpsertEventArgs struct {
 }
 
 type EventRepository interface {
-	CreateEvent(args UpsertEventArgs) (*Event, error)
+	CreateEvent(ctx context.Context, args UpsertEventArgs) (*Event, error)
 
-	UpdateEvent(eventID uuid.UUID, args UpsertEventArgs) (*Event, error)
+	UpdateEvent(ctx context.Context, eventID uuid.UUID, args UpsertEventArgs) (*Event, error)
 
-	AddEventTag(eventID uuid.UUID, params EventTagParams) error
+	AddEventTag(ctx context.Context, eventID uuid.UUID, params EventTagParams) error
 
-	DeleteEvent(eventID uuid.UUID) error
+	DeleteEvent(ctx context.Context, eventID uuid.UUID) error
 
-	DeleteEventTag(eventID uuid.UUID, tagName string, deleteLocked bool) error
+	DeleteEventTag(ctx context.Context, eventID uuid.UUID, tagName string, deleteLocked bool) error
 
-	UpsertEventSchedule(eventID, userID uuid.UUID, scheduleStatus ScheduleStatus) error
+	UpsertEventSchedule(ctx context.Context, eventID, userID uuid.UUID, scheduleStatus ScheduleStatus) error
 
-	GetEvent(eventID uuid.UUID) (*Event, error)
+	GetEvent(ctx context.Context, eventID uuid.UUID) (*Event, error)
 
-	GetAllEvents(expr filters.Expr) ([]*Event, error)
+	GetAllEvents(ctx context.Context, expr filters.Expr) ([]*Event, error)
 }

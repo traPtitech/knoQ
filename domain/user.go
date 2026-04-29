@@ -68,12 +68,12 @@ type SyncUserArgs struct {
 }
 
 type UserRepository interface {
-	SaveUser(args SaveUserArgs) (*User, error)
-	UpdateiCalSecret(userID uuid.UUID, secret string) error
-	GetUser(userID uuid.UUID) (*User, error)
-	GetAllUsers(onlyActive bool) ([]*User, error)
-	SyncUsers(args []SyncUserArgs) error
-	GrantPrivilege(userID uuid.UUID) error
-	GetICalSecret(userID uuid.UUID) (string, error)
-	GetToken(userID uuid.UUID) (*oauth2.Token, error)
+	SaveUser(ctx context.Context, args SaveUserArgs) (*User, error)
+	UpdateiCalSecret(ctx context.Context, userID uuid.UUID, secret string) error
+	GetUser(ctx context.Context, userID uuid.UUID) (*User, error)
+	GetAllUsers(ctx context.Context, onlyActive bool) ([]*User, error)
+	SyncUsers(ctx context.Context, args []SyncUserArgs) error
+	GrantPrivilege(ctx context.Context, userID uuid.UUID) error
+	GetICalSecret(ctx context.Context, userID uuid.UUID) (string, error)
+	GetToken(ctx context.Context, userID uuid.UUID) (*oauth2.Token, error)
 }

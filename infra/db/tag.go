@@ -1,13 +1,15 @@
 package db
 
 import (
+	"context"
+
 	"github.com/gofrs/uuid"
 	"github.com/traPtitech/knoQ/domain"
 	"gorm.io/gorm"
 )
 
-func (repo *gormRepository) CreateOrGetTag(name string) (*domain.Tag, error) {
-	tag, err := createOrGetTag(repo.db, name)
+func (repo *gormRepository) CreateOrGetTag(ctx context.Context, name string) (*domain.Tag, error) {
+	tag, err := createOrGetTag(getTx(ctx, repo.db), name)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -15,8 +17,8 @@ func (repo *gormRepository) CreateOrGetTag(name string) (*domain.Tag, error) {
 	return &t, nil
 }
 
-func (repo *gormRepository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
-	tag, err := getTag(repo.db, tagID)
+func (repo *gormRepository) GetTag(ctx context.Context, tagID uuid.UUID) (*domain.Tag, error) {
+	tag, err := getTag(getTx(ctx, repo.db), tagID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -24,8 +26,8 @@ func (repo *gormRepository) GetTag(tagID uuid.UUID) (*domain.Tag, error) {
 	return &t, nil
 }
 
-func (repo *gormRepository) GetAllTags() ([]*domain.Tag, error) {
-	tags, err := getAllTags(repo.db)
+func (repo *gormRepository) GetAllTags(ctx context.Context) ([]*domain.Tag, error) {
+	tags, err := getAllTags(getTx(ctx, repo.db))
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -34,7 +36,7 @@ func (repo *gormRepository) GetAllTags() ([]*domain.Tag, error) {
 }
 
 func createOrGetTag(db *gorm.DB, name string) (*Tag, error) {
-	id,err :=  uuid.NewV4()
+	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
