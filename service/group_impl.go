@@ -17,7 +17,7 @@ func (s *service) CreateGroup(ctx context.Context, reqID uuid.UUID, params domai
 		WriteGroupParams: params,
 		CreatedBy:        reqID,
 	}
-	g, err := s.GormRepo.CreateGroup(p)
+	g, err := s.GormRepo.CreateGroup(ctx, p)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -33,12 +33,17 @@ func (s *service) UpdateGroup(ctx context.Context, reqID uuid.UUID, groupID uuid
 		WriteGroupParams: params,
 		CreatedBy:        reqID,
 	}
-	g, err := s.GormRepo.UpdateGroup(groupID, p)
+	var groupResp *domain.Group
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		var err error
+		groupResp, err = s.GormRepo.UpdateGroup(ctx, groupID, p)
+		return err
+	})
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
-	return g, nil
+	return groupResp, nil
 }
 
 // AddMeToGroup add me to that group if that group is open.
@@ -47,14 +52,21 @@ func (s *service) AddMeToGroup(ctx context.Context, reqID uuid.UUID, groupID uui
 	if !s.IsGroupJoinFreely(ctx, groupID) {
 		return domain.ErrForbidden
 	}
-	return s.GormRepo.AddMemberToGroup(groupID, reqID)
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.AddMemberToGroup(ctx, groupID, reqID)
+	})
+	return err
 }
 
 func (s *service) DeleteGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error {
 	if !s.IsGroupAdmins(ctx, reqID, groupID) {
 		return domain.ErrForbidden
 	}
-	return s.GormRepo.DeleteGroup(groupID)
+
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.DeleteGroup(ctx, groupID)
+	})
+	return err
 }
 
 // DeleteMeGroup delete me in that group if that group is open.
@@ -62,11 +74,11 @@ func (s *service) DeleteMeGroup(ctx context.Context, reqID uuid.UUID, groupID uu
 	if !s.IsGroupJoinFreely(ctx, groupID) {
 		return domain.ErrForbidden
 	}
-	return s.GormRepo.DeleteMemberOfGroup(groupID, reqID)
+	return s.GormRepo.DeleteMemberOfGroup(ctx, groupID, reqID)
 }
 
 func (s *service) GetGroup(ctx context.Context, groupID uuid.UUID) (*domain.Group, error) {
-	domainGroup, err := s.GormRepo.GetGroup(groupID)
+	domainGroup, err := s.GormRepo.GetGroup(ctx, groupID)
 	if err == nil {
 		return domainGroup, nil
 	}
@@ -96,7 +108,7 @@ func (s *service) GetGroup(ctx context.Context, groupID uuid.UUID) (*domain.Grou
 
 func (s *service) GetAllGroups(ctx context.Context) ([]*domain.Group, error) {
 	groups := make([]*domain.Group, 0)
-	gg, err := s.GormRepo.GetAllGroups()
+	gg, err := s.GormRepo.GetAllGroups(ctx)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -118,11 +130,11 @@ func (s *service) GetAllGroups(ctx context.Context) ([]*domain.Group, error) {
 
 func (s *service) GetUserBelongingGroupIDs(ctx context.Context, reqID uuid.UUID, userID uuid.UUID) ([]uuid.UUID, error) {
 
-	t, err := s.GormRepo.GetToken(reqID)
+	t, err := s.GormRepo.GetToken(ctx, reqID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	ggIDs, err := s.GormRepo.GetBelongGroupIDs(userID)
+	ggIDs, err := s.GormRepo.GetBelongGroupIDs(ctx, userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -135,11 +147,11 @@ func (s *service) GetUserBelongingGroupIDs(ctx context.Context, reqID uuid.UUID,
 }
 
 func (s *service) GetUserAdminGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
-	return s.GormRepo.GetAdminGroupIDs(userID)
+	return s.GormRepo.GetAdminGroupIDs(ctx, userID)
 }
 
 func (s *service) IsGroupAdmins(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) bool {
-	group, err := s.GormRepo.GetGroup(groupID)
+	group, err := s.GormRepo.GetGroup(ctx, groupID)
 	if err != nil {
 		return false
 	}
@@ -152,7 +164,7 @@ func (s *service) IsGroupAdmins(ctx context.Context, reqID uuid.UUID, groupID uu
 }
 
 func (s *service) IsGroupJoinFreely(ctx context.Context, groupID uuid.UUID) bool {
-	group, err := s.GormRepo.GetGroup(groupID)
+	group, err := s.GormRepo.GetGroup(ctx, groupID)
 	if err != nil {
 		return false
 	}

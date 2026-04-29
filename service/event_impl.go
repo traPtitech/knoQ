@@ -17,40 +17,48 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 	if !params.TimeConsistency() {
 		return nil, ErrTimeConsistency
 	}
+	var eventResp *domain.Event
 
-	p := domain.UpsertEventArgs{
-		WriteEventParams: params,
-		CreatedBy:        reqID,
-	}
-
-	if params.RoomID == uuid.Nil {
-		if params.Place != "" {
-			roomParams := domain.WriteRoomParams{
-				Place:     params.Place,
-				TimeStart: params.TimeStart,
-				TimeEnd:   params.TimeEnd,
-				Admins:    params.Admins,
-			}
-			// UnVerifiedを仮定
-			var r *domain.Room
-			r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
-			p.RoomID = r.ID
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			return nil, ErrRoomUndefined
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		p := domain.UpsertEventArgs{
+			WriteEventParams: params,
+			CreatedBy:        reqID,
 		}
-	}
 
-	event, err := s.GormRepo.CreateEvent(p)
+		if params.RoomID == uuid.Nil {
+			if params.Place != "" {
+				roomParams := domain.WriteRoomParams{
+					Place:     params.Place,
+					TimeStart: params.TimeStart,
+					TimeEnd:   params.TimeEnd,
+					Admins:    params.Admins,
+				}
+				// UnVerifiedを仮定
+				var r *domain.Room
+				r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
+				p.RoomID = r.ID
+				if err != nil {
+					return err
+				}
+			} else {
+				return ErrRoomUndefined
+			}
+		}
+
+		eventResp, err = s.GormRepo.CreateEvent(ctx, p)
+		if err != nil {
+			return defaultErrorHandling(err)
+		}
+		for _, groupMember := range group.Members {
+			_ = s.GormRepo.UpsertEventSchedule(ctx, eventResp.ID, groupMember.ID, domain.Pending)
+		}
+		return nil
+	})
+
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
-	for _, groupMember := range group.Members {
-		_ = s.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
-	}
-	return s.GetEvent(ctx, event.ID)
+	return s.GetEvent(ctx, eventResp.ID)
 }
 
 func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, params domain.WriteEventParams) (*domain.Event, error) {
@@ -73,54 +81,61 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 		return nil, ErrTimeConsistency
 	}
 
-	p := domain.UpsertEventArgs{
-		WriteEventParams: params,
-		CreatedBy:        reqID,
-	}
+	var eventResp domain.Event
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		p := domain.UpsertEventArgs{
+			WriteEventParams: params,
+			CreatedBy:        reqID,
+		}
 
-	// RoomIDの存在を確認 RoomがなくPlaceがあれば新たに作成
-	if params.RoomID == uuid.Nil {
-		if currentEvent.Room.ID != uuid.Nil {
-			p.RoomID = currentEvent.Room.ID
-		} else {
-			if params.Place != "" {
-				roomParams := domain.WriteRoomParams{
-					Place:     params.Place,
-					TimeStart: params.TimeStart,
-					TimeEnd:   params.TimeEnd,
-					Admins:    params.Admins,
-				}
-				// UnVerifiedを仮定
-				var r *domain.Room
-				r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
-				if err != nil {
-					return nil, err
-				}
-				p.RoomID = r.ID
+		// RoomIDの存在を確認 RoomがなくPlaceがあれば新たに作成
+		if params.RoomID == uuid.Nil {
+			if currentEvent.Room.ID != uuid.Nil {
+				p.RoomID = currentEvent.Room.ID
 			} else {
-				return nil, ErrRoomUndefined
+				if params.Place != "" {
+					roomParams := domain.WriteRoomParams{
+						Place:     params.Place,
+						TimeStart: params.TimeStart,
+						TimeEnd:   params.TimeEnd,
+						Admins:    params.Admins,
+					}
+					// UnVerifiedを仮定
+					var r *domain.Room
+					r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
+					if err != nil {
+						return err
+					}
+					p.RoomID = r.ID
+				} else {
+					return ErrRoomUndefined
+				}
 			}
 		}
-	}
 
-	// Event Save を使っている
-	event, err := s.GormRepo.UpdateEvent(eventID, p)
+		eventResp, err := s.GormRepo.UpdateEvent(ctx, eventID, p)
+		if err != nil {
+			return defaultErrorHandling(err)
+		}
+		for _, groupMember := range group.Members {
+			exist := false
+			for _, currentAttendee := range currentEvent.Attendees {
+				if currentAttendee.UserID == groupMember.ID {
+					exist = true
+				}
+			}
+			if !exist {
+				_ = s.GormRepo.UpsertEventSchedule(ctx, eventResp.ID, groupMember.ID, domain.Pending)
+			}
+
+		}
+		return nil
+	})
+
 	if err != nil {
-		return nil, defaultErrorHandling(err)
+		return nil, err
 	}
-	for _, groupMember := range group.Members {
-		exist := false
-		for _, currentAttendee := range currentEvent.Attendees {
-			if currentAttendee.UserID == groupMember.ID {
-				exist = true
-			}
-		}
-		if !exist {
-			_ = s.GormRepo.UpsertEventSchedule(event.ID, groupMember.ID, domain.Pending)
-		}
-
-	}
-	return s.GetEvent(ctx, event.ID)
+	return s.GetEvent(ctx, eventResp.ID)
 }
 
 func (s *service) AddEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, tagName string, locked bool) error {
@@ -128,9 +143,13 @@ func (s *service) AddEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid
 	if locked && !s.IsEventAdmins(ctx, reqID, eventID) {
 		return domain.ErrForbidden
 	}
-	return s.GormRepo.AddEventTag(eventID, domain.EventTagParams{
-		Name: tagName, Locked: locked,
+
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.AddEventTag(ctx, eventID, domain.EventTagParams{
+			Name: tagName, Locked: locked,
+		})
 	})
+	return err
 }
 
 func (s *service) DeleteEvent(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID) error {
@@ -138,18 +157,24 @@ func (s *service) DeleteEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 		return domain.ErrForbidden
 	}
 
-	return s.GormRepo.DeleteEvent(eventID)
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return  s.GormRepo.DeleteEvent(ctx, eventID)
+	})
+	return err
 }
 
 // DeleteTagInEvent delete a tag in that Event
 func (s *service) DeleteEventTag(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID, tagName string) error {
 	deleteLocked := s.IsEventAdmins(ctx, reqID, eventID)
 
-	return s.GormRepo.DeleteEventTag(eventID, tagName, deleteLocked)
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.DeleteEventTag(ctx, eventID, tagName, deleteLocked)
+	})
+	return err
 }
 
 func (s *service) GetEvent(ctx context.Context, eventID uuid.UUID) (*domain.Event, error) {
-	event, err := s.GormRepo.GetEvent(eventID)
+	event, err := s.GormRepo.GetEvent(ctx, eventID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -188,15 +213,17 @@ func (s *service) UpsertMeEventSchedule(ctx context.Context, reqID uuid.UUID, ev
 		return domain.ErrForbidden
 	}
 
-	err = s.GormRepo.UpsertEventSchedule(eventID, reqID, schedule)
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.UpsertEventSchedule(ctx, eventID, reqID, schedule)
+	})
 	return defaultErrorHandling(err)
 }
 
 func (s *service) GetEvents(ctx context.Context, reqID uuid.UUID, expr filters.Expr) ([]*domain.Event, error) {
 
-	expr = addTraQGroupIDs(s, reqID, expr)
+	expr = addTraQGroupIDs(ctx, s, reqID, expr)
 
-	es, err := s.GormRepo.GetAllEvents(expr)
+	es, err := s.GormRepo.GetAllEvents(ctx, expr)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -205,9 +232,9 @@ func (s *service) GetEvents(ctx context.Context, reqID uuid.UUID, expr filters.E
 }
 
 func (s *service) GetEventsWithGroup(ctx context.Context, reqID uuid.UUID, expr filters.Expr) ([]*domain.Event, error) {
-	expr = addTraQGroupIDs(s, reqID, expr)
+	expr = addTraQGroupIDs(ctx, s, reqID, expr)
 
-	events, err := s.GormRepo.GetAllEvents(expr)
+	events, err := s.GormRepo.GetAllEvents(ctx, expr)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -244,7 +271,7 @@ func (s *service) GetEventsWithGroup(ctx context.Context, reqID uuid.UUID, expr 
 }
 
 func (s *service) IsEventAdmins(ctx context.Context, reqID uuid.UUID, eventID uuid.UUID) bool {
-	event, err := s.GormRepo.GetEvent(eventID)
+	event, err := s.GormRepo.GetEvent(ctx, eventID)
 	if err != nil {
 		return false
 	}
@@ -273,8 +300,8 @@ func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 }
 
 // add traQ group and traP(111...)
-func addTraQGroupIDs(s *service, userID uuid.UUID, expr filters.Expr) filters.Expr {
-	t, err := s.GormRepo.GetToken(userID)
+func addTraQGroupIDs(ctx context.Context, s *service, userID uuid.UUID, expr filters.Expr) filters.Expr {
+	t, err := s.GormRepo.GetToken(ctx, userID)
 	if err != nil {
 		return expr
 	}
@@ -294,7 +321,7 @@ func addTraQGroupIDs(s *service, userID uuid.UUID, expr filters.Expr) filters.Ex
 					return e
 				}
 				// add traP
-				user, err := s.GormRepo.GetUser(id)
+				user, err := s.GormRepo.GetUser(ctx, id)
 				if err != nil {
 					return e
 				}

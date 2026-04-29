@@ -40,7 +40,9 @@ func (s *service) SyncUsers(ctx context.Context, reqID uuid.UUID) error {
 		args = append(args, a)
 	}
 
-	err = s.GormRepo.SyncUsers(args)
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.SyncUsers(ctx, args)
+	})
 	return defaultErrorHandling(err)
 }
 
@@ -73,7 +75,10 @@ func (s *service) LoginUser(ctx context.Context, query, state, codeVerifier stri
 			Subject: traQUser.GetId(),
 		},
 	}
-	_, err = s.GormRepo.SaveUser(user)
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		_, err = s.GormRepo.SaveUser(ctx, user)
+		return err
+	})
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -82,7 +87,7 @@ func (s *service) LoginUser(ctx context.Context, query, state, codeVerifier stri
 }
 
 func (s *service) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
-	userMeta, err := s.GormRepo.GetUser(userID)
+	userMeta, err := s.GormRepo.GetUser(ctx, userID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -104,7 +109,7 @@ func (s *service) GetUserMe(ctx context.Context, reqID uuid.UUID) (*domain.User,
 }
 
 func (s *service) GetAllUsers(ctx context.Context, includeSuspend, includeBot bool) ([]*domain.User, error) {
-	userMetas, err := s.GormRepo.GetAllUsers(!includeSuspend)
+	userMetas, err := s.GormRepo.GetAllUsers(ctx, !includeSuspend)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -135,12 +140,14 @@ func (s *service) GetAllUsers(ctx context.Context, includeSuspend, includeBot bo
 
 func (s *service) ReNewMyiCalSecret(ctx context.Context, reqID uuid.UUID) (secret string, err error) {
 	secret = random.AlphaNumeric(16, true)
-	err = s.GormRepo.UpdateiCalSecret(reqID, secret)
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.UpdateiCalSecret(ctx, reqID, secret)
+	})
 	return
 }
 
 func (s *service) GetMyiCalSecret(ctx context.Context, reqID uuid.UUID) (string, error) {
-	user, err := s.GormRepo.GetUser(reqID)
+	user, err := s.GormRepo.GetUser(ctx, reqID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
 	}
@@ -148,7 +155,7 @@ func (s *service) GetMyiCalSecret(ctx context.Context, reqID uuid.UUID) (string,
 		return "", domain.ErrForbidden
 	}
 	// TODO: userid に対応する ical secret を返す関数を実装
-	secret, err := s.GormRepo.GetICalSecret(reqID)
+	secret, err := s.GormRepo.GetICalSecret(ctx, reqID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
 	}
@@ -159,7 +166,7 @@ func (s *service) GetMyiCalSecret(ctx context.Context, reqID uuid.UUID) (string,
 }
 
 func (s *service) IsPrivilege(ctx context.Context, reqID uuid.UUID) bool {
-	user, err := s.GormRepo.GetUser(reqID)
+	user, err := s.GormRepo.GetUser(ctx, reqID)
 	if err != nil {
 		return false
 	}
@@ -193,13 +200,15 @@ func (s *service) mergeUser(userMeta *domain.User, userBody *traq.User) (*domain
 }
 
 func (s *service) GrantPrivilege(ctx context.Context, userID uuid.UUID) error {
-	user, err := s.GormRepo.GetUser(userID)
+	user, err := s.GormRepo.GetUser(ctx, userID)
 	if err != nil {
 		return defaultErrorHandling(err)
 	}
 	if user.Privileged {
 		return fmt.Errorf("%w: user has been already privileged", domain.ErrBadRequest)
 	}
-	err = s.GormRepo.GrantPrivilege(userID)
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.GrantPrivilege(ctx, userID)
+	})
 	return defaultErrorHandling(err)
 }

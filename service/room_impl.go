@@ -17,8 +17,13 @@ func (s *service) CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, par
 		Verified:        false,
 		CreatedBy:       reqID,
 	}
-	r, err := s.GormRepo.CreateRoom(p)
-	return r, defaultErrorHandling(err)
+	var roomResp *domain.Room
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		var err error
+		roomResp, err = s.GormRepo.CreateRoom(ctx, p)
+		return err
+	})
+	return roomResp, defaultErrorHandling(err)
 }
 
 func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
@@ -34,8 +39,14 @@ func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, param
 		Verified:        true,
 		CreatedBy:       reqID,
 	}
-	r, err := s.GormRepo.CreateRoom(p)
-	return r, defaultErrorHandling(err)
+
+	var roomResp *domain.Room
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		var err error
+		roomResp, err = s.GormRepo.CreateRoom(ctx, p)
+		return err
+	})
+	return roomResp, defaultErrorHandling(err)
 }
 
 func (s *service) UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
@@ -54,15 +65,26 @@ func (s *service) UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.U
 	if !params.TimeConsistency() {
 		return nil, ErrTimeConsistency
 	}
-	r, err := s.GormRepo.UpdateRoom(roomID, p)
-	return r, defaultErrorHandling(err)
+
+	var roomResp *domain.Room
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		var err error
+		roomResp, err = s.GormRepo.UpdateRoom(ctx, roomID, p)
+		return err
+	})
+	return roomResp, defaultErrorHandling(err)
 }
 
 func (s *service) VerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error {
 	if !s.IsPrivilege(ctx, reqID) {
 		return domain.ErrForbidden
 	}
-	err := s.GormRepo.UpdateRoomVerified(roomID, true)
+
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		err := s.GormRepo.UpdateRoomVerified(ctx, roomID, true)
+		return err
+	})
+
 	return defaultErrorHandling(err)
 }
 
@@ -70,7 +92,11 @@ func (s *service) UnVerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid
 	if !s.IsPrivilege(ctx, reqID) {
 		return domain.ErrForbidden
 	}
-	err := s.GormRepo.UpdateRoomVerified(roomID, false)
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		err := s.GormRepo.UpdateRoomVerified(ctx, roomID, false)
+		return err
+	})
+
 	return defaultErrorHandling(err)
 }
 
@@ -78,17 +104,21 @@ func (s *service) DeleteRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.U
 	if !s.IsRoomAdmins(ctx, reqID, roomID) {
 		return domain.ErrForbidden
 	}
-	err := s.GormRepo.DeleteRoom(roomID)
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		err := s.GormRepo.DeleteRoom(ctx, roomID)
+		return err
+	})
+
 	return defaultErrorHandling(err)
 }
 
 func (s *service) GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
-	rs, err := s.GormRepo.GetRoom(roomID, excludeEventID)
+	rs, err := s.GormRepo.GetRoom(ctx, roomID, excludeEventID)
 	return rs, defaultErrorHandling(err)
 }
 
 func (s *service) GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
-	rs, err := s.GormRepo.GetAllRooms(start, end, excludeEventID)
+	rs, err := s.GormRepo.GetAllRooms(ctx, start, end, excludeEventID)
 	return rs, defaultErrorHandling(err)
 }
 
