@@ -153,9 +153,9 @@ func mustMakeUser(t *testing.T, repo *gormRepository, privilege bool) *User {
 	user := User{
 		Privilege: privilege,
 	}
-	err := repo.db.Create(&user).Error
+	respuser,err := saveUser(repo.db,&user)
 	require.NoError(t, err)
-	return &user
+	return respuser
 }
 
 // mustMakeGroup make group has no members

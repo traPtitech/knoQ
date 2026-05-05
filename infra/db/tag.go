@@ -34,8 +34,12 @@ func (repo *gormRepository) GetAllTags() ([]*domain.Tag, error) {
 }
 
 func createOrGetTag(db *gorm.DB, name string) (*Tag, error) {
+	id,err :=  uuid.NewV4()
+	if err != nil {
+		return nil, err
+	}
 	tag := Tag{Name: name}
-	err := db.FirstOrCreate(&tag).Error
+	err = db.Where(&Tag{Name: name}).Attrs(Tag{ID: id}).FirstOrCreate(&tag).Error
 	return &tag, err
 }
 

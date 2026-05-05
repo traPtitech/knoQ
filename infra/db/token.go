@@ -79,3 +79,15 @@ func decryptByGCM(key []byte, cipherText []byte) (string, error) {
 
 	return string(plainByte), nil
 }
+
+func saveToken(db *gorm.DB, token *Token) error {
+	if token.AccessToken != "" {
+		cipherText, err := encryptByGCM(tokenKey, token.AccessToken)
+		if err != nil {
+			return err
+		} else {
+			token.AccessToken = string(cipherText)
+		}
+	}
+	return db.Save(token).Error 
+}

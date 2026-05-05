@@ -152,6 +152,10 @@ type WriteRoomParams struct {
 	Admins []uuid.UUID
 }
 
+func (r *WriteRoomParams) TimeConsistency() bool {
+	return r.TimeStart.Before((r.TimeEnd))
+}
+
 type RoomService interface {
 	CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)
 	CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)

@@ -9,6 +9,13 @@ import (
 	"github.com/traPtitech/knoQ/infra/traq"
 )
 
+var (
+	ErrInvalidArgs     = errors.New("invalid args")
+	ErrTimeConsistency = errors.New("inconsistent time")
+	ErrRoomUndefined   = errors.New("invalid room or args")
+	ErrNoAdmins        = errors.New("no admins")
+)
+
 func handleTraQError(err error) error {
 	if errors.Is(err, traq.ErrUnAuthorized) {
 		return domain.ErrInvalidToken
@@ -51,8 +58,26 @@ func handleDBError(err error) error {
 	return err
 }
 
+func handleServiceError(err error) error {
+	if errors.Is(err, ErrInvalidArgs) {
+		return domain.ErrBadRequest
+	}
+	if errors.Is(err, ErrTimeConsistency) {
+		return fmt.Errorf("%w: %s", domain.ErrBadRequest, err)
+	}
+	if errors.Is(err, ErrRoomUndefined) {
+		return fmt.Errorf("%w: %s", domain.ErrBadRequest, err)
+	}
+	if errors.Is(err, ErrNoAdmins) {
+		return fmt.Errorf("%w: %s", domain.ErrBadRequest, err)
+	}
+
+	return err
+}
+
 func defaultErrorHandling(err error) error {
 	err = handleTraQError(err)
 	err = handleDBError(err)
+	err = handleServiceError(err)
 	return err
 }
