@@ -34,7 +34,7 @@ func (repo *gormRepository) SaveUser(ctx context.Context, args domain.SaveUserAr
 			Subject: args.Subject,
 		},
 	}
-	u, err := saveUser(getTx(ctx, repo.db), &user)
+	u, err := saveUser(getTx(ctx, repo.db.WithContext(ctx)), &user)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -43,18 +43,18 @@ func (repo *gormRepository) SaveUser(ctx context.Context, args domain.SaveUserAr
 }
 
 func (repo *gormRepository) UpdateiCalSecret(ctx context.Context, userID uuid.UUID, secret string) error {
-	err := updateiCalSecret(getTx(ctx, repo.db), userID, secret)
+	err := updateiCalSecret(getTx(ctx, repo.db.WithContext(ctx)), userID, secret)
 	return defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
-	u, err := getUser(userPreload(getTx(ctx, repo.db)), userID)
+	u, err := getUser(userPreload(getTx(ctx, repo.db.WithContext(ctx))), userID)
 	du := convUserTodomainUser(*u)
 	return &du, defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) GetAllUsers(ctx context.Context, onlyActive bool) ([]*domain.User, error) {
-	us, err := getAllUsers(userPreload(getTx(ctx, repo.db)), onlyActive)
+	us, err := getAllUsers(userPreload(getTx(ctx, repo.db.WithContext(ctx))), onlyActive)
 	dus := lo.Map(us, func(u *User, _ int) *domain.User {
 		return &domain.User{
 			ID:         u.ID,
@@ -70,7 +70,7 @@ func (repo *gormRepository) GetAllUsers(ctx context.Context, onlyActive bool) ([
 }
 
 func (repo *gormRepository) SyncUsers(ctx context.Context, args []domain.SyncUserArgs) error {
-	tx := getTx(ctx, repo.db)
+	tx := getTx(ctx, repo.db.WithContext(ctx))
 	err := tx.Transaction(func(tx *gorm.DB) error {
 		existingUsers, err := getAllUsers(tx, false)
 		if err != nil {
@@ -195,7 +195,7 @@ func getAllUsers(db *gorm.DB, onlyActive bool) ([]*User, error) {
 }
 
 func (repo *gormRepository) GrantPrivilege(ctx context.Context, userID uuid.UUID) error {
-	err := grantPrivilege(getTx(ctx, repo.db), userID)
+	err := grantPrivilege(getTx(ctx, repo.db.WithContext(ctx)), userID)
 	return defaultErrorHandling(err)
 }
 
@@ -205,7 +205,7 @@ func grantPrivilege(db *gorm.DB, userID uuid.UUID) error {
 }
 
 func (repo *gormRepository) GetICalSecret(ctx context.Context, userID uuid.UUID) (string, error) {
-	u, err := getUser(getTx(ctx, repo.db), userID)
+	u, err := getUser(getTx(ctx, repo.db.WithContext(ctx)), userID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
 	}

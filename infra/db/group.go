@@ -16,7 +16,7 @@ func groupFullPreload(tx *gorm.DB) *gorm.DB {
 }
 
 func (repo *gormRepository) CreateGroup(ctx context.Context, args domain.UpsertGroupArgs) (*domain.Group, error) {
-	g, err := createGroup(getTx(ctx, repo.db), args)
+	g, err := createGroup(getTx(ctx, repo.db.WithContext(ctx)), args)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -25,7 +25,7 @@ func (repo *gormRepository) CreateGroup(ctx context.Context, args domain.UpsertG
 }
 
 func (repo *gormRepository) UpdateGroup(ctx context.Context, groupID uuid.UUID, args domain.UpsertGroupArgs) (*domain.Group, error) {
-	g, err := updateGroup(getTx(ctx, repo.db), groupID, args)
+	g, err := updateGroup(getTx(ctx, repo.db.WithContext(ctx)), groupID, args)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -34,28 +34,28 @@ func (repo *gormRepository) UpdateGroup(ctx context.Context, groupID uuid.UUID, 
 }
 
 func (repo *gormRepository) AddMemberToGroup(ctx context.Context, groupID, userID uuid.UUID) error {
-	err := addMemberToGroup(getTx(ctx, repo.db), groupID, userID)
+	err := addMemberToGroup(getTx(ctx, repo.db.WithContext(ctx)), groupID, userID)
 	return defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) DeleteGroup(ctx context.Context, groupID uuid.UUID) error {
-	err := deleteGroup(getTx(ctx, repo.db), groupID)
+	err := deleteGroup(getTx(ctx, repo.db.WithContext(ctx)), groupID)
 	return defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) DeleteMemberOfGroup(ctx context.Context, groupID, userID uuid.UUID) error {
-	err := deleteMemberOfGroup(getTx(ctx, repo.db), groupID, userID)
+	err := deleteMemberOfGroup(getTx(ctx, repo.db.WithContext(ctx)), groupID, userID)
 	return defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) GetGroup(ctx context.Context, groupID uuid.UUID) (*domain.Group, error) {
-	g, err := getGroup(groupFullPreload(getTx(ctx, repo.db)), groupID)
+	g, err := getGroup(groupFullPreload(getTx(ctx, repo.db.WithContext(ctx))), groupID)
 	domainGroup := convGroupTodomainGroup(*g)
 	return &domainGroup, defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) GetAllGroups(ctx context.Context) ([]*domain.Group, error) {
-	cmd := groupFullPreload(getTx(ctx, repo.db))
+	cmd := groupFullPreload(getTx(ctx, repo.db.WithContext(ctx)))
 	gs, err := getGroups(cmd.Joins(
 		"LEFT JOIN events ON groups.id = events.group_id "+
 			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
@@ -65,7 +65,7 @@ func (repo *gormRepository) GetAllGroups(ctx context.Context) ([]*domain.Group, 
 }
 
 func (repo *gormRepository) GetBelongGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
-	cmd := groupFullPreload(getTx(ctx, repo.db))
+	cmd := groupFullPreload(getTx(ctx, repo.db.WithContext(ctx)))
 	filterFormat, filterArgs, err := createGroupFilter(filters.FilterBelongs(userID))
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (repo *gormRepository) GetBelongGroupIDs(ctx context.Context, userID uuid.U
 }
 
 func (repo *gormRepository) GetAdminGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
-	cmd := groupFullPreload(getTx(ctx, repo.db))
+	cmd := groupFullPreload(getTx(ctx, repo.db.WithContext(ctx)))
 	filterFormat, filterArgs, err := createGroupFilter(filters.FilterAdmins(userID))
 	if err != nil {
 		return nil, err

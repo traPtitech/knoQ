@@ -12,7 +12,7 @@ import (
 )
 
 func (repo *gormRepository) GetToken(ctx context.Context, userID uuid.UUID) (*oauth2.Token, error) {
-	return getToken(getTx(ctx, repo.db), userID)
+	return getToken(getTx(ctx, repo.db.WithContext(ctx)), userID)
 }
 
 func getToken(db *gorm.DB, userID uuid.UUID) (*oauth2.Token, error) {

@@ -23,7 +23,7 @@ func eventFullPreload(tx *gorm.DB) *gorm.DB {
 }
 
 func (repo *gormRepository) CreateEvent(ctx context.Context, args domain.UpsertEventArgs) (*domain.Event, error) {
-	e, err := createEvent(getTx(ctx, repo.db), args)
+	e, err := createEvent(getTx(ctx, repo.db.WithContext(ctx)), args)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -32,7 +32,7 @@ func (repo *gormRepository) CreateEvent(ctx context.Context, args domain.UpsertE
 }
 
 func (repo *gormRepository) UpdateEvent(ctx context.Context, eventID uuid.UUID, args domain.UpsertEventArgs) (*domain.Event, error) {
-	e, err := updateEvent(getTx(ctx, repo.db), eventID, args)
+	e, err := updateEvent(getTx(ctx, repo.db.WithContext(ctx)), eventID, args)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -41,27 +41,27 @@ func (repo *gormRepository) UpdateEvent(ctx context.Context, eventID uuid.UUID, 
 }
 
 func (repo *gormRepository) AddEventTag(ctx context.Context, eventID uuid.UUID, params domain.EventTagParams) error {
-	err := addEventTag(getTx(ctx, repo.db), eventID, params)
+	err := addEventTag(getTx(ctx, repo.db.WithContext(ctx)), eventID, params)
 	return defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) DeleteEvent(ctx context.Context, eventID uuid.UUID) error {
-	err := deleteEvent(getTx(ctx, repo.db), eventID)
+	err := deleteEvent(getTx(ctx, repo.db.WithContext(ctx)), eventID)
 	return defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) DeleteEventTag(ctx context.Context, eventID uuid.UUID, tagName string, deleteLocked bool) error {
-	err := deleteEventTag(getTx(ctx, repo.db), eventID, tagName, deleteLocked)
+	err := deleteEventTag(getTx(ctx, repo.db.WithContext(ctx)), eventID, tagName, deleteLocked)
 	return defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) UpsertEventSchedule(ctx context.Context, eventID, userID uuid.UUID, scheduleStatus domain.ScheduleStatus) error {
-	err := upsertEventSchedule(getTx(ctx, repo.db), eventID, userID, scheduleStatus)
+	err := upsertEventSchedule(getTx(ctx, repo.db.WithContext(ctx)), eventID, userID, scheduleStatus)
 	return defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) GetEvent(ctx context.Context, eventID uuid.UUID) (*domain.Event, error) {
-	e, err := getEvent(eventFullPreload(getTx(ctx, repo.db)), eventID)
+	e, err := getEvent(eventFullPreload(getTx(ctx, repo.db.WithContext(ctx))), eventID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -74,7 +74,7 @@ func (repo *gormRepository) GetAllEvents(ctx context.Context, expr filters.Expr)
 	if err != nil {
 		return nil, err
 	}
-	tx := getTx(ctx,repo.db)
+	tx := getTx(ctx, repo.db.WithContext(ctx))
 	cmd := eventFullPreload(tx)
 	es, err := getEvents(cmd.Joins(
 		"LEFT JOIN event_tags ON events.id = event_tags.event_id "+

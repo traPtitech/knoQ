@@ -18,7 +18,7 @@ func roomFullPreload(tx *gorm.DB) *gorm.DB {
 }
 
 func (repo *gormRepository) CreateRoom(ctx context.Context, args domain.CreateRoomArgs) (*domain.Room, error) {
-	room, err := createRoom(getTx(ctx, repo.db), args)
+	room, err := createRoom(getTx(ctx, repo.db.WithContext(ctx)), args)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -27,7 +27,7 @@ func (repo *gormRepository) CreateRoom(ctx context.Context, args domain.CreateRo
 }
 
 func (repo *gormRepository) UpdateRoom(ctx context.Context, roomID uuid.UUID, args domain.UpdateRoomArgs) (*domain.Room, error) {
-	room, err := updateRoom(getTx(ctx, repo.db), roomID, args)
+	room, err := updateRoom(getTx(ctx, repo.db.WithContext(ctx)), roomID, args)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -36,17 +36,17 @@ func (repo *gormRepository) UpdateRoom(ctx context.Context, roomID uuid.UUID, ar
 }
 
 func (repo *gormRepository) UpdateRoomVerified(ctx context.Context, roomID uuid.UUID, verified bool) error {
-	return updateRoomVerified(getTx(ctx, repo.db), roomID, verified)
+	return updateRoomVerified(getTx(ctx, repo.db.WithContext(ctx)), roomID, verified)
 }
 
 func (repo *gormRepository) DeleteRoom(ctx context.Context, roomID uuid.UUID) error {
-	return deleteRoom(getTx(ctx, repo.db), roomID)
+	return deleteRoom(getTx(ctx, repo.db.WithContext(ctx)), roomID)
 }
 
 func (repo *gormRepository) GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
 	var room *Room
 	var err error
-	tx := getTx(ctx, repo.db)
+	tx := getTx(ctx, repo.db.WithContext(ctx))
 	if excludeEventID == uuid.Nil {
 		room, err = getRoom(roomFullPreload(tx), roomID)
 	} else {
@@ -62,7 +62,7 @@ func (repo *gormRepository) GetRoom(ctx context.Context, roomID uuid.UUID, exclu
 func (repo *gormRepository) GetAllRooms(ctx context.Context, start, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
 	var rooms []*Room
 	var err error
-	tx := getTx(ctx, repo.db)
+	tx := getTx(ctx, repo.db.WithContext(ctx))
 	if excludeEventID == uuid.Nil {
 		rooms, err = getAllRooms(roomFullPreload(tx), start, end)
 	} else {

@@ -9,7 +9,7 @@ import (
 )
 
 func (repo *gormRepository) CreateOrGetTag(ctx context.Context, name string) (*domain.Tag, error) {
-	tag, err := createOrGetTag(getTx(ctx, repo.db), name)
+	tag, err := createOrGetTag(getTx(ctx, repo.db.WithContext(ctx)), name)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -18,7 +18,7 @@ func (repo *gormRepository) CreateOrGetTag(ctx context.Context, name string) (*d
 }
 
 func (repo *gormRepository) GetTag(ctx context.Context, tagID uuid.UUID) (*domain.Tag, error) {
-	tag, err := getTag(getTx(ctx, repo.db), tagID)
+	tag, err := getTag(getTx(ctx, repo.db.WithContext(ctx)), tagID)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -27,7 +27,7 @@ func (repo *gormRepository) GetTag(ctx context.Context, tagID uuid.UUID) (*domai
 }
 
 func (repo *gormRepository) GetAllTags(ctx context.Context) ([]*domain.Tag, error) {
-	tags, err := getAllTags(getTx(ctx, repo.db))
+	tags, err := getAllTags(getTx(ctx, repo.db.WithContext(ctx)))
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
