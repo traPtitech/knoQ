@@ -53,21 +53,21 @@ type UpsertGroupArgs struct {
 }
 
 type GroupRepository interface {
-	CreateGroup(args UpsertGroupArgs) (*Group, error)
+	CreateGroup(ctx context.Context, args UpsertGroupArgs) (*Group, error)
 
-	UpdateGroup(groupID uuid.UUID, args UpsertGroupArgs) (*Group, error)
+	UpdateGroup(ctx context.Context, groupID uuid.UUID, args UpsertGroupArgs) (*Group, error)
 
-	AddMemberToGroup(groupID, userID uuid.UUID) error
+	AddMemberToGroup(ctx context.Context, groupID, userID uuid.UUID) error
 
-	DeleteGroup(groupID uuid.UUID) error
+	DeleteGroup(ctx context.Context, groupID uuid.UUID) error
 
-	DeleteMemberOfGroup(groupID, userID uuid.UUID) error
+	DeleteMemberOfGroup(ctx context.Context, groupID, userID uuid.UUID) error
 
-	GetGroup(groupID uuid.UUID) (*Group, error)
+	GetGroup(ctx context.Context, groupID uuid.UUID) (*Group, error)
 
-	GetAllGroups() ([]*Group, error)
+	GetAllGroups(ctx context.Context) ([]*Group, error)
 
-	GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
+	GetBelongGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 
-	GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error)
+	GetAdminGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 }

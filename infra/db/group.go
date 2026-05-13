@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gofrs/uuid"
@@ -14,41 +15,47 @@ func groupFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Members").Preload("Admins").Preload("CreatedBy")
 }
 
-func (repo *gormRepository) CreateGroup(args domain.UpsertGroupArgs) (*domain.Group, error) {
-	g, err := createGroup(repo.db, args)
+func (repo *gormRepository) CreateGroup(ctx context.Context, args domain.UpsertGroupArgs) (*domain.Group, error) {
+	g, err := createGroup(getTx(ctx, repo.db.WithContext(ctx)), args)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
 	domainGroup := convGroupTodomainGroup(*g)
 	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) UpdateGroup(groupID uuid.UUID, args domain.UpsertGroupArgs) (*domain.Group, error) {
-	g, err := updateGroup(repo.db, groupID, args)
+func (repo *gormRepository) UpdateGroup(ctx context.Context, groupID uuid.UUID, args domain.UpsertGroupArgs) (*domain.Group, error) {
+	g, err := updateGroup(getTx(ctx, repo.db.WithContext(ctx)), groupID, args)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
 	domainGroup := convGroupTodomainGroup(*g)
 	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) AddMemberToGroup(groupID, userID uuid.UUID) error {
-	err := addMemberToGroup(repo.db, groupID, userID)
+func (repo *gormRepository) AddMemberToGroup(ctx context.Context, groupID, userID uuid.UUID) error {
+	err := addMemberToGroup(getTx(ctx, repo.db.WithContext(ctx)), groupID, userID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) DeleteGroup(groupID uuid.UUID) error {
-	err := deleteGroup(repo.db, groupID)
+func (repo *gormRepository) DeleteGroup(ctx context.Context, groupID uuid.UUID) error {
+	err := deleteGroup(getTx(ctx, repo.db.WithContext(ctx)), groupID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) DeleteMemberOfGroup(groupID, userID uuid.UUID) error {
-	err := deleteMemberOfGroup(repo.db, groupID, userID)
+func (repo *gormRepository) DeleteMemberOfGroup(ctx context.Context, groupID, userID uuid.UUID) error {
+	err := deleteMemberOfGroup(getTx(ctx, repo.db.WithContext(ctx)), groupID, userID)
 	return defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) GetGroup(groupID uuid.UUID) (*domain.Group, error) {
-	g, err := getGroup(groupFullPreload(repo.db), groupID)
+func (repo *gormRepository) GetGroup(ctx context.Context, groupID uuid.UUID) (*domain.Group, error) {
+	g, err := getGroup(groupFullPreload(getTx(ctx, repo.db.WithContext(ctx))), groupID)
 	domainGroup := convGroupTodomainGroup(*g)
 	return &domainGroup, defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) GetAllGroups() ([]*domain.Group, error) {
-	cmd := groupFullPreload(repo.db)
+func (repo *gormRepository) GetAllGroups(ctx context.Context) ([]*domain.Group, error) {
+	cmd := groupFullPreload(getTx(ctx, repo.db.WithContext(ctx)))
 	gs, err := getGroups(cmd.Joins(
 		"LEFT JOIN events ON groups.id = events.group_id "+
 			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
@@ -57,8 +64,8 @@ func (repo *gormRepository) GetAllGroups() ([]*domain.Group, error) {
 	return ConvSPGroupToSPdomainGroup(gs), defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
-	cmd := groupFullPreload(repo.db)
+func (repo *gormRepository) GetBelongGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	cmd := groupFullPreload(getTx(ctx, repo.db.WithContext(ctx)))
 	filterFormat, filterArgs, err := createGroupFilter(filters.FilterBelongs(userID))
 	if err != nil {
 		return nil, err
@@ -71,8 +78,8 @@ func (repo *gormRepository) GetBelongGroupIDs(userID uuid.UUID) ([]uuid.UUID, er
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) GetAdminGroupIDs(userID uuid.UUID) ([]uuid.UUID, error) {
-	cmd := groupFullPreload(repo.db)
+func (repo *gormRepository) GetAdminGroupIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	cmd := groupFullPreload(getTx(ctx, repo.db.WithContext(ctx)))
 	filterFormat, filterArgs, err := createGroupFilter(filters.FilterAdmins(userID))
 	if err != nil {
 		return nil, err
@@ -177,7 +184,7 @@ func updateGroup(db *gorm.DB, groupID uuid.UUID, args domain.UpsertGroupArgs) (*
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &group, err
 }
 

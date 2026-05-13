@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"time"
 )
 
@@ -14,6 +15,10 @@ type Model struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
+}
+
+type TransactionManager interface {
+	Do(ctx context.Context, fn func(ctx context.Context) error) error
 }
 
 type Service interface {
