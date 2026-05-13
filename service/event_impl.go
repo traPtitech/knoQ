@@ -128,7 +128,10 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 				}
 			}
 			if !exist {
-				_ = s.GormRepo.UpsertEventSchedule(ctx, eventResp.ID, groupMember.ID, domain.Pending)
+				err = s.GormRepo.UpsertEventSchedule(ctx, eventResp.ID, groupMember.ID, domain.Pending)
+				if err != nil {
+					return err
+				}
 			}
 
 		}
