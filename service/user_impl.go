@@ -76,7 +76,7 @@ func (s *service) LoginUser(ctx context.Context, query, state, codeVerifier stri
 		},
 	}
 	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
-		_, err = s.GormRepo.SaveUser(ctx, user)
+		_, err := s.GormRepo.SaveUser(ctx, user)
 		return err
 	})
 	if err != nil {
@@ -200,14 +200,14 @@ func (s *service) mergeUser(userMeta *domain.User, userBody *traq.User) (*domain
 }
 
 func (s *service) GrantPrivilege(ctx context.Context, userID uuid.UUID) error {
-	user, err := s.GormRepo.GetUser(ctx, userID)
-	if err != nil {
-		return defaultErrorHandling(err)
-	}
-	if user.Privileged {
-		return fmt.Errorf("%w: user has been already privileged", domain.ErrBadRequest)
-	}
-	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		user, err := s.GormRepo.GetUser(ctx, userID)
+		if err != nil {
+			return err
+		}
+		if user.Privileged {
+			return fmt.Errorf("%w: user has been already privileged", domain.ErrBadRequest)
+		}
 		return s.GormRepo.GrantPrivilege(ctx, userID)
 	})
 	return defaultErrorHandling(err)

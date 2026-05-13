@@ -17,12 +17,19 @@ func (s *service) CreateGroup(ctx context.Context, reqID uuid.UUID, params domai
 		WriteGroupParams: params,
 		CreatedBy:        reqID,
 	}
-	g, err := s.GormRepo.CreateGroup(ctx, p)
+
+	var groupResp *domain.Group
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		var err error
+		groupResp, err = s.GormRepo.CreateGroup(ctx, p)
+		return err
+	})
+
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
 
-	return g, nil
+	return groupResp, nil
 }
 
 func (s *service) UpdateGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID, params domain.WriteGroupParams) (*domain.Group, error) {
@@ -55,7 +62,7 @@ func (s *service) AddMeToGroup(ctx context.Context, reqID uuid.UUID, groupID uui
 	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
 		return s.GormRepo.AddMemberToGroup(ctx, groupID, reqID)
 	})
-	return err
+	return defaultErrorHandling(err)
 }
 
 func (s *service) DeleteGroup(ctx context.Context, reqID uuid.UUID, groupID uuid.UUID) error {
@@ -66,7 +73,7 @@ func (s *service) DeleteGroup(ctx context.Context, reqID uuid.UUID, groupID uuid
 	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
 		return s.GormRepo.DeleteGroup(ctx, groupID)
 	})
-	return err
+	return defaultErrorHandling(err)
 }
 
 // DeleteMeGroup delete me in that group if that group is open.
@@ -74,7 +81,11 @@ func (s *service) DeleteMeGroup(ctx context.Context, reqID uuid.UUID, groupID uu
 	if !s.IsGroupJoinFreely(ctx, groupID) {
 		return domain.ErrForbidden
 	}
-	return s.GormRepo.DeleteMemberOfGroup(ctx, groupID, reqID)
+
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.DeleteMemberOfGroup(ctx, groupID, reqID)
+	})
+	return defaultErrorHandling(err)
 }
 
 func (s *service) GetGroup(ctx context.Context, groupID uuid.UUID) (*domain.Group, error) {

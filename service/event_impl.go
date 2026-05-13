@@ -17,8 +17,8 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 	if !params.TimeConsistency() {
 		return nil, ErrTimeConsistency
 	}
-	var eventResp *domain.Event
 
+	var eventResp *domain.Event
 	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
 		p := domain.UpsertEventArgs{
 			WriteEventParams: params,
@@ -36,10 +36,10 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 				// UnVerifiedを仮定
 				var r *domain.Room
 				r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
-				p.RoomID = r.ID
 				if err != nil {
 					return err
 				}
+				p.RoomID = r.ID
 			} else {
 				return ErrRoomUndefined
 			}
@@ -50,7 +50,10 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 			return defaultErrorHandling(err)
 		}
 		for _, groupMember := range group.Members {
-			_ = s.GormRepo.UpsertEventSchedule(ctx, eventResp.ID, groupMember.ID, domain.Pending)
+			err = s.GormRepo.UpsertEventSchedule(ctx, eventResp.ID, groupMember.ID, domain.Pending)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
@@ -81,7 +84,7 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 		return nil, ErrTimeConsistency
 	}
 
-	var eventResp domain.Event
+	var eventResp *domain.Event
 	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
 		p := domain.UpsertEventArgs{
 			WriteEventParams: params,
@@ -112,8 +115,8 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 				}
 			}
 		}
-
-		eventResp, err := s.GormRepo.UpdateEvent(ctx, eventID, p)
+		var err error
+		eventResp, err = s.GormRepo.UpdateEvent(ctx, eventID, p)
 		if err != nil {
 			return defaultErrorHandling(err)
 		}
@@ -158,7 +161,7 @@ func (s *service) DeleteEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 	}
 
 	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
-		return  s.GormRepo.DeleteEvent(ctx, eventID)
+		return s.GormRepo.DeleteEvent(ctx, eventID)
 	})
 	return err
 }
