@@ -47,7 +47,7 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 
 		eventResp, err = s.GormRepo.CreateEvent(ctx, p)
 		if err != nil {
-			return defaultErrorHandling(err)
+			return err
 		}
 		for _, groupMember := range group.Members {
 			err = s.GormRepo.UpsertEventSchedule(ctx, eventResp.ID, groupMember.ID, domain.Pending)
@@ -118,7 +118,7 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 		var err error
 		eventResp, err = s.GormRepo.UpdateEvent(ctx, eventID, p)
 		if err != nil {
-			return defaultErrorHandling(err)
+			return err
 		}
 		for _, groupMember := range group.Members {
 			exist := false
