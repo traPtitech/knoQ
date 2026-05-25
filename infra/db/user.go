@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 
 	"github.com/gofrs/uuid"
@@ -14,7 +15,7 @@ func userPreload(tx *gorm.DB) *gorm.DB {
 }
 
 // LoginUser のときのみ，プロバイダ，トークン情報が含まれる
-func (repo *gormRepository) SaveUser(args domain.SaveUserArgs) (*domain.User, error) {
+func (repo *gormRepository) SaveUser(ctx context.Context, args domain.SaveUserArgs) (*domain.User, error) {
 	user := User{
 		ID:    args.UserID,
 		State: args.State,
@@ -33,24 +34,27 @@ func (repo *gormRepository) SaveUser(args domain.SaveUserArgs) (*domain.User, er
 			Subject: args.Subject,
 		},
 	}
-	u, err := saveUser(repo.db, &user)
+	u, err := saveUser(getTx(ctx, repo.db.WithContext(ctx)), &user)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
 	du := convUserTodomainUser(*u)
 	return &du, defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) UpdateiCalSecret(userID uuid.UUID, secret string) error {
-	err := updateiCalSecret(repo.db, userID, secret)
+func (repo *gormRepository) UpdateiCalSecret(ctx context.Context, userID uuid.UUID, secret string) error {
+	err := updateiCalSecret(getTx(ctx, repo.db.WithContext(ctx)), userID, secret)
 	return defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) GetUser(userID uuid.UUID) (*domain.User, error) {
-	u, err := getUser(userPreload(repo.db), userID)
+func (repo *gormRepository) GetUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
+	u, err := getUser(userPreload(getTx(ctx, repo.db.WithContext(ctx))), userID)
 	du := convUserTodomainUser(*u)
 	return &du, defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) GetAllUsers(onlyActive bool) ([]*domain.User, error) {
-	us, err := getAllUsers(userPreload(repo.db), onlyActive)
+func (repo *gormRepository) GetAllUsers(ctx context.Context, onlyActive bool) ([]*domain.User, error) {
+	us, err := getAllUsers(userPreload(getTx(ctx, repo.db.WithContext(ctx))), onlyActive)
 	dus := lo.Map(us, func(u *User, _ int) *domain.User {
 		return &domain.User{
 			ID:         u.ID,
@@ -65,9 +69,9 @@ func (repo *gormRepository) GetAllUsers(onlyActive bool) ([]*domain.User, error)
 	return dus, defaultErrorHandling(err)
 }
 
-func (repo *gormRepository) SyncUsers(args []domain.SyncUserArgs) error {
-
-	err := repo.db.Transaction(func(tx *gorm.DB) error {
+func (repo *gormRepository) SyncUsers(ctx context.Context, args []domain.SyncUserArgs) error {
+	tx := getTx(ctx, repo.db.WithContext(ctx))
+	err := tx.Transaction(func(tx *gorm.DB) error {
 		existingUsers, err := getAllUsers(tx, false)
 		if err != nil {
 			return err
@@ -129,7 +133,7 @@ func saveUser(db *gorm.DB, user *User) (*User, error) {
 			// 関連の作成
 			err := tx.Create(user).Error
 			if err != nil {
-				return err;
+				return err
 			}
 			if user.Provider.UserID != uuid.Nil {
 				err = tx.Save(user.Provider).Error
@@ -190,8 +194,8 @@ func getAllUsers(db *gorm.DB, onlyActive bool) ([]*User, error) {
 	return users, err
 }
 
-func (repo *gormRepository) GrantPrivilege(userID uuid.UUID) error {
-	err := grantPrivilege(repo.db, userID)
+func (repo *gormRepository) GrantPrivilege(ctx context.Context, userID uuid.UUID) error {
+	err := grantPrivilege(getTx(ctx, repo.db.WithContext(ctx)), userID)
 	return defaultErrorHandling(err)
 }
 
@@ -200,8 +204,8 @@ func grantPrivilege(db *gorm.DB, userID uuid.UUID) error {
 	return err
 }
 
-func (repo *gormRepository) GetICalSecret(userID uuid.UUID) (string, error) {
-	u, err := getUser(repo.db, userID)
+func (repo *gormRepository) GetICalSecret(ctx context.Context, userID uuid.UUID) (string, error) {
+	u, err := getUser(getTx(ctx, repo.db.WithContext(ctx)), userID)
 	if err != nil {
 		return "", defaultErrorHandling(err)
 	}

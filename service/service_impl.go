@@ -6,12 +6,13 @@ import (
 )
 
 type service struct {
-	GormRepo domain.Repository
-	TraQRepo *traq.TraQRepository
+	GormRepo  domain.Repository
+	TraQRepo  *traq.TraQRepository
+	TxManager domain.TransactionManager
 }
 
 // implements domain
 
-func NewService(repo domain.Repository, traqRepo *traq.TraQRepository) domain.Service {
-	return &service{GormRepo: repo, TraQRepo: traqRepo}
+func NewService(repo domain.Repository, traqRepo *traq.TraQRepository, txManager domain.TransactionManager) domain.Service {
+	return &service{GormRepo: repo, TraQRepo: traqRepo, TxManager: txManager}
 }

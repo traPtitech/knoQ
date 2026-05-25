@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"time"
 
 	"github.com/gofrs/uuid"
@@ -16,8 +17,8 @@ func roomFullPreload(tx *gorm.DB) *gorm.DB {
 	return tx.Preload("Events").Preload("Admins").Preload("CreatedBy")
 }
 
-func (repo *gormRepository) CreateRoom(args domain.CreateRoomArgs) (*domain.Room, error) {
-	room, err := createRoom(repo.db, args)
+func (repo *gormRepository) CreateRoom(ctx context.Context, args domain.CreateRoomArgs) (*domain.Room, error) {
+	room, err := createRoom(getTx(ctx, repo.db.WithContext(ctx)), args)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -25,8 +26,8 @@ func (repo *gormRepository) CreateRoom(args domain.CreateRoomArgs) (*domain.Room
 	return &r, nil
 }
 
-func (repo *gormRepository) UpdateRoom(roomID uuid.UUID, args domain.UpdateRoomArgs) (*domain.Room, error) {
-	room, err := updateRoom(repo.db, roomID, args)
+func (repo *gormRepository) UpdateRoom(ctx context.Context, roomID uuid.UUID, args domain.UpdateRoomArgs) (*domain.Room, error) {
+	room, err := updateRoom(getTx(ctx, repo.db.WithContext(ctx)), roomID, args)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
@@ -34,21 +35,22 @@ func (repo *gormRepository) UpdateRoom(roomID uuid.UUID, args domain.UpdateRoomA
 	return &r, nil
 }
 
-func (repo *gormRepository) UpdateRoomVerified(roomID uuid.UUID, verified bool) error {
-	return updateRoomVerified(repo.db, roomID, verified)
+func (repo *gormRepository) UpdateRoomVerified(ctx context.Context, roomID uuid.UUID, verified bool) error {
+	return updateRoomVerified(getTx(ctx, repo.db.WithContext(ctx)), roomID, verified)
 }
 
-func (repo *gormRepository) DeleteRoom(roomID uuid.UUID) error {
-	return deleteRoom(repo.db, roomID)
+func (repo *gormRepository) DeleteRoom(ctx context.Context, roomID uuid.UUID) error {
+	return deleteRoom(getTx(ctx, repo.db.WithContext(ctx)), roomID)
 }
 
-func (repo *gormRepository) GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
+func (repo *gormRepository) GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*domain.Room, error) {
 	var room *Room
 	var err error
+	tx := getTx(ctx, repo.db.WithContext(ctx))
 	if excludeEventID == uuid.Nil {
-		room, err = getRoom(roomFullPreload(repo.db), roomID)
+		room, err = getRoom(roomFullPreload(tx), roomID)
 	} else {
-		room, err = getRoom(roomExcludeEventPreload(repo.db, excludeEventID), roomID)
+		room, err = getRoom(roomExcludeEventPreload(tx, excludeEventID), roomID)
 	}
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -57,13 +59,14 @@ func (repo *gormRepository) GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) 
 	return &r, nil
 }
 
-func (repo *gormRepository) GetAllRooms(start, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
+func (repo *gormRepository) GetAllRooms(ctx context.Context, start, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
 	var rooms []*Room
 	var err error
+	tx := getTx(ctx, repo.db.WithContext(ctx))
 	if excludeEventID == uuid.Nil {
-		rooms, err = getAllRooms(roomFullPreload(repo.db), start, end)
+		rooms, err = getAllRooms(roomFullPreload(tx), start, end)
 	} else {
-		rooms, err = getAllRooms(roomExcludeEventPreload(repo.db, excludeEventID), start, end)
+		rooms, err = getAllRooms(roomExcludeEventPreload(tx, excludeEventID), start, end)
 	}
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -107,7 +110,7 @@ func createRoom(db *gorm.DB, args domain.CreateRoomArgs) (*Room, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// 時間整合性は service で確認済み
 	return &room, err
 }

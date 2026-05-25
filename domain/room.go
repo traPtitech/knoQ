@@ -184,15 +184,15 @@ type UpdateRoomArgs struct {
 }
 
 type RoomRepository interface {
-	CreateRoom(args CreateRoomArgs) (*Room, error)
+	CreateRoom(ctx context.Context, args CreateRoomArgs) (*Room, error)
 
-	UpdateRoom(roomID uuid.UUID, args UpdateRoomArgs) (*Room, error)
+	UpdateRoom(ctx context.Context, roomID uuid.UUID, args UpdateRoomArgs) (*Room, error)
 
-	UpdateRoomVerified(roomID uuid.UUID, verified bool) error
+	UpdateRoomVerified(ctx context.Context, roomID uuid.UUID, verified bool) error
 
-	DeleteRoom(roomID uuid.UUID) error
+	DeleteRoom(ctx context.Context, roomID uuid.UUID) error
 
-	GetRoom(roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
+	GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
 
-	GetAllRooms(start, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
+	GetAllRooms(ctx context.Context, start, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
 }
