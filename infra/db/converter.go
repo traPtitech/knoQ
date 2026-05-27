@@ -412,6 +412,7 @@ func convTagTodomainTag(src Tag) (dst domain.Tag) {
 }
 func convUserTodomainUser(src User) (dst domain.User) {
 	dst.ID = src.ID
+	dst.Privileged = src.Privilege
 	dst.State = src.State
 	dst.Privileged = src.Privilege
 	dst.Provider = &domain.Provider{
