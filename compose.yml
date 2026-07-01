@@ -37,7 +37,7 @@ services:
           path: ./
 
   db:
-    image: mariadb:10.6.4
+    image: mariadb:10.6.4@sha256:c014ba1efc5dbd711d0520c7762d57807f35549de3414eb31e942a420c8a2ed2
     container_name: knoq_db
     environment:
       MYSQL_ROOT_PASSWORD: password
