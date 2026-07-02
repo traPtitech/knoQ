@@ -59,7 +59,7 @@ func (repo *gormRepository) GetAllGroups(ctx context.Context) ([]*domain.Group, 
 	gs, err := getGroups(cmd.Joins(
 		"LEFT JOIN events ON groups.id = events.group_id "+
 			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
-			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), "", nil)
+			"LEFT JOIN group_admins ON groups.id = group_admins.group_id "), "", nil)
 
 	return ConvSPGroupToSPdomainGroup(gs), defaultErrorHandling(err)
 }
@@ -73,7 +73,7 @@ func (repo *gormRepository) GetBelongGroupIDs(ctx context.Context, userID uuid.U
 	gs, err := getGroups(cmd.Joins(
 		"LEFT JOIN events ON groups.id = events.group_id "+
 			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
-			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), filterFormat, filterArgs)
+			"LEFT JOIN group_admins ON groups.id = group_admins.group_id "), filterFormat, filterArgs)
 
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
@@ -87,7 +87,7 @@ func (repo *gormRepository) GetAdminGroupIDs(ctx context.Context, userID uuid.UU
 	gs, err := getGroups(cmd.Joins(
 		"LEFT JOIN events ON groups.id = events.group_id "+
 			"LEFT JOIN group_members ON groups.id = group_members.group_id "+
-			"LEFT JOIN group_admins On groups.id = group_admins.group_id "), filterFormat, filterArgs)
+			"LEFT JOIN group_admins ON groups.id = group_admins.group_id "), filterFormat, filterArgs)
 
 	return convSPGroupToSuuidUUID(gs), defaultErrorHandling(err)
 }
@@ -194,7 +194,7 @@ func addMemberToGroup(db *gorm.DB, groupID, userID uuid.UUID) error {
 		UserID:  userID,
 	}
 
-	onConflictClause := clause.OnConflict{
+	onConflictClause := clause.ONConflict{
 		DoUpdates: clause.AssignmentColumns([]string{"updated_at", "deleted_at"}),
 	}
 	// groupMemberはhook登録なし
