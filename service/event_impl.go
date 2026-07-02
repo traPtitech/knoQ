@@ -93,26 +93,22 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 
 		// RoomIDの存在を確認 RoomがなくPlaceがあれば新たに作成
 		if params.RoomID == uuid.Nil {
-			if currentEvent.Room.ID != uuid.Nil {
-				p.RoomID = currentEvent.Room.ID
-			} else {
-				if params.Place != "" {
-					roomParams := domain.WriteRoomParams{
-						Place:     params.Place,
-						TimeStart: params.TimeStart,
-						TimeEnd:   params.TimeEnd,
-						Admins:    params.Admins,
-					}
-					// UnVerifiedを仮定
-					var r *domain.Room
-					r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
-					if err != nil {
-						return err
-					}
-					p.RoomID = r.ID
-				} else {
-					return ErrRoomUndefined
+			if params.Place != "" {
+				roomParams := domain.WriteRoomParams{
+					Place:     params.Place,
+					TimeStart: params.TimeStart,
+					TimeEnd:   params.TimeEnd,
+					Admins:    params.Admins,
 				}
+				// UnVerifiedを仮定
+				var r *domain.Room
+				r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
+				if err != nil {
+					return err
+				}
+				p.RoomID = r.ID
+			} else {
+				return ErrRoomUndefined
 			}
 		}
 		var err error
