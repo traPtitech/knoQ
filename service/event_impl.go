@@ -108,7 +108,7 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 				}
 				p.RoomID = r.ID
 			} else {
-				return ErrRoomUndefined
+				return defaultErrorHandling(ErrRoomUndefined)
 			}
 		}
 		var err error
