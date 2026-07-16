@@ -24,7 +24,7 @@ var tables = []interface{}{
 }
 
 type Model struct {
-	CreatedAt time.Time
+	CreatedAt time.Time `gorm:"<-:create"`
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
