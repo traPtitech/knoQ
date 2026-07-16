@@ -91,9 +91,13 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 			CreatedBy:        reqID,
 		}
 
-		// RoomIDの存在を確認 RoomがなくPlaceがあれば新たに作成
+		// RoomIDの存在を確認
 		if params.RoomID == uuid.Nil {
-			if params.Place != "" {
+			// 部屋に変更がない場合はIDそのまま
+			if currentEvent.Room.Place == p.Place && currentEvent.Room.TimeStart.Equal(p.TimeStart) && currentEvent.Room.TimeEnd.Equal(p.TimeEnd) {
+				p.RoomID = currentEvent.Room.ID
+			} else if params.Place != "" {
+				// RoomがなくPlaceがあれば新たに作成
 				roomParams := domain.WriteRoomParams{
 					Place:     params.Place,
 					TimeStart: params.TimeStart,

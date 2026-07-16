@@ -171,7 +171,7 @@ func updateEvent(db *gorm.DB, eventID uuid.UUID, args domain.UpsertEventArgs) (*
 	}
 
 	// 対応する Room, Group はService層で確認済み
-	err = db.Save(&event).Error
+	err = db.Updates(&event).Error
 	if err != nil {
 		return nil, err
 	}
