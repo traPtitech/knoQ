@@ -8,4 +8,3 @@ linters:
     - unused
     - ineffassign
     - gocritic
-    - prealloc
