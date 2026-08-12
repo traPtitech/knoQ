@@ -30,7 +30,7 @@ func createUserMap(users []*domain.User) map[uuid.UUID]*domain.User {
 }
 
 func getDurationFilter(values url.Values) (filters.Expr, error) {
-	start, end, err := presentation.GetTiemRange(values)
+	start, end, err := presentation.GetTimeRange(values)
 	if err != nil {
 		return nil, err
 	}

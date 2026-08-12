@@ -26,7 +26,7 @@ func InitPostEventToTraQ(repo domain.Repository, secret, channelID, webhookID, o
 		now := setTimeFromString(time.Now().In(tz.JST), "06:00:00")
 		tomorrow := now.AddDate(0, 0, 1)
 
-		rooms, _ := repo.GetAllRooms(context.Background(), now, tomorrow, uuid.Nil)
+		rooms, _ := repo.GetAllRooms(context.Background(), now, tomorrow, uuid.Nil, true)
 		expr, err := filters.FilterDuration(now, tomorrow)
 		if err != nil {
 			fmt.Println(err)

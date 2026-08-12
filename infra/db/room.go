@@ -59,14 +59,14 @@ func (repo *gormRepository) GetRoom(ctx context.Context, roomID uuid.UUID, exclu
 	return &r, nil
 }
 
-func (repo *gormRepository) GetAllRooms(ctx context.Context, start, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
+func (repo *gormRepository) GetAllRooms(ctx context.Context, start, end time.Time, excludeEventID uuid.UUID, onlyVerified bool) ([]*domain.Room, error) {
 	var rooms []*Room
 	var err error
 	tx := getTx(ctx, repo.db.WithContext(ctx))
 	if excludeEventID == uuid.Nil {
-		rooms, err = getAllRooms(roomFullPreload(tx), start, end)
+		rooms, err = getAllRooms(roomFullPreload(tx), start, end, onlyVerified)
 	} else {
-		rooms, err = getAllRooms(roomExcludeEventPreload(tx, excludeEventID), start, end)
+		rooms, err = getAllRooms(roomExcludeEventPreload(tx, excludeEventID), start, end, onlyVerified)
 	}
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -165,13 +165,16 @@ func getRoom(db *gorm.DB, roomID uuid.UUID) (*Room, error) {
 	return &room, err
 }
 
-func getAllRooms(db *gorm.DB, start, end time.Time) ([]*Room, error) {
+func getAllRooms(db *gorm.DB, start, end time.Time, onlyVerified bool) ([]*Room, error) {
 	rooms := make([]*Room, 0)
 	if !start.IsZero() {
 		db = db.Where("time_start >= ?", start)
 	}
 	if !end.IsZero() {
 		db = db.Where("time_end <= ?", end)
+	}
+	if onlyVerified {
+		db = db.Where("verified = ?", true)
 	}
 	err := db.Debug().Order("time_start").Find(&rooms).Error
 	return rooms, err

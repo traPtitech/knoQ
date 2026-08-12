@@ -48,6 +48,7 @@ paths:
         - $ref: '#/components/parameters/dateBegin'
         - $ref: '#/components/parameters/dateEnd'
         - $ref: '#/components/parameters/excludeEventID'
+        - $ref: '#/components/parameters/onlyVerified'
       responses:
         '200':
           $ref: '#/components/responses/RoomArray'
@@ -1939,6 +1940,14 @@ components:
       description: ステータスでフィルタ
       schema:
         $ref: '#/components/schemas/DraftEventStatus'
+
+    onlyVerified:
+      name: verified
+      in: query
+      required: false
+      description: verified のみ取得するためのフィルタ
+      schema:
+        type: boolean
 
 externalDocs:
   description: Find out more about Swagger

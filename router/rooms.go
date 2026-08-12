@@ -83,7 +83,8 @@ func (h *Handlers) HandleGetRoom(c echo.Context) error {
 // HandleGetRooms traPで確保した部屋情報を取得
 func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	values := c.QueryParams()
-	start, end, err := presentation.GetTiemRange(values)
+	start, end, err := presentation.GetTimeRange(values)
+	onlyVerified := values.Get("onlyVerified") == "true"
 	if err != nil {
 		return notFound(err)
 	}
@@ -93,7 +94,7 @@ func (h *Handlers) HandleGetRooms(c echo.Context) error {
 	}
 
 	ctx := c.Request().Context()
-	rooms, err := h.Service.GetAllRooms(ctx, start, end, excludeEventID)
+	rooms, err := h.Service.GetAllRooms(ctx, start, end, excludeEventID, onlyVerified)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
