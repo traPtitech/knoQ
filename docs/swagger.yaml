@@ -104,7 +104,7 @@ paths:
       summary: 部屋を確認する
       description: 特権が必要。部屋が使用できることを確認する
       responses:
-        '200':
+        '204':
           description: successful operation
         '400':
           description: Bad Request
@@ -115,7 +115,7 @@ paths:
       summary: 部屋を未確認にする
       description: 特権が必要。部屋が使用できることの確認を取り消す。
       responses:
-        '200':
+        '204':
           description: successful operation
         '403':
           description: Forbidden
