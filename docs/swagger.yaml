@@ -1942,7 +1942,7 @@ components:
         $ref: '#/components/schemas/DraftEventStatus'
 
     onlyVerified:
-      name: verified
+      name: onlyVerified
       in: query
       required: false
       description: verified のみ取得するためのフィルタ
