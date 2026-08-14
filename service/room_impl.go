@@ -117,8 +117,8 @@ func (s *service) GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID 
 	return rs, defaultErrorHandling(err)
 }
 
-func (s *service) GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*domain.Room, error) {
-	rs, err := s.GormRepo.GetAllRooms(ctx, start, end, excludeEventID)
+func (s *service) GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID, onlyVerified bool) ([]*domain.Room, error) {
+	rs, err := s.GormRepo.GetAllRooms(ctx, start, end, excludeEventID, onlyVerified)
 	return rs, defaultErrorHandling(err)
 }
 

@@ -8,7 +8,7 @@ import (
 )
 
 // getTimeRange ?dateBegin=2020-03-27T00:00:00Z
-func GetTiemRange(values url.Values) (start time.Time, end time.Time, err error) {
+func GetTimeRange(values url.Values) (start time.Time, end time.Time, err error) {
 	if values.Get("dateBegin") != "" {
 		start, err = time.Parse(time.RFC3339, values.Get("dateBegin"))
 		if err != nil {

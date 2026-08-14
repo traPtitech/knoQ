@@ -48,6 +48,7 @@ paths:
         - $ref: '#/components/parameters/dateBegin'
         - $ref: '#/components/parameters/dateEnd'
         - $ref: '#/components/parameters/excludeEventID'
+        - $ref: '#/components/parameters/onlyVerified'
       responses:
         '200':
           $ref: '#/components/responses/RoomArray'
@@ -104,7 +105,7 @@ paths:
       summary: 部屋を確認する
       description: 特権が必要。部屋が使用できることを確認する
       responses:
-        '200':
+        '204':
           description: successful operation
         '400':
           description: Bad Request
@@ -115,7 +116,7 @@ paths:
       summary: 部屋を未確認にする
       description: 特権が必要。部屋が使用できることの確認を取り消す。
       responses:
-        '200':
+        '204':
           description: successful operation
         '403':
           description: Forbidden
@@ -1939,6 +1940,14 @@ components:
       description: ステータスでフィルタ
       schema:
         $ref: '#/components/schemas/DraftEventStatus'
+
+    onlyVerified:
+      name: onlyVerified
+      in: query
+      required: false
+      description: verified のみ取得するためのフィルタ
+      schema:
+        type: boolean
 
 externalDocs:
   description: Find out more about Swagger

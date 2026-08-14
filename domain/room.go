@@ -167,7 +167,7 @@ type RoomService interface {
 	DeleteRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
 
 	GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
-	GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
+	GetAllRooms(ctx context.Context, start time.Time, end time.Time, excludeEventID uuid.UUID, onlyVerified bool) ([]*Room, error)
 	IsRoomAdmins(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) bool
 }
 
@@ -194,5 +194,5 @@ type RoomRepository interface {
 
 	GetRoom(ctx context.Context, roomID uuid.UUID, excludeEventID uuid.UUID) (*Room, error)
 
-	GetAllRooms(ctx context.Context, start, end time.Time, excludeEventID uuid.UUID) ([]*Room, error)
+	GetAllRooms(ctx context.Context, start, end time.Time, excludeEventID uuid.UUID, onlyVerified bool) ([]*Room, error)
 }
