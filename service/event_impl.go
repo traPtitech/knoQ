@@ -35,7 +35,7 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 				}
 				// UnVerifiedを仮定
 				var r *domain.Room
-				r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
+				r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams, false, uuid.Nil)
 				if err != nil {
 					return err
 				}
@@ -107,7 +107,7 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 					}
 					// UnVerifiedを仮定
 					var r *domain.Room
-					r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
+					r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams, true, currentEvent.Room.ID)
 					if err != nil {
 						return err
 					}
