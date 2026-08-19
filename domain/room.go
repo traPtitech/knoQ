@@ -145,7 +145,7 @@ func (r *Room) AdminsValidation() bool {
 type WriteRoomParams struct {
 	Place string
 
-	// Verifeid indicates if the room has been verified by privileged users.
+	// Verified indicates if the room has been verified by privileged users.
 	TimeStart time.Time
 	TimeEnd   time.Time
 
@@ -157,7 +157,7 @@ func (r *WriteRoomParams) TimeConsistency() bool {
 }
 
 type RoomService interface {
-	CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)
+	CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams, update bool, oldRoom uuid.UUID) (*Room, error)
 	CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)
 
 	UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID, params WriteRoomParams) (*Room, error)

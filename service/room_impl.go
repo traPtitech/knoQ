@@ -8,7 +8,7 @@ import (
 	"github.com/traPtitech/knoQ/domain"
 )
 
-func (s *service) CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params domain.WriteRoomParams) (*domain.Room, error) {
+func (s *service) CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params domain.WriteRoomParams, update bool, oldRoom uuid.UUID) (*domain.Room, error) {
 	if !params.TimeConsistency() {
 		return nil, ErrTimeConsistency
 	}
@@ -19,7 +19,13 @@ func (s *service) CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, par
 	}
 	var roomResp *domain.Room
 	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
-		var err error
+		var err, err2 error
+		if update {
+			err2 = s.GormRepo.DeleteRoom(ctx, oldRoom)
+			if err2 != nil {
+				return err2
+			}
+		}
 		roomResp, err = s.GormRepo.CreateRoom(ctx, p)
 		return err
 	})
