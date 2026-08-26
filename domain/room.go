@@ -157,7 +157,7 @@ func (r *WriteRoomParams) TimeConsistency() bool {
 
 type RoomService interface {
 	CreateUnVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams, update bool, oldRoom uuid.UUID) (*Room, error)
-	CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams) (*Room, error)
+	CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, params WriteRoomParams, update bool, oldRoom uuid.UUID) (*Room, error)
 
 	UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID, params WriteRoomParams) (*Room, error)
 	VerifyRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.UUID) error
