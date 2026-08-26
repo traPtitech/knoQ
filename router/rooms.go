@@ -49,7 +49,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 			return badRequest(err)
 		}
 
-		room, err := h.Service.CreateVerifiedRoom(ctx, reqID, *params)
+		room, err := h.Service.CreateVerifiedRoom(ctx, reqID, *params, false, uuid.Nil)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
