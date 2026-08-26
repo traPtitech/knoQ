@@ -145,7 +145,6 @@ func (r *Room) AdminsValidation() bool {
 type WriteRoomParams struct {
 	Place string
 
-	// Verified indicates if the room has been verified by privileged users.
 	TimeStart time.Time
 	TimeEnd   time.Time
 
