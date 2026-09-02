@@ -19,7 +19,7 @@ func (h *Handlers) HandlePostRoom(c echo.Context) error {
 	roomParams := presentation.ConvRoomReqTodomainWriteRoomParams(req)
 	ctx := c.Request().Context()
 	reqID := c.Get(userIDKey).(uuid.UUID)
-	room, err := h.Service.CreateUnVerifiedRoom(ctx, reqID, roomParams)
+	room, err := h.Service.CreateUnVerifiedRoom(ctx, reqID, roomParams, false, uuid.Nil)
 	if err != nil {
 		return judgeErrorResponse(err)
 	}
@@ -49,7 +49,7 @@ func (h *Handlers) HandleCreateVerifedRooms(c echo.Context) error {
 			return badRequest(err)
 		}
 
-		room, err := h.Service.CreateVerifiedRoom(ctx, reqID, *params)
+		room, err := h.Service.CreateVerifiedRoom(ctx, reqID, *params, false, uuid.Nil)
 		if err != nil {
 			return judgeErrorResponse(err)
 		}
