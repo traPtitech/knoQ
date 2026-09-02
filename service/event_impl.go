@@ -108,6 +108,9 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 					// UnVerified か Verified かを判定
 					var r *domain.Room
 					if currentEvent.Room.Verified {
+						if !s.IsPrivilege(ctx, reqID) {
+							return domain.ErrForbidden
+						}
 						r, err = s.CreateVerifiedRoom(ctx, reqID, roomParams, true, currentEvent.Room.ID)
 					} else {
 						r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams, true, currentEvent.Room.ID)
