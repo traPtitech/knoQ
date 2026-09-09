@@ -48,6 +48,10 @@ func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, param
 	var roomResp *domain.Room
 	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
 		var err, err2 error
+		room, err3 := s.GormRepo.GetRoom(ctx, oldRoom, uuid.Nil)
+		if err3 != nil {
+			return err3
+		}
 		if update {
 			err2 = s.GormRepo.DeleteRoom(ctx, oldRoom)
 			if err2 != nil {
@@ -55,6 +59,42 @@ func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, param
 			}
 		}
 		roomResp, err = s.GormRepo.CreateRoom(ctx, p)
+		// oldRoom でのイベントの場所をすべて roomResp.ID に置換する
+		events := room.Events
+		for _, e := range events {
+			ead := e.Admins
+			admins := make([]uuid.UUID, len(ead))
+			for i, a := range ead {
+				admins[i] = a.ID
+			}
+			eta := e.Tags
+			tags := make([]domain.EventTagParams, len(eta))
+			for i, t := range eta {
+				tags[i] = domain.EventTagParams{
+					Name:   t.Tag.Name,
+					Locked: t.Locked,
+				}
+			}
+			_, err4 := s.GormRepo.UpdateEvent(ctx, e.ID, domain.UpsertEventArgs{
+				WriteEventParams: domain.WriteEventParams{
+					Name:          e.Name,
+					Description:   e.Description,
+					GroupID:       e.Group.ID,
+					RoomID:        roomResp.ID,
+					Place:         e.Room.Place,
+					TimeStart:     e.TimeStart,
+					TimeEnd:       e.TimeEnd,
+					Admins:        admins,
+					Tags:          tags,
+					AllowTogether: e.AllowTogether,
+					Open:          e.Open,
+				},
+				CreatedBy: e.CreatedBy.ID,
+			})
+			if err4 != nil {
+				return err4
+			}
+		}
 		return err
 	})
 	return roomResp, defaultErrorHandling(err)
