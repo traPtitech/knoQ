@@ -33,7 +33,7 @@ type StartEndTime struct {
 
 type RoomRes struct {
 	ID uuid.UUID `json:"roomId"`
-	// Verifeid indicates if the room has been verified by privileged users.
+	// Verified indicates if the room has been verified by privileged users.
 	Verified bool `json:"verified"`
 	RoomReq
 	FreeTimes   []StartEndTime `json:"freeTimes" cvt:"-"`
