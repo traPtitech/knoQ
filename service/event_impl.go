@@ -35,7 +35,7 @@ func (s *service) CreateEvent(ctx context.Context, reqID uuid.UUID, params domai
 				}
 				// UnVerifiedを仮定
 				var r *domain.Room
-				r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams, false, uuid.Nil)
+				r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
 				if err != nil {
 					return err
 				}
@@ -105,16 +105,9 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 						TimeEnd:   params.TimeEnd,
 						Admins:    params.Admins,
 					}
-					// UnVerified か Verified かを判定
+					// UnVerified を仮定
 					var r *domain.Room
-					if currentEvent.Room.Verified {
-						if !s.IsPrivilege(ctx, reqID) {
-							return domain.ErrForbidden
-						}
-						r, err = s.CreateVerifiedRoom(ctx, reqID, roomParams, true, currentEvent.Room.ID)
-					} else {
-						r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams, true, currentEvent.Room.ID)
-					}
+					r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
 					if err != nil {
 						return err
 					}
