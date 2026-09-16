@@ -43,9 +43,6 @@ func (s *service) CreateVerifiedRoom(ctx context.Context, reqID uuid.UUID, param
 	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
 		var err error
 		roomResp, err = s.GormRepo.CreateRoom(ctx, p)
-		if err != nil {
-			return err
-		}
 		return err
 	})
 	return roomResp, defaultErrorHandling(err)
