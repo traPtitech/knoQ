@@ -56,66 +56,70 @@ func (s *service) UpdateRoom(ctx context.Context, reqID uuid.UUID, roomID uuid.U
 		return nil, domain.ErrForbidden
 	}
 
-	p := domain.CreateRoomArgs{
-		WriteRoomParams: params,
-		Verified:        true,
-		CreatedBy:       reqID,
-	}
-
 	if !params.TimeConsistency() {
 		return nil, ErrTimeConsistency
 	}
 
-	var roomResp *domain.Room
 	var err error
-	room, err3 := s.GormRepo.GetRoom(ctx, roomID, uuid.Nil)
-	if err3 != nil {
-		return nil, defaultErrorHandling(err3)
-	}
-	err2 := s.GormRepo.DeleteRoom(ctx, roomID)
-	if err2 != nil {
-		return nil, defaultErrorHandling(err2)
-	}
-	roomResp, err = s.GormRepo.CreateRoom(ctx, p)
-	if err != nil {
-		return nil, defaultErrorHandling(err)
-	}
-	// oldRoom でのイベントの場所をすべて roomResp.ID に置換する
-	events := room.Events
-	for _, e := range events {
-		ead := e.Admins
-		admins := make([]uuid.UUID, len(ead))
-		for i, a := range ead {
-			admins[i] = a.ID
+	var roomResp *domain.Room
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		var err error
+		room, err3 := s.GormRepo.GetRoom(ctx, roomID, uuid.Nil)
+		if err3 != nil {
+			return err3
 		}
-		eta := e.Tags
-		tags := make([]domain.EventTagParams, len(eta))
-		for i, t := range eta {
-			tags[i] = domain.EventTagParams{
-				Name:   t.Tag.Name,
-				Locked: t.Locked,
+		p := domain.CreateRoomArgs{
+			WriteRoomParams: params,
+			Verified:        room.Verified,
+			CreatedBy:       reqID,
+		}
+		err2 := s.GormRepo.DeleteRoom(ctx, roomID)
+		if err2 != nil {
+			return err2
+		}
+		roomResp, err = s.GormRepo.CreateRoom(ctx, p)
+		if err != nil {
+			return err
+		}
+
+		// oldRoom でのイベントの場所をすべて roomResp.ID に置換する
+		events := room.Events
+		for _, e := range events {
+			ead := e.Admins
+			admins := make([]uuid.UUID, len(ead))
+			for i, a := range ead {
+				admins[i] = a.ID
+			}
+			eta := e.Tags
+			tags := make([]domain.EventTagParams, len(eta))
+			for i, t := range eta {
+				tags[i] = domain.EventTagParams{
+					Name:   t.Tag.Name,
+					Locked: t.Locked,
+				}
+			}
+			_, err4 := s.GormRepo.UpdateEvent(ctx, e.ID, domain.UpsertEventArgs{
+				WriteEventParams: domain.WriteEventParams{
+					Name:          e.Name,
+					Description:   e.Description,
+					GroupID:       e.Group.ID,
+					RoomID:        roomResp.ID,
+					Place:         e.Room.Place,
+					TimeStart:     e.TimeStart,
+					TimeEnd:       e.TimeEnd,
+					Admins:        admins,
+					Tags:          tags,
+					AllowTogether: e.AllowTogether,
+					Open:          e.Open,
+				},
+				CreatedBy: e.CreatedBy.ID,
+			})
+			if err4 != nil {
+				return err4
 			}
 		}
-		_, err4 := s.GormRepo.UpdateEvent(ctx, e.ID, domain.UpsertEventArgs{
-			WriteEventParams: domain.WriteEventParams{
-				Name:          e.Name,
-				Description:   e.Description,
-				GroupID:       e.Group.ID,
-				RoomID:        roomResp.ID,
-				Place:         e.Room.Place,
-				TimeStart:     e.TimeStart,
-				TimeEnd:       e.TimeEnd,
-				Admins:        admins,
-				Tags:          tags,
-				AllowTogether: e.AllowTogether,
-				Open:          e.Open,
-			},
-			CreatedBy: e.CreatedBy.ID,
-		})
-		if err4 != nil {
-			return nil, defaultErrorHandling(err4)
-		}
-	}
+		return err
+	})
 	return roomResp, defaultErrorHandling(err)
 }
 
