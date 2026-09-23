@@ -32,13 +32,13 @@ type DraftEventTagReq struct {
 
 // PUTリクエスト
 type DraftEventReqUpdate struct {
-	Name           string                       `json:"name"`
-	Description    string                       `json:"description"`
-	Deadline       time.Time                    `json:"deadline"`
-	Admins         []uuid.UUID                  `json:"admins"`
-	Invitees       []uuid.UUID                  `json:"invitees"`
-	Open           bool                         `json:"open"`
-	Tags           []DraftEventTagReq           `json:"tags"`
+	Name                     string                       `json:"name"`
+	Description              string                       `json:"description"`
+	Deadline                 time.Time                    `json:"deadline"`
+	Admins                   []uuid.UUID                  `json:"admins"`
+	Invitees                 []uuid.UUID                  `json:"invitees"`
+	Open                     bool                         `json:"open"`
+	Tags                     []DraftEventTagReq           `json:"tags"`
 	AdditionalCandidateSlots []DraftEventCandidateSlotReq `json:"candidateSlots"`
 }
 
@@ -48,7 +48,7 @@ type DraftEventRes struct {
 	Deadline         time.Time   `json:"deadline"`
 	DraftEventStatus string      `json:"status"`
 	RespondedCount   int         `json:"respondedCount"`
-	TotalINvitees    int         `json:"totalInvitees"`
+	TotalInvitees    int         `json:"totalInvitees"`
 	Admins           []uuid.UUID `json:"admins"`
 	Open             bool        `json:"open"`
 	Model
@@ -96,12 +96,35 @@ type DraftEventRespondentSummary struct {
 	Comment     string    `json:"comment"`
 }
 
+var EditabilityToString  = map[domain.DraftEventEditability] string{
+	domain.EventEditable: "open",
+	domain.EventUneditable: "closed",
+}
+
 func ConvdomainDraftEventToDraftEventRes(src domain.DraftEvent) (dst DraftEventRes) {
+	for _,v := range src.Admins {
+		dst.Admins = append(dst.Admins, v.ID)
+	}
+	dst.Deadline = src.DeadLine
+	dst.DraftEventStatus = EditabilityToString[src.Editability]
+	
+	dst.ID = src.ID
+	dst.Name = src.Name
+	dst.Open=src.Open
+
+	dst.Model = Model(src.Model)
+	
+	dst.TotalInvitees = len(src.Invitees)
+
+	dst.RespondedCount = 0
+	dst.RespondedCount
+
+
 
 	return
 }
 
 func ConvdomainDraftEventToDraftEventResDetail(src domain.DraftEvent) (dst DraftEventResDetail) {
-
+	dst.
 	return
 }

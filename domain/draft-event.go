@@ -5,59 +5,70 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/traPtitech/knoQ/domain/filters"
 )
 
-type DraftEventInviteeScheduleStatus int
+type DraftEventEditability int
 const (
-	DraftEventPending = iota + 1
-	DraftEventAvailable
-	DraftEventUnavailable
+	EventEditable DraftEventEditability = iota
+	EventUneditable
+)
+
+type TimeWindowUserStatus int
+const (
+	TimeWindowAvailable TimeWindowUserStatus = iota
+	TimeWindowUnavailable
 )
 
 type DraftEvent struct {
-	ID                 uuid.UUID
-	Name               string
-	Description        string
-	Group              Group
-	Place              string
-	Admins             []User
-	DeadLine           time.Time
-	Tags               []DraftEventTag
-	Invitees           []User
-	Open               bool
+	ID               uuid.UUID
+	Name             string
+	Description      string
+	DeadLine         time.Time
+	Editability      DraftEventEditability
+	Admins           []User
+	Tags             []EventTag
+	Invitees         []User
+	Open             bool
 	TimeWindowStates []TimeWindowInviteeStatus
-	CreatedBy          User
+	CreatedBy        User
 	Model
 }
 
 type DraftEventInviteeStatus struct {
-	TimeWindowID uuid.UUID
-	TimeStart time.Time
-	TimeEnd time.Time
-	InviteesStatus [](User,)
+	TimeWindowID   uuid.UUID
+	TimeStart      time.Time
+	TimeEnd        time.Time
+	InviteesStatus []User
 }
 
-type DraftEventTag struct {
-	Tag    Tag
-	Locked bool
+type TimeWindowInviteeStatus struct {
+	TimeWindowID uuid.UUID
+	UserResponses []TimeWindowUserResponse
 }
+
+type TimeWindowUserResponse struct {
+	UserID uuid.UUID
+	TimeWindowAvailability TimeWindowUserStatus
+}
+
+
+
 
 type WriteDraftEventParams struct {
 	Name        string
 	Description string
-	Group       Group
-	Place       string
-	Admins      []User
-	DeadLine    time.Time
-	Tags        []DraftEventTag
-	Invitees    []User
-	TimeWindows []DraftEventTimeWindow
 	Open        bool
+	DeadLine    time.Time
+	Admins      []User
+	Invitees    []User
+	Tags        []EventTag
+	TimeWindows []DraftEventTimeWindow
 }
 
 type DraftEventTimeWindow struct {
-	TimeStart      time.Time
-	TimeEnd        time.Time
+	TimeStart time.Time
+	TimeEnd   time.Time
 }
 
 type DraftEventService interface {
@@ -65,17 +76,20 @@ type DraftEventService interface {
 	UpdateDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, draftEventParams WriteDraftEventParams) (*DraftEvent, error)
 	DeleteDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID) error
 
-	FinalizeEvent(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID) (*Event, error)
-
 	AddDraftEventTag(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID, tagName string, locked bool) error
 	DeleteDraftEventTag(ctx context.Context, reqID uuid.UUID, draftEventID uuid.UUID) error
 
 	GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*DraftEvent, error)
-	GetDraftEvents(ctx context.Context, draftEventID uuid.UUID) ([]*DraftEvent, error)
+	GetDraftEvents(ctx context.Context, reqesterID uuid.UUID, expr filters.Expr) ([]*DraftEvent, error)
 
-	UpsertMeDraftEventAvailability (ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedulde [])
+	UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedulde []WriteTimeWindowAvailability) error
 
 	IsDraftEventAdmin(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID) bool
+}
+
+type WriteTimeWindowAvailability struct {
+	TimeWindowID uuid.UUID
+	Status       ScheduleStatus
 }
 
 type UpsertDraftEventArgs struct {
@@ -83,12 +97,20 @@ type UpsertDraftEventArgs struct {
 	CreatedBy uuid.UUID
 }
 
+type DraftEventRepogitory interface {
+	CreateDraftEvent(ctx context.Context, args UpsertDraftEventArgs) (*DraftEvent, error)
 
-type DraftEventRepogitory interface{
-	CreateDraftEvent(ctx context.Context, args UpsertDraftEventArgs) (*DraftEvent,error)
+	UpdateDraftEvent(ctx context.Context, draftEventID uuid.UUID, args UpsertDraftEventArgs) (*DraftEvent, error)
 
-	UpdateDraftEvent(ctx context.Context,draftEventID uuid.UUID, args UpsertDraftEventArgs) (*DraftEvent,error)
+	DeleteDraftEvent(ctx context.Context, draftEventID uuid.UUID) error
 
-	DeleteDraftEvent()
+	AddEventTag(ctx context.Context, draftEventID uuid.UUID, params EventTagParams) error
 
+	DeleteEventTag(ctx context.Context, draftEventID uuid.UUID, tagName string, deleteLocked bool) error
+
+	UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, ScheduleStatus []WriteTimeWindowAvailability) error
+
+	GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*DraftEvent, error)
+
+	GetAllDraftEvents(ctx context.Context, expr filters.Expr) ([]*DraftEvent, error)
 }
