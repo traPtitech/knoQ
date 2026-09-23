@@ -105,7 +105,7 @@ func (s *service) UpdateEvent(ctx context.Context, reqID uuid.UUID, eventID uuid
 						TimeEnd:   params.TimeEnd,
 						Admins:    params.Admins,
 					}
-					// UnVerifiedを仮定
+					// UnVerified を仮定
 					var r *domain.Room
 					r, err = s.CreateUnVerifiedRoom(ctx, reqID, roomParams)
 					if err != nil {
