@@ -146,6 +146,7 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 		}
 
 		userName := fmt.Sprintf("@%s", user.Name)
+		userDisplayName := ics.WithCN(user.DisplayName)
 		var ps ics.ParticipationStatus
 		switch v.Schedule {
 		case domain.Attendance:
@@ -155,7 +156,7 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 		default:
 			ps = ics.ParticipationStatusNeedsAction
 		}
-		vevent.AddAttendee(userName, ps)
+		vevent.AddAttendee(userName, ps, userDisplayName)
 	}
 	return vevent
 }
