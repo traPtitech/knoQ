@@ -96,35 +96,62 @@ type DraftEventRespondentSummary struct {
 	Comment     string    `json:"comment"`
 }
 
-var EditabilityToString  = map[domain.DraftEventEditability] string{
-	domain.EventEditable: "open",
+var EditabilityToString = map[domain.DraftEventEditability]string{
+	domain.EventEditable:   "open",
 	domain.EventUneditable: "closed",
 }
 
 func ConvdomainDraftEventToDraftEventRes(src domain.DraftEvent) (dst DraftEventRes) {
-	for _,v := range src.Admins {
+	dst.Admins = make([]uuid.UUID, 0)
+	for _, v := range src.Admins {
 		dst.Admins = append(dst.Admins, v.ID)
 	}
 	dst.Deadline = src.DeadLine
 	dst.DraftEventStatus = EditabilityToString[src.Editability]
-	
+
 	dst.ID = src.ID
 	dst.Name = src.Name
-	dst.Open=src.Open
+	dst.Open = src.Open
 
 	dst.Model = Model(src.Model)
-	
+
 	dst.TotalInvitees = len(src.Invitees)
 
-	dst.RespondedCount = 0
-	dst.RespondedCount
-
-
+	responsCounter := make(map[string]struct{})
+	for _, window := range src.TimeWindowStates {
+		for _, user := range window.UserResponses {
+			responsCounter[user.UserID.String()] = struct{}{}
+		}
+	}
+	dst.RespondedCount = len(responsCounter)
 
 	return
 }
 
 func ConvdomainDraftEventToDraftEventResDetail(src domain.DraftEvent) (dst DraftEventResDetail) {
-	dst.
+	evemtSummary := ConvdomainDraftEventToDraftEventRes(src)
+	dst.ID = evemtSummary.ID
+	dst.Admins = evemtSummary.Admins
+	dst.CreatedAt = evemtSummary.CreatedAt
+	dst.Deadline = evemtSummary.Deadline
+	dst.DraftEventStatus = evemtSummary.DraftEventStatus
+	dst.Model = evemtSummary.Model
+	dst.Name = evemtSummary.Name
+	dst.Open = evemtSummary.Open
+	dst.RespondedCount = evemtSummary.RespondedCount
+	dst.TotalInvitees = evemtSummary.TotalInvitees
+
+	dst.Description = src.Description
+	dst.DraftEventCandidateSlots = make([]DraftEventCandidateSlotRes, 0)
+	for _, window := range src.TimeWindowStates {
+		dst.DraftEventCandidateSlots = append(dst.DraftEventCandidateSlots, ConvDomainTimeWindowToDraftEventCandidateSlotRes(window))
+	}
+	return
+}
+
+func ConvDomainTimeWindowToDraftEventCandidateSlotRes(src domain.TimeWindowInviteeStatus) (dst DraftEventCandidateSlotRes) {
+	dst.ID = src.TimeWindowID
+	dst.TimeStart = src.TimeStart
+	dst.TimeEnd = src.TimeEnd
 	return
 }

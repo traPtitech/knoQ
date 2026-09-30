@@ -9,12 +9,14 @@ import (
 )
 
 type DraftEventEditability int
+
 const (
 	EventEditable DraftEventEditability = iota
 	EventUneditable
 )
 
 type TimeWindowUserStatus int
+
 const (
 	TimeWindowAvailable TimeWindowUserStatus = iota
 	TimeWindowUnavailable
@@ -35,25 +37,17 @@ type DraftEvent struct {
 	Model
 }
 
-type DraftEventInviteeStatus struct {
-	TimeWindowID   uuid.UUID
-	TimeStart      time.Time
-	TimeEnd        time.Time
-	InviteesStatus []User
-}
-
 type TimeWindowInviteeStatus struct {
-	TimeWindowID uuid.UUID
+	TimeWindowID  uuid.UUID
+	TimeStart     time.Time
+	TimeEnd       time.Time
 	UserResponses []TimeWindowUserResponse
 }
 
 type TimeWindowUserResponse struct {
-	UserID uuid.UUID
+	UserID                 uuid.UUID
 	TimeWindowAvailability TimeWindowUserStatus
 }
-
-
-
 
 type WriteDraftEventParams struct {
 	Name        string
