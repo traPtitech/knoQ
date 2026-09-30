@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/traPtitech/knoQ/domain"
 	"github.com/traPtitech/knoQ/utils/tz"
@@ -124,6 +125,16 @@ type EventsResElement struct {
 	Model
 }
 
+func removeControlChars(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			// 負の数を返すとその文字は削除されます
+			return -1
+		}
+		return r
+	}, s)
+}
+
 func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.VEvent {
 	vevent := ics.NewEvent(e.ID.String())
 	vevent.SetDtStampTime(time.Now().UTC())
@@ -131,13 +142,13 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 	vevent.SetEndAt(e.TimeEnd.UTC())
 	vevent.SetCreatedTime(e.CreatedAt.UTC())
 	vevent.SetModifiedAt(e.UpdatedAt.UTC())
-	vevent.SetSummary(e.Name)
+	vevent.SetSummary(removeControlChars(e.Name))
 	e.Description += "\n\n"
 	e.Description += "-----------------------------------\n"
 	e.Description += "イベント詳細ページ\n"
 	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
-	vevent.SetDescription(e.Description)
-	vevent.SetLocation(e.Room.Place)
+	vevent.SetDescription(removeControlChars(e.Description))
+	vevent.SetLocation(removeControlChars(e.Room.Place))
 	vevent.SetOrganizer(e.CreatedBy.DisplayName)
 	for _, v := range e.Attendees {
 		user, ok := userMap[v.UserID]
@@ -146,7 +157,7 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 		}
 
 		userName := fmt.Sprintf("@%s", user.Name)
-		userDisplayName := ics.WithCN(user.DisplayName)
+		userDisplayName := ics.WithCN(removeControlChars(user.DisplayName))
 		var ps ics.ParticipationStatus
 		switch v.Schedule {
 		case domain.Attendance:
