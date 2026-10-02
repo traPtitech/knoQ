@@ -34,7 +34,14 @@ type DraftEvent struct {
 	Open             bool
 	TimeWindowStates []TimeWindowInviteeStatus
 	CreatedBy        User
+	UserComments     []UserComment
 	Model
+}
+
+type UserComment struct {
+	UserID      uuid.UUID
+	CommentedAt time.Time
+	Comment     string
 }
 
 type TimeWindowInviteeStatus struct {

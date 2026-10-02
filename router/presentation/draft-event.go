@@ -76,18 +76,18 @@ type DraftEventCandidateSlotRes struct {
 	TimeEnd   time.Time `json:"timeEnd"`
 }
 
-type DraftEventSchedulingResilts struct {
-	ID      uuid.UUID    `json:"draftEventId"`
-	Results []SlotResult `json:"results"`
+type DraftEventSchedulingResults struct {
+	ID             uuid.UUID                     `json:"draftEventId"`
+	Results        []SlotResult                  `json:"results"`
+	Respondents    []DraftEventRespondentSummary `json:"respondents"`
+	NonRespondents []uuid.UUID                   `json:"nonRespondents"`
 }
 
 type SlotResult struct {
-	ID               uuid.UUID                     `json:"slotId"`
-	AvailableCount   int                           `json:"availableCount"`
-	AvailableUsers   []uuid.UUID                   `json:"availableUsers"`
-	AvailabilityRate float32                       `json:"availabilityRate"`
-	Respondents      []DraftEventRespondentSummary `json:"respondents"`
-	NonRespondents   []uuid.UUID                   `json:"nonRespondents"`
+	ID               uuid.UUID   `json:"slotId"`
+	AvailableCount   int         `json:"availableCount"`
+	AvailableUsers   []uuid.UUID `json:"availableUsers"`
+	AvailabilityRate float32     `json:"availabilityRate"`
 }
 
 type DraftEventRespondentSummary struct {
@@ -153,5 +153,57 @@ func ConvDomainTimeWindowToDraftEventCandidateSlotRes(src domain.TimeWindowInvit
 	dst.ID = src.TimeWindowID
 	dst.TimeStart = src.TimeStart
 	dst.TimeEnd = src.TimeEnd
+	return
+}
+
+func ConvDomainUserCommentToDraftEventRespondentSummary(src domain.UserComment) (dst DraftEventRespondentSummary) {
+	dst.Comment = src.Comment
+	dst.RespondedAt = src.CommentedAt
+	dst.UserID = src.UserID
+	return
+}
+
+func ConvDomainDraftEventToDraftEventSchedulingResults(src domain.DraftEvent) (dst DraftEventSchedulingResults) {
+	dst.ID = src.ID
+
+	nonresponded := make(map[uuid.UUID]struct{})
+	for _, v := range src.Invitees {
+		nonresponded[v.ID] = struct{}{}
+	}
+	for _, window := range src.TimeWindowStates {
+		for _, user := range window.UserResponses {
+			delete(nonresponded, user.UserID)
+		}
+	}
+	dst.NonRespondents = make([]uuid.UUID, 0)
+	for user := range nonresponded {
+		dst.NonRespondents = append(dst.NonRespondents, user)
+	}
+
+	dst.Respondents = make([]DraftEventRespondentSummary, 0)
+	for _, v := range src.UserComments {
+		dst.Respondents = append(dst.Respondents, ConvDomainUserCommentToDraftEventRespondentSummary(v))
+	}
+
+	dst.Results = make([]SlotResult, 0)
+
+	for _, window := range src.TimeWindowStates {
+		availableCount := 0
+		availableUsers := make([]uuid.UUID, 0)
+		for _, resp := range window.UserResponses {
+			if resp.TimeWindowAvailability == domain.TimeWindowAvailable {
+				availableUsers = append(availableUsers, resp.UserID)
+				availableCount += 1
+			}
+		}
+		dst.Results = append(dst.Results,
+			SlotResult{
+				ID:               window.TimeWindowID,
+				AvailableCount:   availableCount,
+				AvailableUsers:   availableUsers,
+				AvailabilityRate: float32(availableCount) / float32(len(src.Invitees)),
+			},
+		)
+	}
 	return
 }
