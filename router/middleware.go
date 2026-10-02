@@ -174,6 +174,14 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 	}
 }
 
+// DraftEventAdminsMiddleware イベント管理ユーザーか判定するミドルウェア
+func (h *Handlers) DraftEventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// TODO: 実装する
+		return next(c)
+	}
+}
+
 // RoomAdminsMiddleware 部屋管理ユーザーか判定するミドルウェア
 func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
