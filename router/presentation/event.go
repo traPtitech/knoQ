@@ -143,11 +143,12 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 	vevent.SetCreatedTime(e.CreatedAt.UTC())
 	vevent.SetModifiedAt(e.UpdatedAt.UTC())
 	vevent.SetSummary(removeControlChars(e.Name))
+	e.Description = removeControlChars(e.Description)
 	e.Description += "\n\n"
 	e.Description += "-----------------------------------\n"
 	e.Description += "イベント詳細ページ\n"
 	e.Description += fmt.Sprintf("%s/events/%v", host, e.ID)
-	vevent.SetDescription(removeControlChars(e.Description))
+	vevent.SetDescription(e.Description)
 	vevent.SetLocation(removeControlChars(e.Room.Place))
 	vevent.SetOrganizer(e.CreatedBy.DisplayName)
 	for _, v := range e.Attendees {
