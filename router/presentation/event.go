@@ -135,6 +135,16 @@ func removeControlChars(s string) string {
 	}, s)
 }
 
+func removeControlCharsExceptLineFeed(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) && r != '\n' {
+			// 負の数を返すとその文字は削除されます
+			return -1
+		}
+		return r
+	}, s)
+}
+
 func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domain.User) *ics.VEvent {
 	vevent := ics.NewEvent(e.ID.String())
 	vevent.SetDtStampTime(time.Now().UTC())
@@ -143,7 +153,7 @@ func iCalVeventFormat(e *domain.Event, host string, userMap map[uuid.UUID]*domai
 	vevent.SetCreatedTime(e.CreatedAt.UTC())
 	vevent.SetModifiedAt(e.UpdatedAt.UTC())
 	vevent.SetSummary(removeControlChars(e.Name))
-	e.Description = removeControlChars(e.Description)
+	e.Description = removeControlCharsExceptLineFeed(e.Description)
 	e.Description += "\n\n"
 	e.Description += "-----------------------------------\n"
 	e.Description += "イベント詳細ページ\n"
