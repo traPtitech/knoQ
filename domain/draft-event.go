@@ -38,11 +38,6 @@ type DraftEvent struct {
 	Model
 }
 
-// Availability Rateの計算に必要
-func (e *DraftEvent) hasInvitee() bool {
-	return len(e.Invitees) >= 1
-}
-
 type UserComment struct {
 	UserID      uuid.UUID
 	CommentedAt time.Time
