@@ -103,6 +103,20 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			}
 		}
 
+		draftEventsAPI:= apiWithAuth.Group("/draft-events")
+		{
+			draftEventsAPI.POST("",h.HandlePostDraftEvent)
+			draftEventsAPI.GET("/:eventid",h.HandleGetDraftEvent)
+			draftEventsAPI.GET("/:eventid/results",h.HandleGetDraftEventResults)
+
+			// イベント管理者権限が必要
+			draftEventsAPIWithAdminAuth := draftEventsAPI.Group("",h.DraftEventAdminsMiddleware)
+			{
+				draftEventsAPIWithAdminAuth.PUT("/:eventid",h.HandleUpdateDraftEvent)
+				draftEventsAPIWithAdminAuth.DELETE("/:eventid",h.HandleDeleteDraftEvent)
+			}
+		}
+
 		roomsAPI := apiWithAuth.Group("/rooms")
 		{
 			roomsAPI.GET("", h.HandleGetRooms)
@@ -127,7 +141,9 @@ func (h *Handlers) SetupRoute() *echo.Echo {
 			usersAPI.PUT("/me/ical", h.HandleUpdateiCal)
 			usersAPI.GET("/me/groups", h.HandleGetMeGroupIDs)
 			usersAPI.GET("/me/events", h.HandleGetMeEvents)
+			usersAPI.GET("/me/draft-events", h.HandleGetMeDraftEvents)
 			usersAPI.GET("/:userid/events", h.HandleGetEventsByUserID)
+			usersAPI.GET("/:userid/draft-events", h.HandleGetDraftEventsByUserID)
 			usersAPI.GET("/:userid/groups", h.HandleGetGroupIDsByUserID)
 
 			// サービス管理者権限が必要

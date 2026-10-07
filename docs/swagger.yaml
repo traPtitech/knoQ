@@ -1472,8 +1472,12 @@ components:
           items:
             $ref: '#/components/schemas/RequestCandidateSlot'
           description: 追加する候補日時の枠
+        admins:
+          $ref: '#/components/schemas/UserIdArray'
         invitees:
           $ref: '#/components/schemas/UserIdArray'
+        tags :
+          $ref: '#/components/schemas/RequestEventTag'
 
     ResponseAvailability:
       type: object
