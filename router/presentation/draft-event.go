@@ -8,6 +8,7 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+// POSTリクエスト
 type DraftEventReqCreate struct {
 	Name           string                       `json:"name"`
 	Description    string                       `json:"description"`
@@ -40,6 +41,11 @@ type DraftEventReqUpdate struct {
 	Open                     bool                         `json:"open"`
 	Tags                     []DraftEventTagReq           `json:"tags"`
 	AdditionalCandidateSlots []DraftEventCandidateSlotReq `json:"candidateSlots"`
+}
+
+type AvailabilityReq struct {
+	AvailableSlots []uuid.UUID `json:"slotIds"`
+	Comment        string      `json:"comment"`
 }
 
 type DraftEventRes struct {
@@ -94,6 +100,14 @@ type DraftEventRespondentSummary struct {
 	UserID      uuid.UUID `json:"userId"`
 	RespondedAt time.Time `json:"respondedAt"`
 	Comment     string    `json:"comment"`
+}
+
+type UserAvailabilityRes struct {
+	UserID         uuid.UUID   `json:"userId"`
+	DraftEventID   uuid.UUID   `json:"draftEventId"`
+	AvailableSlots []uuid.UUID `json:"slotIds"`
+	Comment        string      `json:"comment"`
+	UpdatedAt      time.Time   `json:"updatedAt"`
 }
 
 var EditabilityToString = map[domain.DraftEventEditability]string{
