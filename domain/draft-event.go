@@ -26,7 +26,7 @@ type DraftEvent struct {
 	ID               uuid.UUID
 	Name             string
 	Description      string
-	DeadLine         time.Time
+	Deadline         time.Time
 	Editability      DraftEventEditability
 	Admins           []User
 	Tags             []EventTag
@@ -60,7 +60,7 @@ type WriteDraftEventParams struct {
 	Name        string
 	Description string
 	Open        bool
-	DeadLine    time.Time
+	Deadline    time.Time
 	Admins      []User
 	Invitees    []User
 	Tags        []EventTag
@@ -98,7 +98,7 @@ type UpsertDraftEventArgs struct {
 	CreatedBy uuid.UUID
 }
 
-type DraftEventRepogitory interface {
+type DraftEventRepository interface {
 	CreateDraftEvent(ctx context.Context, args UpsertDraftEventArgs) (*DraftEvent, error)
 
 	UpdateDraftEvent(ctx context.Context, draftEventID uuid.UUID, args UpsertDraftEventArgs) (*DraftEvent, error)
