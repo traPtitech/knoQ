@@ -3,7 +3,7 @@
 #
 # build stage
 #
-FROM --platform=$BUILDPLATFORM golang:1-alpine@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d as builder
+FROM --platform=$BUILDPLATFORM golang:1-alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414 as builder
 
 WORKDIR /app
 
