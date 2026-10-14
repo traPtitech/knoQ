@@ -16,6 +16,7 @@ import (
 type timeTable struct {
 	name           string
 	start          time.Time
+	end            time.Time
 	displayDefault bool
 }
 
@@ -60,15 +61,12 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 
 		ts, te := room.TimeStart, room.TimeEnd
 		for i, row := range timeTables {
-			rowNextStart := setTimeFromString(date, "23:59:59")
-			if i < len(timeTables)-1 {
-				rowNextStart = timeTables[i+1].start
-			}
-
 			rs := row.start
-			// 進捗部屋使用開始 <= n限開始 < 進捗部屋使用終了
+			re := row.end
+
+			// 進捗部屋使用開始 <= 当該時間帯開始 < 進捗部屋使用終了
 			if (ts.Before(rs) || ts.Equal(rs)) && rs.Before(te) {
-				if rowNextStart.Before(te) || rowNextStart.Equal(te) {
+				if re.Before(te) || re.Equal(te) {
 					// n限の間全使用
 					roomAvailable[i][room.Place] = ":white_check_mark:"
 				} else {
@@ -78,9 +76,9 @@ func makeRoomAvailableByTimeTable(rooms []*domain.Room, timeTables []timeTable, 
 				continue
 			}
 
-			// n限開始 < 進捗部屋使用開始 < n+1限開始
-			if rs.Before(ts) && ts.Before(rowNextStart) {
-				if rowNextStart.Before(te) || rowNextStart.Equal(te) {
+			// 当該時間帯開始 < 進捗部屋使用開始 < 当該時間帯終了
+			if rs.Before(ts) && ts.Before(re) {
+				if re.Before(te) || re.Equal(te) {
 					// n限の途中で使用開始し、n限の間は全使用
 					roomAvailable[i][room.Place] = fmt.Sprintf("%s -", ts.Format("15:04"))
 				} else {
@@ -124,14 +122,14 @@ func createMessage(t time.Time, rooms []*domain.Room, events []*domain.Event, or
 			roomMessage = "本日は予約を取っていないようです。\n"
 		} else {
 			timeTables := []timeTable{
-				{":sunny:", setTimeFromString(t, "00:00:00"), false},
-				{"1-2", setTimeFromString(t, "08:50:00"), true},
-				{"3-4", setTimeFromString(t, "10:45:00"), true},
-				{"昼", setTimeFromString(t, "12:25:00"), true},
-				{"5-6", setTimeFromString(t, "13:30:00"), true},
-				{"7-8", setTimeFromString(t, "15:25:00"), true},
-				{"9-10", setTimeFromString(t, "17:15:00"), true},
-				{":crescent_moon:", setTimeFromString(t, "18:55:00"), false},
+				{":sunny:", setTimeFromString(t, "00:00:00"), setTimeFromString(t, "08:50:00"), false},
+				{"1-2", setTimeFromString(t, "08:50:00"), setTimeFromString(t, "10:30:00"), true},
+				{"3-4", setTimeFromString(t, "10:45:00"), setTimeFromString(t, "12:25:00"), true},
+				{"昼", setTimeFromString(t, "12:25:00"), setTimeFromString(t, "13:30:00"), true},
+				{"5-6", setTimeFromString(t, "13:30:00"), setTimeFromString(t, "15:10:00"), true},
+				{"7-8", setTimeFromString(t, "15:25:00"), setTimeFromString(t, "17:05:00"), true},
+				{"9-10", setTimeFromString(t, "17:15:00"), setTimeFromString(t, "18:55:00"), true},
+				{":crescent_moon:", setTimeFromString(t, "18:55:00"), setTimeFromString(t, "23:59:59"), false},
 			}
 			roomAvailable := makeRoomAvailableByTimeTable(rooms, timeTables, t)
 
