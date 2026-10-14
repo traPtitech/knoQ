@@ -120,7 +120,7 @@ func ConvdomainDraftEventToDraftEventRes(src domain.DraftEvent) (dst DraftEventR
 	for _, v := range src.Admins {
 		dst.Admins = append(dst.Admins, v.ID)
 	}
-	dst.Deadline = src.DeadLine
+	dst.Deadline = src.Deadline
 	dst.DraftEventStatus = EditabilityToString[src.Editability]
 
 	dst.ID = src.ID
