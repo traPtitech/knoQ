@@ -85,7 +85,7 @@ type DraftEventService interface {
 
 	UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedulde []WriteTimeWindowAvailability) error
 
-	IsDraftEventAdmin(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID) bool
+	IsDraftEventAdmins(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID) bool
 }
 
 type WriteTimeWindowAvailability struct {
