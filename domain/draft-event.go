@@ -85,7 +85,7 @@ type DraftEventService interface {
 
 	UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedulde []WriteTimeWindowAvailability) error
 
-	IsDraftEventAdmin(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID) bool
+	IsDraftEventAdmins(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID) bool
 }
 
 type WriteTimeWindowAvailability struct {
@@ -109,7 +109,7 @@ type DraftEventRepository interface {
 
 	DeleteEventTag(ctx context.Context, draftEventID uuid.UUID, tagName string, deleteLocked bool) error
 
-	UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, ScheduleStatus []WriteTimeWindowAvailability) error
+	UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, scheduleStatus []WriteTimeWindowAvailability) error
 
 	GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*DraftEvent, error)
 

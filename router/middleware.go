@@ -178,6 +178,19 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 func (h *Handlers) DraftEventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// TODO: 実装する
+		draftEventID, err := getPathDraftEventID(c)
+		if err != nil {
+			return notFound(err)
+		}
+		ctx := c.Request().Context()
+		reqID := c.Get(userIDKey).(uuid.UUID)
+		if !h.Service.IsDraftEventAdmins(ctx, reqID, draftEventID) {
+			return forbidden(
+				errors.New("not createdBy"),
+				message("You are not user by whom this draft event is created."),
+				specification("Only the author can request."),
+			)
+		}
 		return next(c)
 	}
 }
@@ -194,7 +207,7 @@ func (h *Handlers) RoomAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc 
 		if !h.Service.IsRoomAdmins(ctx, reqID, roomID) {
 			return forbidden(
 				errors.New("not createdBy"),
-				message("You are not user by whom this even is created."),
+				message("You are not user by whom this room is created."),
 				specification("Only the author can request."),
 			)
 		}
@@ -263,6 +276,15 @@ func getRequestUserID(c echo.Context) (uuid.UUID, error) {
 	}
 	userID, _ := sess.Values["userID"].(string)
 	return uuid.FromString(userID)
+}
+
+// getPathDraftEventID :drafteventid を返します
+func getPathDraftEventID(c echo.Context) (uuid.UUID, error) {
+	draftEventID, err := uuid.FromString(c.Param("drafteventid"))
+	if err != nil {
+		return uuid.Nil, errors.New("DraftEventID is not uuid")
+	}
+	return draftEventID, nil
 }
 
 // getPathEventID :eventidを返します
