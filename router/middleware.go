@@ -165,7 +165,7 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 		if !h.Service.IsEventAdmins(ctx, reqID, eventID) {
 			return forbidden(
 				errors.New("not createdBy"),
-				message("You are not user by whom this even is created."),
+				message("You are not user by whom this event is created."),
 				specification("Only the author can request."),
 			)
 		}
