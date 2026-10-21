@@ -347,6 +347,11 @@ func convEventTodomainEvent(src Event) (dst domain.Event) {
 	return
 }
 
+func convEventTodomainDraftEvent(src DraftEvent) (dst domain.DraftEvent) {
+	// 変換する
+	return
+}
+
 func convGroupAdminTodomainUser(src GroupAdmin) (dst domain.User) {
 	dst.ID = src.UserID
 	return

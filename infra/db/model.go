@@ -182,3 +182,7 @@ type Event struct {
 	Attendees      []EventAttendee
 	Model          `cvt:"->"`
 }
+
+type DraftEvent struct {
+	// TODO: 中身書く
+}

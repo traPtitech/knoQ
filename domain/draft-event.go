@@ -109,7 +109,7 @@ type DraftEventRepository interface {
 
 	DeleteEventTag(ctx context.Context, draftEventID uuid.UUID, tagName string, deleteLocked bool) error
 
-	UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, ScheduleStatus []WriteTimeWindowAvailability) error
+	UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, scheduleStatus []WriteTimeWindowAvailability) error
 
 	GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*DraftEvent, error)
 

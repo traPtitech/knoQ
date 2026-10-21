@@ -30,14 +30,25 @@ func (repo *gormRepository) DeleteDraftEvent(ctx context.Context, draftEventID u
 	return nil
 }
 
-func (repo *gormRepository) UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, ScheduleStatus []domain.WriteTimeWindowAvailability) error {
+func (repo *gormRepository) UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, scheduleStatus []domain.WriteTimeWindowAvailability) error {
 	return nil
 }
 
 func (repo *gormRepository) GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*domain.DraftEvent, error) {
-	return nil, nil
+	e, err := getDraftEvent(draftEventFullPreload(getTx(ctx, repo.db.WithContext(ctx))), draftEventID)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+	dde := convEventTodomainDraftEvent(*e)
+	return &dde, defaultErrorHandling(err)
 }
 
 func (repo *gormRepository) GetAllDraftEvents(ctx context.Context, expr filters.Expr) ([]*domain.DraftEvent, error) {
 	return []*domain.DraftEvent{}, nil
+}
+
+func getDraftEvent(db *gorm.DB, draftEventID uuid.UUID) (*DraftEvent, error) {
+	draftEvent := DraftEvent{}
+	err := db.Take(&draftEvent, draftEventID).Error
+	return &draftEvent, err
 }
