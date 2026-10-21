@@ -73,7 +73,7 @@ type DraftEventTimeWindow struct {
 }
 
 type DraftEventService interface {
-	CraeteDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventParams WriteDraftEventParams) (*DraftEvent, error)
+	CreateDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventParams WriteDraftEventParams) (*DraftEvent, error)
 	UpdateDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, draftEventParams WriteDraftEventParams) (*DraftEvent, error)
 	DeleteDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID) error
 
