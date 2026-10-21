@@ -18,14 +18,26 @@ func draftEventFullPreload(tx *gorm.DB) *gorm.DB {
 		Preload("CreatedBy")
 }
 
-func (repo *gormRepository) CreateDraftEvent(context.Context, domain.UpsertDraftEventArgs) (*domain.DraftEvent, error)
+func (repo *gormRepository) CreateDraftEvent(context.Context, domain.UpsertDraftEventArgs) (*domain.DraftEvent, error) {
+	return nil, nil
+}
 
-func (repo *gormRepository) UpdateDraftEvent(ctx context.Context, draftEventID uuid.UUID, args domain.UpsertDraftEventArgs) (*domain.DraftEvent, error)
+func (repo *gormRepository) UpdateDraftEvent(ctx context.Context, draftEventID uuid.UUID, args domain.UpsertDraftEventArgs) (*domain.DraftEvent, error) {
+	return nil, nil
+}
 
-func (repo *gormRepository) DeleteDraftEvent(ctx context.Context, draftEventID uuid.UUID) error
+func (repo *gormRepository) DeleteDraftEvent(ctx context.Context, draftEventID uuid.UUID) error {
+	return nil
+}
 
-func (repo *gormRepository) UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, ScheduleStatus []domain.WriteTimeWindowAvailability) error
+func (repo *gormRepository) UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, ScheduleStatus []domain.WriteTimeWindowAvailability) error {
+	return nil
+}
 
-func (repo *gormRepository) GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*domain.DraftEvent, error)
+func (repo *gormRepository) GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*domain.DraftEvent, error) {
+	return nil, nil
+}
 
-func (repo *gormRepository) GetAllDraftEvents(ctx context.Context, expr filters.Expr) ([]*domain.DraftEvent, error)
+func (repo *gormRepository) GetAllDraftEvents(ctx context.Context, expr filters.Expr) ([]*domain.DraftEvent, error) {
+	return []*domain.DraftEvent{}, nil
+}
