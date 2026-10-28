@@ -22,6 +22,7 @@ type TransactionManager interface {
 }
 
 type Service interface {
+	DraftEventService
 	EventService
 	GroupService
 	RoomService
@@ -30,6 +31,7 @@ type Service interface {
 }
 
 type Repository interface {
+	DraftEventRepository
 	EventRepository
 	GroupRepository
 	RoomRepository
