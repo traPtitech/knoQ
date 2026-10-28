@@ -134,7 +134,6 @@ type Tag struct {
 	Model `cvt:"->"`
 }
 
-// EventTag is
 type EventTag struct {
 	TagID   uuid.UUID `gorm:"type:char(36); primaryKey" cvt:"ID"`
 	EventID uuid.UUID `gorm:"type:char(36); primaryKey"`
@@ -157,6 +156,19 @@ type EventAttendee struct {
 	EventID  uuid.UUID `gorm:"type:char(36); primaryKey"`
 	User     User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 	Schedule int
+}
+
+type DraftEventInvitee struct {
+	UserID       uuid.UUID `gorm:"type:char(36); primaryKey"`
+	DraftEventID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	User         User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+}
+
+type UserComment struct {
+	UserID       uuid.UUID `gorm:"type:char(36); primaryKey"`
+	DraftEventID uuid.UUID `gorm:"type:char(36); primaryKey"`
+	User         User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Model        `cvt:"->"`
 }
 
 // Event is event for gorm
@@ -184,5 +196,17 @@ type Event struct {
 }
 
 type DraftEvent struct {
-	// TODO: 中身書く
+	ID             uuid.UUID `gorm:"type:char(36); primaryKey"`
+	Name           string    `gorm:"type:varchar(32); not null"`
+	Description    string    `gorm:"type:TEXT"`
+	CreatedByRefer uuid.UUID `gorm:"type:char(36); not null" cvt:"CreatedBy, <-"`
+	CreatedBy      User      `gorm:"->; foreignKey:CreatedByRefer; constraint:OnDelete:CASCADE;" cvt:"->"`
+	Admins         []EventAdmin
+	Tags           []EventTag
+	Invitees       []DraftEventInvitee
+	Open           bool
+	Deadline       time.Time
+	Editable       bool
+	UserComments   []UserComment
+	Model          `cvt:"->"`
 }
