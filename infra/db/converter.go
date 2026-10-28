@@ -144,6 +144,18 @@ func ConvSPEventToSPdomainEvent(src []*Event) (dst []*domain.Event) {
 	}
 	return
 }
+
+func ConvSPEventToSPdomainDraftEvent(src []*DraftEvent) (dst []*domain.DraftEvent) {
+	dst = make([]*domain.DraftEvent, len(src))
+	for i := range src {
+		if src[i] != nil {
+			dst[i] = new(domain.DraftEvent)
+			(*dst[i]) = convEventTodomainDraftEvent((*src[i]))
+		}
+	}
+	return
+}
+
 func ConvSPGroupMemberToSuuidUUID(src []*GroupMember) (dst []uuid.UUID) {
 	dst = make([]uuid.UUID, len(src))
 	for i := range src {
@@ -311,11 +323,13 @@ func convEventAttendeeTodomainAttendee(src EventAttendee) (dst domain.Attendee) 
 	dst.Schedule = domain.ScheduleStatus(src.Schedule)
 	return
 }
+
 func convEventTagTodomainEventTag(src EventTag) (dst domain.EventTag) {
 	dst.Tag = convTagTodomainTag(src.Tag)
 	dst.Locked = src.Locked
 	return
 }
+
 func convEventTodomainEvent(src Event) (dst domain.Event) {
 	dst.ID = src.ID
 	dst.Name = src.Name
@@ -347,8 +361,40 @@ func convEventTodomainEvent(src Event) (dst domain.Event) {
 	return
 }
 
+func convDraftEventInviteeTodomainUser(src DraftEventInvitee) (dst domain.User) {
+	dst.ID = src.UserID
+	return
+}
+
 func convEventTodomainDraftEvent(src DraftEvent) (dst domain.DraftEvent) {
-	// 変換する
+	dst.ID = src.ID
+	dst.Name = src.Name
+	dst.Description = src.Description
+	dst.Deadline = src.Deadline
+	dst.Editability = domain.EventUneditable
+	if src.Editable {
+		dst.Editability = domain.EventEditable
+	}
+	dst.CreatedBy = convUserTodomainUser(src.CreatedBy)
+	dst.Admins = make([]domain.User, len(src.Admins))
+	for i := range src.Admins {
+		dst.Admins[i] = convEventAdminTodomainUser(src.Admins[i])
+	}
+	dst.Tags = make([]domain.EventTag, len(src.Tags))
+	for i := range src.Tags {
+		dst.Tags[i] = convEventTagTodomainEventTag(src.Tags[i])
+	}
+	dst.Invitees = make([]domain.User, len(src.Invitees))
+	for i := range src.Invitees {
+		dst.Invitees[i] = convDraftEventInviteeTodomainUser(src.Invitees[i])
+	}
+	dst.Open = src.Open
+	dst.TimeWindowStates = make([]domain.TimeWindowInviteeStatus, len(src.Invitees))
+	dst.CreatedAt = src.CreatedAt
+	dst.UpdatedAt = src.UpdatedAt
+	dst.DeletedAt = new(time.Time)
+	(*dst.DeletedAt) = convgormDeletedAtTotimeTime(src.DeletedAt)
+	dst.UserComments = make([]domain.UserComment, len(src.UserComments))
 	return
 }
 
