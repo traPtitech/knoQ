@@ -67,6 +67,15 @@ type WriteDraftEventParams struct {
 	TimeWindows []DraftEventTimeWindow
 }
 
+func (e *WriteDraftEventParams) TimeConsistency() bool {
+	for _, tw := range e.TimeWindows {
+		if !tw.TimeStart.Before(tw.TimeEnd) {
+			return false
+		}
+	}
+	return true
+}
+
 type DraftEventTimeWindow struct {
 	TimeStart time.Time
 	TimeEnd   time.Time
