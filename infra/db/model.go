@@ -167,7 +167,7 @@ type DraftEventInvitee struct {
 type UserComment struct {
 	UserID       uuid.UUID `gorm:"type:char(36); primaryKey"`
 	DraftEventID uuid.UUID `gorm:"type:char(36); primaryKey"`
-	Content      string    `gorm:"type:TEXT"`
+	Comment      string    `gorm:"type:TEXT"`
 	User         User      `gorm:"->; foreignKey:UserID; constraint:OnDelete:CASCADE;" cvt:"->"`
 	Model        `cvt:"->"`
 }
