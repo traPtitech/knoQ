@@ -9,7 +9,28 @@ import (
 )
 
 func (s *service) CreateDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventParams domain.WriteDraftEventParams) (*domain.DraftEvent, error) {
-	return nil, nil
+	if !draftEventParams.TimeConsistency() {
+		return nil, ErrTimeConsistency
+	}
+
+	var draftEventResp *domain.DraftEvent
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		p := domain.UpsertDraftEventArgs{
+			WriteDraftEventParams: draftEventParams,
+			CreatedBy:             requesterID,
+		}
+		var err error
+		draftEventResp, err = s.GormRepo.CreateDraftEvent(ctx, p)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return s.GetDraftEvent(ctx, draftEventResp.ID)
 }
 
 func (s *service) UpdateDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, draftEventParams domain.WriteDraftEventParams) (*domain.DraftEvent, error) {
