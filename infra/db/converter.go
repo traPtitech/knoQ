@@ -145,7 +145,7 @@ func ConvSPEventToSPdomainEvent(src []*Event) (dst []*domain.Event) {
 	return
 }
 
-func ConvSPEventToSPdomainDraftEvent(src []*DraftEvent) (dst []*domain.DraftEvent) {
+func ConvSPDraftEventToSPdomainDraftEvent(src []*DraftEvent) (dst []*domain.DraftEvent) {
 	dst = make([]*domain.DraftEvent, len(src))
 	for i := range src {
 		if src[i] != nil {
