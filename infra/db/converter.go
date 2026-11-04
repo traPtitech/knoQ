@@ -150,7 +150,7 @@ func ConvSPDraftEventToSPdomainDraftEvent(src []*DraftEvent) (dst []*domain.Draf
 	for i := range src {
 		if src[i] != nil {
 			dst[i] = new(domain.DraftEvent)
-			(*dst[i]) = convEventTodomainDraftEvent((*src[i]))
+			(*dst[i]) = convDraftEventTodomainDraftEvent((*src[i]))
 		}
 	}
 	return

@@ -50,11 +50,19 @@ func (s *service) DeleteDraftEventTag(ctx context.Context, reqID uuid.UUID, draf
 }
 
 func (s *service) GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*domain.DraftEvent, error) {
-	return nil, nil
+	draftEvent, err := s.GormRepo.GetDraftEvent(ctx, draftEventID)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+	return draftEvent, nil
 }
 
 func (s *service) GetDraftEvents(ctx context.Context, reqesterID uuid.UUID, expr filters.Expr) ([]*domain.DraftEvent, error) {
-	return []*domain.DraftEvent{}, nil
+	des, err := s.GormRepo.GetAllDraftEvents(ctx, expr)
+	if err != nil {
+		return nil, defaultErrorHandling(err)
+	}
+	return des, nil
 }
 
 func (s *service) UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedulde []domain.WriteTimeWindowAvailability) error {
