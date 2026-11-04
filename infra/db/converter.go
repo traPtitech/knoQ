@@ -366,7 +366,7 @@ func convDraftEventInviteeTodomainUser(src DraftEventInvitee) (dst domain.User) 
 	return
 }
 
-func convEventTodomainDraftEvent(src DraftEvent) (dst domain.DraftEvent) {
+func convDraftEventTodomainDraftEvent(src DraftEvent) (dst domain.DraftEvent) {
 	dst.ID = src.ID
 	dst.Name = src.Name
 	dst.Description = src.Description

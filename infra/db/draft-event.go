@@ -39,7 +39,7 @@ func (repo *gormRepository) GetDraftEvent(ctx context.Context, draftEventID uuid
 	if err != nil {
 		return nil, defaultErrorHandling(err)
 	}
-	dde := convEventTodomainDraftEvent(*e)
+	dde := convDraftEventTodomainDraftEvent(*e)
 	return &dde, defaultErrorHandling(err)
 }
 
@@ -51,4 +51,10 @@ func getDraftEvent(db *gorm.DB, draftEventID uuid.UUID) (*DraftEvent, error) {
 	draftEvent := DraftEvent{}
 	err := db.Take(&draftEvent, draftEventID).Error
 	return &draftEvent, err
+}
+
+func getDraftEvents(db *gorm.DB, query string, args []interface{}) ([]*DraftEvent, error) {
+	draftEvents := make([]*DraftEvent, 0)
+	err := db.Where(query, args...).Group("id").Order("time_start").Find(&draftEvents).Error
+	return draftEvents, err
 }
