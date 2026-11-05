@@ -53,8 +53,10 @@ func getDraftEvent(db *gorm.DB, draftEventID uuid.UUID) (*DraftEvent, error) {
 	return &draftEvent, err
 }
 
+/*
 func getDraftEvents(db *gorm.DB, query string, args []interface{}) ([]*DraftEvent, error) {
 	draftEvents := make([]*DraftEvent, 0)
 	err := db.Where(query, args...).Group("id").Order("time_start").Find(&draftEvents).Error
 	return draftEvents, err
 }
+*/
