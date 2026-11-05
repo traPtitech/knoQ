@@ -34,7 +34,10 @@ func (s *service) CreateDraftEvent(ctx context.Context, requesterID uuid.UUID, d
 		}
 
 		for _, invitee := range draftEventResp.Invitees {
-			s.GormRepo.UpsertDraftEventSchedule(ctx, draftEventResp.ID, invitee.ID, w)
+			err := s.GormRepo.UpsertDraftEventSchedule(ctx, draftEventResp.ID, invitee.ID, w)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
