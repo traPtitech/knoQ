@@ -70,6 +70,21 @@ func (s *service) UpdateDraftEvent(ctx context.Context, requesterID uuid.UUID, d
 		if err != nil {
 			return err
 		}
+
+		w := make([]domain.WriteTimeWindowAvailability, len(draftEventParams.TimeWindows))
+		for i, wd := range draftEventParams.TimeWindows {
+			w[i] = domain.WriteTimeWindowAvailability{
+				TimeWindowID: wd.TimeWindowID,
+				Status:       domain.Pending,
+			}
+		}
+
+		for _, invitee := range draftEventResp.Invitees {
+			err := s.GormRepo.UpsertDraftEventSchedule(ctx, draftEventResp.ID, invitee.ID)
+			if err != nil {
+				return err
+			}
+		}
 		return nil
 	})
 
