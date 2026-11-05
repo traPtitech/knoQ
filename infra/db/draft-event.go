@@ -30,7 +30,7 @@ func (repo *gormRepository) DeleteDraftEvent(ctx context.Context, draftEventID u
 	return nil
 }
 
-func (repo *gormRepository) UpsertDraftEventSchedule(ctx context.Context, drraftEventID uuid.UUID, userID uuid.UUID, scheduleStatus []domain.WriteTimeWindowAvailability) error {
+func (repo *gormRepository) UpsertDraftEventSchedule(ctx context.Context, draftEventID uuid.UUID, userID uuid.UUID, scheduleStatus []domain.WriteTimeWindowAvailability) error {
 	return nil
 }
 
