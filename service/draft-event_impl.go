@@ -25,6 +25,17 @@ func (s *service) CreateDraftEvent(ctx context.Context, requesterID uuid.UUID, d
 			return err
 		}
 
+		w := make([]domain.WriteTimeWindowAvailability, len(draftEventParams.TimeWindows))
+		for i, wd := range draftEventParams.TimeWindows {
+			w[i] = domain.WriteTimeWindowAvailability{
+				TimeWindowID: wd.TimeWindowID,
+				Status:       domain.Pending,
+			}
+		}
+
+		for _, invitee := range draftEventResp.Invitees {
+			s.GormRepo.UpsertDraftEventSchedule(ctx, draftEventResp.ID, invitee.ID, w)
+		}
 		return nil
 	})
 
@@ -127,6 +138,9 @@ func (s *service) UpsertMeDraftEventAvailability(ctx context.Context, requesterI
 	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
 		return s.GormRepo.UpsertDraftEventSchedule(ctx, draftEventID, requesterID, schedule)
 	})
+	if err != nil {
+		return defaultErrorHandling(err)
+	}
 	return nil
 }
 

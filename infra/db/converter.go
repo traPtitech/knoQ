@@ -389,7 +389,7 @@ func convDraftEventTodomainDraftEvent(src DraftEvent) (dst domain.DraftEvent) {
 		dst.Invitees[i] = convDraftEventInviteeTodomainUser(src.Invitees[i])
 	}
 	dst.Open = src.Open
-	dst.TimeWindowStates = make([]domain.TimeWindowInviteeStatus, len(src.Invitees))
+	dst.TimeWindowStates = make([]domain.TimeWindowInviteeStatus, 0)
 	dst.CreatedAt = src.CreatedAt
 	dst.UpdatedAt = src.UpdatedAt
 	dst.DeletedAt = new(time.Time)

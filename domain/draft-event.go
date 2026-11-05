@@ -77,8 +77,9 @@ func (e *WriteDraftEventParams) TimeConsistency() bool {
 }
 
 type DraftEventTimeWindow struct {
-	TimeStart time.Time
-	TimeEnd   time.Time
+	TimeWindowID uuid.UUID
+	TimeStart    time.Time
+	TimeEnd      time.Time
 }
 
 type DraftEventService interface {
