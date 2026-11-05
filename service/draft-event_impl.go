@@ -76,8 +76,8 @@ func (s *service) DeleteDraftEvent(ctx context.Context, requesterID uuid.UUID, d
 	return err
 }
 
-func (s *service) AddDraftEventTag(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID, tagName string, locked bool) error {
-	if locked && !s.IsDraftEventAdmins(ctx, reqesterID, draftEventID) {
+func (s *service) AddDraftEventTag(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, tagName string, locked bool) error {
+	if locked && !s.IsDraftEventAdmins(ctx, requesterID, draftEventID) {
 		return domain.ErrForbidden
 	}
 
@@ -89,8 +89,13 @@ func (s *service) AddDraftEventTag(ctx context.Context, reqesterID uuid.UUID, dr
 	return err
 }
 
-func (s *service) DeleteDraftEventTag(ctx context.Context, reqID uuid.UUID, draftEventID uuid.UUID) error {
-	return nil
+func (s *service) DeleteDraftEventTag(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, tagName string) error {
+	deleteLocked := s.IsDraftEventAdmins(ctx, requesterID, draftEventID)
+
+	err := s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.DeleteEventTag(ctx, draftEventID, tagName, deleteLocked)
+	})
+	return err
 }
 
 func (s *service) GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*domain.DraftEvent, error) {
