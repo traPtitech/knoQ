@@ -116,6 +116,17 @@ func (s *service) GetDraftEvents(ctx context.Context, requesterID uuid.UUID, exp
 }
 
 func (s *service) UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedule []domain.WriteTimeWindowAvailability) error {
+	draftEvent, err := s.GetEvent(ctx, draftEventID)
+	if err != nil {
+		return err
+	}
+	if !draftEvent.Open {
+		return domain.ErrForbidden
+	}
+
+	err = s.TxManager.Do(ctx, func(ctx context.Context) error {
+		return s.GormRepo.UpsertDraftEventSchedule(ctx, draftEventID, requesterID, schedule)
+	})
 	return nil
 }
 
