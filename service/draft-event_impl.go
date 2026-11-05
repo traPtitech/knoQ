@@ -24,6 +24,7 @@ func (s *service) CreateDraftEvent(ctx context.Context, requesterID uuid.UUID, d
 		if err != nil {
 			return err
 		}
+
 		return nil
 	})
 
@@ -106,7 +107,7 @@ func (s *service) GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*d
 	return draftEvent, nil
 }
 
-func (s *service) GetDraftEvents(ctx context.Context, reqesterID uuid.UUID, expr filters.Expr) ([]*domain.DraftEvent, error) {
+func (s *service) GetDraftEvents(ctx context.Context, requesterID uuid.UUID, expr filters.Expr) ([]*domain.DraftEvent, error) {
 	des, err := s.GormRepo.GetAllDraftEvents(ctx, expr)
 	if err != nil {
 		return nil, defaultErrorHandling(err)
@@ -114,17 +115,17 @@ func (s *service) GetDraftEvents(ctx context.Context, reqesterID uuid.UUID, expr
 	return des, nil
 }
 
-func (s *service) UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedulde []domain.WriteTimeWindowAvailability) error {
+func (s *service) UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedule []domain.WriteTimeWindowAvailability) error {
 	return nil
 }
 
-func (s *service) IsDraftEventAdmins(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID) bool {
+func (s *service) IsDraftEventAdmins(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID) bool {
 	draftEvent, err := s.GormRepo.GetDraftEvent(ctx, draftEventID)
 	if err != nil {
 		return false
 	}
 	for _, admin := range draftEvent.Admins {
-		if reqesterID == admin.ID {
+		if requesterID == admin.ID {
 			return true
 		}
 	}
