@@ -86,15 +86,15 @@ type DraftEventService interface {
 	UpdateDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, draftEventParams WriteDraftEventParams) (*DraftEvent, error)
 	DeleteDraftEvent(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID) error
 
-	AddDraftEventTag(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID, tagName string, locked bool) error
-	DeleteDraftEventTag(ctx context.Context, reqID uuid.UUID, draftEventID uuid.UUID) error
+	AddDraftEventTag(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, tagName string, locked bool) error
+	DeleteDraftEventTag(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, tagName string) error
 
 	GetDraftEvent(ctx context.Context, draftEventID uuid.UUID) (*DraftEvent, error)
-	GetDraftEvents(ctx context.Context, reqesterID uuid.UUID, expr filters.Expr) ([]*DraftEvent, error)
+	GetDraftEvents(ctx context.Context, requesterID uuid.UUID, expr filters.Expr) ([]*DraftEvent, error)
 
-	UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedulde []WriteTimeWindowAvailability) error
+	UpsertMeDraftEventAvailability(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID, schedule []WriteTimeWindowAvailability) error
 
-	IsDraftEventAdmins(ctx context.Context, reqesterID uuid.UUID, draftEventID uuid.UUID) bool
+	IsDraftEventAdmins(ctx context.Context, requesterID uuid.UUID, draftEventID uuid.UUID) bool
 }
 
 type WriteTimeWindowAvailability struct {
