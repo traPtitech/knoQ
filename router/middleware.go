@@ -165,11 +165,19 @@ func (h *Handlers) EventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc
 		if !h.Service.IsEventAdmins(ctx, reqID, eventID) {
 			return forbidden(
 				errors.New("not createdBy"),
-				message("You are not user by whom this even is created."),
+				message("You are not user by whom this event is created."),
 				specification("Only the author can request."),
 			)
 		}
 
+		return next(c)
+	}
+}
+
+// DraftEventAdminsMiddleware イベント管理ユーザーか判定するミドルウェア
+func (h *Handlers) DraftEventAdminsMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// TODO: 実装する
 		return next(c)
 	}
 }

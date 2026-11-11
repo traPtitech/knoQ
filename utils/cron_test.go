@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"github.com/traPtitech/knoQ/domain"
 	"reflect"
 	"time"
+
+	"github.com/traPtitech/knoQ/domain"
 
 	"testing"
 )
@@ -11,14 +12,14 @@ import (
 func Test_makeRoomAvailableByTimeTable(t *testing.T) {
 	today := time.Now()
 	tt := []timeTable{
-		{":sunny:", setTimeFromString(today, "00:00:00"), false},
-		{"1-2", setTimeFromString(today, "08:50:00"), true},
-		{"3-4", setTimeFromString(today, "10:45:00"), true},
-		{"昼", setTimeFromString(today, "12:25:00"), true},
-		{"5-6", setTimeFromString(today, "13:30:00"), true},
-		{"7-8", setTimeFromString(today, "15:25:00"), true},
-		{"9-10", setTimeFromString(today, "17:15:00"), true},
-		{":crescent_moon:", setTimeFromString(today, "18:55:00"), false},
+		{":sunny:", setTimeFromString(today, "00:00:00"), setTimeFromString(today, "08:50:00"), false},
+		{"1-2", setTimeFromString(today, "08:50:00"), setTimeFromString(today, "10:30:00"), true},
+		{"3-4", setTimeFromString(today, "10:45:00"), setTimeFromString(today, "12:25:00"), true},
+		{"昼", setTimeFromString(today, "12:25:00"), setTimeFromString(today, "13:30:00"), true},
+		{"5-6", setTimeFromString(today, "13:30:00"), setTimeFromString(today, "15:10:00"), true},
+		{"7-8", setTimeFromString(today, "15:25:00"), setTimeFromString(today, "17:05:00"), true},
+		{"9-10", setTimeFromString(today, "17:15:00"), setTimeFromString(today, "18:55:00"), true},
+		{":crescent_moon:", setTimeFromString(today, "18:55:00"), setTimeFromString(today, "23:59:59"), false},
 	}
 
 	stampAvailable := ":white_check_mark:"
